@@ -6,16 +6,18 @@
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22 <23"
   },
   "scripts": {
-    "bootstrap": "pwsh ./scripts/build/Initialize-PFO.ps1",
-    "validate": "echo \"Repository validation will be implemented.\"",
-    "build": "echo \"Build pipeline will be implemented.\"",
-    "test": "echo \"Test suite will be implemented.\"",
-    "format": "prettier . --write",
-    "lint": "eslint ."
-  },
+  "bootstrap": "pwsh ./scripts/build/Initialize-PFO.ps1",
+  "validate": "pwsh ./scripts/build/Initialize-PFO.ps1 -Validate",
+  "doctor": "pwsh ./scripts/build/Initialize-PFO.ps1 -Doctor",
+  "build": "echo \"Build pipeline will be implemented.\"",
+  "test": "echo \"Test suite will be implemented.\"",
+  "lint": "eslint .",
+  "format": "prettier . --write",
+  "format:check": "prettier . --check"
+},
   "keywords": [
     "pfo",
     "family-office",
@@ -26,6 +28,11 @@
   ],
   "author": "Principal",
   "license": "UNLICENSED",
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/SRSekhar/Personal-Family-Office.git"
+  },
+  "homepage": "https://github.com/SRSekhar/Personal-Family-Office",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
