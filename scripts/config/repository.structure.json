@@ -1,0 +1,96 @@
+{
+  "version": "1.0.0",
+  "description": "PFO OS Repository Structure",
+
+  "directories": [
+    ".github/workflows",
+
+    ".ai",
+
+    "apps/dashboard",
+    "apps/report-generator",
+    "apps/website",
+
+    "packages/core",
+    "packages/models",
+    "packages/shared",
+    "packages/calculators",
+    "packages/analytics",
+    "packages/charts",
+    "packages/prompts",
+
+    "docs/governance",
+    "docs/financial-statements",
+    "docs/investment-analysis",
+    "docs/fire",
+    "docs/insurance",
+    "docs/real-estate",
+    "docs/tax",
+    "docs/annual-reviews",
+    "docs/meeting-minutes",
+    "docs/decisions",
+
+    "data/assets",
+    "data/liabilities",
+    "data/investments",
+    "data/properties",
+    "data/insurance",
+    "data/income",
+    "data/expenses",
+    "data/goals",
+    "data/snapshots",
+
+    "dashboard",
+
+    "reports",
+
+    "templates/annual-review",
+    "templates/investment",
+    "templates/insurance",
+    "templates/property",
+
+    "prompts/chatgpt",
+    "prompts/claude",
+    "prompts/gemini",
+    "prompts/perplexity",
+
+    "scripts/build",
+    "scripts/config",
+    "scripts/internal",
+    "scripts/importers",
+    "scripts/exporters",
+    "scripts/utils",
+
+    "releases",
+    "archive"
+  ],
+
+  "files": [
+    "README.md",
+    "CHANGELOG.md",
+    "ROADMAP.md",
+    "ARCHITECTURE.md",
+    "LICENSE.md",
+
+    ".gitignore",
+    ".editorconfig",
+
+    "package.json",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json",
+
+    "VERSION",
+    "pfo.json",
+    "START_HERE.md",
+
+    ".ai/AI_CONTEXT.md",
+    ".ai/AI_CONTRACT.md",
+    ".ai/PROJECT_STATE.md",
+    ".ai/CURRENT_SPRINT.md",
+    ".ai/HANDOFF.md",
+    ".ai/BACKLOG.md",
+    ".ai/DECISIONS.md",
+    ".ai/GLOSSARY.md",
+    ".ai/PROMPTS.md"
+  ]
+}
