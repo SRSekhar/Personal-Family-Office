@@ -6,7 +6,7 @@ The project follows Semantic Versioning.
 
 ---
 
-# [0.1.0] - Repository Foundation
+# [0.1.0] - Repository Foundation (In Progress)
 
 ## Added
 
@@ -34,9 +34,8 @@ The project follows Semantic Versioning.
 
 ---
 
-## Planned
+## Remaining
 
-- Architecture documentation
-- Roadmap
-- Bootstrap automation
-- TypeScript foundation
+- Repository bootstrap automation
+- Repository validation
+- Initial TypeScript package foundation
