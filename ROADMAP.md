@@ -24,7 +24,7 @@ Deliverables
 
 Completion Criteria
 
-- Initialize-PFO.ps1 completed
+ Repository bootstrap automation completed
 - Repository validation completed
 - Sprint 1 closed
 

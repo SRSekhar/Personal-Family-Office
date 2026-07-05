@@ -89,4 +89,16 @@ Before completing work:
 
 ---
 
+## Documentation Synchronization
+
+Before implementing any feature, AI shall verify that the following documents are mutually consistent:
+
+- PROJECT_STATE.md
+- CURRENT_SPRINT.md
+- HANDOFF.md
+- ROADMAP.md
+- CHANGELOG.md
+
+---
+
 This contract applies to every future AI contributor.
