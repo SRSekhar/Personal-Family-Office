@@ -37,6 +37,11 @@ Build the foundational repository structure, onboarding documentation and engine
 
 ## Deliverables
 
+### Repository Metadata
+
+- pfo.json
+- VERSION
+
 ### AI Foundation
 
 - AI_CONTEXT.md

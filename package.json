@@ -1,14 +1,31 @@
 {
-  "name": "Personal-Family-Office",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "personal-family-office",
+  "version": "0.1.0",
+  "description": "PFO OS - Personal Family Office Operating System",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "bootstrap": "pwsh ./scripts/build/Initialize-PFO.ps1",
+    "validate": "echo \"Repository validation will be implemented.\"",
+    "build": "echo \"Build pipeline will be implemented.\"",
+    "test": "echo \"Test suite will be implemented.\"",
+    "format": "prettier . --write",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "pfo",
+    "family-office",
+    "finance",
+    "wealth-management",
+    "ai",
+    "typescript"
+  ],
+  "author": "Principal",
+  "license": "UNLICENSED",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
@@ -16,7 +33,6 @@
       "onFail": "download"
     }
   },
-  "type": "module",
   "devDependencies": {
     "@types/node": "^26.1.0",
     "eslint": "^10.6.0",

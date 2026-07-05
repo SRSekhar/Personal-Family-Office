@@ -1,9 +1,10 @@
 {
-  "projectName": "PFO OS",
+  "name": "PFO OS",
   "fullName": "Personal Family Office Operating System",
   "repository": "Personal-Family-Office",
   "version": "0.1.0",
   "status": "Active",
+  "repositoryVersion": "0.1.0",
   "branchStrategy": "GitHub Flow",
   "defaultBranch": "main",
   "currentBranch": "feature/platform-foundation",
@@ -14,12 +15,9 @@
   "language": "TypeScript",
   "packageManager": "pnpm",
   "repositoryIsMemory": true,
-  "documentationFirst": false,
   "dataFirst": true,
   "principal": {
     "visibility": "Private"
   },
-  "currentSprint": "Sprint 1",
-  "createdBy": "Principal & ChatGPT",
-  "repositoryVersion": "0.1.0"
+  "currentSprint": "Sprint 1"
 }

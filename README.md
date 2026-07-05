@@ -68,10 +68,11 @@ scripts/
 
 ## Getting Started
 
-1. Read `START_HERE.md`
-2. Read `.ai/AI_CONTEXT.md`
-3. Review `.ai/CURRENT_SPRINT.md`
-4. Follow `.ai/AI_CONTRACT.md`
+1. Read START_HERE.md
+2. Review pfo.json
+3. Read .ai/AI_CONTEXT.md
+4. Review .ai/CURRENT_SPRINT.md
+5. Follow .ai/AI_CONTRACT.md
 
 ---
 

@@ -154,6 +154,23 @@ Refer to:
 
 ---
 
+# Repository Metadata
+
+The repository metadata is stored in:
+
+pfo.json
+
+AI assistants should read this file to determine:
+
+- Current version
+- Branch strategy
+- Repository status
+- Current sprint
+- Architecture
+- Technology stack
+
+---
+
 # Project State
 
 Refer to:
@@ -175,12 +192,13 @@ Refer to:
 Every AI MUST:
 
 1. Read START_HERE.md.
-2. Read this document.
-3. Read PROJECT_STATE.md.
-4. Read CURRENT_SPRINT.md.
-5. Read HANDOFF.md.
-6. Review DECISIONS.md.
-7. Continue only the current sprint.
+2. Read pfo.json.
+3. Read AI_CONTEXT.md.
+4. Read PROJECT_STATE.md.
+5. Read CURRENT_SPRINT.md.
+6. Read HANDOFF.md.
+7. Review DECISIONS.md.
+8. Continue only the current sprint.
 
 ---
 
