@@ -1,23 +1,28 @@
 {
   "name": "PFO OS",
   "fullName": "Personal Family Office Operating System",
-  "repository": "Personal-Family-Office",
-  "version": "0.1.0",
-  "status": "Active",
-  "repositoryVersion": "0.1.0",
-  "branchStrategy": "GitHub Flow",
-  "defaultBranch": "main",
-  "currentBranch": "feature/platform-foundation",
-  "architecture": [
-    "Clean Architecture",
-    "Domain Driven Design"
-  ],
-  "language": "TypeScript",
-  "packageManager": "pnpm",
-  "repositoryIsMemory": true,
-  "dataFirst": true,
-  "principal": {
-    "visibility": "Private"
+  "repository": {
+    "name": "Personal-Family-Office",
+    "visibility": "private",
+    "defaultBranch": "main",
+    "branchStrategy": "GitHub Flow"
   },
-  "currentSprint": "Sprint 1"
+  "version": "0.1.0",
+  "architecture": {
+    "style": [
+      "Clean Architecture",
+      "Domain Driven Design"
+    ],
+    "language": "TypeScript",
+    "packageManager": "pnpm"
+  },
+  "principles": {
+    "repositoryIsMemory": true,
+    "dataIsSourceOfTruth": true,
+    "documentationFirst": true
+  },
+  "project": {
+    "status": "Active Development",
+    "owner": "Principal"
+  }
 }
