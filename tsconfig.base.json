@@ -1,20 +1,80 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "PFO OS Base Configuration",
   "compilerOptions": {
     "target": "ES2023",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+
+    "lib": [
+      "ES2023"
+    ],
+
     "strict": true,
-    "noImplicitAny": true,
+
+    "noEmit": true,
+
+    "allowJs": false,
+    "checkJs": false,
+
+    "declaration": true,
+    "declarationMap": true,
+
+    "sourceMap": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    "resolveJsonModule": true,
+
+    "isolatedModules": true,
+
+    "forceConsistentCasingInFileNames": true,
+
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "esModuleInterop": true,
+
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "sourceMap": true
+
+    "types": [
+      "node"
+    ],
+
+    "baseUrl": ".",
+
+    "paths": {
+      "@pfo/core/*": [
+        "packages/core/src/*"
+      ],
+      "@pfo/shared/*": [
+        "packages/shared/src/*"
+      ],
+      "@pfo/models/*": [
+        "packages/models/src/*"
+      ],
+      "@pfo/calculators/*": [
+        "packages/calculators/src/*"
+      ],
+      "@pfo/analytics/*": [
+        "packages/analytics/src/*"
+      ],
+      "@pfo/charts/*": [
+        "packages/charts/src/*"
+      ],
+      "@pfo/prompts/*": [
+        "packages/prompts/src/*"
+      ]
+    }
   },
+
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "build",
+    "coverage"
   ]
 }

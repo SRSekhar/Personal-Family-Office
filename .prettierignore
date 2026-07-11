@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build Output
+dist/
+build/
+coverage/
+out/
+
+# Reports
+playwright-report/
+test-results/
+reports/generated/
+reports/temp/
+
+# Logs
+logs/
+*.log
+
+# Temporary
+tmp/
+temp/
+.cache/
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# TypeScript
+*.tsbuildinfo
+
+# Archives
+*.zip
+*.7z
+*.tar
+*.gz
