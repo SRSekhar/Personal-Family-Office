@@ -11,9 +11,6 @@
     ],
 
     "strict": true,
-
-    "noEmit": true,
-
     "allowJs": false,
     "checkJs": false,
 
@@ -47,23 +44,50 @@
     "baseUrl": ".",
 
     "paths": {
+      "@pfo/core": [
+        "packages/core/src/index.ts"
+      ],
       "@pfo/core/*": [
         "packages/core/src/*"
+      ],
+
+      "@pfo/shared": [
+        "packages/shared/src/index.ts"
       ],
       "@pfo/shared/*": [
         "packages/shared/src/*"
       ],
+
+      "@pfo/models": [
+        "packages/models/src/index.ts"
+      ],
       "@pfo/models/*": [
         "packages/models/src/*"
+      ],
+
+      "@pfo/calculators": [
+        "packages/calculators/src/index.ts"
       ],
       "@pfo/calculators/*": [
         "packages/calculators/src/*"
       ],
+
+      "@pfo/analytics": [
+        "packages/analytics/src/index.ts"
+      ],
       "@pfo/analytics/*": [
         "packages/analytics/src/*"
       ],
+
+      "@pfo/charts": [
+        "packages/charts/src/index.ts"
+      ],
       "@pfo/charts/*": [
         "packages/charts/src/*"
+      ],
+
+      "@pfo/prompts": [
+        "packages/prompts/src/index.ts"
       ],
       "@pfo/prompts/*": [
         "packages/prompts/src/*"

@@ -17,11 +17,17 @@
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json --watch",
+    "build": "tsc -b",
+    "watch": "tsc -b --watch",
     "lint": "eslint src",
     "format": "prettier src --write",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@pfo/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.3"

@@ -9,6 +9,11 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "ignoreDeprecations": "6.0"
   },
+  "references": [
+    {
+      "path": "../core"
+    }
+  ],
   "include": [
     "src/**/*.ts"
   ],
