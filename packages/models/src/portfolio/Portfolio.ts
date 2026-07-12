@@ -1,9 +1,10 @@
-import { Entity, Identifier } from '@pfo/core';
+import type { Identifier } from '@pfo/core';
+import { Entity } from '@pfo/core';
 
-import { Asset } from '../assets/Asset.js';
-import { Investment } from '../investments/Investment.js';
-import { Liability } from '../liabilities/Liability.js';
-import { Property } from '../properties/Property.js';
+import type { Asset } from '../assets/Asset.js';
+import type { Investment } from '../investments/Investment.js';
+import type { Liability } from '../liabilities/Liability.js';
+import type { Property } from '../properties/Property.js';
 
 export class Portfolio extends Entity {
     public constructor(

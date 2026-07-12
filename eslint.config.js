@@ -32,11 +32,21 @@ export default tseslint.config(
         },
 
         rules: {
-            '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+            '@typescript-eslint/array-type': [
+                'error',
+                {
+                    default: 'array-simple'
+                }
+            ],
+
             '@typescript-eslint/consistent-type-imports': 'error',
+
             '@typescript-eslint/explicit-function-return-type': 'error',
+
             '@typescript-eslint/no-explicit-any': 'error',
+
             '@typescript-eslint/no-floating-promises': 'error',
+
             '@typescript-eslint/no-unused-vars': [
                 'error',
                 {
@@ -44,12 +54,50 @@ export default tseslint.config(
                     varsIgnorePattern: '^_'
                 }
             ],
+
             '@typescript-eslint/prefer-readonly': 'error',
 
             'no-console': 'warn',
+
             'no-debugger': 'error',
-            'eqeqeq': ['error', 'always'],
-            'curly': ['error', 'all']
+
+            'eqeqeq': [
+                'error',
+                'always'
+            ],
+
+            'curly': [
+                'error',
+                'all'
+            ]
+        }
+    },
+    {
+        files: [
+            '**/src/guard/Guard.ts',
+            '**/src/collections/Page.ts'
+        ],
+
+        rules: {
+            '@typescript-eslint/no-extraneous-class': 'off'
+        }
+    },
+    {
+        files: [
+            '**/src/configuration/Configuration.ts'
+        ],
+
+        rules: {
+            '@typescript-eslint/no-unnecessary-type-parameters': 'off'
+        }
+    },
+    {
+        files: [
+            '**/src/logging/Logger.ts'
+        ],
+
+        rules: {
+            'no-console': 'off'
         }
     }
 );

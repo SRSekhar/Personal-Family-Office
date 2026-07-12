@@ -1,4 +1,4 @@
-import { PageRequest } from './PageRequest.js';
+import type { PageRequest } from './PageRequest.js';
 
 export interface Page<T> {
     readonly items: readonly T[];

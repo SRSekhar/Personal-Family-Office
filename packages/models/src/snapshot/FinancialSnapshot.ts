@@ -1,7 +1,8 @@
-import { Entity, Identifier } from '@pfo/core';
+import type { Identifier } from '@pfo/core';
+import { Entity } from '@pfo/core';
 
-import { Money } from '../common/Money.js';
-import { Portfolio } from '../portfolio/Portfolio.js';
+import type { Money } from '../common/Money.js';
+import type { Portfolio } from '../portfolio/Portfolio.js';
 
 export class FinancialSnapshot extends Entity {
     public constructor(

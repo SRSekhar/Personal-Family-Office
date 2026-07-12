@@ -1,4 +1,4 @@
-import { SortDirection } from './SortDirection.js';
+import type { SortDirection } from './SortDirection.js';
 
 export interface PageRequest {
     readonly pageNumber: number;

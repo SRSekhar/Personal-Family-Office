@@ -1,4 +1,4 @@
-import { Identifier } from './Identifier.js';
+import type { Identifier } from './Identifier.js';
 
 export abstract class Entity<TId extends Identifier = Identifier> {
     protected constructor(
@@ -22,6 +22,6 @@ export abstract class Entity<TId extends Identifier = Identifier> {
     }
 
     public toString(): string {
-        return `${this.constructor.name} (${this.id})`;
+        return `${this.constructor.name} (${this.id.toString()})`;
     }
 }

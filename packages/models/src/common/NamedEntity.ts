@@ -1,4 +1,5 @@
-import { Entity, Identifier, Guard } from '@pfo/core';
+import type { Identifier} from '@pfo/core';
+import { Entity, Guard } from '@pfo/core';
 
 export abstract class NamedEntity extends Entity {
     protected constructor(

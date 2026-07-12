@@ -1,4 +1,4 @@
-import { Page } from './Page.js';
+import type { Page } from './Page.js';
 
 export class PagedResult<T> {
     public constructor(

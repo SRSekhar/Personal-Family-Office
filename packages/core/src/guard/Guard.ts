@@ -67,7 +67,7 @@ export class Guard {
     ): Result<number> {
         if (value < minimum || value > maximum) {
             return Result.failure<number>(
-                `${parameterName} must be between ${minimum} and ${maximum}.`
+                `${parameterName} must be between ${String(minimum)} and ${String(maximum)}.`
             );
         }
 

@@ -1,8 +1,8 @@
-import { Identifier } from '@pfo/core';
+import type { Identifier } from '@pfo/core';
 
-import { Money } from '../common/Money.js';
+import type { Money } from '../common/Money.js';
 import { NamedEntity } from '../common/NamedEntity.js';
-import { PropertyType } from './PropertyType.js';
+import type { PropertyType } from './PropertyType.js';
 
 export class Property extends NamedEntity {
     public constructor(

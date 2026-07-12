@@ -22,14 +22,14 @@ export class Dictionary<TKey extends PropertyKey, TValue> {
     }
 
     public keys(): readonly TKey[] {
-        return [...this.items.keys()];
+    return [...this.items.keys()];
     }
 
     public values(): readonly TValue[] {
         return [...this.items.values()];
     }
 
-    public entries(): readonly (readonly [TKey, TValue])[] {
+    public entries(): ReadonlyArray<readonly [TKey, TValue]> {
         return [...this.items.entries()];
     }
 
