@@ -7,8 +7,17 @@
     "composite": true,
     "incremental": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "6.0",
+    "noEmit": false
   },
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../models"
+    }
+  ],
   "include": [
     "src/**/*.ts"
   ],
