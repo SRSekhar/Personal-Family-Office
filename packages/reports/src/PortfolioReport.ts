@@ -198,19 +198,26 @@ function validatePortfolioReport(report: PortfolioReportData): void {
         throw new RangeError('Portfolio report allocations must be an array.');
     }
 
-    for (const allocation of report.allocations) {
-        if (allocation === null ||
-            typeof allocation !== 'object' ||
-            typeof allocation.category !== 'string' ||
-            allocation.category.trim().length === 0 ||
-            !Number.isFinite(allocation.value) ||
-            allocation.value < 0 ||
-            !Number.isFinite(allocation.weight) ||
-            allocation.weight < 0 ||
-            allocation.weight > 1) {
-            throw new RangeError('Portfolio report allocations contain invalid values.');
-        }
+    if (!report.allocations.every(isValidPortfolioReportAllocation)) {
+        throw new RangeError('Portfolio report allocations contain invalid values.');
     }
+}
+
+function isValidPortfolioReportAllocation(value: unknown): value is PortfolioReportAllocation {
+    if (value === null || typeof value !== 'object') {
+        return false;
+    }
+
+    const allocation = value as Record<string, unknown>;
+    return typeof allocation.category === 'string' &&
+        allocation.category.trim().length > 0 &&
+        typeof allocation.value === 'number' &&
+        Number.isFinite(allocation.value) &&
+        allocation.value >= 0 &&
+        typeof allocation.weight === 'number' &&
+        Number.isFinite(allocation.weight) &&
+        allocation.weight >= 0 &&
+        allocation.weight <= 1;
 }
 
 function assertValidDate(name: string, value: Date): void {
