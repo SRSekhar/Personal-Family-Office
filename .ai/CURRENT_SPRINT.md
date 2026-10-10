@@ -38,7 +38,7 @@ The analytics engine is merged and passes CI. The initial report package and sel
 1. Pass CI and full-history secret scan for PR #33; fix all failures before merge.
 2. Add an export-to-file host command only after selecting the app/CLI boundary.
 3. Decide the source-of-truth and persistence approach before building historical snapshot storage.
-4. Complete dependency license/vulnerability inventory and keep the result in the repository.
+4. Complete the dependency license inventory; the new high-severity vulnerability audit now passes and remains a CI gate.
 5. Resolve the open-source license and public/private product boundary before any public framework release.
 
 ## Release-Safety Work Still Open

@@ -15,6 +15,7 @@ The project follows Semantic Versioning.
 - CI workflow for frozen dependency installation, bootstrap checks, lint, typecheck, build, and tests.
 - PowerShell regression tests for WhatIf non-mutation, existing-file preservation, and unsafe path rejection.
 - Security policy and an initial public-repository exposure review.
+- High-severity dependency vulnerability auditing in CI; patched pnpm and test-runner dependencies, refreshed the lockfile, and confirmed the audit reports no known vulnerabilities.
 - Full-history Gitleaks scanning in CI, scheduled weekly and on pull requests.
 - Weekly Dependabot updates for workspace dependencies and GitHub Actions.
 - GitHub Actions pinned to immutable commit SHAs in the CI workflow.
@@ -36,7 +37,7 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow passed for bootstrap safety, CAGR, compound-growth projection, XIRR, net worth, asset allocation, and portfolio analysis. The full-history Gitleaks workflow passed without findings. A separate personal-data review, dependency vulnerability/license inventory, and legal/licensing review remain outstanding.
+The full CI workflow passed for bootstrap safety, CAGR, compound-growth projection, XIRR, net worth, asset allocation, and portfolio analysis. The full-history Gitleaks workflow passed without findings. The automated dependency audit now reports no known vulnerabilities at the configured high-severity threshold. A separate personal-data review, third-party license inventory, and legal/licensing review remain outstanding.
 
 ---
 

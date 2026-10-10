@@ -46,7 +46,7 @@ Recent commit metadata includes an author email address. Commit metadata is publ
 
 ## Not yet performed
 
-- Dependency vulnerability and license inventory.
+- Third-party dependency license inventory and notice obligations. The automated `pnpm audit --audit-level=high` gate now passes with no known vulnerabilities in the current dependency graph.
 - Complete review of every source file, workflow, and test fixture.
 - Review of third-party license and notice obligations.
 - Formal legal review of ownership, licensing, contribution terms, trademarks, financial-services regulatory boundaries, or monetization.
@@ -59,7 +59,7 @@ Before publishing reusable components or inviting broad contributions:
 1. Keep the scheduled full-history secret scan enabled and investigate any future findings; rotate any exposed credentials before history remediation.
 2. Inspect all financial fixtures and reports; replace real data with synthetic data.
 3. Consider removing generated dependencies from history with an explicit force-push and clone-migration plan.
-4. Inventory dependency licenses and vulnerabilities.
+4. Inventory dependency licenses and notice obligations; keep the automated high-severity vulnerability audit enabled.
 5. Choose and apply an explicit license only after the product boundary is agreed.
 6. Keep CI gates for install, build, typecheck, lint, tests, and security checks passing.
 7. Review privacy, disclaimers, and applicable legal obligations with qualified counsel.
