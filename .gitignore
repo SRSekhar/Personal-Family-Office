@@ -15,10 +15,10 @@ yarn-debug.log*
 yarn-error.log*
 
 # ============================================================================
-# Build Output
+# Build Output (root build output only; scripts/build contains source scripts)
 # ============================================================================
 dist/
-build/
+/build/
 coverage/
 out/
 
