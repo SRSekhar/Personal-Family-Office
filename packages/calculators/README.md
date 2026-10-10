@@ -54,8 +54,8 @@ Amounts must be finite; negative values represent outflows and positive values r
 ### Net worth
 
 ```typescript
-import { calculateNetWorth, Currency, Money } from '@pfo/calculators';
-// Currency and Money are exported by @pfo/models in application code.
+import { calculateNetWorth } from '@pfo/calculators';
+import { Currency, Money } from '@pfo/models';
 
 const result = calculateNetWorth({
     currency: Currency.INR,
@@ -72,6 +72,7 @@ Net worth returns total assets, total liabilities, and net worth as `Money` valu
 
 ```typescript
 import { calculateAssetAllocation } from '@pfo/calculators';
+import { Currency, Money } from '@pfo/models';
 
 const allocation = calculateAssetAllocation({
     currency: Currency.INR,
