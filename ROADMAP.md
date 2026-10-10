@@ -72,7 +72,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Executive report
 - Annual review
 - Investment review
-- Self-contained HTML financial summary with deterministic timestamps, XSS-safe rendering, net-worth consistency checks, and defensive allocation validation
+- Self-contained HTML financial summary with deterministic timestamps, XSS-safe rendering, net-worth consistency checks, malformed-payload guards, and allocation value/weight reconciliation
 - PDF, DOCX, and Excel exports remain planned; define the application/CLI boundary before implementing file-export commands
 
 ---
