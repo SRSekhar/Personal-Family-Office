@@ -30,16 +30,16 @@ export function mapPortfolioPositions(
     selections: readonly PortfolioPositionSelection[]
 ): FinancialPosition[] {
     const assetById = new Map<string, Asset>(
-        portfolio.assets.map((item) => [item.id.toString(), item])
+        portfolio.assets.map((item) => [item.id.toString(), item] as const)
     );
     const investmentById = new Map<string, Investment>(
-        portfolio.investments.map((item) => [item.id.toString(), item])
+        portfolio.investments.map((item) => [item.id.toString(), item] as const)
     );
     const propertyById = new Map<string, Property>(
-        portfolio.properties.map((item) => [item.id.toString(), item])
+        portfolio.properties.map((item) => [item.id.toString(), item] as const)
     );
     const liabilityById = new Map<string, Liability>(
-        portfolio.liabilities.map((item) => [item.id.toString(), item])
+        portfolio.liabilities.map((item) => [item.id.toString(), item] as const)
     );
 
     const selectedSources = new Set<string>();
