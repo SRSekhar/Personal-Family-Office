@@ -117,7 +117,7 @@ Implemented and merged (PR #33), with follow-up hardening in PRs #36, #38–#40,
 - Allocation payload validation
 - Allocation values reconcile to total assets and weights sum to one within floating-point tolerance
 
-PR #40 added top-level report field validation; PR #43 added allocation reconciliation. Both merged after CI and full-history secret scanning passed.
+PR #40 added top-level report field validation; PR #43 added allocation reconciliation; PR #45 added root-level license/notice filename detection to the CI inventory. The generated artifact found a root-level license file for all nine flagged dependency versions; file-content and legal review remain open.
 
 Features
 
