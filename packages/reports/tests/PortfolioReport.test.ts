@@ -34,7 +34,7 @@ function makeAnalysis(overrides: Partial<PortfolioAnalysis> = {}): PortfolioAnal
     };
 }
 
-function createReport(analysis = makeAnalysis()) {
+function createReport(analysis: PortfolioAnalysis = makeAnalysis()): ReturnType<typeof createPortfolioReport> {
     return createPortfolioReport({
         analysis,
         asOfDate: new Date('2026-10-01T00:00:00.000Z'),
