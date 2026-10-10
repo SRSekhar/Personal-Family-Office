@@ -4,8 +4,9 @@
  * Personal Family Office Operating System
  * ----------------------------------------------------------------------------
  * Package: @pfo/calculators
- * Description: Public entry point for the Financial calculators package.
+ * Description: Public entry point for deterministic financial calculators.
  * ============================================================================
  */
 
-export {};
+export { calculateCagr } from './Cagr.js';
+export type { CagrInput } from './Cagr.js';
