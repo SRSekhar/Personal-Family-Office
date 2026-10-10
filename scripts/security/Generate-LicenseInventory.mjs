@@ -3,9 +3,15 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import process from 'node:process';
 
 const rootDirectory = process.cwd();
 
+/**
+ * Builds a Markdown inventory from the pnpm virtual store.
+ * @param {string} pnpmStoreDirectory
+ * @returns {Promise<string>}
+ */
 export async function generateLicenseInventory(pnpmStoreDirectory) {
     const snapshotEntries = await readdir(pnpmStoreDirectory, { withFileTypes: true });
     const packages = new Map();
@@ -19,7 +25,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
             if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
                 return;
             }
-            throw new Error(`Unable to read package metadata at ${packageJsonPath}: ${String(error)}`);
+            throw new Error(`Unable to read package metadata at ${packageJsonPath}: ${String(error)}`, { cause: error });
         }
 
         if (typeof packageMetadata.name !== 'string' ||
