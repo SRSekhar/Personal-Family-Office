@@ -1,96 +1,27 @@
-Write-Host ""
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host " Personal Family Office Bootstrap v1.0"
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host ""
-
-$folders = @(
-    ".github/workflows",
-
-    "apps/dashboard",
-    "apps/report-generator",
-    "apps/website",
-
-    "packages/core",
-    "packages/models",
-    "packages/shared",
-    "packages/calculators",
-    "packages/analytics",
-    "packages/charts",
-    "packages/prompts",
-
-    "docs/governance",
-    "docs/financial-statements",
-    "docs/investment-analysis",
-    "docs/fire",
-    "docs/insurance",
-    "docs/real-estate",
-    "docs/tax",
-    "docs/annual-reviews",
-    "docs/meeting-minutes",
-    "docs/decisions",
-
-    "data/assets",
-    "data/liabilities",
-    "data/investments",
-    "data/properties",
-    "data/insurance",
-    "data/income",
-    "data/expenses",
-    "data/goals",
-    "data/snapshots",
-
-    "dashboard",
-
-    "reports/2026",
-    "reports/2027",
-
-    "templates/annual-review",
-    "templates/investment",
-    "templates/insurance",
-    "templates/property",
-
-    "prompts/chatgpt",
-    "prompts/claude",
-    "prompts/gemini",
-    "prompts/perplexity",
-
-    "scripts/build",
-    "scripts/importers",
-    "scripts/exporters",
-    "scripts/utils",
-
-    "releases",
-
-    "archive"
+[CmdletBinding()]
+param(
+    [switch]$Validate,
+    [switch]$Doctor,
+    [string]$RepositoryRoot,
+    [switch]$WhatIf,
+    [switch]$Confirm
 )
 
-foreach ($folder in $folders)
-{
-    New-Item -ItemType Directory -Force -Path $folder | Out-Null
+$entryPoint = Join-Path -Path $PSScriptRoot -ChildPath "scripts/build/Initialize-PFO.ps1"
+
+if (-not (Test-Path -LiteralPath $entryPoint -PathType Leaf)) {
+    Write-Error "PFO bootstrap entry point not found: $entryPoint"
+    exit 1
 }
 
-$files = @(
-    "README.md",
-    "CHANGELOG.md",
-    "ROADMAP.md",
-    "ARCHITECTURE.md",
-    "LICENSE.md",
-    ".gitignore",
-    ".editorconfig",
-    "pnpm-workspace.yaml",
-    "package.json",
-    "tsconfig.base.json"
-)
+$forwardedArguments = @{}
 
-foreach ($file in $files)
-{
-    if (!(Test-Path $file))
-    {
-        New-Item -ItemType File $file | Out-Null
-    }
+if ($Validate) { $forwardedArguments["Validate"] = $true }
+if ($Doctor) { $forwardedArguments["Doctor"] = $true }
+if (-not [string]::IsNullOrWhiteSpace($RepositoryRoot)) {
+    $forwardedArguments["RepositoryRoot"] = $RepositoryRoot
 }
+if ($WhatIf) { $forwardedArguments["WhatIf"] = $true }
+if ($Confirm) { $forwardedArguments["Confirm"] = $true }
 
-Write-Host ""
-Write-Host "Repository initialized successfully." -ForegroundColor Green
-Write-Host ""
+& $entryPoint @forwardedArguments
