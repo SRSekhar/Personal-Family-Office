@@ -16,6 +16,7 @@ The project follows Semantic Versioning.
 - PowerShell regression tests for WhatIf non-mutation, existing-file preservation, and unsafe path rejection.
 - Security policy and an initial public-repository exposure review.
 - High-severity dependency vulnerability auditing in CI; patched pnpm and test-runner dependencies, refreshed the lockfile, and confirmed the audit reports no known vulnerabilities.
+- Dependency license inventory generator and snapshot for 152 npm package versions; 9 entries are flagged for manual review in PR #35.
 - Full-history Gitleaks scanning in CI, scheduled weekly and on pull requests.
 - Weekly Dependabot updates for workspace dependencies and GitHub Actions.
 - GitHub Actions pinned to immutable commit SHAs in the CI workflow.
