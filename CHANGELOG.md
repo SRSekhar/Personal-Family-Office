@@ -27,7 +27,8 @@ The project follows Semantic Versioning.
 - Asset-allocation calculator with category aggregation, deterministic ordering, and validated weights.
 - Portfolio analysis composition and explicit source-record mapping (merged after CI and full-history secret scan passed).
 - Versioned portfolio report model and self-contained offline HTML renderer, with canonical UTC timestamp checks, net-worth consistency validation, defensive top-level/allocation payload validation, and allocation value/weight reconciliation (PRs #33, #36, #38–#40, #43).
-- First-pass upstream evidence review for all nine flagged dependency-license entries; artifact-level review and final legal/redistribution disposition remain open (PR #42).
+- First-pass upstream evidence review for all nine flagged dependency-license entries (PR #42).
+- CI dependency inventory now records root-level license/notice filenames and found a root-level license file for each of the nine flagged versions (PR #45); file-content review and final legal/redistribution disposition remain open.
 
 ## Changed
 
