@@ -19,15 +19,15 @@ function Initialize-RepositoryStructure {
     )
 
     $root = [System.IO.Path]::GetFullPath($RepositoryRoot)
-    $directorySeparator = [System.IO.Path]::DirectorySeparatorChar
     $rootPrefix = $root.TrimEnd([char[]]@(
         [System.IO.Path]::DirectorySeparatorChar,
         [System.IO.Path]::AltDirectorySeparatorChar
-    )) + $directorySeparator
+    )) + [System.IO.Path]::DirectorySeparatorChar
 
     $directoryPaths = [System.Collections.Generic.List[object]]::new()
     $filePaths = [System.Collections.Generic.List[object]]::new()
 
+    # Validate every configured path before touching the filesystem.
     foreach ($relativePath in $Structure.directories) {
         $fullPath = Resolve-RepositoryConfiguredPath -RepositoryRoot $root -RelativePath $relativePath -RootPrefix $rootPrefix
         $directoryPaths.Add([PSCustomObject]@{ Relative = $relativePath; Full = $fullPath })
@@ -46,20 +46,27 @@ function Initialize-RepositoryStructure {
     foreach ($directory in $directoryPaths) {
         if (New-DirectoryIfMissing -Path $directory.Full) {
             $createdDirectories++
-            Write-Success ("Directory created: {0}" -f $directory.Relative)
+            Write-Success ("Directory prepared: {0}" -f $directory.Relative)
         }
     }
 
     foreach ($file in $filePaths) {
         if (New-FileIfMissing -Path $file.Full) {
             $createdFiles++
-            Write-Success ("File created: {0}" -f $file.Relative)
+            Write-Success ("File prepared: {0}" -f $file.Relative)
         }
     }
 
+    $plannedDirectories = if ($WhatIfPreference) { $createdDirectories } else { 0 }
+    $plannedFiles = if ($WhatIfPreference) { $createdFiles } else { 0 }
+    $actualCreatedDirectories = if ($WhatIfPreference) { 0 } else { $createdDirectories }
+    $actualCreatedFiles = if ($WhatIfPreference) { 0 } else { $createdFiles }
+
     [PSCustomObject]@{
-        CreatedDirectories = $createdDirectories
-        CreatedFiles       = $createdFiles
+        CreatedDirectories = $actualCreatedDirectories
+        CreatedFiles       = $actualCreatedFiles
+        PlannedDirectories = $plannedDirectories
+        PlannedFiles       = $plannedFiles
         DirectoryCount     = $directoryPaths.Count
         FileCount          = $filePaths.Count
     }
