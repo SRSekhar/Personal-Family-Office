@@ -1,3 +1,8 @@
 packages:
   - apps/*
   - packages/*
+
+# pnpm 11 blocks dependency lifecycle scripts unless explicitly approved.
+# esbuild is required by the Vitest/Vite toolchain; keep the allowlist narrow.
+allowBuilds:
+  esbuild: true
