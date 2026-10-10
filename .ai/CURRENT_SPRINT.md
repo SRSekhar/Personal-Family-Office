@@ -2,7 +2,7 @@
 
 ## Sprint
 
-Sprint 2 — Analytics Engine
+Sprint 3 — Report Engine
 
 ## Version
 
@@ -10,32 +10,41 @@ Sprint 2 — Analytics Engine
 
 ## Goal
 
-Build a small set of deterministic, testable financial calculations with explicit units, assumptions, and edge-case handling.
+Turn validated, deterministic portfolio analysis into a useful, privacy-conscious report that can be viewed offline.
 
 ## Current Status
 
-CAGR, annual compound-growth projection, XIRR, net worth, and asset allocation pass CI on main. Portfolio mapping and analysis composition are in PR #21 and require a successful full CI run before merge.
+The analytics engine is merged and passes CI. The initial report package and self-contained HTML renderer are being validated in PR #33. Do not merge until the full CI and secret-scan workflows pass.
 
 ## Completed
 
-- Repository foundation and CI quality gates
-- PowerShell bootstrap, validation, doctor, WhatIf non-mutation, no-overwrite, and path-safety tests
-- CAGR calculation and edge-case tests
-- Annual compound-growth projection with contribution-timing tests
-- XIRR solver with dated cash-flow validation, ACT/365 convention, bisection, and ambiguity rejection
-- Net worth totals for assets, liabilities, and net worth using canonical position IDs and explicit currency rules
-- Asset allocation grouped by category with stable output ordering and validated weights
+- Repository foundation, bootstrap, and CI quality gates
+- Scheduled full-history Gitleaks scanning; latest scans passed without findings
+- Dependabot workspace and GitHub Actions updates
+- CAGR, annual compound-growth projection, and XIRR calculators
+- Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
+- Portfolio mapping and analysis composition with duplicate-selection protection
+- CI-passing TypeScript package build, typecheck, lint, and tests
+
+## In Progress
+
+- Serializable portfolio report model
+- Self-contained HTML report with responsive styling, semantic structure, and print layout
+- HTML escaping for dynamic labels and names
+- Tests for deterministic output, invalid data, empty allocations, and XSS safety
 
 ## Next Deliverables
 
-1. Review PR #21 and require full CI to pass before merge.
-2. Add a tested historical net-worth snapshot workflow after persistence and source-of-truth decisions are established.
-3. Complete the dependency vulnerability and license inventory.
-4. Resolve the open-source license and public/private product-boundary decisions before any public framework release.
+1. Pass CI and full-history secret scan for PR #33; fix all failures before merge.
+2. Add an export-to-file host command only after selecting the app/CLI boundary.
+3. Decide the source-of-truth and persistence approach before building historical snapshot storage.
+4. Complete dependency license/vulnerability inventory and keep the result in the repository.
+5. Resolve the open-source license and public/private product boundary before any public framework release.
 
 ## Release-Safety Work Still Open
 
-- Full history scan for secrets and sensitive data
-- License and public/private product-boundary decision
-- Anthropic application submission
+- Dependency license and vulnerability inventory
+- Product licensing and public/private boundary
+- Anthropic application eligibility; the application remains unsubmitted
 - Customer discovery and paid-pilot validation
+- Legal review before any hosted financial product or investment-related recommendations
