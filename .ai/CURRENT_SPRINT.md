@@ -14,7 +14,7 @@ Maintain deterministic, testable portfolio analysis and privacy-conscious offlin
 
 ## Current Status
 
-The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38, and #39 are merged; #37 was closed as superseded. PR #39 adds defensive allocation-payload validation, and PR #40 adds defensive top-level report-model validation. Main CI and full-history secret scanning passed after #40 (merge commit `fd5a90f10f386cbdd63c34221d069b3f932451be`). Nine dependency license entries remain flagged for manual review; inventory metadata is not legal clearance.
+The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, #42, and #43 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps, net-worth arithmetic, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence; all nine dependency entries remain open pending artifact-level and legal review.
 
 ## Completed
 
@@ -24,9 +24,10 @@ The deterministic analytics engine and offline HTML report renderer are merged i
 - CAGR, annual compound-growth projection, and XIRR calculators
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
-- Versioned portfolio report model and self-contained offline HTML renderer
+- Versioned portfolio report model and self-contained offline HTML renderer, with canonical timestamp, net-worth, malformed-payload, and allocation-reconciliation validation
 - TypeScript package build, typecheck, lint, and test gates in CI
 - High-severity dependency vulnerability audit in CI
+- First-pass evidence review for all nine flagged dependency-license entries, with final dispositions intentionally open
 
 ## In Progress
 

@@ -26,7 +26,8 @@ The project follows Semantic Versioning.
 - Net-worth calculator with canonical financial position validation and no implicit currency conversion.
 - Asset-allocation calculator with category aggregation, deterministic ordering, and validated weights.
 - Portfolio analysis composition and explicit source-record mapping (merged after CI and full-history secret scan passed).
-- Versioned portfolio report model and self-contained offline HTML renderer, with canonical UTC timestamp checks, net-worth consistency validation, and defensive validation of allocation and top-level report payloads (PRs #33, #36, #38, #39; PR #40 extends malformed-payload coverage).
+- Versioned portfolio report model and self-contained offline HTML renderer, with canonical UTC timestamp checks, net-worth consistency validation, defensive top-level/allocation payload validation, and allocation value/weight reconciliation (PRs #33, #36, #38–#40, #43).
+- First-pass upstream evidence review for all nine flagged dependency-license entries; artifact-level review and final legal/redistribution disposition remain open (PR #42).
 
 ## Changed
 
@@ -38,7 +39,7 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow and full-history Gitleaks scan passed on main after PR #39 (merge commit 81d39c0d7617fd1b5b51933d406f813e323dc08b). The automated dependency audit reported no known vulnerabilities at the configured high-severity threshold in that run. Nine dependency-license entries still require manual review; a separate personal-data review and project licensing/product-boundary decision remain outstanding. PR #40 merged at `fd5a90f10f386cbdd63c34221d069b3f932451be` after CI and full-history secret scanning passed.
+The full CI workflow and full-history Gitleaks scan passed on main after PR #39 (merge commit 81d39c0d7617fd1b5b51933d406f813e323dc08b). The automated dependency audit reported no known vulnerabilities at the configured high-severity threshold in that run. Nine dependency-license entries still require manual review; a separate personal-data review and project licensing/product-boundary decision remain outstanding. PR #40 merged at `fd5a90f10f386cbdd63c34221d069b3f932451be` after CI and full-history secret scanning passed. PR #43's CI and full-history secret scan passed before merge at `8a39612d5ac1696fdb7390a9f65506c520363320`.
 
 ---
 
