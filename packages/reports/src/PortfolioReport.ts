@@ -42,7 +42,15 @@ export function createPortfolioReport({
     assertValidDate('generatedAt', generatedAt);
 
     if (analysis.currency !== analysis.netWorth.currency ||
-        analysis.currency !== analysis.assetAllocation.currency) {
+        analysis.currency !== analysis.netWorth.totalAssets.currency ||
+        analysis.currency !== analysis.netWorth.totalLiabilities.currency ||
+        analysis.currency !== analysis.netWorth.netWorth.currency ||
+        analysis.currency !== analysis.assetAllocation.currency ||
+        analysis.currency !== analysis.assetAllocation.totalValue.currency ||
+        !Array.isArray(analysis.assetAllocation.allocations) ||
+        !analysis.assetAllocation.allocations.every((allocation) =>
+            allocation.value.currency === analysis.currency
+        )) {
         throw new RangeError('Portfolio analysis results must use one consistent currency.');
     }
 
