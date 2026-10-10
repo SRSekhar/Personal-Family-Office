@@ -184,6 +184,37 @@ describe('renderPortfolioReportHtml', () => {
             .toThrow(/allocations contain invalid values/);
     });
 
+    it('rejects allocation values and weights that do not reconcile', () => {
+        const report = createReport();
+        const inconsistentValues = {
+            ...report,
+            allocations: report.allocations.map((allocation, index) => index === 0
+                ? { ...allocation, value: allocation.value - 1 }
+                : allocation)
+        };
+        const inconsistentWeights = {
+            ...report,
+            allocations: report.allocations.map((allocation, index) => index === 0
+                ? { ...allocation, weight: 0.2 }
+                : { ...allocation, weight: 0.7 })
+        };
+
+        expect(() => renderPortfolioReportHtml(inconsistentValues))
+            .toThrow(/allocation values must equal total assets/);
+        expect(() => renderPortfolioReportHtml(inconsistentWeights))
+            .toThrow(/allocation weights must sum to 1/);
+    });
+
+    it('rejects non-zero assets when the allocation list is empty', () => {
+        const inconsistentReport = {
+            ...createReport(),
+            allocations: []
+        };
+
+        expect(() => renderPortfolioReportHtml(inconsistentReport))
+            .toThrow(/allocation values must equal total assets/);
+    });
+
     it('rejects a serialized report with inconsistent net-worth totals', () => {
         const inconsistentReport = {
             ...createReport(),
@@ -195,10 +226,19 @@ describe('renderPortfolioReportHtml', () => {
     });
 
     it('renders a useful empty state when there are no allocations', () => {
+        const zeroAssets = Money.zero(Currency.INR);
+        const liabilities = new Money(25_000, Currency.INR);
         const analysis = makeAnalysis({
+            positionCount: 1,
+            netWorth: {
+                currency: Currency.INR,
+                totalAssets: zeroAssets,
+                totalLiabilities: liabilities,
+                netWorth: zeroAssets.subtract(liabilities)
+            },
             assetAllocation: {
                 currency: Currency.INR,
-                totalValue: Money.zero(Currency.INR),
+                totalValue: zeroAssets,
                 allocations: []
             }
         });
