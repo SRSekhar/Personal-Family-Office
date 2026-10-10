@@ -4,48 +4,44 @@
 
 PFO OS — Personal Family Office Operating System
 
-## Current Milestone
+## Current State
 
-M1 — Repository Foundation  
-Status: In Progress
+The repository foundation and initial CI are working. The PowerShell bootstrap and initial deterministic calculators are merged to main.
 
-## Current Work
+## Verified CI
 
-- **Epic:** Platform Foundation
-- **Work Order:** WO-001 — Repository Bootstrap
-- **Status:** Implementation in review; PowerShell runtime validation pending
+The bootstrap pull request passed:
+- Frozen pnpm install
+- PowerShell initialization
+- Repository validation
+- Repository doctor
+- ESLint
+- TypeScript typecheck
+- Package build
+- Vitest tests
 
-## Current Implementation
+The CAGR calculator pull request also passed the full CI workflow. The compound-growth projection pull request passed lint, typecheck, build, and tests before merge.
 
-Feature branch feat/bootstrap-validated contains:
+## Implemented Capabilities
 
-- scripts/build/Initialize-PFO.ps1
-- Safe, configuration-driven structure initialization in scripts/internal/Structure.ps1
-- A compatibility wrapper in bootstrap.ps1
-- Local data and report ignore rules
-- Updated bootstrap documentation and project state
-
-## Verified CI Baseline
-
-The main branch's initial TypeScript CI now passes install, lint, typecheck, build, and tests after addressing pnpm 11 build-script approval, JavaScript ESLint type-aware scope, Vitest workspace deprecation, and workspace typecheck ordering.
-
-The bootstrap script has not yet been run. Its behavior still needs a CI step or execution in PowerShell 7.
+- Configuration-driven PowerShell initializer with initialize, validate, doctor, and WhatIf modes.
+- Safe repository-relative path validation and no-overwrite behavior.
+- Git ignore rules for root local financial data and generated reports.
+- Deterministic CAGR calculation.
+- Annual compound-growth projection with beginning/end contribution timing.
 
 ## Immediate Next Steps
 
-1. Trigger CI for this branch against the latest main.
-2. Add PowerShell initialization, validation, and doctor checks to CI after reviewing the script.
-3. Confirm the script never overwrites existing files and rejects unsafe configured paths.
-4. Regenerate pnpm-lock.yaml if needed and switch CI to a frozen install only after verifying lockfile consistency.
-5. Merge only after all relevant CI checks pass.
+1. Add a focused test proving WhatIf does not modify the filesystem.
+2. Implement XIRR with explicit date validation, convergence behavior, and tests.
+3. Complete a full-history secret/sensitive-data scan.
+4. Resolve the public framework/private application split and license choice.
+5. Validate the first paid-user problem before implementing hosted or Pro tiers.
 
 ## Important Constraints
 
-- Do not commit real personal financial data, account statements, credentials, or private reports.
+- Never commit real personal financial data, statements, credentials, or private reports.
 - Do not claim a full security audit has passed.
-- Do not change repository visibility or publish a license without reviewing the product boundary and release risks.
+- Do not change repository visibility or publish a license without an explicit product-boundary decision.
+- Do not claim the Anthropic application was submitted; the current document is a draft.
 - Do not mark a task complete until tests or validation have actually run.
-
-## Known Risks
-
-The current repository is public and does not yet have a valid open-source license. Historical repository content and commit metadata have not been fully scanned. The bootstrap implementation still requires runtime validation.
