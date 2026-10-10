@@ -5,7 +5,7 @@ import {
     type FinancialPositionContext
 } from './FinancialPosition.js';
 
-export interface AssetAllocationInput extends FinancialPositionContext {}
+export type AssetAllocationInput = FinancialPositionContext;
 
 export interface AssetAllocationCategory {
     readonly category: string;
