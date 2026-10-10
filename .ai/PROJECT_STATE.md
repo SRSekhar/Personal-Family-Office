@@ -35,11 +35,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Complete PR #40 after CI and full-history secret scanning pass; fix failures before merge.
-2. Keep the nine dependency-license entries flagged by the inventory under evidence-based manual review; do not infer legal clearance from package metadata.
-3. Define the application/CLI boundary before implementing report-to-file commands, and define persistence/source-of-truth requirements before historical snapshots.
-4. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
-5. Validate a paid-pilot hypothesis with prospective users before investing in paid tiers.
+1. Keep the nine dependency-license entries flagged by the inventory under evidence-based manual review; do not infer legal clearance from package metadata.
+2. Define the application/CLI boundary before implementing report-to-file commands, and define persistence/source-of-truth requirements before historical snapshots.
+3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
+4. Validate a paid-pilot hypothesis with prospective users before investing in paid tiers.
 
 ## Blockers and Risks
 
