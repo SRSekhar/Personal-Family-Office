@@ -38,7 +38,7 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow and full-history Gitleaks scan passed on main after PR #39 (merge commit 81d39c0d7617fd1b5b51933d406f813e323dc08b). The automated dependency audit reported no known vulnerabilities at the configured high-severity threshold in that run. Nine dependency-license entries still require manual review; a separate personal-data review and project licensing/product-boundary decision remain outstanding. PR #40 is the current report-validation increment and must not be marked complete until its checks pass and it is merged.
+The full CI workflow and full-history Gitleaks scan passed on main after PR #39 (merge commit 81d39c0d7617fd1b5b51933d406f813e323dc08b). The automated dependency audit reported no known vulnerabilities at the configured high-severity threshold in that run. Nine dependency-license entries still require manual review; a separate personal-data review and project licensing/product-boundary decision remain outstanding. PR #40 merged at `fd5a90f10f386cbdd63c34221d069b3f932451be` after CI and full-history secret scanning passed.
 
 ---
 
