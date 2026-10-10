@@ -6,6 +6,15 @@ import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
 const rootDirectory = process.cwd();
+const licenseNoticeFilename = /^(license|licence|notice|copying|copyright|patents)(?:[._ -].*)?$/i;
+
+async function findRootLicenseFiles(packageDirectory) {
+    const entries = await readdir(packageDirectory, { withFileTypes: true });
+    return entries
+        .filter((entry) => entry.isFile() && licenseNoticeFilename.test(entry.name))
+        .map((entry) => entry.name)
+        .sort((left, right) => left.localeCompare(right));
+}
 
 /**
  * Builds a Markdown inventory from the pnpm virtual store.
@@ -36,10 +45,12 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         const license = normalizeLicense(packageMetadata.license ?? packageMetadata.licenses);
         const key = `${packageMetadata.name}@${packageMetadata.version}`;
         const packagePath = relative(rootDirectory, packageDirectory).split('\\').join('/');
+        const licenseFiles = await findRootLicenseFiles(packageDirectory);
         const existing = packages.get(key);
 
         if (existing) {
             existing.licenses.add(license);
+            licenseFiles.forEach((file) => existing.licenseFiles.add(file));
             return;
         }
 
@@ -47,6 +58,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
             name: packageMetadata.name,
             version: packageMetadata.version,
             licenses: new Set([license]),
+            licenseFiles: new Set(licenseFiles),
             path: packagePath
         });
     }
@@ -105,6 +117,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
             license: licenses.length > 1
                 ? `CONFLICTING LICENSE METADATA: ${licenses.join(' / ')}`
                 : licenses[0],
+            licenseFiles: [...item.licenseFiles].sort((left, right) => left.localeCompare(right)),
             path: item.path
         };
     }).sort((left, right) => {
@@ -122,7 +135,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         .map(([license, count]) => `| ${escapeMarkdown(license)} | ${count} |`);
 
     const packageRows = rows.map((item) =>
-        `| ${escapeMarkdown(item.name)} | ${escapeMarkdown(item.version)} | ${escapeMarkdown(item.license)} | ${escapeMarkdown(item.path)} |`
+        `| ${escapeMarkdown(item.name)} | ${escapeMarkdown(item.version)} | ${escapeMarkdown(item.license)} | ${escapeMarkdown(item.licenseFiles.length > 0 ? item.licenseFiles.join(', ') : 'NONE FOUND')} | ${escapeMarkdown(item.path)} |`
     );
 
     const commonPermissiveLicenses = new Set([
@@ -145,7 +158,7 @@ Generated: ${new Date().toISOString()}
 
 ## Scope and limitations
 
-This inventory reads package metadata from the installed pnpm dependency store, which is resolved from the repository lockfile in CI. It records each unique npm package name and version and the license metadata declared by that package.
+This inventory reads package metadata from the installed pnpm dependency store, which is resolved from the repository lockfile in CI. It records each unique npm package name and version, declared license metadata, and matching license/notice filenames found at the installed package root. Filename discovery does not inspect file contents or prove that notices are sufficient for redistribution.
 
 This is **not a legal compatibility determination**. License metadata may be missing, incomplete, inaccurate, dual-licensed, or require a separate license/NOTICE file. This inventory does not include the repository's own license decision, GitHub Actions, Node.js, the pnpm executable, operating-system components, or non-npm assets. Review package license texts and notice obligations before redistribution or commercial release.
 
@@ -160,8 +173,8 @@ ${summaryRows.join('\n')}
 
 ## Package inventory
 
-| Package | Version | License metadata | Installed package path |
-| --- | --- | --- | --- |
+| Package | Version | License metadata | Root license/notice files | Installed package path |
+| --- | --- | --- | --- | --- |
 ${packageRows.join('\n')}
 `;
     
