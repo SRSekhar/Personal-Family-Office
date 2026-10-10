@@ -12,17 +12,22 @@ The project follows Semantic Versioning.
 
 - Configuration-driven PowerShell repository initializer with initialize, validate, doctor, and WhatIf modes.
 - Safe path validation for configured repository paths.
-- Ignore rules for local financial data and generated reports.
+- CI workflow for frozen dependency installation, bootstrap checks, lint, typecheck, build, and tests.
+- Security policy and an initial public-repository exposure review.
+- Deterministic CAGR calculator with input validation and edge-case tests.
+- Annual compound-growth projection with explicit contribution timing and validation.
 
 ## Changed
 
 - The legacy bootstrap.ps1 entry point delegates to the configured initializer.
-- Repository structure validation includes the initializer entry point.
-- Bootstrap documentation describes supported operations and safety boundaries.
+- Root build and typecheck commands execute workspace dependencies in the correct order.
+- Vitest configuration migrated from the deprecated workspace API to the projects configuration.
+- The currency test filename now uses the TypeScript test extension.
+- Git ignores root local financial data and generated reports.
 
 ## Validation status
 
-The implementation has not yet been executed in a local PowerShell environment. CI or a clean-checkout validation is required before this change is considered complete.
+The bootstrap PR passed the full CI workflow, including PowerShell initialization, validation, and doctor. The CAGR and compound-growth changes also passed their pull-request CI checks. A full historical secret scan and legal/licensing review remain outstanding.
 
 ---
 
@@ -51,5 +56,6 @@ The implementation has not yet been executed in a local PowerShell environment. 
 
 ## Remaining
 
-- Bootstrap validation from a clean checkout
-- Initial TypeScript package foundation
+- Explicit WhatIf regression coverage
+- Full historical secret and sensitive-data scan
+- Product-boundary and licensing decisions
