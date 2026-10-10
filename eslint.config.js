@@ -9,7 +9,8 @@ export default tseslint.config(
             '**/dist/**',
             '**/build/**',
             '**/coverage/**',
-            '**/*.d.ts'
+            '**/*.d.ts',
+            '**/*.d.mts'
         ]
     },
 
