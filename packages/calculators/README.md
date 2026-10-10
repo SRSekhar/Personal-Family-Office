@@ -51,10 +51,41 @@ const annualizedReturn = calculateXirr([
 
 Amounts must be finite; negative values represent outflows and positive values represent inflows. Dates must be valid Date objects. The solver uses ACT/365 day fractions and bisection. To avoid silently selecting among multiple possible roots, the current implementation requires exactly one sign change after netting cash flows on the same date. Cash-flow streams with multiple sign changes are rejected rather than assigned a potentially ambiguous return.
 
+### Net worth
+
+```typescript
+import { calculateNetWorth, Currency, Money } from '@pfo/calculators';
+// Currency and Money are exported by @pfo/models in application code.
+
+const result = calculateNetWorth({
+    currency: Currency.INR,
+    positions: [
+        { id: 'cash-account-1', kind: 'asset', category: 'Cash', value: new Money(100_000) },
+        { id: 'home-loan-1', kind: 'liability', category: 'Loans', value: new Money(25_000) }
+    ]
+});
+```
+
+Net worth returns total assets, total liabilities, and net worth as `Money` values. Every position must have a unique, stable canonical ID, a non-empty category, a non-negative value, and the requested currency. The calculator does not convert currencies or infer whether different source records represent the same economic holding. The caller must map each holding once and explicitly convert amounts before aggregation.
+
+### Asset allocation
+
+```typescript
+import { calculateAssetAllocation } from '@pfo/calculators';
+
+const allocation = calculateAssetAllocation({
+    currency: Currency.INR,
+    positions: [
+        { id: 'cash-account-1', kind: 'asset', category: 'Cash', value: new Money(25_000) },
+        { id: 'equity-fund-1', kind: 'asset', category: 'Equity', value: new Money(75_000) }
+    ]
+});
+```
+
+Asset allocation groups asset positions by their supplied category and returns each category's value and weight as a fraction from 0 to 1. Liability positions are validated but excluded from allocation. Category names are trimmed and output is sorted deterministically. No asset positions returns an empty allocation; asset positions with a zero total are rejected because weights would be undefined.
+
 ## Planned capabilities
 
-- Net worth calculations
-- Asset allocation
 - FIRE and retirement projections
 - Loan amortization
 - Tax estimation
@@ -69,11 +100,16 @@ src/
     Cagr.ts
     CompoundGrowth.ts
     Xirr.ts
+    FinancialPosition.ts
+    NetWorth.ts
+    AssetAllocation.ts
     index.ts
 tests/
     Cagr.test.ts
     CompoundGrowth.test.ts
     Xirr.test.ts
+    NetWorth.test.ts
+    AssetAllocation.test.ts
 ```
 
 ## Development
