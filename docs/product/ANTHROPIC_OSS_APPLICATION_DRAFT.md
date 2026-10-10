@@ -29,7 +29,7 @@ The problem I want to address is that personal and family-office workflows often
 
 The current focus is to establish reliable engineering foundations, automated quality checks, privacy safeguards, and a small useful capability that can be tested by real users. The public repository still does not have a valid open-source license. That is a concrete eligibility blocker for presenting this repository as an OSI-licensed project; the license and public/private product boundary remain unresolved. I will not claim that this requirement is met.
 
-I understand the program's published examples generally describe projects with established ecosystem reach. I am applying transparently at an early stage, without representing the project as meeting a threshold that it has not demonstrated.
+I understand the program's published examples generally describe projects with established ecosystem reach. This is a preparation draft only; I am not submitting it while the licensing eligibility blocker remains unresolved. If eligibility is established, the application will describe the project's early stage and limited reach without claiming thresholds it has not demonstrated.
 
 ## Form field: How will you use the subscription for your project?
 
