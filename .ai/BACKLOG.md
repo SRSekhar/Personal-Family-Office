@@ -109,9 +109,14 @@ Status
 
 In Progress
 
-Under validation in PR #33:
+Implemented and merged (PR #33), with follow-up hardening in PRs #36, #38, and #39:
 - Versioned portfolio report model
 - Self-contained HTML financial summary with XSS-safe rendering
+- Canonical UTC timestamp validation
+- Net-worth consistency validation
+- Allocation payload validation
+
+PR #40 added validation for malformed top-level report fields and was merged after CI and full-history secret scanning passed.
 
 Features
 
