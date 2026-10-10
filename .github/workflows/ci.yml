@@ -35,18 +35,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: |
-          pnpm install --no-frozen-lockfile
-          pnpm update --recursive --lockfile-only
-
-      - name: Upload regenerated lockfile for review
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: regenerated-pnpm-lockfile
-          path: pnpm-lock.yaml
-          if-no-files-found: error
-          retention-days: 1
+        run: pnpm install --frozen-lockfile
 
       - name: Audit dependency vulnerabilities
         run: pnpm audit --audit-level=high
