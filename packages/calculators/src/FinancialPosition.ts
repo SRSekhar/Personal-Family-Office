@@ -29,6 +29,8 @@ export function validateFinancialPositions({
 }: FinancialPositionContext): void {
     const seenIds = new Set<string>();
 
+    const supportedKinds: ReadonlySet<string> = new Set(['asset', 'liability']);
+
     for (const position of positions) {
         const id = position.id.trim();
         const category = position.category.trim();
@@ -57,7 +59,7 @@ export function validateFinancialPositions({
             );
         }
 
-        if (position.kind !== 'asset' && position.kind !== 'liability') {
+        if (!supportedKinds.has(position.kind)) {
             throw new RangeError(`Financial position "${id}" has an unsupported kind.`);
         }
     }
