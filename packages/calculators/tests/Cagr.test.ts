@@ -11,6 +11,17 @@ describe('calculateCagr', () => {
         })).toBeCloseTo(0.1, 10);
     });
 
+    it('avoids intermediate ratio overflow for extreme finite values', () => {
+        const rate = calculateCagr({
+            beginningValue: Number.MIN_VALUE,
+            endingValue: Number.MAX_VALUE,
+            periods: 1000
+        });
+
+        expect(Number.isFinite(rate)).toBe(true);
+        expect(rate).toBeGreaterThan(0);
+    });
+
     it('returns a negative rate when the ending value is lower', () => {
         expect(calculateCagr({
             beginningValue: 1000,
