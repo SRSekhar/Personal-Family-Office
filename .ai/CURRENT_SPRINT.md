@@ -10,21 +10,17 @@ Sprint 1 — Platform Foundation
 
 ## Goal
 
-Establish repository governance, configuration, onboarding, and repeatable initialization and validation tooling for long-term PFO OS development.
+Establish repository governance, configuration, onboarding, repeatable initialization, and CI foundations.
 
 ## Current Status
 
-In Progress — bootstrap implementation is in a feature branch; runtime validation and CI results are pending.
+Core bootstrap and CI checks are implemented and passing in pull-request CI. Sprint 1 remains open for explicit WhatIf regression coverage and release-safety checks.
 
-## Deliverables
+## Completed Deliverables
 
-### Repository Metadata
+### Repository and AI Foundation
 
-- pfo.json
-- VERSION
-
-### AI Foundation
-
+- Repository metadata and GitHub Flow
 - AI_CONTEXT.md
 - AI_CONTRACT.md
 - PROJECT_STATE.md
@@ -34,40 +30,32 @@ In Progress — bootstrap implementation is in a feature branch; runtime validat
 - DECISIONS.md
 - GLOSSARY.md
 - PROMPTS.md
+- README.md, ARCHITECTURE.md, ROADMAP.md, CHANGELOG.md, CONTRIBUTING.md, START_HERE.md
 
-### Repository Documentation
+### Configuration and Automation
 
-- README.md
-- ARCHITECTURE.md
-- ROADMAP.md
-- CHANGELOG.md
-- CONTRIBUTING.md
-- START_HERE.md
-
-### Configuration
-
-- package.json
-- pnpm-workspace.yaml
-- tsconfig.base.json
-- .editorconfig
-- .gitignore
-- scripts/config/repository.structure.json
-
-### Automation
-
+- package.json and pnpm workspace
+- TypeScript base configuration
+- Root .gitignore protections for local data and generated reports
 - scripts/build/Initialize-PFO.ps1
-- scripts/internal modules for configuration, logging, structure, repository discovery, and validation
-- GitHub Actions CI for TypeScript quality checks (proposed in a separate PR)
+- Configuration-driven structure creation and path traversal validation
+- GitHub Actions CI using frozen dependency installation
+- CI execution of bootstrap, validation, doctor, lint, typecheck, build, and tests
 
-## Definition of Done
+## Implemented Early Analytics
 
-- Bootstrap is idempotent and does not overwrite existing files.
-- Configured paths are validated before filesystem changes.
-- Initialization, validation, doctor, and WhatIf modes behave correctly.
-- TypeScript install, build, typecheck, lint, and tests pass in CI.
-- Lockfile is synchronized and CI uses frozen installs.
-- Project-state documentation reflects verified results.
+- CAGR calculation
+- Annual compound-growth projection with explicit contribution timing
+- Unit tests for normal cases, edge cases, invalid inputs, and numeric overflow
+
+## Remaining Definition of Done
+
+- Add a focused WhatIf no-filesystem-change test.
+- Keep CI green on the latest main commit.
+- Complete a full history scan for secrets and sensitive data.
+- Decide license and public/private product boundaries before a public framework release.
+- Update project-state files after each verified milestone.
 
 ## Next Deliverable
 
-Execute and validate bootstrap modes on a clean Windows PowerShell 7 checkout, then resolve CI results.
+WhatIf regression coverage, followed by XIRR as the next deterministic analytics capability.
