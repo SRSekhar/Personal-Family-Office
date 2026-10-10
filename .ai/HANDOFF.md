@@ -6,7 +6,7 @@ PFO OS — Personal Family Office Operating System
 
 ## Current State
 
-The technical foundation is implemented and validated. Bootstrap, CI, CAGR, compound-growth projection, and XIRR are merged to main.
+The technical foundation, deterministic calculators, portfolio analysis, and offline HTML report renderer are merged to main. PRs #35, #36, #38, and #39 are merged; #37 was closed as superseded. PR #39 added defensive allocation-payload validation. PR #40 is currently open to validate malformed top-level report fields.
 
 ## Verified CI
 
@@ -34,12 +34,12 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 ## Immediate Next Steps
 
-1. Review existing asset/liability/portfolio models and implement net-worth calculation without double-counting.
-2. Implement asset allocation with explicit valuation and category rules.
-3. Complete a full-history secret/sensitive-data scan.
-4. Resolve the public framework/private application split and license choice.
-5. Validate the first paid-user problem before implementing hosted or Pro tiers.
-6. Submit the Claude for Open Source application using the prepared draft; it has not been submitted from this session.
+1. Finish PR #40: confirm CI and full-history secret scanning are green, repair any failures, then merge.
+2. Synchronize sprint/project/handoff/roadmap/changelog documentation with merged repository reality.
+3. Manually review the nine dependency-license entries against actual license texts and notice obligations; inventory metadata alone is not a legal determination.
+4. Define the application/CLI boundary before report-to-file host commands and define persistence/source-of-truth requirements before historical snapshots.
+5. Keep licensing/product-boundary decisions explicit; do not change repository visibility or license automatically.
+6. Validate a paid-user problem before hosted/Pro work. The Claude for Open Source application remains unsubmitted.
 
 ## Important Constraints
 
