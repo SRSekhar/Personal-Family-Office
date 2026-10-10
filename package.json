@@ -13,7 +13,7 @@
     "validate": "pwsh ./scripts/build/Initialize-PFO.ps1 -Validate",
     "doctor": "pwsh ./scripts/build/Initialize-PFO.ps1 -Doctor",
     "build": "pnpm --recursive --filter './packages/**' --if-present run build",
-    "typecheck": "pnpm --recursive --filter './packages/**' --if-present run typecheck",
+    "typecheck": "pnpm build && pnpm --recursive --filter './packages/**' --if-present run typecheck",
     "lint": "eslint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
