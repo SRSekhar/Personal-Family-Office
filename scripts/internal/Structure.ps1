@@ -2,174 +2,112 @@ Set-StrictMode -Version Latest
 
 <#
 .SYNOPSIS
-Locates the PFO OS repository root.
+Initializes the repository structure from repository.structure.json.
 
 .DESCRIPTION
-Walks up the directory tree until the repository root is found.
-The repository root is identified by the presence of the required
-repository marker files.
+Validates all configured paths before making changes, creates missing directories
+and files without overwriting existing content, and reports the operation result.
 #>
-function Find-RepositoryRoot {
-    [CmdletBinding()]
-    param(
-        [string]$StartPath = (Get-Location).Path
-    )
-
-    $currentDirectory = Resolve-Path -LiteralPath $StartPath
-
-    while ($true) {
-
-        $repositoryRoot = $currentDirectory.Path
-
-        $requiredMarkers = @(
-            "pfo.json",
-            "README.md",
-            "VERSION",
-            "START_HERE.md",
-            ".ai",
-            "scripts"
-        )
-
-        $isRepository = $true
-
-        foreach ($marker in $requiredMarkers) {
-
-            $markerPath = Join-Path `
-                -Path $repositoryRoot `
-                -ChildPath $marker
-
-            if (-not (Test-Path -LiteralPath $markerPath)) {
-                $isRepository = $false
-                break
-            }
-        }
-
-        if ($isRepository) {
-            Write-Success "Repository root located."
-            return $repositoryRoot
-        }
-
-        $parent = Split-Path `
-            -Path $repositoryRoot `
-            -Parent
-
-        if ([string]::IsNullOrWhiteSpace($parent) -or
-            $parent -eq $repositoryRoot) {
-
-            break
-        }
-
-        $currentDirectory = Resolve-Path `
-            -LiteralPath $parent
-    }
-
-    throw "Unable to locate the PFO OS repository root."
-}
-
-<#
-.SYNOPSIS
-Validates the repository root.
-#>
-function Test-RepositoryRoot {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [string]$RepositoryRoot
-    )
-
-    Write-Info "Validating repository root..."
-
-    $requiredItems = @(
-        "pfo.json",
-        "README.md",
-        "VERSION",
-        "START_HERE.md",
-        ".ai",
-        "scripts"
-    )
-
-    foreach ($item in $requiredItems) {
-
-        $path = Join-RepositoryPath `
-            -RepositoryRoot $RepositoryRoot `
-            -RelativePath $item
-
-        if (-not (Test-PathExists -Path $path)) {
-            throw "Repository validation failed. Missing '$item'."
-        }
-    }
-
-    Write-Success "Repository validation completed."
-}
-
-<#
-.SYNOPSIS
-Returns repository information.
-#>
-function Get-RepositoryInformation {
+function Initialize-RepositoryStructure {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [string]$RepositoryRoot,
 
         [Parameter(Mandatory)]
-        [pscustomobject]$Configuration
+        [pscustomobject]$Structure
     )
 
-    return [PSCustomObject]@{
+    $root = [System.IO.Path]::GetFullPath($RepositoryRoot)
+    $rootPrefix = $root.TrimEnd([char[]]@(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar
+    )) + [System.IO.Path]::DirectorySeparatorChar
 
-        Name             = $Configuration.name
-        Repository       = $Configuration.repository.name
-        Version          = $Configuration.version
+    $directoryPaths = [System.Collections.Generic.List[object]]::new()
+    $filePaths = [System.Collections.Generic.List[object]]::new()
 
-        Root             = $RepositoryRoot
+    # Validate every configured path before touching the filesystem.
+    foreach ($relativePath in $Structure.directories) {
+        $fullPath = Resolve-RepositoryConfiguredPath -RepositoryRoot $root -RelativePath $relativePath -RootPrefix $rootPrefix
+        $directoryPaths.Add([PSCustomObject]@{ Relative = $relativePath; Full = $fullPath })
+    }
 
-        Status           = $Configuration.project.status
+    foreach ($relativePath in $Structure.files) {
+        $fullPath = Resolve-RepositoryConfiguredPath -RepositoryRoot $root -RelativePath $relativePath -RootPrefix $rootPrefix
+        $filePaths.Add([PSCustomObject]@{ Relative = $relativePath; Full = $fullPath })
+    }
 
-        Language         = $Configuration.architecture.language
-        PackageManager   = $Configuration.architecture.packageManager
+    $createdDirectories = 0
+    $createdFiles = 0
 
-        Architecture     = ($Configuration.architecture.style -join ", ")
+    Write-Section "Initialize Repository Structure"
 
-        RepositoryMemory = $Configuration.principles.repositoryIsMemory
-        DataFirst        = $Configuration.principles.dataIsSourceOfTruth
+    foreach ($directory in $directoryPaths) {
+        if (New-DirectoryIfMissing -Path $directory.Full) {
+            $createdDirectories++
+            Write-Success ("Directory prepared: {0}" -f $directory.Relative)
+        }
+    }
+
+    foreach ($file in $filePaths) {
+        if (New-FileIfMissing -Path $file.Full) {
+            $createdFiles++
+            Write-Success ("File prepared: {0}" -f $file.Relative)
+        }
+    }
+
+    $plannedDirectories = if ($WhatIfPreference) { $createdDirectories } else { 0 }
+    $plannedFiles = if ($WhatIfPreference) { $createdFiles } else { 0 }
+    $actualCreatedDirectories = if ($WhatIfPreference) { 0 } else { $createdDirectories }
+    $actualCreatedFiles = if ($WhatIfPreference) { 0 } else { $createdFiles }
+
+    [PSCustomObject]@{
+        CreatedDirectories = $actualCreatedDirectories
+        CreatedFiles       = $actualCreatedFiles
+        PlannedDirectories = $plannedDirectories
+        PlannedFiles       = $plannedFiles
+        DirectoryCount     = $directoryPaths.Count
+        FileCount          = $filePaths.Count
     }
 }
 
 <#
 .SYNOPSIS
-Displays repository information.
+Resolves a configured relative path and rejects path traversal.
 #>
-function Show-RepositoryInformation {
+function Resolve-RepositoryConfiguredPath {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [pscustomobject]$Repository
+        [string]$RepositoryRoot,
+
+        [Parameter(Mandatory)]
+        [string]$RelativePath,
+
+        [Parameter(Mandatory)]
+        [string]$RootPrefix
     )
 
-    Write-Section "Repository Information"
-
-    $Repository | Format-List
-
-    Write-Host ""
-}
-
-<#
-.SYNOPSIS
-Returns whether the current directory is inside a PFO repository.
-#>
-function Test-InsideRepository {
-    [CmdletBinding()]
-    param()
-
-    try {
-
-        $null = Find-RepositoryRoot
-
-        return $true
+    if ([string]::IsNullOrWhiteSpace($RelativePath)) {
+        throw "Repository structure contains an empty path."
     }
-    catch {
 
-        return $false
+    $normalizedPath = $RelativePath.Replace('\', '/')
+
+    if ($normalizedPath.StartsWith('/') -or
+        $normalizedPath -match '^[A-Za-z]:' -or
+        ($normalizedPath -split '/') -contains '..') {
+        throw "Unsafe repository-relative path in configuration: $RelativePath"
     }
+
+    $fullPath = [System.IO.Path]::GetFullPath(
+        (Join-Path -Path $RepositoryRoot -ChildPath $normalizedPath)
+    )
+
+    if (-not $fullPath.StartsWith($RootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Configured path resolves outside the repository root: $RelativePath"
+    }
+
+    return $fullPath
 }
