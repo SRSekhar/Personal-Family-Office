@@ -9,21 +9,21 @@
 
 ## Current Milestone
 
-**M1 — Repository Foundation**  
-Status: In Progress — core bootstrap and CI are working; remaining release-safety checks are tracked below.
+**M1 — Technical Foundation**  
+Status: Complete — repository bootstrap and CI are implemented and validated. Public-release safety decisions remain open.
 
 ## Current Work
 
-- **Epic:** Analytics Engine foundation
-- **Status:** Deterministic calculator foundations implemented; continue with additional analytics and product validation.
+- **Epic:** Analytics Engine
+- **Status:** Two deterministic calculator capabilities are implemented; continue with XIRR and additional analytics.
 
 ## Foundation Verified
 
-- Repository and GitHub Flow established.
-- AI onboarding, architecture, roadmap, contribution guidance, and project-state documentation established.
-- Configuration-driven PowerShell bootstrap is merged.
-- CI uses a frozen pnpm lockfile and runs repository initialization, validation, doctor, lint, typecheck, build, and tests.
-- Pull-request CI passed for the bootstrap and initial calculator changes.
+- Repository, GitHub Flow, AI onboarding, architecture, and project documentation established.
+- Configuration-driven PowerShell bootstrap merged.
+- CI uses a frozen pnpm lockfile.
+- CI runs initialization, validation, doctor, WhatIf/no-overwrite/path-safety tests, lint, typecheck, build, and tests.
+- Pull-request CI passed for the foundation and calculator changes.
 
 ## Implemented Calculator Capabilities
 
@@ -34,11 +34,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Add explicit regression coverage for bootstrap WhatIf behavior.
-2. Implement XIRR with clear handling of dates, cash flows, and solver limitations.
-3. Complete a full-history secret and sensitive-data scan before any public release.
-4. Decide the public framework/private application boundary and licensing model.
-5. Validate one revenue hypothesis with real prospective users before investing in paid tiers.
+1. Implement XIRR with explicit date validation, convergence behavior, and tests.
+2. Complete a full-history secret and sensitive-data scan before any public release.
+3. Decide the public framework/private application boundary and licensing model.
+4. Validate one revenue hypothesis with real prospective users before investing in paid tiers.
 
 ## Blockers and Risks
 
