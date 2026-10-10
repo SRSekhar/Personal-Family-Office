@@ -1,4 +1,4 @@
-import { Currency, Money } from '@pfo/models';
+import { Money, type Currency } from '@pfo/models';
 
 import {
     validateFinancialPositions,
