@@ -23,6 +23,7 @@ The project follows Semantic Versioning.
 - XIRR calculator for irregularly dated cash flows using ACT/365 and bisection, with explicit rejection of ambiguous multi-sign-change streams.
 - Net-worth calculator with canonical financial position validation and no implicit currency conversion.
 - Asset-allocation calculator with category aggregation, deterministic ordering, and validated weights.
+- Portfolio analysis composition and explicit source-record mapping are being validated in PR #21.
 
 ## Changed
 

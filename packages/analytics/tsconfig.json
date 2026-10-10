@@ -15,5 +15,13 @@
   "exclude": [
     "dist",
     "node_modules"
+  ],
+  "references": [
+    {
+      "path": "../calculators"
+    },
+    {
+      "path": "../models"
+    }
   ]
 }

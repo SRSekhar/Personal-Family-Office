@@ -14,7 +14,7 @@ Build a small set of deterministic, testable financial calculations with explici
 
 ## Current Status
 
-CAGR, annual compound-growth projection, and XIRR are implemented and pass CI. Net worth and asset allocation have been added in PR #19 with tests; this branch requires a successful full CI run before merge.
+CAGR, annual compound-growth projection, XIRR, net worth, and asset allocation pass CI on main. Portfolio mapping and analysis composition are in PR #21 and require a successful full CI run before merge.
 
 ## Completed
 
@@ -28,10 +28,10 @@ CAGR, annual compound-growth projection, and XIRR are implemented and pass CI. N
 
 ## Next Deliverables
 
-1. Review PR #19 and require its full CI run to pass before merge.
-2. Map existing domain entities to canonical financial positions at the application boundary.
-3. Add a tested historical net-worth snapshot workflow once persistence/source-of-truth decisions are established.
-4. Complete a full history scan and resolve the license/product boundary before public release.
+1. Review PR #21 and require full CI to pass before merge.
+2. Add a tested historical net-worth snapshot workflow after persistence and source-of-truth decisions are established.
+3. Complete the dependency vulnerability and license inventory.
+4. Resolve the open-source license and public/private product-boundary decisions before any public framework release.
 
 ## Release-Safety Work Still Open
 

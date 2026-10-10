@@ -24,6 +24,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
+    "@pfo/core": "workspace:*",
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@pfo/calculators": "workspace:*",
+    "@pfo/models": "workspace:*"
   }
 }
