@@ -18,6 +18,12 @@ export default tseslint.config(
     ...tseslint.configs.strictTypeChecked,
 
     {
+        // JavaScript tooling/config files are not part of the TypeScript project.
+        files: ['**/*.{js,cjs,mjs}'],
+        extends: [tseslint.configs.disableTypeChecked]
+    },
+
+    {
         files: ['**/*.ts'],
 
         languageOptions: {
