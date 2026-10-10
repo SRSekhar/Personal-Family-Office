@@ -1,3 +1,4 @@
+import type { FinancialPosition } from '@pfo/calculators';
 import type {
     Asset,
     Investment,
@@ -5,8 +6,6 @@ import type {
     Portfolio,
     Property
 } from '@pfo/models';
-
-import type { FinancialPosition } from '@pfo/calculators';
 
 export type PortfolioPositionSource = 'asset' | 'investment' | 'property' | 'liability';
 
