@@ -16,7 +16,7 @@ The project follows Semantic Versioning.
 - PowerShell regression tests for WhatIf non-mutation, existing-file preservation, and unsafe path rejection.
 - Security policy and an initial public-repository exposure review.
 - High-severity dependency vulnerability auditing in CI; patched pnpm and test-runner dependencies, refreshed the lockfile, and confirmed the audit reports no known vulnerabilities.
-- Dependency license inventory generator and snapshot for 152 npm package versions; 9 entries are flagged for manual review in PR #35.
+- Dependency license inventory generator and CI artifact for 152 npm package versions; 9 entries remain flagged for manual review after PR #35 merged. The inventory is not a legal compatibility determination.
 - Full-history Gitleaks scanning in CI, scheduled weekly and on pull requests.
 - Weekly Dependabot updates for workspace dependencies and GitHub Actions.
 - GitHub Actions pinned to immutable commit SHAs in the CI workflow.
@@ -26,7 +26,7 @@ The project follows Semantic Versioning.
 - Net-worth calculator with canonical financial position validation and no implicit currency conversion.
 - Asset-allocation calculator with category aggregation, deterministic ordering, and validated weights.
 - Portfolio analysis composition and explicit source-record mapping (merged after CI and full-history secret scan passed).
-- Initial versioned portfolio report model and self-contained HTML renderer are under validation in PR #33.
+- Versioned portfolio report model and self-contained offline HTML renderer, with canonical UTC timestamp checks, net-worth consistency validation, and defensive validation of allocation and top-level report payloads (PRs #33, #36, #38, #39; PR #40 extends malformed-payload coverage).
 
 ## Changed
 
@@ -38,11 +38,11 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow passed for bootstrap safety, CAGR, compound-growth projection, XIRR, net worth, asset allocation, and portfolio analysis. The full-history Gitleaks workflow passed without findings. The automated dependency audit now reports no known vulnerabilities at the configured high-severity threshold. A separate personal-data review, third-party license inventory, and legal/licensing review remain outstanding.
+The full CI workflow and full-history Gitleaks scan passed on main after PR #39 (merge commit 81d39c0d7617fd1b5b51933d406f813e323dc08b). The automated dependency audit reported no known vulnerabilities at the configured high-severity threshold in that run. Nine dependency-license entries still require manual review; a separate personal-data review and project licensing/product-boundary decision remain outstanding. PR #40 is the current report-validation increment and must not be marked complete until its checks pass and it is merged.
 
 ---
 
-# [0.1.0] — Repository Foundation (In Progress)
+# [0.1.0] — Repository Foundation (Technical foundation complete; release gates remain)
 
 ## Added
 
