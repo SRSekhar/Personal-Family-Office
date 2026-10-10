@@ -160,7 +160,6 @@ export function calculateXirr(cashFlows: readonly XirrCashFlow[]): number {
 
         if (hasOppositeSigns(lowerValue, midpointValue)) {
             upperRate = midpoint;
-            upperValue = midpointValue;
         } else {
             lowerRate = midpoint;
             lowerValue = midpointValue;
