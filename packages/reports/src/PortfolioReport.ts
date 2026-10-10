@@ -62,9 +62,9 @@ export function createPortfolioReport({
         totalLiabilities: analysis.netWorth.totalLiabilities.amount,
         netWorth: analysis.netWorth.netWorth.amount,
         allocations: analysis.assetAllocation.allocations.map((allocation) => ({
-            category: allocation.category,
-            value: allocation.value.amount,
-            weight: allocation.weight
+            category: allocation['category'],
+            value: allocation['value'].amount,
+            weight: allocation['weight']
         }))
     };
 
@@ -98,9 +98,9 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
                 </thead>
                 <tbody>
                     ${allocations.map((allocation) => `<tr>
-                        <th scope="row">${escapeHtml(allocation.category)}</th>
-                        <td class="numeric">${escapeHtml(formatMoney(allocation.value, report.currency))}</td>
-                        <td class="numeric">${escapeHtml(formatPercentage(allocation.weight))}</td>
+                        <th scope="row">${escapeHtml(allocation['category'])}</th>
+                        <td class="numeric">${escapeHtml(formatMoney(allocation['value'], report.currency))}</td>
+                        <td class="numeric">${escapeHtml(formatPercentage(allocation['weight']))}</td>
                     </tr>`).join('')}
                 </tbody>
             </table>`;
@@ -209,15 +209,15 @@ function isValidPortfolioReportAllocation(value: unknown): value is PortfolioRep
     }
 
     const allocation = value as Record<string, unknown>;
-    return typeof allocation.category === 'string' &&
-        allocation.category.trim().length > 0 &&
-        typeof allocation.value === 'number' &&
-        Number.isFinite(allocation.value) &&
-        allocation.value >= 0 &&
-        typeof allocation.weight === 'number' &&
-        Number.isFinite(allocation.weight) &&
-        allocation.weight >= 0 &&
-        allocation.weight <= 1;
+    return typeof allocation['category'] === 'string' &&
+        allocation['category'].trim().length > 0 &&
+        typeof allocation['value'] === 'number' &&
+        Number.isFinite(allocation['value']) &&
+        allocation['value'] >= 0 &&
+        typeof allocation['weight'] === 'number' &&
+        Number.isFinite(allocation['weight']) &&
+        allocation['weight'] >= 0 &&
+        allocation['weight'] <= 1;
 }
 
 function assertValidDate(name: string, value: Date): void {
