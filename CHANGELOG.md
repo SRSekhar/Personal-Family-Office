@@ -10,6 +10,8 @@ The project follows Semantic Versioning.
 
 ## Added
 
+- Customer discovery playbook with a non-leading interview script, anonymized evidence template, privacy guardrails, and explicit paid-pilot decision thresholds.
+
 - Configuration-driven PowerShell repository initializer with initialize, validate, doctor, and WhatIf modes.
 - Safe path validation for configured repository paths.
 - CI workflow for frozen dependency installation, bootstrap checks, lint, typecheck, build, and tests.

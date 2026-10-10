@@ -67,6 +67,8 @@ Possible offers include premium reports, managed backups, family collaboration, 
 
 ## 5. 30-Day Validation Experiment
 
+Use the operational [Customer Discovery Playbook](CUSTOMER_DISCOVERY_PLAYBOOK.md) for the interview script, anonymized record template, privacy guardrails, and evidence classification.
+
 ### Week 1 — Problem interviews
 
 - Speak with 8–10 people in the primary segment.
