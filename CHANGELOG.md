@@ -15,6 +15,9 @@ The project follows Semantic Versioning.
 - CI workflow for frozen dependency installation, bootstrap checks, lint, typecheck, build, and tests.
 - PowerShell regression tests for WhatIf non-mutation, existing-file preservation, and unsafe path rejection.
 - Security policy and an initial public-repository exposure review.
+- Full-history Gitleaks scanning in CI, scheduled weekly and on pull requests.
+- Weekly Dependabot updates for workspace dependencies and GitHub Actions.
+- GitHub Actions pinned to immutable commit SHAs in the CI workflow.
 - Deterministic CAGR calculator with input validation and edge-case tests.
 - Annual compound-growth projection with explicit contribution timing and validation.
 - XIRR calculator for irregularly dated cash flows using ACT/365 and bisection, with explicit rejection of ambiguous multi-sign-change streams.
