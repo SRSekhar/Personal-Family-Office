@@ -5,7 +5,7 @@ import {
     type FinancialPositionContext
 } from './FinancialPosition.js';
 
-export interface NetWorthInput extends FinancialPositionContext {}
+export type NetWorthInput = FinancialPositionContext;
 
 export interface NetWorthResult {
     readonly currency: Currency;
