@@ -13,7 +13,7 @@ Status: In Progress
 
 - **Epic:** Platform Foundation
 - **Work Order:** WO-001 — Repository Bootstrap
-- **Status:** Implementation in review; runtime validation pending
+- **Status:** Implementation in review; PowerShell runtime validation pending
 
 ## Current Implementation
 
@@ -25,14 +25,19 @@ Feature branch feat/repository-bootstrap contains:
 - Local data and report ignore rules
 - Updated bootstrap documentation and project state
 
+## Verified CI Baseline
+
+The main branch's initial TypeScript CI now passes install, lint, typecheck, build, and tests after addressing pnpm 11 build-script approval, JavaScript ESLint type-aware scope, Vitest workspace deprecation, and workspace typecheck ordering.
+
+The bootstrap script has not yet been run. Its behavior still needs a CI step or execution in PowerShell 7.
+
 ## Immediate Next Steps
 
-1. Validate PowerShell syntax and behavior on Windows PowerShell 7.
-2. Run initialization, -Validate, -Doctor, and -WhatIf from a clean checkout.
+1. Trigger CI for this branch against the latest main.
+2. Add PowerShell initialization, validation, and doctor checks to CI after reviewing the script.
 3. Confirm the script never overwrites existing files and rejects unsafe configured paths.
-4. Review the CI pull request and run build, typecheck, lint, and tests.
-5. Regenerate pnpm-lock.yaml from package.json and switch CI to a frozen install.
-6. Merge only after CI passes and the relevant PRs have been reviewed.
+4. Regenerate pnpm-lock.yaml if needed and switch CI to a frozen install only after verifying lockfile consistency.
+5. Merge only after all relevant CI checks pass.
 
 ## Important Constraints
 
@@ -43,4 +48,4 @@ Feature branch feat/repository-bootstrap contains:
 
 ## Known Risks
 
-The current repository is public and does not yet have a valid open-source license. The bootstrap implementation has not yet been executed locally.
+The current repository is public and does not yet have a valid open-source license. Historical repository content and commit metadata have not been fully scanned. The bootstrap implementation still requires runtime validation.
