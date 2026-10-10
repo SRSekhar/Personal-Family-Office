@@ -18,6 +18,11 @@ export default tseslint.config(
     ...tseslint.configs.strictTypeChecked,
 
     {
+        files: ['**/*.{js,cjs,mjs}'],
+        extends: [tseslint.configs.disableTypeChecked]
+    },
+
+    {
         files: ['**/*.ts'],
 
         languageOptions: {
