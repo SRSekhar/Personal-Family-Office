@@ -9,11 +9,15 @@ async function addPackage(
     pnpmStore: string,
     snapshotName: string,
     packagePath: string,
-    metadata: Record<string, unknown>
+    metadata: Record<string, unknown>,
+    rootFiles: Record<string, string> = {}
 ): Promise<void> {
     const packageDirectory = join(pnpmStore, snapshotName, 'node_modules', packagePath);
     await mkdir(packageDirectory, { recursive: true });
     await writeFile(join(packageDirectory, 'package.json'), JSON.stringify(metadata), 'utf8');
+    await Promise.all(Object.entries(rootFiles).map(([name, content]) =>
+        writeFile(join(packageDirectory, name), content, 'utf8')
+    ));
 }
 
 describe('generateLicenseInventory', () => {
@@ -27,7 +31,7 @@ describe('generateLicenseInventory', () => {
                 name: 'alpha',
                 version: '1.0.0',
                 license: 'MIT'
-            });
+            }, { 'LICENSE.md': 'MIT license text' });
             await addPackage(pnpmStore, 'alpha@1.0.0_peer', 'alpha', {
                 name: 'alpha',
                 version: '1.0.0',
@@ -37,7 +41,7 @@ describe('generateLicenseInventory', () => {
                 name: '@scope/beta',
                 version: '2.0.0',
                 license: { type: 'Apache-2.0' }
-            });
+            }, { NOTICE: 'Third-party notice' });
             await addPackage(pnpmStore, 'gamma@3.0.0', 'gamma', {
                 name: 'gamma',
                 version: '3.0.0'
@@ -46,9 +50,9 @@ describe('generateLicenseInventory', () => {
             const report = await generateLicenseInventory(pnpmStore);
 
             expect(report).toContain('Unique third-party package versions: **3**');
-            expect(report).toContain('| alpha | 1.0.0 | MIT |');
-            expect(report).toContain('| @scope/beta | 2.0.0 | Apache-2.0 |');
-            expect(report).toContain('| gamma | 3.0.0 | UNKNOWN |');
+            expect(report).toContain('| alpha | 1.0.0 | MIT | LICENSE.md |');
+            expect(report).toContain('| @scope/beta | 2.0.0 | Apache-2.0 | NOTICE |');
+            expect(report).toContain('| gamma | 3.0.0 | UNKNOWN | NONE FOUND |');
             expect(report).toContain('Package versions requiring manual license review: **1**');
         } finally {
             await rm(temporaryDirectory, { recursive: true, force: true });
@@ -74,6 +78,7 @@ describe('generateLicenseInventory', () => {
                 version: '1.2.3',
                 license: 'MIT'
             }), 'utf8');
+            await writeFile(join(regularTarget, 'LICENSE.md'), 'MIT license text', 'utf8');
             await writeFile(join(scopedTarget, 'package.json'), JSON.stringify({
                 name: '@scope/scoped',
                 version: '2.3.4',
@@ -85,8 +90,8 @@ describe('generateLicenseInventory', () => {
             const report = await generateLicenseInventory(pnpmStore);
 
             expect(report).toContain('Unique third-party package versions: **2**');
-            expect(report).toContain('| regular | 1.2.3 | MIT |');
-            expect(report).toContain('| @scope/scoped | 2.3.4 | ISC |');
+            expect(report).toContain('| regular | 1.2.3 | MIT | LICENSE.md |');
+            expect(report).toContain('| @scope/scoped | 2.3.4 | ISC | NONE FOUND |');
         } finally {
             await rm(temporaryDirectory, { recursive: true, force: true });
         }
