@@ -2,141 +2,125 @@
 
 ## Vision
 
-Build the most comprehensive AI-native Personal Family Office platform.
+Build a privacy-conscious, explainable, AI-assisted Personal Family Office platform with deterministic financial calculations and repeatable reporting.
 
 ---
 
-# Version 0.1
+# Version 0.1 — Repository Foundation
 
-Repository Foundation
+**Status:** In Progress
 
-Status
+## Deliverables
 
-In Progress
+- Repository and AI foundation
+- Documentation and Git strategy
+- Configuration-driven repository bootstrap
+- CI for bootstrap, lint, typecheck, build, and tests
 
-Deliverables
+## Completion Criteria
 
-- Repository
-- AI Foundation
-- Documentation
-- Git Strategy
-- Repository Bootstrap Automation
-
-Completion Criteria
-
- Repository bootstrap automation completed
-- Repository validation completed
-- Sprint 1 closed
+- Bootstrap initialization, validation, and doctor pass in CI.
+- Add explicit WhatIf regression coverage.
+- Complete initial repository/history safety review.
+- Decide the public/private product boundary and licensing approach before release.
 
 ---
 
-# Version 0.2
+# Version 0.2 — Domain Model
 
-Domain Model
+**Status:** Planned
 
-Deliverables
+## Deliverables
 
-- Financial Entities
-- Investment Models
-- Goal Models
-- Property Models
-- Insurance Models
+- Financial entities
+- Investment models
+- Goal models
+- Property models
+- Insurance models
+- Loan models
+- Explicit currency, date, and valuation conventions
 
 ---
 
-# Version 0.3
+# Version 0.3 — Analytics Engine
 
-Analytics Engine
+**Status:** In Progress
 
-Deliverables
+## Implemented
 
-- Net Worth
-- Asset Allocation
 - CAGR
+- Annual compound-growth projection with contribution timing
+
+## Planned
+
+- Net worth
+- Asset allocation
 - XIRR
-- Portfolio Health
-- Risk Analysis
+- Portfolio health
+- Risk analysis
+- Financial ratios
 
 ---
 
-# Version 0.4
+# Version 0.4 — Report Engine
 
-Report Engine
+**Status:** Planned
 
-Deliverables
-
-- Executive Report
-- Annual Review
-- Investment Review
-- PDF
-- DOCX
-- Excel
+- Executive report
+- Annual review
+- Investment review
+- PDF, DOCX, and Excel exports
 
 ---
 
-# Version 0.5
+# Version 0.5 — Dashboard
 
-Dashboard
+**Status:** Planned
 
-Deliverables
-
-- Principal Dashboard
-- Portfolio Explorer
-- Charts
-- KPIs
+- Principal dashboard
+- Portfolio explorer
+- Charts and KPIs
 
 ---
 
-# Version 0.6
+# Version 0.6 — Recommendation Engine
 
-Recommendation Engine
+**Status:** Planned
 
-Deliverables
-
-- Portfolio Recommendations
+- Portfolio review
 - Rebalancing
-- Risk Alerts
+- Risk alerts
+
+Any future recommendations require explicit assumptions, explainability, and appropriate legal/regulatory review.
 
 ---
 
-# Version 0.7
+# Version 0.7 — FIRE Engine
 
-FIRE Engine
+**Status:** Planned
 
-Deliverables
-
-- Retirement Planner
-- Monte Carlo
-- Goal Tracking
+- Retirement planner
+- Monte Carlo scenarios
+- Goal tracking
 
 ---
 
-# Version 0.8
+# Version 0.8 — Automation
 
-Automation
+**Status:** Planned
 
-Deliverables
-
-- Scheduled Reports
-- Data Validation
+- Scheduled reports
+- Data validation
 - Importers
 
 ---
 
-# Version 0.9
+# Version 0.9 — Release Candidate
 
-Release Candidate
-
-Repository stabilization.
+Repository stabilization, security review, documentation, and user validation.
 
 ---
 
-# Version 1.0
+# Version 1.0 — Initial Production Release
 
-Initial Production Release
-
-Features complete.
-
-Documentation complete.
-
-AI-native onboarding complete.
+Release only after functionality, privacy, security, licensing, support, and validation requirements are met.
