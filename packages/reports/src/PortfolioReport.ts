@@ -194,8 +194,15 @@ function validatePortfolioReport(report: PortfolioReportData): void {
         throw new RangeError('Portfolio report net worth must equal total assets minus total liabilities.');
     }
 
+    if (!Array.isArray(report.allocations)) {
+        throw new RangeError('Portfolio report allocations must be an array.');
+    }
+
     for (const allocation of report.allocations) {
-        if (allocation.category.trim().length === 0 ||
+        if (allocation === null ||
+            typeof allocation !== 'object' ||
+            typeof allocation.category !== 'string' ||
+            allocation.category.trim().length === 0 ||
             !Number.isFinite(allocation.value) ||
             allocation.value < 0 ||
             !Number.isFinite(allocation.weight) ||
