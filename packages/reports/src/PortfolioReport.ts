@@ -178,11 +178,13 @@ function validatePortfolioReport(value: unknown): void {
 
     if (typeof report.portfolioId !== 'string' ||
         typeof report.portfolioName !== 'string' ||
-        typeof report.currency !== 'string' ||
         report.portfolioId.trim().length === 0 ||
-        report.portfolioName.trim().length === 0 ||
-        report.currency.trim().length === 0) {
-        throw new RangeError('Portfolio report requires a portfolio ID, name, and currency.');
+        report.portfolioName.trim().length === 0) {
+        throw new RangeError('Portfolio report requires a portfolio ID and name.');
+    }
+
+    if (typeof report.currency !== 'string' || !/^[A-Z]{3}$/.test(report.currency)) {
+        throw new RangeError('Portfolio report currency must be a three-letter uppercase code.');
     }
 
     if (typeof report.asOfDate !== 'string' || typeof report.generatedAt !== 'string') {

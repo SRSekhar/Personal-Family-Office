@@ -147,6 +147,16 @@ describe('renderPortfolioReportHtml', () => {
         expect(html).not.toContain('<img src=x');
     });
 
+    it('rejects malformed currency codes before formatting', () => {
+        const invalidCurrency = {
+            ...createReport(),
+            currency: '<script>'
+        };
+
+        expect(() => renderPortfolioReportHtml(invalidCurrency))
+            .toThrow(/currency must be a three-letter uppercase code/);
+    });
+
     it('rejects malformed top-level report payloads without leaking TypeErrors', () => {
         const invalidReports: unknown[] = [
             null,
