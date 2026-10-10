@@ -18,7 +18,7 @@ PFO OS aims to help individuals and families maintain structured financial recor
 
 ## Current repository
 
-The TypeScript monorepo contains early domain-model and package foundations. The dashboard, reporting, production data workflows, AI integrations, and paid product capabilities are not yet production-ready.
+The TypeScript monorepo contains early domain-model and package foundations, plus tested deterministic CAGR and annual compound-growth calculators. The dashboard, reporting, production data workflows, AI integrations, and paid product capabilities are not yet production-ready.
 
 ```text
 apps/       Application entry points (planned/in development)
