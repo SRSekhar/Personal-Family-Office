@@ -107,6 +107,22 @@ describe('renderPortfolioReportHtml', () => {
         expect(html).not.toContain('https://');
     });
 
+    it('rejects non-canonical or impossible report timestamps', () => {
+        const impossibleDate = {
+            ...createReport(),
+            asOfDate: '2026-02-30T00:00:00.000Z'
+        };
+        const nonCanonicalUtc = {
+            ...createReport(),
+            generatedAt: '2026-10-10T06:00:00.000+00:00'
+        };
+
+        expect(() => renderPortfolioReportHtml(impossibleDate))
+            .toThrow(/asOfDate must be a valid ISO-8601 UTC timestamp/);
+        expect(() => renderPortfolioReportHtml(nonCanonicalUtc))
+            .toThrow(/generatedAt must be a valid ISO-8601 UTC timestamp/);
+    });
+
     it('escapes untrusted portfolio and category text', () => {
         const analysis = makeAnalysis({
             portfolioName: '<script>alert("x")</script> & Family',
