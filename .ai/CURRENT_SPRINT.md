@@ -14,7 +14,7 @@ Maintain deterministic, testable portfolio analysis and privacy-conscious offlin
 
 ## Current Status
 
-The analytics engine and initial offline HTML report renderer are merged into `main`. PR #35 adds a third-party npm dependency license inventory and CI artifact generation; review the implementation and its nine flagged license entries before merging. Do not treat metadata inventory as legal clearance.
+The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38, and #39 are merged; #37 was closed as superseded. PR #39 adds defensive allocation-payload validation. Main CI and full-history secret scanning passed after #39. Nine dependency license entries remain flagged for manual review; inventory metadata is not legal clearance.
 
 ## Completed
 
@@ -30,15 +30,15 @@ The analytics engine and initial offline HTML report renderer are merged into `m
 
 ## In Progress
 
-- Review PR #35 license inventory generator, tests, workflow changes, and current CI results
-- Manually review seven BlueOak-1.0.0 and two MPL-2.0 metadata entries against their actual license texts and notice obligations
-- Keep project licensing and the public/private product boundary as an explicit release gate
+- PR #40 hardens validation of malformed top-level report payloads; confirm CI and full-history secret scanning pass before merging.
+- Keep the nine dependency-license entries flagged for manual review until actual license texts and notice obligations are checked.
+- Keep project licensing and the public/private product boundary as explicit release gates; no license or visibility change is authorized.
 
 ## Next Deliverables
 
-1. Complete code review and verify CI plus full-history secret scanning for PR #35; do not merge until the required checks pass and review blockers are resolved.
-2. Record the disposition of all nine flagged dependency license entries without presenting metadata as legal advice.
-3. Decide the project's licensing and product boundary only after ownership and redistribution obligations are reviewed; do not change the license or repository visibility automatically.
+1. Complete PR #40 only after CI and full-history secret scanning pass; fix any failures before merging.
+2. Synchronize sprint, project state, handoff, roadmap, and changelog with merged repository reality.
+3. Record evidence-based dispositions for the nine flagged dependency-license entries without treating metadata as legal advice.
 4. Define the application/CLI boundary before adding report-to-file host commands.
 5. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
 6. Continue customer discovery and validate a paid-pilot hypothesis.
@@ -57,5 +57,6 @@ The analytics engine and initial offline HTML report renderer are merged into `m
 - Inspect the live repository and existing implementation before making changes.
 - Keep changes small, testable, independently reviewable, and aligned with documented work.
 - Require relevant CI and security checks to pass before considering a merge.
-- Never merge code automatically, change repository visibility or licensing, or include real personal financial data.
+- Require relevant CI and full-history secret-scanning checks to pass before merging; complete routine, low-risk PRs after those checks pass.
+- Do not change repository visibility or licensing, make legal/financial determinations, or include real personal financial data.
 - Treat roadmap items as planned until implementation and tests demonstrate completion.
