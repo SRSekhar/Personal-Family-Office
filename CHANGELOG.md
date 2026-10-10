@@ -32,6 +32,7 @@ The project follows Semantic Versioning.
 - First-pass upstream evidence review for all nine flagged dependency-license entries (PR #42).
 - CI dependency inventory now records root-level license/notice filenames and found a root-level license file for each of the nine flagged versions (PR #45–#46); file-content review and final legal/redistribution disposition remain open.
 - Serialized report currency-code validation prevents malformed values from reaching the formatter (PR #47).
+- Report dates use semantic HTML time elements; nested monetary currencies and analysis allocation totals are checked before report serialization (PRs #50–#52).
 - Customer discovery playbook operationalizes the existing revenue-validation experiment without claiming demand or paid-pilot commitments (PR #48).
 
 ## Changed

@@ -14,7 +14,7 @@ Maintain deterministic, testable portfolio analysis and privacy-conscious offlin
 
 ## Current Status
 
-The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, and #42–#48 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps, currency-code shape, net-worth arithmetic, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, PR #45 adds root-level license/notice filename detection, and PR #46 records the resulting evidence. The generated artifact found a root-level license file for all nine flagged entries; artifact-level content checks and legal disposition remain open. PR #48 adds an operational customer-discovery playbook; demand is still unvalidated.
+The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, and #42–#48, #50–#52 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps with semantic HTML time elements, currency-code shape, nested monetary currency consistency, net-worth arithmetic, analysis total reconciliation, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, PR #45 adds root-level license/notice filename detection, and PR #46 records the resulting evidence. The generated artifact found a root-level license file for all nine flagged entries; artifact-level content checks and legal disposition remain open. PR #48 adds an operational customer-discovery playbook; demand is still unvalidated.
 
 ## Completed
 
@@ -24,7 +24,7 @@ The deterministic analytics engine and offline HTML report renderer are merged i
 - CAGR, annual compound-growth projection, and XIRR calculators
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
-- Versioned portfolio report model and self-contained offline HTML renderer, with canonical timestamp, currency-code, net-worth, malformed-payload, and allocation-reconciliation validation
+- Versioned portfolio report model and self-contained offline HTML renderer, with semantic timestamps, currency-code, nested-currency, net-worth, analysis-total, malformed-payload, and allocation-reconciliation validation
 - TypeScript package build, typecheck, lint, and test gates in CI
 - High-severity dependency vulnerability audit in CI
 - First-pass evidence review and root-level license-file inventory for all nine flagged dependency-license entries, with final dispositions intentionally open
