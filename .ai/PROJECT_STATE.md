@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Report Engine / Release Safety
-- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Current work hardens malformed report-payload validation and synchronizes project status documents.
+- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, net-worth, and allocation-reconciliation invariants. The first-pass evidence review for nine dependency-license flags is documented; artifact-level and legal dispositions remain open.
 
 ## Foundation Verified
 
@@ -35,7 +35,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Keep the nine dependency-license entries flagged by the inventory under evidence-based manual review; do not infer legal clearance from package metadata.
+1. Inspect packed npm artifacts and included notices for the nine flagged dependency versions; preserve unresolved status until the intended distribution model is reviewed.
 2. Define the application/CLI boundary before implementing report-to-file commands, and define persistence/source-of-truth requirements before historical snapshots.
 3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
 4. Validate a paid-pilot hypothesis with prospective users before investing in paid tiers.
@@ -47,7 +47,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Historical repository content and commit metadata have not been fully scanned.
 - The Anthropic application draft is prepared but has not been submitted.
 - No revenue, customer demand, or product-market fit has been validated.
-- The nine dependency-license inventory flags still require manual evidence review.
+- The nine dependency-license inventory flags have a first-pass upstream evidence record, but packed-artifact/notice checks and legal disposition remain outstanding.
 
 ## Last Updated
 
