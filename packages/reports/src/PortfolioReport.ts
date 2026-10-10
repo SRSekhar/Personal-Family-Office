@@ -71,6 +71,10 @@ export function createPortfolioReport({
         throw new RangeError('Portfolio analysis results must use one consistent currency.');
     }
 
+    if (analysis.assetAllocation.totalValue.amount !== analysis.netWorth.totalAssets.amount) {
+        throw new RangeError('Portfolio analysis asset-allocation total must equal net-worth total assets.');
+    }
+
     if (!Number.isInteger(analysis.positionCount) || analysis.positionCount < 0) {
         throw new RangeError('positionCount must be a non-negative integer.');
     }
