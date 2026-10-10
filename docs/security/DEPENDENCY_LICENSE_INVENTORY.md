@@ -1,6 +1,6 @@
 # Third-Party Dependency License Inventory
 
-Generated: 2026-10-10T06:36:35.103Z
+Generated: 2026-10-10T06:38:43.533Z
 
 ## Scope and limitations
 
@@ -11,7 +11,7 @@ This is **not a legal compatibility determination**. License metadata may be mis
 ## Summary
 
 - Unique third-party package versions: **152**
-- Packages with missing or review-required license metadata: **0**
+- Package versions requiring manual license review: **9**
 
 | License metadata | Package versions |
 | --- | ---: |
