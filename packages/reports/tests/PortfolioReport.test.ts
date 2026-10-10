@@ -131,6 +131,16 @@ describe('renderPortfolioReportHtml', () => {
         expect(html).not.toContain('<img src=x');
     });
 
+    it('rejects a serialized report with inconsistent net-worth totals', () => {
+        const inconsistentReport = {
+            ...createReport(),
+            netWorth: 76_000
+        };
+
+        expect(() => renderPortfolioReportHtml(inconsistentReport))
+            .toThrow(/net worth must equal total assets minus total liabilities/);
+    });
+
     it('renders a useful empty state when there are no allocations', () => {
         const analysis = makeAnalysis({
             assetAllocation: {
