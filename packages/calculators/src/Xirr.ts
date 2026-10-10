@@ -45,7 +45,14 @@ export function calculateXirr(cashFlows: readonly XirrCashFlow[]): number {
 
     let signChanges = 0;
     for (let index = 1; index < aggregatedFlows.length; index++) {
-        if (Math.sign(aggregatedFlows[index - 1].amount) !== Math.sign(aggregatedFlows[index].amount)) {
+        const previousFlow = aggregatedFlows[index - 1];
+        const currentFlow = aggregatedFlows[index];
+
+        if (previousFlow === undefined || currentFlow === undefined) {
+            throw new RangeError('Unable to inspect the complete cash-flow sequence.');
+        }
+
+        if (Math.sign(previousFlow.amount) !== Math.sign(currentFlow.amount)) {
             signChanges++;
         }
     }
@@ -56,8 +63,16 @@ export function calculateXirr(cashFlows: readonly XirrCashFlow[]): number {
         );
     }
 
-    const maxAbsoluteAmount = Math.max(...aggregatedFlows.map((flow) => Math.abs(flow.amount)));
-    const baseTimestamp = aggregatedFlows[0].timestamp;
+    const firstFlow = aggregatedFlows[0];
+    if (firstFlow === undefined) {
+        throw new RangeError('At least two non-zero cash-flow dates are required.');
+    }
+
+    const maxAbsoluteAmount = aggregatedFlows.reduce(
+        (maximum, flow) => Math.max(maximum, Math.abs(flow.amount)),
+        0
+    );
+    const baseTimestamp = firstFlow.timestamp;
     const normalizedFlows = aggregatedFlows.map((flow) => ({
         amount: flow.amount / maxAbsoluteAmount,
         years: (flow.timestamp - baseTimestamp) / MILLISECONDS_PER_DAY / DAYS_PER_YEAR
