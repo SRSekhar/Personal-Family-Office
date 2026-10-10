@@ -190,6 +190,10 @@ function validatePortfolioReport(report: PortfolioReportData): void {
         throw new RangeError('Portfolio report totals must be finite; assets and liabilities cannot be negative.');
     }
 
+    if (report.netWorth !== report.totalAssets - report.totalLiabilities) {
+        throw new RangeError('Portfolio report net worth must equal total assets minus total liabilities.');
+    }
+
     for (const allocation of report.allocations) {
         if (allocation.category.trim().length === 0 ||
             !Number.isFinite(allocation.value) ||
