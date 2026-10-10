@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Analytics Engine
-- **Status:** Two deterministic calculator capabilities are implemented; continue with XIRR and additional analytics.
+- **Status:** Three deterministic calculator capabilities are implemented; continue with net worth and asset allocation.
 
 ## Foundation Verified
 
@@ -23,18 +23,19 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 - Configuration-driven PowerShell bootstrap merged.
 - CI uses a frozen pnpm lockfile.
 - CI runs initialization, validation, doctor, WhatIf/no-overwrite/path-safety tests, lint, typecheck, build, and tests.
-- Pull-request CI passed for the foundation and calculator changes.
+- Pull-request CI passed for the foundation and initial analytics capabilities.
 
 ## Implemented Calculator Capabilities
 
 - CAGR calculation with input validation and edge-case tests.
 - Annual compound-growth projection with explicit contribution timing, input validation, overflow checks, and tests.
+- XIRR for dated cash flows using ACT/365 and bisection, with date/amount validation and explicit rejection of multi-sign-change cash-flow series.
 
-These are mathematical utilities, not investment advice or guaranteed forecasts.
+These are mathematical utilities, not investment advice or guaranteed forecasts. XIRR currently supports cash-flow streams with exactly one sign change to avoid ambiguous roots.
 
 ## Next Deliverables
 
-1. Implement XIRR with explicit date validation, convergence behavior, and tests.
+1. Implement net-worth and asset-allocation calculations using the existing domain models and explicit non-double-counting rules.
 2. Complete a full-history secret and sensitive-data scan before any public release.
 3. Decide the public framework/private application boundary and licensing model.
 4. Validate one revenue hypothesis with real prospective users before investing in paid tiers.

@@ -2,7 +2,7 @@
 
 ## Sprint
 
-Sprint 1 — Platform Foundation
+Sprint 2 — Analytics Engine
 
 ## Version
 
@@ -10,43 +10,31 @@ Sprint 1 — Platform Foundation
 
 ## Goal
 
-Establish repository governance, configuration, onboarding, repeatable initialization, and CI foundations.
+Build a small set of deterministic, testable financial calculations with explicit units, assumptions, and edge-case handling.
 
 ## Current Status
 
-**Technical foundation complete.** Bootstrap, validation, doctor, WhatIf safety, no-overwrite behavior, path safety, lint, typecheck, build, and tests pass in CI. Public-release safety decisions remain separate release gates.
+CAGR, annual compound-growth projection, and XIRR are implemented and pass the full CI workflow. The next deliverables are net worth and asset allocation, after inspecting existing domain models and defining non-double-counting rules.
 
-## Completed Deliverables
+## Completed
 
-### Repository and AI Foundation
+- Repository foundation and CI quality gates
+- PowerShell bootstrap, validation, doctor, WhatIf non-mutation, no-overwrite, and path-safety tests
+- CAGR calculation and edge-case tests
+- Annual compound-growth projection with contribution-timing tests
+- XIRR solver with dated cash-flow validation, ACT/365 convention, bisection, and ambiguity rejection
 
-- Repository metadata and GitHub Flow
-- AI_CONTEXT.md and AI_CONTRACT.md
-- Project state, handoff, sprint, backlog, decisions, glossary, and prompts
-- README.md, ARCHITECTURE.md, ROADMAP.md, CHANGELOG.md, CONTRIBUTING.md, START_HERE.md
+## Next Deliverables
 
-### Configuration and Automation
-
-- pnpm workspace and frozen lockfile installation
-- TypeScript base configuration
-- Root Git ignore protections for local financial data and generated reports
-- Configuration-driven PowerShell initializer
-- Safe configured-path validation and no-overwrite behavior
-- GitHub Actions CI for bootstrap and TypeScript quality gates
-- PowerShell regression checks for WhatIf non-mutation, existing-file preservation, and unsafe path rejection
-
-## Implemented Early Analytics
-
-- CAGR calculation
-- Annual compound-growth projection with explicit contribution timing
-- Unit tests for normal cases, edge cases, invalid inputs, and numeric overflow
+1. Inspect the existing financial entity models and identify authoritative asset/liability inputs.
+2. Implement net-worth calculation without double-counting holdings represented in multiple categories.
+3. Implement asset allocation with documented classification and valuation rules.
+4. Add property-based or table-driven tests for boundary cases.
+5. Complete a full history scan and resolve the license/product boundary before public release.
 
 ## Release-Safety Work Still Open
 
 - Full history scan for secrets and sensitive data
 - License and public/private product-boundary decision
 - Anthropic application submission
-
-## Next Sprint / Deliverable
-
-Sprint 2 — Analytics Engine: implement XIRR with explicit assumptions and tests, then net-worth and asset-allocation calculations.
+- Customer discovery and paid-pilot validation
