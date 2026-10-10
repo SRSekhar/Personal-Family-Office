@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Audit dependency vulnerabilities
+        run: pnpm audit --audit-level=high
+
       - name: Initialize repository structure
         shell: pwsh
         run: pwsh ./scripts/build/Initialize-PFO.ps1
