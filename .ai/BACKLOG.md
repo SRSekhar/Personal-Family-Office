@@ -107,7 +107,11 @@ Features
 
 Status
 
-Planned
+In Progress
+
+Under validation in PR #33:
+- Versioned portfolio report model
+- Self-contained HTML financial summary with XSS-safe rendering
 
 Features
 

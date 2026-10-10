@@ -23,7 +23,8 @@ The project follows Semantic Versioning.
 - XIRR calculator for irregularly dated cash flows using ACT/365 and bisection, with explicit rejection of ambiguous multi-sign-change streams.
 - Net-worth calculator with canonical financial position validation and no implicit currency conversion.
 - Asset-allocation calculator with category aggregation, deterministic ordering, and validated weights.
-- Portfolio analysis composition and explicit source-record mapping are being validated in PR #21.
+- Portfolio analysis composition and explicit source-record mapping (merged after CI and full-history secret scan passed).
+- Initial versioned portfolio report model and self-contained HTML renderer are under validation in PR #33.
 
 ## Changed
 
@@ -35,7 +36,7 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow passed for the bootstrap safety tests, CAGR, compound-growth projection, and XIRR. Net worth and asset allocation are under validation in PR #19. A full historical secret scan and legal/licensing review remain outstanding.
+The full CI workflow passed for bootstrap safety, CAGR, compound-growth projection, XIRR, net worth, asset allocation, and portfolio analysis. The full-history Gitleaks workflow passed without findings. A separate personal-data review, dependency vulnerability/license inventory, and legal/licensing review remain outstanding.
 
 ---
 
@@ -64,6 +65,6 @@ The full CI workflow passed for the bootstrap safety tests, CAGR, compound-growt
 
 ## Remaining
 
-- Full historical secret and sensitive-data scan
+- Ongoing full-history secret scan and separate personal-data review
 - Product-boundary and licensing decisions
 - First validated user/revenue hypothesis

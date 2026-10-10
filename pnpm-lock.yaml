@@ -295,6 +295,19 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/reports:
+    dependencies:
+      '@pfo/analytics':
+        specifier: workspace:*
+        version: link:../analytics
+    devDependencies:
+      '@pfo/models':
+        specifier: workspace:*
+        version: link:../models
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/shared:
     devDependencies:
       typescript:
