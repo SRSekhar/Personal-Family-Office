@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -50,6 +50,43 @@ describe('generateLicenseInventory', () => {
             expect(report).toContain('| @scope/beta | 2.0.0 | Apache-2.0 |');
             expect(report).toContain('| gamma | 3.0.0 | UNKNOWN |');
             expect(report).toContain('Package versions requiring manual license review: **1**');
+        } finally {
+            await rm(temporaryDirectory, { recursive: true, force: true });
+        }
+    });
+
+    it('reads package metadata through regular and scoped pnpm symlinks', async () => {
+        const temporaryDirectory = await mkdtemp(join(tmpdir(), 'pfo-license-inventory-'));
+        const pnpmStore = join(temporaryDirectory, 'node_modules', '.pnpm');
+        const regularTarget = join(temporaryDirectory, 'package-targets', 'regular');
+        const scopedTarget = join(temporaryDirectory, 'package-targets', 'scoped');
+        const regularLink = join(pnpmStore, 'regular@1.2.3', 'node_modules', 'regular');
+        const scopedLink = join(pnpmStore, 'scoped@2.3.4', 'node_modules', '@scope', 'scoped');
+        const linkType = process.platform === 'win32' ? 'junction' : 'dir';
+
+        try {
+            await mkdir(join(pnpmStore, 'regular@1.2.3', 'node_modules'), { recursive: true });
+            await mkdir(join(pnpmStore, 'scoped@2.3.4', 'node_modules', '@scope'), { recursive: true });
+            await mkdir(regularTarget, { recursive: true });
+            await mkdir(scopedTarget, { recursive: true });
+            await writeFile(join(regularTarget, 'package.json'), JSON.stringify({
+                name: 'regular',
+                version: '1.2.3',
+                license: 'MIT'
+            }), 'utf8');
+            await writeFile(join(scopedTarget, 'package.json'), JSON.stringify({
+                name: '@scope/scoped',
+                version: '2.3.4',
+                license: 'ISC'
+            }), 'utf8');
+            await symlink(regularTarget, regularLink, linkType);
+            await symlink(scopedTarget, scopedLink, linkType);
+
+            const report = await generateLicenseInventory(pnpmStore);
+
+            expect(report).toContain('Unique third-party package versions: **2**');
+            expect(report).toContain('| regular | 1.2.3 | MIT |');
+            expect(report).toContain('| @scope/scoped | 2.3.4 | ISC |');
         } finally {
             await rm(temporaryDirectory, { recursive: true, force: true });
         }
