@@ -99,6 +99,8 @@ describe('renderPortfolioReportHtml', () => {
         expect(html).toContain('<main>');
         expect(html).toContain('Net worth summary');
         expect(html).toContain('Asset allocation by category');
+        expect(html).toContain('datetime="2026-10-01T00:00:00.000Z"');
+        expect(html).toContain('datetime="2026-10-10T06:00:00.000Z"');
         expect(html).toContain('INR 1,00,000.00');
         expect(html).toContain('INR 75,000.00');
         expect(html).toContain('25%');

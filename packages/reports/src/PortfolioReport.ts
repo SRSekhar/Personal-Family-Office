@@ -140,7 +140,7 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
             <p class="eyebrow">PFO OS · Financial Summary</p>
             <h1 id="report-title">${escapeHtml(report.portfolioName)}</h1>
             <div class="metadata">
-                <span>As of ${escapeHtml(formatDate(report.asOfDate))}</span>
+                <span>As of <time datetime="${escapeHtml(report.asOfDate)}">${escapeHtml(formatDate(report.asOfDate))}</time></span>
                 <span>Currency: ${escapeHtml(report.currency)}</span>
                 <span>Positions: ${String(report.positionCount)}</span>
             </div>
@@ -158,7 +158,7 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
             ${allocationRows}
         </section>
         <footer>
-            <p>Generated ${escapeHtml(formatTimestamp(report.generatedAt))} (UTC).</p>
+            <p>Generated <time datetime="${escapeHtml(report.generatedAt)}">${escapeHtml(formatTimestamp(report.generatedAt))}</time> (UTC).</p>
             <p>Informational summary based on the selected records and their supplied valuations. Not investment, tax, or legal advice.</p>
         </footer>
     </main>
