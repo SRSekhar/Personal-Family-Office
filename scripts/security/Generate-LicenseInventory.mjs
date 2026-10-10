@@ -51,6 +51,51 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         });
     }
 
+    for (const snapshot of snapshotEntries) {
+        if (!snapshot.isDirectory() || snapshot.name === 'node_modules') {
+            continue;
+        }
+
+        const snapshotNodeModules = join(pnpmStoreDirectory, snapshot.name, 'node_modules');
+        let entries;
+
+        try {
+            entries = await readdir(snapshotNodeModules, { withFileTypes: true });
+        } catch (error) {
+            if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+                continue;
+            }
+            throw error;
+        }
+
+        for (const entry of entries) {
+            if ((!entry.isDirectory() && !entry.isSymbolicLink()) || entry.name === '.bin') {
+                continue;
+            }
+
+            if (entry.name.startsWith('@')) {
+                const scopeDirectory = join(snapshotNodeModules, entry.name);
+                const scopedPackages = await readdir(scopeDirectory, { withFileTypes: true });
+
+                for (const scopedPackage of scopedPackages) {
+                    if (!scopedPackage.isDirectory() && !scopedPackage.isSymbolicLink()) {
+                        continue;
+                    }
+
+                    await addPackage(
+                        join(scopeDirectory, scopedPackage.name, 'package.json'),
+                        join(snapshotNodeModules, entry.name, scopedPackage.name)
+                    );
+                }
+            } else {
+                await addPackage(
+                    join(snapshotNodeModules, entry.name, 'package.json'),
+                    join(snapshotNodeModules, entry.name)
+                );
+            }
+        }
+    }
+
     const rows = [...packages.values()].map((item) => {
         const licenses = [...item.licenses].sort();
 
