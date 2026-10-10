@@ -217,6 +217,35 @@ function validatePortfolioReport(value: unknown): void {
     if (!report.allocations.every(isValidPortfolioReportAllocation)) {
         throw new RangeError('Portfolio report allocations contain invalid values.');
     }
+
+    const allocationValueTotal = report.allocations.reduce((total, allocation) => total + allocation.value, 0);
+    const allocationWeightTotal = report.allocations.reduce((total, allocation) => total + allocation.weight, 0);
+
+    if (!Number.isFinite(allocationValueTotal) || !Number.isFinite(allocationWeightTotal)) {
+        throw new RangeError('Portfolio report allocation totals must be finite.');
+    }
+
+    if (report.allocations.length === 0) {
+        if (report.totalAssets !== 0) {
+            throw new RangeError('Portfolio report allocation values must equal total assets.');
+        }
+        return;
+    }
+
+    if (report.totalAssets <= 0) {
+        throw new RangeError('Portfolio report allocations require positive total assets.');
+    }
+
+    const valueTolerance = Math.max(Math.abs(report.totalAssets), Math.abs(allocationValueTotal)) *
+        Number.EPSILON * report.allocations.length * 8;
+    if (Math.abs(allocationValueTotal - report.totalAssets) > valueTolerance) {
+        throw new RangeError('Portfolio report allocation values must equal total assets.');
+    }
+
+    const weightTolerance = Number.EPSILON * report.allocations.length * 8;
+    if (Math.abs(allocationWeightTotal - 1) > weightTolerance) {
+        throw new RangeError('Portfolio report allocation weights must sum to 1.');
+    }
 }
 
 function isValidPortfolioReportAllocation(value: unknown): value is PortfolioReportAllocation {
