@@ -21,7 +21,8 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 
 ## Remaining Release Gates
 
-- Complete a full repository-history scan for secrets and sensitive data.
+- Keep scheduled full-history secret scanning enabled and investigate any findings.
+- Complete a separate review for personal financial data and other sensitive material.
 - Decide the public/private product boundary and licensing approach.
 - Confirm ownership and third-party license obligations before publishing reusable components.
 
@@ -66,7 +67,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 
 # Version 0.4 — Report Engine
 
-**Status:** Planned
+**Status:** In Progress
 
 - Executive report
 - Annual review
