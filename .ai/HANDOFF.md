@@ -4,70 +4,43 @@
 
 PFO OS — Personal Family Office Operating System
 
----
+## Current Milestone
 
-# Current Milestone
-
-M1 — Repository Foundation
-
+M1 — Repository Foundation  
 Status: In Progress
 
----
+## Current Work
 
-# Current Work
+- **Epic:** Platform Foundation
+- **Work Order:** WO-001 — Repository Bootstrap
+- **Status:** Implementation in review; runtime validation pending
 
-## Epic
+## Current Implementation
 
-Platform Foundation
+Feature branch feat/repository-bootstrap contains:
 
-## Work Order
+- scripts/build/Initialize-PFO.ps1
+- Safe, configuration-driven structure initialization in scripts/internal/Structure.ps1
+- A compatibility wrapper in bootstrap.ps1
+- Local data and report ignore rules
+- Updated bootstrap documentation and project state
 
-WO-001 — Repository Bootstrap
+## Immediate Next Steps
 
----
+1. Validate PowerShell syntax and behavior on Windows PowerShell 7.
+2. Run initialization, -Validate, -Doctor, and -WhatIf from a clean checkout.
+3. Confirm the script never overwrites existing files and rejects unsafe configured paths.
+4. Review the CI pull request and run build, typecheck, lint, and tests.
+5. Regenerate pnpm-lock.yaml from package.json and switch CI to a frozen install.
+6. Merge only after CI passes and the relevant PRs have been reviewed.
 
-# Current Task
+## Important Constraints
 
-Design and implement:
+- Do not commit real personal financial data, account statements, credentials, or private reports.
+- Do not claim a full security audit has passed.
+- Do not change repository visibility or publish a license without reviewing the product boundary and release risks.
+- Do not mark a task complete until tests or validation have actually run.
 
-scripts/build/Initialize-PFO.ps1
+## Known Risks
 
-This file does not yet exist.
-
-Its creation is the primary deliverable for WO-001.
-
----
-
-# Completed
-
-- Repository structure established
-- AI onboarding framework completed
-- Repository governance completed
-- Repository documentation completed
-- Repository configuration completed
-
----
-
-# Next Steps
-
-1. Design Initialize-PFO.ps1.
-2. Review the existing bootstrap.ps1 implementation.
-3. Implement Initialize-PFO.ps1.
-4. Validate from a clean repository checkout.
-5. Merge WO-001 into main.
-
----
-
-# Known Risks
-
-None
-
----
-
-# Notes
-
-The repository is considered stable.
-
-Implementation should continue without redesigning the repository structure unless a genuine defect is discovered.
-
-Only update this document when handing work to another implementation session.
+The current repository is public and does not yet have a valid open-source license. The bootstrap implementation has not yet been executed locally.
