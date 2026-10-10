@@ -17,6 +17,7 @@ The project follows Semantic Versioning.
 - Security policy and an initial public-repository exposure review.
 - Deterministic CAGR calculator with input validation and edge-case tests.
 - Annual compound-growth projection with explicit contribution timing and validation.
+- XIRR calculator for irregularly dated cash flows using ACT/365 and bisection, with explicit rejection of ambiguous multi-sign-change streams.
 
 ## Changed
 
@@ -28,7 +29,7 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow passed, including frozen install, PowerShell bootstrap and safety checks, lint, typecheck, build, and tests. A full historical secret scan and legal/licensing review remain outstanding.
+The full CI workflow passed for the bootstrap safety tests, CAGR, compound-growth projection, and XIRR. A full historical secret scan and legal/licensing review remain outstanding.
 
 ---
 
