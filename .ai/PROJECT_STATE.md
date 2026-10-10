@@ -10,40 +10,43 @@
 ## Current Milestone
 
 **M1 — Repository Foundation**  
-Status: In Progress
+Status: In Progress — core bootstrap and CI are working; remaining release-safety checks are tracked below.
 
 ## Current Work
 
-- **Epic:** Platform Foundation
-- **Work Order:** WO-001 — Repository Bootstrap
-- **Status:** Implementation in review; runtime validation pending
+- **Epic:** Analytics Engine foundation
+- **Status:** Deterministic calculator foundations implemented; continue with additional analytics and product validation.
 
-## Foundation Completed
+## Foundation Verified
 
 - Repository and GitHub Flow established.
-- Repository structure and AI onboarding framework established.
-- Architecture, roadmap, contribution guidance, changelog, and repository metadata created.
-- TypeScript workspace packages and initial domain models exist.
+- AI onboarding, architecture, roadmap, contribution guidance, and project-state documentation established.
+- Configuration-driven PowerShell bootstrap is merged.
+- CI uses a frozen pnpm lockfile and runs repository initialization, validation, doctor, lint, typecheck, build, and tests.
+- Pull-request CI passed for the bootstrap and initial calculator changes.
 
-## Current Implementation
+## Implemented Calculator Capabilities
 
-A feature branch now contains the configured PowerShell bootstrap entry point, a structure module that creates missing configured paths without overwriting existing files, path traversal checks, and ignore rules for local financial data and generated reports.
+- CAGR calculation with input validation and edge-case tests.
+- Annual compound-growth projection with explicit contribution timing, input validation, overflow checks, and tests.
 
-These changes are not yet merged and have not yet been executed in a local PowerShell environment.
+These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Run bootstrap initialization, validation, doctor, and WhatIf modes in PowerShell.
-2. Resolve CI, build, typecheck, lint, and test failures.
-3. Regenerate and review the pnpm lockfile, then enable frozen installs.
-4. Reconcile project-state documentation after verified results.
+1. Add explicit regression coverage for bootstrap WhatIf behavior.
+2. Implement XIRR with clear handling of dates, cash flows, and solver limitations.
+3. Complete a full-history secret and sensitive-data scan before any public release.
+4. Decide the public framework/private application boundary and licensing model.
+5. Validate one revenue hypothesis with real prospective users before investing in paid tiers.
 
 ## Blockers and Risks
 
-- The GitHub repository is currently public; do not commit real financial data or private configuration.
+- The GitHub repository is public; do not commit real financial data or private configuration.
 - The repository does not yet have a valid open-source license.
-- Historical repository content and commit metadata require a full secret scan before any release.
-- Bootstrap and CI changes require runtime validation.
+- Historical repository content and commit metadata have not been fully scanned.
+- The Anthropic application draft is prepared but has not been submitted.
+- No revenue, customer demand, or product-market fit has been validated.
 
 ## Last Updated
 
