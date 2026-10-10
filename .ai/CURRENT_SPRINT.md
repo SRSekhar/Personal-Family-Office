@@ -14,33 +14,26 @@ Establish repository governance, configuration, onboarding, repeatable initializ
 
 ## Current Status
 
-Core bootstrap and CI checks are implemented and passing in pull-request CI. Sprint 1 remains open for explicit WhatIf regression coverage and release-safety checks.
+**Technical foundation complete.** Bootstrap, validation, doctor, WhatIf safety, no-overwrite behavior, path safety, lint, typecheck, build, and tests pass in CI. Public-release safety decisions remain separate release gates.
 
 ## Completed Deliverables
 
 ### Repository and AI Foundation
 
 - Repository metadata and GitHub Flow
-- AI_CONTEXT.md
-- AI_CONTRACT.md
-- PROJECT_STATE.md
-- HANDOFF.md
-- CURRENT_SPRINT.md
-- BACKLOG.md
-- DECISIONS.md
-- GLOSSARY.md
-- PROMPTS.md
+- AI_CONTEXT.md and AI_CONTRACT.md
+- Project state, handoff, sprint, backlog, decisions, glossary, and prompts
 - README.md, ARCHITECTURE.md, ROADMAP.md, CHANGELOG.md, CONTRIBUTING.md, START_HERE.md
 
 ### Configuration and Automation
 
-- package.json and pnpm workspace
+- pnpm workspace and frozen lockfile installation
 - TypeScript base configuration
-- Root .gitignore protections for local data and generated reports
-- scripts/build/Initialize-PFO.ps1
-- Configuration-driven structure creation and path traversal validation
-- GitHub Actions CI using frozen dependency installation
-- CI execution of bootstrap, validation, doctor, lint, typecheck, build, and tests
+- Root Git ignore protections for local financial data and generated reports
+- Configuration-driven PowerShell initializer
+- Safe configured-path validation and no-overwrite behavior
+- GitHub Actions CI for bootstrap and TypeScript quality gates
+- PowerShell regression checks for WhatIf non-mutation, existing-file preservation, and unsafe path rejection
 
 ## Implemented Early Analytics
 
@@ -48,14 +41,12 @@ Core bootstrap and CI checks are implemented and passing in pull-request CI. Spr
 - Annual compound-growth projection with explicit contribution timing
 - Unit tests for normal cases, edge cases, invalid inputs, and numeric overflow
 
-## Remaining Definition of Done
+## Release-Safety Work Still Open
 
-- Add a focused WhatIf no-filesystem-change test.
-- Keep CI green on the latest main commit.
-- Complete a full history scan for secrets and sensitive data.
-- Decide license and public/private product boundaries before a public framework release.
-- Update project-state files after each verified milestone.
+- Full history scan for secrets and sensitive data
+- License and public/private product-boundary decision
+- Anthropic application submission
 
-## Next Deliverable
+## Next Sprint / Deliverable
 
-WhatIf regression coverage, followed by XIRR as the next deterministic analytics capability.
+Sprint 2 — Analytics Engine: implement XIRR with explicit assumptions and tests, then net-worth and asset-allocation calculations.
