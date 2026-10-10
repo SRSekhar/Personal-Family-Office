@@ -14,7 +14,7 @@ Maintain deterministic, testable portfolio analysis and privacy-conscious offlin
 
 ## Current Status
 
-The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, #42, and #43 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps, net-worth arithmetic, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, and PR #45 extends the CI inventory with root-level license/notice filenames. The generated artifact found a root-level license file for all nine flagged entries; artifact-level content checks and legal disposition remain open.
+The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, and #42–#48 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps, currency-code shape, net-worth arithmetic, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, PR #45 adds root-level license/notice filename detection, and PR #46 records the resulting evidence. The generated artifact found a root-level license file for all nine flagged entries; artifact-level content checks and legal disposition remain open. PR #48 adds an operational customer-discovery playbook; demand is still unvalidated.
 
 ## Completed
 
@@ -24,10 +24,11 @@ The deterministic analytics engine and offline HTML report renderer are merged i
 - CAGR, annual compound-growth projection, and XIRR calculators
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
-- Versioned portfolio report model and self-contained offline HTML renderer, with canonical timestamp, net-worth, malformed-payload, and allocation-reconciliation validation
+- Versioned portfolio report model and self-contained offline HTML renderer, with canonical timestamp, currency-code, net-worth, malformed-payload, and allocation-reconciliation validation
 - TypeScript package build, typecheck, lint, and test gates in CI
 - High-severity dependency vulnerability audit in CI
-- First-pass evidence review for all nine flagged dependency-license entries, with final dispositions intentionally open
+- First-pass evidence review and root-level license-file inventory for all nine flagged dependency-license entries, with final dispositions intentionally open
+- Customer-discovery interview playbook linked from the revenue validation plan
 
 ## In Progress
 
@@ -36,10 +37,10 @@ The deterministic analytics engine and offline HTML report renderer are merged i
 
 ## Next Deliverables
 
-1. Record evidence-based dispositions for the nine flagged dependency-license entries without treating metadata as legal advice.
+1. Inspect the exact published artifacts and license/NOTICE file contents for the nine flagged dependency versions; do not infer legal clearance from filename presence.
 2. Define the application/CLI boundary before adding report-to-file host commands.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
-4. Continue customer discovery and validate a paid-pilot hypothesis.
+4. Execute the 8–10 interview experiment in the customer-discovery playbook and validate a paid-pilot hypothesis.
 
 ## Release-Safety Work Still Open
 
