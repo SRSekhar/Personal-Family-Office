@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Report Engine / Release Safety
-- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, net-worth, and allocation-reconciliation invariants. The first-pass evidence review for nine dependency-license flags is documented; artifact-level and legal dispositions remain open.
+- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, net-worth, and allocation-reconciliation invariants. The first-pass evidence review for nine dependency-license flags is documented. CI now records root-level license/notice filenames, finding a license file for all nine; file-content, exact-artifact, and legal dispositions remain open.
 
 ## Foundation Verified
 
