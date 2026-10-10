@@ -60,12 +60,10 @@ Implemented
 - CAGR calculation with input validation and edge-case tests
 - Annual compound-growth projection with explicit contribution timing and tests
 - XIRR calculation for dated cash flows using ACT/365 and bisection; ambiguous multi-sign-change streams are rejected
+- Net worth calculation with canonical IDs, same-currency validation, and explicit no-FX behavior
+- Asset allocation by caller-supplied category with deterministic ordering and validated weights
 
 Planned
-
-- Net Worth
-- Asset Allocation
-- XIRR
 - Risk Analysis
 - Diversification
 - Portfolio Health
