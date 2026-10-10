@@ -13,3 +13,6 @@ export type { CagrInput } from './Cagr.js';
 
 export { projectCompoundGrowth } from './CompoundGrowth.js';
 export type { CompoundGrowthInput, ContributionTiming } from './CompoundGrowth.js';
+
+export { calculateXirr } from './Xirr.js';
+export type { XirrCashFlow } from './Xirr.js';
