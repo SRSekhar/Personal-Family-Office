@@ -8,21 +8,22 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 
 # Version 0.1 — Repository Foundation
 
-**Status:** In Progress
+**Technical status:** Complete  
+**Release-readiness status:** In Progress
 
-## Deliverables
+## Completed
 
 - Repository and AI foundation
 - Documentation and Git strategy
 - Configuration-driven repository bootstrap
 - CI for bootstrap, lint, typecheck, build, and tests
+- WhatIf, no-overwrite, and path-safety regression checks
 
-## Completion Criteria
+## Remaining Release Gates
 
-- Bootstrap initialization, validation, and doctor pass in CI.
-- Add explicit WhatIf regression coverage.
-- Complete initial repository/history safety review.
-- Decide the public/private product boundary and licensing approach before release.
+- Complete a full repository-history scan for secrets and sensitive data.
+- Decide the public/private product boundary and licensing approach.
+- Confirm ownership and third-party license obligations before publishing reusable components.
 
 ---
 
