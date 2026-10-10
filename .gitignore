@@ -66,7 +66,7 @@ temp/
 # ============================================================================
 # Reports
 # ============================================================================
-reports/
+/reports/
 playwright-report/
 test-results/
 
@@ -75,7 +75,7 @@ test-results/
 # Never commit real financial records or personal exports to this repository.
 # Keep synthetic, reviewed test fixtures under package test directories instead.
 # ============================================================================
-data/
+/data/
 
 # ============================================================================
 # PowerShell
