@@ -14,37 +14,37 @@ Turn validated, deterministic portfolio analysis into a useful, privacy-consciou
 
 ## Current Status
 
-The analytics engine is merged and passes CI. The initial report package and self-contained HTML renderer are being validated in PR #33. Do not merge until the full CI and secret-scan workflows pass.
+The analytics engine and initial versioned, self-contained HTML report are merged into `main`. PR #36 hardens serialized report timestamp validation; its CI and full-history secret scan passed on 2026-10-10, but the PR remains open and unmerged. PR #35 adds a dependency-license metadata inventory; its CI and full-history secret scan also passed, while manual review of flagged entries remains outstanding. That release-readiness review does not block continued report-engine development.
 
 ## Completed
 
 - Repository foundation, bootstrap, and CI quality gates
-- Scheduled full-history Gitleaks scanning; latest scans passed without findings
+- Scheduled full-history Gitleaks scanning; latest recorded scans passed without findings
 - Dependabot workspace and GitHub Actions updates
 - CAGR, annual compound-growth projection, and XIRR calculators
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
-- CI-passing TypeScript package build, typecheck, lint, and tests
+- Versioned portfolio report model and self-contained offline HTML renderer
+- Responsive layout, semantic report structure, print styling, and HTML escaping
+- CI quality gates for install, vulnerability audit, bootstrap safety, lint, typecheck, build, and tests
 
 ## In Progress
 
-- Serializable portfolio report model
-- Self-contained HTML report with responsive styling, semantic structure, and print layout
-- HTML escaping for dynamic labels and names
-- Tests for deterministic output, invalid data, empty allocations, and XSS safety
+- PR #36: canonical ISO-8601 UTC timestamp validation for serialized report data; CI and full-history secret scan passed, awaiting review
+- PR #35: dependency license metadata inventory; CI and full-history secret scan passed, with manual review still required for flagged entries
 
 ## Next Deliverables
 
-1. Pass CI and full-history secret scan for PR #33; fix all failures before merge.
-2. Add an export-to-file host command only after selecting the app/CLI boundary.
+1. Add regression-tested validation that serialized report net worth equals total assets minus total liabilities.
+2. Define the application/CLI boundary before adding an export-to-file host command.
 3. Decide the source-of-truth and persistence approach before building historical snapshot storage.
-4. Complete the dependency license inventory; the new high-severity vulnerability audit now passes and remains a CI gate.
-5. Resolve the open-source license and public/private product boundary before any public framework release.
+4. Keep PRs #35 and #36 open until reviewed; do not merge automatically.
 
-## Release-Safety Work Still Open
+## Separate Release-Safety Gates
 
-- Dependency license and vulnerability inventory
-- Product licensing and public/private boundary
-- Anthropic application eligibility; the application remains unsubmitted
-- Customer discovery and paid-pilot validation
-- Legal review before any hosted financial product or investment-related recommendations
+- Review dependency license texts and notice obligations; the inventory is metadata, not legal clearance.
+- Resolve project licensing and the public/private product boundary before any public framework release.
+- Complete a separate review for personal financial data and other sensitive material.
+- Anthropic Claude for Open Source application eligibility remains unverified and the application remains unsubmitted.
+- Validate customer demand and a paid-pilot hypothesis before investing in paid tiers.
+- Obtain appropriate legal review before any hosted financial product or investment-related recommendations.
