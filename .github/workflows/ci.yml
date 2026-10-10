@@ -49,6 +49,10 @@ jobs:
         shell: pwsh
         run: pwsh ./scripts/build/Initialize-PFO.ps1 -Doctor
 
+      - name: Test bootstrap safety and WhatIf behavior
+        shell: pwsh
+        run: pwsh ./scripts/tests/Test-BootstrapSafety.ps1
+
       - name: Lint
         run: pnpm lint
 
