@@ -2,7 +2,7 @@
 
 ## Sprint
 
-Sprint 3 — Report Engine
+Sprint 3 — Report Engine / Release Safety
 
 ## Version
 
@@ -10,41 +10,52 @@ Sprint 3 — Report Engine
 
 ## Goal
 
-Turn validated, deterministic portfolio analysis into a useful, privacy-conscious report that can be viewed offline.
+Maintain deterministic, testable portfolio analysis and privacy-conscious offline reporting while closing security, licensing, and release-readiness gaps.
 
 ## Current Status
 
-The analytics engine is merged and passes CI. The initial report package and self-contained HTML renderer are being validated in PR #33. Do not merge until the full CI and secret-scan workflows pass.
+The analytics engine and initial offline HTML report renderer are merged into `main`. PR #35 adds a third-party npm dependency license inventory and CI artifact generation; review the implementation and its nine flagged license entries before merging. Do not treat metadata inventory as legal clearance.
 
 ## Completed
 
 - Repository foundation, bootstrap, and CI quality gates
-- Scheduled full-history Gitleaks scanning; latest scans passed without findings
+- Scheduled full-history Gitleaks scanning; latest recorded scans passed without findings
 - Dependabot workspace and GitHub Actions updates
 - CAGR, annual compound-growth projection, and XIRR calculators
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
-- CI-passing TypeScript package build, typecheck, lint, and tests
+- Versioned portfolio report model and self-contained offline HTML renderer
+- TypeScript package build, typecheck, lint, and test gates in CI
+- High-severity dependency vulnerability audit in CI
 
 ## In Progress
 
-- Serializable portfolio report model
-- Self-contained HTML report with responsive styling, semantic structure, and print layout
-- HTML escaping for dynamic labels and names
-- Tests for deterministic output, invalid data, empty allocations, and XSS safety
+- Review PR #35 license inventory generator, tests, workflow changes, and current CI results
+- Manually review seven BlueOak-1.0.0 and two MPL-2.0 metadata entries against their actual license texts and notice obligations
+- Keep project licensing and the public/private product boundary as an explicit release gate
 
 ## Next Deliverables
 
-1. Pass CI and full-history secret scan for PR #33; fix all failures before merge.
-2. Add an export-to-file host command only after selecting the app/CLI boundary.
-3. Decide the source-of-truth and persistence approach before building historical snapshot storage.
-4. Complete the dependency license inventory; the new high-severity vulnerability audit now passes and remains a CI gate.
-5. Resolve the open-source license and public/private product boundary before any public framework release.
+1. Complete code review and verify CI plus full-history secret scanning for PR #35; do not merge until the required checks pass and review blockers are resolved.
+2. Record the disposition of all nine flagged dependency license entries without presenting metadata as legal advice.
+3. Decide the project's licensing and product boundary only after ownership and redistribution obligations are reviewed; do not change the license or repository visibility automatically.
+4. Define the application/CLI boundary before adding report-to-file host commands.
+5. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
+6. Continue customer discovery and validate a paid-pilot hypothesis.
 
 ## Release-Safety Work Still Open
 
-- Dependency license and vulnerability inventory
-- Product licensing and public/private boundary
-- Anthropic application eligibility; the application remains unsubmitted
+- Third-party dependency license and notice review
+- Project licensing and public/private product-boundary decision
+- Anthropic Claude for Open Source eligibility; the application remains unsubmitted
+- Separate review for personal financial data and other sensitive material
 - Customer discovery and paid-pilot validation
 - Legal review before any hosted financial product or investment-related recommendations
+
+## Operating Rules
+
+- Inspect the live repository and existing implementation before making changes.
+- Keep changes small, testable, independently reviewable, and aligned with documented work.
+- Require relevant CI and security checks to pass before considering a merge.
+- Never merge code automatically, change repository visibility or licensing, or include real personal financial data.
+- Treat roadmap items as planned until implementation and tests demonstrate completion.

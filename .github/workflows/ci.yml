@@ -37,6 +37,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate dependency license inventory
+        run: node scripts/security/Generate-LicenseInventory.mjs --output docs/security/DEPENDENCY_LICENSE_INVENTORY.md
+
+      - name: Upload dependency license inventory
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dependency-license-inventory
+          path: docs/security/DEPENDENCY_LICENSE_INVENTORY.md
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Audit dependency vulnerabilities
         run: pnpm audit --audit-level=high
 

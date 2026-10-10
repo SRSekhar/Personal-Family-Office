@@ -43,7 +43,7 @@ Root build and validation commands are still being standardized. Review package-
 
 ## Security and personal data
 
-This GitHub repository is **public**. Do not commit real financial records, account identifiers, statements, tax documents, credentials, API keys, private reports, or personal configuration. Use synthetic examples only. See [SECURITY.md](SECURITY.md) and [the repository exposure review](docs/security/REPOSITORY_EXPOSURE_REVIEW.md).
+This GitHub repository is **public**. Do not commit real financial records, account identifiers, statements, tax documents, credentials, API keys, private reports, or personal configuration. Use synthetic examples only. See [SECURITY.md](SECURITY.md), [the repository exposure review](docs/security/REPOSITORY_EXPOSURE_REVIEW.md), and the [third-party dependency license inventory](docs/security/DEPENDENCY_LICENSE_INVENTORY.md). The inventory records package metadata; it is not legal clearance.
 
 ## Licensing
 
