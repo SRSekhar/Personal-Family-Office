@@ -49,7 +49,8 @@ export function projectCompoundGrowth({
         throw new RangeError('periods must be a non-negative integer.');
     }
 
-    if (contributionTiming !== 'beginning' && contributionTiming !== 'end') {
+    const allowedContributionTimings: readonly string[] = ['beginning', 'end'];
+    if (!allowedContributionTimings.includes(contributionTiming)) {
         throw new RangeError('contributionTiming must be "beginning" or "end".');
     }
 
