@@ -75,6 +75,37 @@ describe('createPortfolioReport', () => {
         expect(() => createReport(inconsistent)).toThrow(/one consistent currency/);
     });
 
+    it('rejects nested monetary values with inconsistent currencies', () => {
+        const base = makeAnalysis();
+        const mismatchedAssets = makeAnalysis({
+            netWorth: {
+                ...base.netWorth,
+                totalAssets: new Money(100_000, Currency.USD)
+            }
+        });
+        const mismatchedAllocationTotal = makeAnalysis({
+            assetAllocation: {
+                ...base.assetAllocation,
+                totalValue: new Money(100_000, Currency.USD)
+            }
+        });
+        const mismatchedAllocationEntry = makeAnalysis({
+            assetAllocation: {
+                ...base.assetAllocation,
+                allocations: [
+                    { category: 'Equity', value: new Money(100_000, Currency.USD), weight: 1 }
+                ]
+            }
+        });
+
+        expect(() => createReport(mismatchedAssets))
+            .toThrow(/one consistent currency/);
+        expect(() => createReport(mismatchedAllocationTotal))
+            .toThrow(/one consistent currency/);
+        expect(() => createReport(mismatchedAllocationEntry))
+            .toThrow(/one consistent currency/);
+    });
+
     it('rejects invalid allocation weights', () => {
         const invalid = makeAnalysis({
             assetAllocation: {

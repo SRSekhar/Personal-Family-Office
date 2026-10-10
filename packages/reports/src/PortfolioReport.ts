@@ -41,8 +41,33 @@ export function createPortfolioReport({
     assertValidDate('asOfDate', asOfDate);
     assertValidDate('generatedAt', generatedAt);
 
+    const rawAllocations: unknown = analysis.assetAllocation.allocations;
+    if (!Array.isArray(rawAllocations)) {
+        throw new RangeError('Portfolio analysis results must use one consistent currency.');
+    }
+
+    const allocationCurrenciesMatch = rawAllocations.every((allocation: unknown) => {
+        if (allocation === null || typeof allocation !== 'object') {
+            return false;
+        }
+
+        const allocationRecord = allocation as Record<string, unknown>;
+        const value = allocationRecord['value'];
+        if (value === null || typeof value !== 'object') {
+            return false;
+        }
+
+        const moneyRecord = value as Record<string, unknown>;
+        return moneyRecord['currency'] === analysis.currency;
+    });
+
     if (analysis.currency !== analysis.netWorth.currency ||
-        analysis.currency !== analysis.assetAllocation.currency) {
+        analysis.currency !== analysis.netWorth.totalAssets.currency ||
+        analysis.currency !== analysis.netWorth.totalLiabilities.currency ||
+        analysis.currency !== analysis.netWorth.netWorth.currency ||
+        analysis.currency !== analysis.assetAllocation.currency ||
+        analysis.currency !== analysis.assetAllocation.totalValue.currency ||
+        !allocationCurrenciesMatch) {
         throw new RangeError('Portfolio analysis results must use one consistent currency.');
     }
 
