@@ -30,7 +30,7 @@ scripts/    Development and repository automation
 
 ## Development setup
 
-Requirements: Node.js 22.x and pnpm 11.10.0, matching the current package metadata.
+Requirements: Node.js 22.x and pnpm 11.25.0, matching the current package metadata.
 
 ```powershell
 corepack enable
