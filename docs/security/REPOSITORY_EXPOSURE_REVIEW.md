@@ -41,11 +41,11 @@ Recent commit metadata includes an author email address. Commit metadata is publ
 - Confirmed GitHub repository visibility and default branch through repository metadata.
 - Enumerated the recursive default-branch tree and counted paths under node_modules.
 - Checked selected root documentation, package metadata, workspace configuration, and recent commit metadata.
-- Searched available indexed repository code for a small set of secret and personal-finance indicators. Search returned no matches, but indexing may be incomplete. This does **not** establish that the full repository or its history is free of sensitive information.
+- Added a Gitleaks workflow that checks out full Git history and runs on pull requests, pushes to main, weekly, and on manual dispatch.
+- The initial Gitleaks run on PR #20 completed successfully without findings. This is a useful scan result, not a guarantee that no secret or sensitive data exists; scanner coverage and detection limits still apply.
 
 ## Not yet performed
 
-- Full historical secret scanning across every commit and blob.
 - Dependency vulnerability and license inventory.
 - Complete review of every source file, workflow, and test fixture.
 - Review of third-party license and notice obligations.
@@ -56,12 +56,12 @@ Recent commit metadata includes an author email address. Commit metadata is publ
 
 Before publishing reusable components or inviting broad contributions:
 
-1. Run a complete secret scan against the entire history.
+1. Keep the scheduled full-history secret scan enabled and investigate any future findings; rotate any exposed credentials before history remediation.
 2. Inspect all financial fixtures and reports; replace real data with synthetic data.
 3. Consider removing generated dependencies from history with an explicit force-push and clone-migration plan.
 4. Inventory dependency licenses and vulnerabilities.
 5. Choose and apply an explicit license only after the product boundary is agreed.
-6. Add CI gates for install, build, typecheck, lint, tests, and security checks.
+6. Keep CI gates for install, build, typecheck, lint, tests, and security checks passing.
 7. Review privacy, disclaimers, and applicable legal obligations with qualified counsel.
 
 ## Conclusion
