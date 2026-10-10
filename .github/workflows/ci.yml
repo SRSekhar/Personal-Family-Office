@@ -35,7 +35,9 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm update --recursive --lockfile-only
 
       - name: Upload regenerated lockfile for review
         if: always()
