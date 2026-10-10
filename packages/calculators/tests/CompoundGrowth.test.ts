@@ -70,6 +70,17 @@ describe('projectCompoundGrowth', () => {
         expect(() => projectCompoundGrowth(input)).toThrow(RangeError);
     });
 
+    it('rejects an unsupported contribution timing at runtime', () => {
+        const input = {
+            initialValue: 100,
+            annualRate: 0.05,
+            periods: 1,
+            contributionTiming: 'monthly' as never
+        };
+
+        expect(() => projectCompoundGrowth(input)).toThrow(RangeError);
+    });
+
     it('rejects a projection that overflows the numeric range', () => {
         expect(() => projectCompoundGrowth({
             initialValue: 1e308,
