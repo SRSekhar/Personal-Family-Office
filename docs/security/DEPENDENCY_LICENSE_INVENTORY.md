@@ -8,6 +8,10 @@ This inventory reads package metadata from the installed pnpm dependency store, 
 
 This is **not a legal compatibility determination**. License metadata may be missing, incomplete, inaccurate, dual-licensed, or require a separate license/NOTICE file. This inventory does not include the repository's own license decision, GitHub Actions, Node.js, the pnpm executable, operating-system components, or non-npm assets. Review package license texts and notice obligations before redistribution or commercial release.
 
+## Snapshot caveat
+
+This checked-in snapshot was generated on 2026-10-10 before the generator recorded root-level license/notice filenames. It remains a package-metadata snapshot; the current CI artifact from the updated generator includes matching filenames found at installed package roots. `NONE FOUND` means no matching root-level filename was observed, not that the package has no license or that its metadata is legally sufficient. Neither view is a legal compatibility determination.
+
 ## Summary
 
 - Unique third-party package versions: **152**
