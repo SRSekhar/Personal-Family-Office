@@ -106,6 +106,19 @@ describe('createPortfolioReport', () => {
             .toThrow(/one consistent currency/);
     });
 
+    it('rejects mismatched net-worth and allocation total assets', () => {
+        const base = makeAnalysis();
+        const inconsistent = makeAnalysis({
+            assetAllocation: {
+                ...base.assetAllocation,
+                totalValue: new Money(99_999, Currency.INR)
+            }
+        });
+
+        expect(() => createReport(inconsistent))
+            .toThrow(/asset-allocation total must equal net-worth total assets/);
+    });
+
     it('rejects invalid allocation weights', () => {
         const invalid = makeAnalysis({
             assetAllocation: {
