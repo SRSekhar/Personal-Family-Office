@@ -10,3 +10,6 @@
 
 export { calculateCagr } from './Cagr.js';
 export type { CagrInput } from './Cagr.js';
+
+export { projectCompoundGrowth } from './CompoundGrowth.js';
+export type { CompoundGrowthInput, ContributionTiming } from './CompoundGrowth.js';
