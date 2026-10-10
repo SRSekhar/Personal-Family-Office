@@ -72,8 +72,8 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Executive report
 - Annual review
 - Investment review
-- Self-contained HTML financial summary (under validation in PR #33)
-- PDF, DOCX, and Excel exports
+- Self-contained HTML financial summary with deterministic timestamps, XSS-safe rendering, net-worth consistency checks, and defensive allocation validation
+- PDF, DOCX, and Excel exports remain planned; define the application/CLI boundary before implementing file-export commands
 
 ---
 
