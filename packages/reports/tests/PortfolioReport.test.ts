@@ -147,6 +147,28 @@ describe('renderPortfolioReportHtml', () => {
         expect(html).not.toContain('<img src=x');
     });
 
+    it('rejects malformed allocation arrays and entries', () => {
+        const nullAllocations = {
+            ...createReport(),
+            allocations: null
+        } as unknown as ReturnType<typeof createPortfolioReport>;
+        const nullEntry = {
+            ...createReport(),
+            allocations: [null]
+        } as unknown as ReturnType<typeof createPortfolioReport>;
+        const invalidCategory = {
+            ...createReport(),
+            allocations: [{ category: 42, value: 1, weight: 1 }]
+        } as unknown as ReturnType<typeof createPortfolioReport>;
+
+        expect(() => renderPortfolioReportHtml(nullAllocations))
+            .toThrow(/allocations must be an array/);
+        expect(() => renderPortfolioReportHtml(nullEntry))
+            .toThrow(/allocations contain invalid values/);
+        expect(() => renderPortfolioReportHtml(invalidCategory))
+            .toThrow(/allocations contain invalid values/);
+    });
+
     it('rejects a serialized report with inconsistent net-worth totals', () => {
         const inconsistentReport = {
             ...createReport(),
