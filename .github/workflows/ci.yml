@@ -35,9 +35,19 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        # The current lockfile importer does not yet reflect all root package.json dependencies.
-        # Use a non-frozen install until the lockfile is regenerated and reviewed.
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Initialize repository structure
+        shell: pwsh
+        run: pwsh ./scripts/build/Initialize-PFO.ps1
+
+      - name: Validate repository structure
+        shell: pwsh
+        run: pwsh ./scripts/build/Initialize-PFO.ps1 -Validate
+
+      - name: Run repository doctor
+        shell: pwsh
+        run: pwsh ./scripts/build/Initialize-PFO.ps1 -Doctor
 
       - name: Lint
         run: pnpm lint

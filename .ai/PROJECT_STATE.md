@@ -2,100 +2,49 @@
 
 ## Project
 
-**Name**
-
-PFO OS
-
-**Full Name**
-
-Personal Family Office Operating System
-
----
-
-## Repository Version
-
-0.1.0
-
----
-
-## Repository Status
-
-Active Development
-
----
+- **Name:** PFO OS
+- **Full Name:** Personal Family Office Operating System
+- **Version:** 0.1.0
+- **Status:** Active Development
 
 ## Current Milestone
 
-M1 — Repository Foundation
-
+**M1 — Repository Foundation**  
 Status: In Progress
 
----
+## Current Work
 
-# Current Work
+- **Epic:** Platform Foundation
+- **Work Order:** WO-001 — Repository Bootstrap
+- **Status:** Implementation in review; runtime validation pending
 
-## Epic
+## Foundation Completed
 
-Platform Foundation
+- Repository and GitHub Flow established.
+- Repository structure and AI onboarding framework established.
+- Architecture, roadmap, contribution guidance, changelog, and repository metadata created.
+- TypeScript workspace packages and initial domain models exist.
 
-## Work Order
+## Current Implementation
 
-WO-001 — Repository Bootstrap
+A feature branch now contains the configured PowerShell bootstrap entry point, a structure module that creates missing configured paths without overwriting existing files, path traversal checks, and ignore rules for local financial data and generated reports.
 
-## Status
+These changes are not yet merged and have not yet been executed in a local PowerShell environment.
 
-Not Started
+## Next Deliverables
 
----
+1. Run bootstrap initialization, validation, doctor, and WhatIf modes in PowerShell.
+2. Resolve CI, build, typecheck, lint, and test failures.
+3. Regenerate and review the pnpm lockfile, then enable frozen installs.
+4. Reconcile project-state documentation after verified results.
 
-# Completed
+## Blockers and Risks
 
-## Repository Foundation
+- The GitHub repository is currently public; do not commit real financial data or private configuration.
+- The repository does not yet have a valid open-source license.
+- Historical repository content and commit metadata require a full secret scan before any release.
+- Bootstrap and CI changes require runtime validation.
 
-- Repository created
-- GitHub initialized
-- Repository structure established
-- Git strategy established
-- AI onboarding framework completed
-- Repository documentation completed
-- Repository configuration completed
-- START_HERE.md completed
-- README.md completed
-- ARCHITECTURE.md completed
-- ROADMAP.md completed
-- CONTRIBUTING.md completed
-- CHANGELOG.md completed
-- VERSION created
-- pfo.json created
+## Last Updated
 
----
-
-# In Progress
-
-- WO-001 Repository Bootstrap
-
----
-
-# Next Deliverables
-
-1. scripts/build/Initialize-PFO.ps1
-2. Repository validation
-3. Initial TypeScript workspace
-
----
-
-# Blockers
-
-None
-
----
-
-# Repository Health
-
-Excellent
-
----
-
-# Last Updated
-
-Repository Foundation
+2026-10-10

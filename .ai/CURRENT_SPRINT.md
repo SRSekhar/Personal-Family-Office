@@ -2,38 +2,19 @@
 
 ## Sprint
 
-Sprint 1
-
----
-
-## Name
-
-Platform Foundation
-
----
+Sprint 1 — Platform Foundation
 
 ## Version
 
 0.1.0
 
----
-
 ## Goal
 
-Build the foundational repository structure, onboarding documentation and engineering standards required to support long-term development of PFO OS.
+Establish repository governance, configuration, onboarding, and repeatable initialization and validation tooling for long-term PFO OS development.
 
----
+## Current Status
 
-## Objectives
-
-- Establish AI onboarding.
-- Establish repository governance.
-- Establish project documentation.
-- Create initialization tooling.
-- Create architecture documentation.
-- Prepare repository for future development.
-
----
+In Progress — bootstrap implementation is in a feature branch; runtime validation and CI results are pending.
 
 ## Deliverables
 
@@ -47,7 +28,6 @@ Build the foundational repository structure, onboarding documentation and engine
 - AI_CONTEXT.md
 - AI_CONTRACT.md
 - PROJECT_STATE.md
-- PROJECT_MANIFEST.json
 - HANDOFF.md
 - CURRENT_SPRINT.md
 - BACKLOG.md
@@ -55,13 +35,14 @@ Build the foundational repository structure, onboarding documentation and engine
 - GLOSSARY.md
 - PROMPTS.md
 
-### Repository
+### Repository Documentation
 
 - README.md
 - ARCHITECTURE.md
 - ROADMAP.md
 - CHANGELOG.md
 - CONTRIBUTING.md
+- START_HERE.md
 
 ### Configuration
 
@@ -70,86 +51,23 @@ Build the foundational repository structure, onboarding documentation and engine
 - tsconfig.base.json
 - .editorconfig
 - .gitignore
+- scripts/config/repository.structure.json
 
 ### Automation
 
-- Initialize-PFO.ps1
-
----
-
-## Definition of Done
-
-Sprint 1 is complete when:
-
-- Repository is fully documented.
-- AI onboarding is complete.
-- Repository bootstrap script exists.
-- Configuration files exist.
-- Architecture documentation is complete.
-- Repository can onboard a new AI without prior conversation history.
-
----
-
-## Current Status
-
-In Progress
-
----
-
-## Completed Deliverables
-
-### AI Foundation
-
-- AI_CONTEXT.md
-- AI_CONTRACT.md
-- PROJECT_STATE.md
-- CURRENT_SPRINT.md
-- HANDOFF.md
-- BACKLOG.md
-- DECISIONS.md
-- GLOSSARY.md
-- PROMPTS.md
-
-### Repository Documentation
-
-- START_HERE.md
-- README.md
-- ARCHITECTURE.md
-- ROADMAP.md
-- CONTRIBUTING.md
-- CHANGELOG.md
-
-### Repository Metadata
-
-- VERSION
-- pfo.json
-
-### Repository Configuration
-
-- .gitignore
-- .editorconfig
-- package.json
-- pnpm-workspace.yaml
-- tsconfig.base.json
-
----
-
-## Remaining Deliverables
-
 - scripts/build/Initialize-PFO.ps1
-
----
+- scripts/internal modules for configuration, logging, structure, repository discovery, and validation
+- GitHub Actions CI for TypeScript quality checks (proposed in a separate PR)
 
 ## Definition of Done
 
-Sprint 1 is complete when:
-
-- Repository bootstrap script is implemented.
-- Repository validation is implemented.
-- Repository can be initialized from a clean checkout.
-
----
+- Bootstrap is idempotent and does not overwrite existing files.
+- Configured paths are validated before filesystem changes.
+- Initialization, validation, doctor, and WhatIf modes behave correctly.
+- TypeScript install, build, typecheck, lint, and tests pass in CI.
+- Lockfile is synchronized and CI uses frozen installs.
+- Project-state documentation reflects verified results.
 
 ## Next Deliverable
 
-scripts/build/Initialize-PFO.ps1
+Execute and validate bootstrap modes on a clean Windows PowerShell 7 checkout, then resolve CI results.
