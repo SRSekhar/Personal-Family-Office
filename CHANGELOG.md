@@ -30,7 +30,9 @@ The project follows Semantic Versioning.
 - Portfolio analysis composition and explicit source-record mapping (merged after CI and full-history secret scan passed).
 - Versioned portfolio report model and self-contained offline HTML renderer, with canonical UTC timestamp checks, net-worth consistency validation, defensive top-level/allocation payload validation, and allocation value/weight reconciliation (PRs #33, #36, #38–#40, #43).
 - First-pass upstream evidence review for all nine flagged dependency-license entries (PR #42).
-- CI dependency inventory now records root-level license/notice filenames and found a root-level license file for each of the nine flagged versions (PR #45); file-content review and final legal/redistribution disposition remain open.
+- CI dependency inventory now records root-level license/notice filenames and found a root-level license file for each of the nine flagged versions (PR #45–#46); file-content review and final legal/redistribution disposition remain open.
+- Serialized report currency-code validation prevents malformed values from reaching the formatter (PR #47).
+- Customer discovery playbook operationalizes the existing revenue-validation experiment without claiming demand or paid-pilot commitments (PR #48).
 
 ## Changed
 
