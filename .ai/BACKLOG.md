@@ -53,13 +53,17 @@ Features
 
 Status
 
-Planned
+In Progress
 
-Features
+Implemented
+
+- CAGR calculation with input validation and edge-case tests
+- Annual compound-growth projection with explicit contribution timing and tests
+
+Planned
 
 - Net Worth
 - Asset Allocation
-- CAGR
 - XIRR
 - Risk Analysis
 - Diversification
