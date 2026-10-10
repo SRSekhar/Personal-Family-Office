@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Report Engine / Release Safety
-- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, net-worth, and allocation-reconciliation invariants. The first-pass evidence review for nine dependency-license flags is documented. CI now records root-level license/notice filenames, finding a license file for all nine; file-content, exact-artifact, and legal dispositions remain open.
+- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, currency-code, net-worth, and allocation-reconciliation invariants. The first-pass evidence review for nine dependency-license flags is documented. CI records root-level license/notice filenames and found a license file for all nine; file-content, exact-artifact, and legal dispositions remain open. A customer-discovery playbook is available; market demand remains unvalidated.
 
 ## Foundation Verified
 
@@ -38,7 +38,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 1. Inspect packed npm artifacts and included notices for the nine flagged dependency versions; preserve unresolved status until the intended distribution model is reviewed.
 2. Define the application/CLI boundary before implementing report-to-file commands, and define persistence/source-of-truth requirements before historical snapshots.
 3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
-4. Validate a paid-pilot hypothesis with prospective users before investing in paid tiers.
+4. Execute the customer-discovery experiment and validate a paid-pilot hypothesis before investing in paid tiers.
 
 ## Blockers and Risks
 
