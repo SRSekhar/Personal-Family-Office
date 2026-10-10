@@ -71,6 +71,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Executive report
 - Annual review
 - Investment review
+- Self-contained HTML financial summary (under validation in PR #33)
 - PDF, DOCX, and Excel exports
 
 ---
