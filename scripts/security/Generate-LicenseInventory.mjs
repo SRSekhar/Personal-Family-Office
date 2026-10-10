@@ -36,63 +36,33 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         const license = normalizeLicense(packageMetadata.license ?? packageMetadata.licenses);
         const key = `${packageMetadata.name}@${packageMetadata.version}`;
         const packagePath = relative(rootDirectory, packageDirectory).split('\\').join('/');
+        const existing = packages.get(key);
 
-        if (!packages.has(key)) {
-            packages.set(key, {
-                name: packageMetadata.name,
-                version: packageMetadata.version,
-                license,
-                path: packagePath
-            });
+        if (existing) {
+            existing.licenses.add(license);
+            return;
         }
+
+        packages.set(key, {
+            name: packageMetadata.name,
+            version: packageMetadata.version,
+            licenses: new Set([license]),
+            path: packagePath
+        });
     }
 
-    for (const snapshot of snapshotEntries) {
-        if (!snapshot.isDirectory() || snapshot.name === 'node_modules') {
-            continue;
-        }
+    const rows = [...packages.values()].map((item) => {
+        const licenses = [...item.licenses].sort();
 
-        const snapshotNodeModules = join(pnpmStoreDirectory, snapshot.name, 'node_modules');
-        let entries;
-
-        try {
-            entries = await readdir(snapshotNodeModules, { withFileTypes: true });
-        } catch (error) {
-            if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
-                continue;
-            }
-            throw error;
-        }
-
-        for (const entry of entries) {
-            if ((!entry.isDirectory() && !entry.isSymbolicLink()) || entry.name === '.bin') {
-                continue;
-            }
-
-            if (entry.name.startsWith('@')) {
-                const scopeDirectory = join(snapshotNodeModules, entry.name);
-                const scopedPackages = await readdir(scopeDirectory, { withFileTypes: true });
-
-                for (const scopedPackage of scopedPackages) {
-                    if (!scopedPackage.isDirectory() && !scopedPackage.isSymbolicLink()) {
-                        continue;
-                    }
-
-                    await addPackage(
-                        join(scopeDirectory, scopedPackage.name, 'package.json'),
-                        join(snapshotNodeModules, entry.name, scopedPackage.name)
-                    );
-                }
-            } else {
-                await addPackage(
-                    join(snapshotNodeModules, entry.name, 'package.json'),
-                    join(snapshotNodeModules, entry.name)
-                );
-            }
-        }
-    }
-
-    const rows = [...packages.values()].sort((left, right) => {
+        return {
+            name: item.name,
+            version: item.version,
+            license: licenses.length > 1
+                ? `CONFLICTING LICENSE METADATA: ${licenses.join(' / ')}`
+                : licenses[0],
+            path: item.path
+        };
+    }).sort((left, right) => {
         const byName = left.name.localeCompare(right.name);
         return byName !== 0 ? byName : left.version.localeCompare(right.version);
     });

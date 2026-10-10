@@ -54,4 +54,31 @@ describe('generateLicenseInventory', () => {
             await rm(temporaryDirectory, { recursive: true, force: true });
         }
     });
+
+    it('flags conflicting license metadata for the same package version', async () => {
+        const temporaryDirectory = await mkdtemp(join(tmpdir(), 'pfo-license-inventory-'));
+        const pnpmStore = join(temporaryDirectory, 'node_modules', '.pnpm');
+
+        try {
+            await mkdir(pnpmStore, { recursive: true });
+            await addPackage(pnpmStore, 'delta@1.0.0_peerA', 'delta', {
+                name: 'delta',
+                version: '1.0.0',
+                license: 'MIT'
+            });
+            await addPackage(pnpmStore, 'delta@1.0.0_peerB', 'delta', {
+                name: 'delta',
+                version: '1.0.0',
+                license: 'BlueOak-1.0.0'
+            });
+
+            const report = await generateLicenseInventory(pnpmStore);
+
+            expect(report).toContain('Unique third-party package versions: **1**');
+            expect(report).toContain('CONFLICTING LICENSE METADATA: BlueOak-1.0.0 / MIT');
+            expect(report).toContain('Package versions requiring manual license review: **1**');
+        } finally {
+            await rm(temporaryDirectory, { recursive: true, force: true });
+        }
+    });
 });
