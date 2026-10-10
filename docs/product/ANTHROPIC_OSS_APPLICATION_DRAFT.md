@@ -6,6 +6,17 @@
 
 This draft is deliberately transparent about the project's current stage and limited reach. Edit only to add accurate, verifiable information.
 
+## Required identity fields (complete in the official form)
+
+Application page: https://claude.com/contact-sales/claude-for-oss
+
+- **First name:** Enter the name you want Anthropic to use; it is not inferred here.
+- **Last name:** Enter your name; it is not inferred here.
+- **Email:** Use the email associated with your Anthropic account if you already have one, as the form requests.
+- **GitHub handle:** SRSekhar (confirm this is the account you will submit from).
+
+These identity fields are intentionally not filled in or stored in this repository.
+
 ## Form field: GitHub Repository URL
 
 https://github.com/SRSekhar/Personal-Family-Office
