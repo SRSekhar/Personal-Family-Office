@@ -52,11 +52,12 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - CAGR
 - Annual compound-growth projection with contribution timing
 - XIRR for dated cash flows with ACT/365 and bisection
+- Net worth totals using canonical financial positions, duplicate-ID checks, and explicit currency validation
+- Asset allocation by category with deterministic output and tested weights
 
 ## Planned
 
-- Net worth
-- Asset allocation
+
 - Portfolio health
 - Risk analysis
 - Financial ratios
