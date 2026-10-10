@@ -13,6 +13,7 @@ The project follows Semantic Versioning.
 - Configuration-driven PowerShell repository initializer with initialize, validate, doctor, and WhatIf modes.
 - Safe path validation for configured repository paths.
 - CI workflow for frozen dependency installation, bootstrap checks, lint, typecheck, build, and tests.
+- PowerShell regression tests for WhatIf non-mutation, existing-file preservation, and unsafe path rejection.
 - Security policy and an initial public-repository exposure review.
 - Deterministic CAGR calculator with input validation and edge-case tests.
 - Annual compound-growth projection with explicit contribution timing and validation.
@@ -27,11 +28,11 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The bootstrap PR passed the full CI workflow, including PowerShell initialization, validation, and doctor. The CAGR and compound-growth changes also passed their pull-request CI checks. A full historical secret scan and legal/licensing review remain outstanding.
+The full CI workflow passed, including frozen install, PowerShell bootstrap and safety checks, lint, typecheck, build, and tests. A full historical secret scan and legal/licensing review remain outstanding.
 
 ---
 
-# [0.1.0] - Repository Foundation (In Progress)
+# [0.1.0] — Repository Foundation (In Progress)
 
 ## Added
 
@@ -56,6 +57,6 @@ The bootstrap PR passed the full CI workflow, including PowerShell initializatio
 
 ## Remaining
 
-- Explicit WhatIf regression coverage
 - Full historical secret and sensitive-data scan
 - Product-boundary and licensing decisions
+- First validated user/revenue hypothesis
