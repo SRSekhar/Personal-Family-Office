@@ -147,6 +147,21 @@ describe('renderPortfolioReportHtml', () => {
         expect(html).not.toContain('<img src=x');
     });
 
+    it('rejects malformed top-level report payloads without leaking TypeErrors', () => {
+        const invalidReports: unknown[] = [
+            null,
+            { ...createReport(), portfolioName: 42 },
+            { ...createReport(), asOfDate: 20261001 },
+            { ...createReport(), totalAssets: '100000' }
+        ];
+
+        for (const invalidReport of invalidReports) {
+            expect(() => renderPortfolioReportHtml(
+                invalidReport as ReturnType<typeof createPortfolioReport>
+            )).toThrow(RangeError);
+        }
+    });
+
     it('rejects malformed allocation arrays and entries', () => {
         const nullAllocations = {
             ...createReport(),

@@ -166,25 +166,41 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
 </html>`;
 }
 
-function validatePortfolioReport(report: PortfolioReportData): void {
+function validatePortfolioReport(value: unknown): void {
+    if (value === null || typeof value !== 'object') {
+        throw new RangeError('Portfolio report must be an object.');
+    }
+
+    const report = value as PortfolioReportData;
     if (report.schemaVersion !== 1) {
         throw new RangeError('Unsupported portfolio report schema version.');
     }
 
-    if (report.portfolioId.trim().length === 0 ||
+    if (typeof report.portfolioId !== 'string' ||
+        typeof report.portfolioName !== 'string' ||
+        typeof report.currency !== 'string' ||
+        report.portfolioId.trim().length === 0 ||
         report.portfolioName.trim().length === 0 ||
         report.currency.trim().length === 0) {
         throw new RangeError('Portfolio report requires a portfolio ID, name, and currency.');
     }
 
+    if (typeof report.asOfDate !== 'string' || typeof report.generatedAt !== 'string') {
+        throw new RangeError('Portfolio report timestamps must be ISO-8601 UTC strings.');
+    }
     assertValidDateString('asOfDate', report.asOfDate);
     assertValidDateString('generatedAt', report.generatedAt);
 
-    if (!Number.isInteger(report.positionCount) || report.positionCount < 0) {
+    if (typeof report.positionCount !== 'number' ||
+        !Number.isInteger(report.positionCount) ||
+        report.positionCount < 0) {
         throw new RangeError('positionCount must be a non-negative integer.');
     }
 
-    if (![report.totalAssets, report.totalLiabilities, report.netWorth].every(Number.isFinite) ||
+    if (typeof report.totalAssets !== 'number' ||
+        typeof report.totalLiabilities !== 'number' ||
+        typeof report.netWorth !== 'number' ||
+        ![report.totalAssets, report.totalLiabilities, report.netWorth].every(Number.isFinite) ||
         report.totalAssets < 0 ||
         report.totalLiabilities < 0) {
         throw new RangeError('Portfolio report totals must be finite; assets and liabilities cannot be negative.');
