@@ -49,7 +49,7 @@ describe('generateLicenseInventory', () => {
             expect(report).toContain('| alpha | 1.0.0 | MIT |');
             expect(report).toContain('| @scope/beta | 2.0.0 | Apache-2.0 |');
             expect(report).toContain('| gamma | 3.0.0 | UNKNOWN |');
-            expect(report).toContain('Packages with missing or review-required license metadata: **1**');
+            expect(report).toContain('Package versions requiring manual license review: **1**');
         } finally {
             await rm(temporaryDirectory, { recursive: true, force: true });
         }
