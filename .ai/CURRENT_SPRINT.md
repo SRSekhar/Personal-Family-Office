@@ -14,7 +14,7 @@ Build a small set of deterministic, testable financial calculations with explici
 
 ## Current Status
 
-CAGR, annual compound-growth projection, and XIRR are implemented and pass the full CI workflow. The next deliverables are net worth and asset allocation, after inspecting existing domain models and defining non-double-counting rules.
+CAGR, annual compound-growth projection, and XIRR are implemented and pass CI. Net worth and asset allocation have been added in PR #19 with tests; this branch requires a successful full CI run before merge.
 
 ## Completed
 
@@ -23,14 +23,15 @@ CAGR, annual compound-growth projection, and XIRR are implemented and pass the f
 - CAGR calculation and edge-case tests
 - Annual compound-growth projection with contribution-timing tests
 - XIRR solver with dated cash-flow validation, ACT/365 convention, bisection, and ambiguity rejection
+- Net worth totals for assets, liabilities, and net worth using canonical position IDs and explicit currency rules
+- Asset allocation grouped by category with stable output ordering and validated weights
 
 ## Next Deliverables
 
-1. Inspect the existing financial entity models and identify authoritative asset/liability inputs.
-2. Implement net-worth calculation without double-counting holdings represented in multiple categories.
-3. Implement asset allocation with documented classification and valuation rules.
-4. Add property-based or table-driven tests for boundary cases.
-5. Complete a full history scan and resolve the license/product boundary before public release.
+1. Review PR #19 and require its full CI run to pass before merge.
+2. Map existing domain entities to canonical financial positions at the application boundary.
+3. Add a tested historical net-worth snapshot workflow once persistence/source-of-truth decisions are established.
+4. Complete a full history scan and resolve the license/product boundary before public release.
 
 ## Release-Safety Work Still Open
 

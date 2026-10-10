@@ -16,3 +16,18 @@ export type { CompoundGrowthInput, ContributionTiming } from './CompoundGrowth.j
 
 export { calculateXirr } from './Xirr.js';
 export type { XirrCashFlow } from './Xirr.js';
+
+export { calculateNetWorth } from './NetWorth.js';
+export type { NetWorthInput, NetWorthResult } from './NetWorth.js';
+
+export { calculateAssetAllocation } from './AssetAllocation.js';
+export type {
+    AssetAllocationCategory,
+    AssetAllocationInput,
+    AssetAllocationResult
+} from './AssetAllocation.js';
+
+export type {
+    FinancialPosition,
+    FinancialPositionContext
+} from './FinancialPosition.js';

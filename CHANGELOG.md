@@ -18,6 +18,8 @@ The project follows Semantic Versioning.
 - Deterministic CAGR calculator with input validation and edge-case tests.
 - Annual compound-growth projection with explicit contribution timing and validation.
 - XIRR calculator for irregularly dated cash flows using ACT/365 and bisection, with explicit rejection of ambiguous multi-sign-change streams.
+- Net-worth calculator with canonical financial position validation and no implicit currency conversion.
+- Asset-allocation calculator with category aggregation, deterministic ordering, and validated weights.
 
 ## Changed
 
@@ -29,7 +31,7 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow passed for the bootstrap safety tests, CAGR, compound-growth projection, and XIRR. A full historical secret scan and legal/licensing review remain outstanding.
+The full CI workflow passed for the bootstrap safety tests, CAGR, compound-growth projection, and XIRR. Net worth and asset allocation are under validation in PR #19. A full historical secret scan and legal/licensing review remain outstanding.
 
 ---
 

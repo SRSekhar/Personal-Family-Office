@@ -248,6 +248,10 @@ importers:
         version: 6.0.3
 
   packages/calculators:
+    dependencies:
+      '@pfo/models':
+        specifier: workspace:*
+        version: link:../models
     devDependencies:
       typescript:
         specifier: ^6.0.3
