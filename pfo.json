@@ -3,7 +3,7 @@
   "fullName": "Personal Family Office Operating System",
   "repository": {
     "name": "Personal-Family-Office",
-    "visibility": "private",
+    "visibility": "public",
     "defaultBranch": "main",
     "branchStrategy": "GitHub Flow"
   },
@@ -19,10 +19,12 @@
   "principles": {
     "repositoryIsMemory": true,
     "dataIsSourceOfTruth": true,
-    "documentationFirst": true
+    "documentationFirst": true,
+    "personalFinancialDataMustNotBeCommitted": true
   },
   "project": {
     "status": "Active Development",
-    "owner": "Principal"
+    "owner": "Principal",
+    "licenseStatus": "No valid open-source license currently published"
   }
 }
