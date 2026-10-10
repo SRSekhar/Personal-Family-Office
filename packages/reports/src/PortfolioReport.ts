@@ -232,6 +232,10 @@ function validatePortfolioReport(value: unknown): void {
         return;
     }
 
+    if (report.totalAssets <= 0) {
+        throw new RangeError('Portfolio report allocations require positive total assets.');
+    }
+
     const valueTolerance = Math.max(Math.abs(report.totalAssets), Math.abs(allocationValueTotal)) *
         Number.EPSILON * report.allocations.length * 8;
     if (Math.abs(allocationValueTotal - report.totalAssets) > valueTolerance) {
