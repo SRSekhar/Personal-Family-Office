@@ -110,7 +110,15 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         `| ${escapeMarkdown(item.name)} | ${escapeMarkdown(item.version)} | ${escapeMarkdown(item.license)} | ${escapeMarkdown(item.path)} |`
     );
 
-    const unclearCount = rows.filter((item) =>
+    const commonPermissiveLicenses = new Set([
+        'MIT',
+        'Apache-2.0',
+        'BSD-2-Clause',
+        'BSD-3-Clause',
+        'ISC'
+    ]);
+    const reviewRequiredCount = rows.filter((item) =>
+        !commonPermissiveLicenses.has(item.license) ||
         item.license === 'UNKNOWN' ||
         item.license === 'UNLICENSED' ||
         item.license.startsWith('SEE LICENSE IN')
@@ -129,7 +137,7 @@ This is **not a legal compatibility determination**. License metadata may be mis
 ## Summary
 
 - Unique third-party package versions: **${rows.length}**
-- Packages with missing or review-required license metadata: **${unclearCount}**
+- Package versions requiring manual license review: **${reviewRequiredCount}**
 
 | License metadata | Package versions |
 | --- | ---: |
