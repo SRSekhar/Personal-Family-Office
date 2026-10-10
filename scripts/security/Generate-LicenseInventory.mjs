@@ -45,10 +45,12 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         const license = normalizeLicense(packageMetadata.license ?? packageMetadata.licenses);
         const key = `${packageMetadata.name}@${packageMetadata.version}`;
         const packagePath = relative(rootDirectory, packageDirectory).split('\\').join('/');
+        const licenseFiles = await findRootLicenseFiles(packageDirectory);
         const existing = packages.get(key);
 
         if (existing) {
             existing.licenses.add(license);
+            licenseFiles.forEach((file) => existing.licenseFiles.add(file));
             return;
         }
 
@@ -56,6 +58,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
             name: packageMetadata.name,
             version: packageMetadata.version,
             licenses: new Set([license]),
+            licenseFiles: new Set(licenseFiles),
             path: packagePath
         });
     }
