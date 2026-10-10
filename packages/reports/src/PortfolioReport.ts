@@ -16,7 +16,7 @@ export interface PortfolioReportAllocation {
 }
 
 export interface PortfolioReportData {
-    readonly schemaVersion: 1;
+    readonly schemaVersion: number;
     readonly portfolioId: string;
     readonly portfolioName: string;
     readonly currency: string;
@@ -142,7 +142,7 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
             <div class="metadata">
                 <span>As of ${escapeHtml(formatDate(report.asOfDate))}</span>
                 <span>Currency: ${escapeHtml(report.currency)}</span>
-                <span>Positions: ${report.positionCount}</span>
+                <span>Positions: ${String(report.positionCount)}</span>
             </div>
         </header>
         <section aria-labelledby="net-worth-heading">
