@@ -17,7 +17,7 @@ Status: In Progress
 
 ## Current Implementation
 
-Feature branch feat/repository-bootstrap contains:
+Feature branch feat/bootstrap-validated contains:
 
 - scripts/build/Initialize-PFO.ps1
 - Safe, configuration-driven structure initialization in scripts/internal/Structure.ps1
