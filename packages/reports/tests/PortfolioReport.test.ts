@@ -205,6 +205,21 @@ describe('renderPortfolioReportHtml', () => {
             .toThrow(/allocation weights must sum to 1/);
     });
 
+    it('rejects allocations when total assets are zero', () => {
+        const zeroAssets = {
+            ...createReport(),
+            totalAssets: 0,
+            totalLiabilities: 0,
+            netWorth: 0,
+            allocations: [
+                { category: 'Cash', value: 0, weight: 1 }
+            ]
+        };
+
+        expect(() => renderPortfolioReportHtml(zeroAssets))
+            .toThrow(/allocations require positive total assets/);
+    });
+
     it('rejects non-zero assets when the allocation list is empty', () => {
         const inconsistentReport = {
             ...createReport(),
