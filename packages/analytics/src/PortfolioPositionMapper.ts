@@ -25,8 +25,6 @@ export interface PortfolioPositionSelection {
     readonly category: string;
 }
 
-const sourceName = (source: PortfolioPositionSource): string => source;
-
 export function mapPortfolioPositions(
     portfolio: Portfolio,
     selections: readonly PortfolioPositionSelection[]
@@ -65,7 +63,7 @@ export function mapPortfolioPositions(
             throw new RangeError(`Portfolio position "${canonicalId}" requires a category.`);
         }
 
-        const sourceKey = `${sourceName(selection.source)}:${sourceId}`;
+        const sourceKey = `${selection.source}:${sourceId}`;
         if (selectedSources.has(sourceKey)) {
             throw new RangeError(`Portfolio source record selected more than once: "${sourceKey}".`);
         }
