@@ -36,7 +36,7 @@ The project follows Semantic Versioning.
 
 ## Validation status
 
-The full CI workflow passed for the bootstrap safety tests, CAGR, compound-growth projection, and XIRR. Net worth and asset allocation are under validation in PR #19. A full historical secret scan and legal/licensing review remain outstanding.
+The full CI workflow passed for bootstrap safety, CAGR, compound-growth projection, XIRR, net worth, asset allocation, and portfolio analysis. The full-history Gitleaks workflow passed without findings. A separate personal-data review, dependency vulnerability/license inventory, and legal/licensing review remain outstanding.
 
 ---
 
@@ -65,6 +65,6 @@ The full CI workflow passed for the bootstrap safety tests, CAGR, compound-growt
 
 ## Remaining
 
-- Full historical secret and sensitive-data scan
+- Ongoing full-history secret scan and separate personal-data review
 - Product-boundary and licensing decisions
 - First validated user/revenue hypothesis
