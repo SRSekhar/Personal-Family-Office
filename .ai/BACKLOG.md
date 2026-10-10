@@ -116,7 +116,7 @@ Implemented and merged (PR #33), with follow-up hardening in PRs #36, #38, and #
 - Net-worth consistency validation
 - Allocation payload validation
 
-Current increment: PR #40 adds validation for malformed top-level report fields; close it only after CI and full-history secret scanning pass.
+PR #40 added validation for malformed top-level report fields and was merged after CI and full-history secret scanning passed.
 
 Features
 
