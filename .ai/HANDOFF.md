@@ -6,7 +6,7 @@ PFO OS — Personal Family Office Operating System
 
 ## Current State
 
-The technical foundation, deterministic calculators, portfolio analysis, and offline HTML report renderer are merged to main. PRs #35, #36, #38–#40, #42, and #43 are merged; #37 was closed as superseded. Report validation covers canonical timestamps, net-worth consistency, malformed top-level/allocation payloads, and allocation reconciliation. PR #43 merged at `8a39612d5ac1696fdb7390a9f65506c520363320` after CI and full-history secret scanning passed. PR #42 records first-pass upstream license evidence for the nine flagged dependency versions; artifact-level and legal disposition remain open.
+The technical foundation, deterministic calculators, portfolio analysis, and offline HTML report renderer are merged to main. PRs #35, #36, #38–#40, #42, and #43 are merged; #37 was closed as superseded. Report validation covers canonical timestamps, net-worth consistency, malformed top-level/allocation payloads, and allocation reconciliation. PR #43 merged at `8a39612d5ac1696fdb7390a9f65506c520363320` after CI and full-history secret scanning passed. PR #42 records first-pass upstream license evidence, and PR #45 adds root-level license/notice filename detection to the CI inventory. The generated artifact found a root-level license file for all nine flagged versions; exact artifact contents and legal disposition remain open.
 
 ## Verified CI
 

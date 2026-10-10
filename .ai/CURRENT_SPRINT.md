@@ -14,7 +14,7 @@ Maintain deterministic, testable portfolio analysis and privacy-conscious offlin
 
 ## Current Status
 
-The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, #42, and #43 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps, net-worth arithmetic, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence; all nine dependency entries remain open pending artifact-level and legal review.
+The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, #42, and #43 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps, net-worth arithmetic, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, and PR #45 extends the CI inventory with root-level license/notice filenames. The generated artifact found a root-level license file for all nine flagged entries; artifact-level content checks and legal disposition remain open.
 
 ## Completed
 
