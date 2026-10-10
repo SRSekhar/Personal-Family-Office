@@ -10,6 +10,37 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
     const snapshotEntries = await readdir(pnpmStoreDirectory, { withFileTypes: true });
     const packages = new Map();
 
+    async function addPackage(packageJsonPath, packageDirectory) {
+        let packageMetadata;
+
+        try {
+            packageMetadata = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+        } catch (error) {
+            if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+                return;
+            }
+            throw new Error(`Unable to read package metadata at ${packageJsonPath}: ${String(error)}`);
+        }
+
+        if (typeof packageMetadata.name !== 'string' ||
+            typeof packageMetadata.version !== 'string') {
+            return;
+        }
+
+        const license = normalizeLicense(packageMetadata.license ?? packageMetadata.licenses);
+        const key = `${packageMetadata.name}@${packageMetadata.version}`;
+        const packagePath = relative(rootDirectory, packageDirectory).split('\\').join('/');
+
+        if (!packages.has(key)) {
+            packages.set(key, {
+                name: packageMetadata.name,
+                version: packageMetadata.version,
+                license,
+                path: packagePath
+            });
+        }
+    }
+
     for (const snapshot of snapshotEntries) {
         if (!snapshot.isDirectory() || snapshot.name === 'node_modules') {
             continue;
@@ -105,36 +136,7 @@ ${summaryRows.join('\n')}
 ${packageRows.join('\n')}
 `;
     
-    async function addPackage(packageJsonPath, packageDirectory) {
-        let packageMetadata;
 
-        try {
-            packageMetadata = JSON.parse(await readFile(packageJsonPath, 'utf8'));
-        } catch (error) {
-            if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
-                return;
-            }
-            throw new Error(`Unable to read package metadata at ${packageJsonPath}: ${String(error)}`);
-        }
-
-        if (typeof packageMetadata.name !== 'string' ||
-            typeof packageMetadata.version !== 'string') {
-            return;
-        }
-
-        const license = normalizeLicense(packageMetadata.license ?? packageMetadata.licenses);
-        const key = `${packageMetadata.name}@${packageMetadata.version}`;
-        const packagePath = relative(rootDirectory, packageDirectory).split('\\').join('/');
-
-        if (!packages.has(key)) {
-            packages.set(key, {
-                name: packageMetadata.name,
-                version: packageMetadata.version,
-                license,
-                path: packagePath
-            });
-        }
-    }
 }
 
 function normalizeLicense(value) {
