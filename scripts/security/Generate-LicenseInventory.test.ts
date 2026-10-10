@@ -118,4 +118,21 @@ describe('generateLicenseInventory', () => {
             await rm(temporaryDirectory, { recursive: true, force: true });
         }
     });
+
+    it('fails with the package path when package metadata is malformed', async () => {
+        const temporaryDirectory = await mkdtemp(join(tmpdir(), 'pfo-license-inventory-'));
+        const pnpmStore = join(temporaryDirectory, 'node_modules', '.pnpm');
+        const packageJsonPath = join(pnpmStore, 'broken@1.0.0', 'node_modules', 'broken', 'package.json');
+
+        try {
+            await mkdir(join(pnpmStore, 'broken@1.0.0', 'node_modules', 'broken'), { recursive: true });
+            await writeFile(packageJsonPath, '{"name": "broken",', 'utf8');
+
+            await expect(generateLicenseInventory(pnpmStore))
+                .rejects.toThrow(`Unable to read package metadata at ${packageJsonPath}`);
+        } finally {
+            await rm(temporaryDirectory, { recursive: true, force: true });
+        }
+    });
+
 });
