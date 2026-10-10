@@ -166,11 +166,12 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
 </html>`;
 }
 
-function validatePortfolioReport(report: PortfolioReportData): void {
-    if (report === null || typeof report !== 'object') {
+function validatePortfolioReport(value: unknown): void {
+    if (value === null || typeof value !== 'object') {
         throw new RangeError('Portfolio report must be an object.');
     }
 
+    const report = value as PortfolioReportData;
     if (report.schemaVersion !== 1) {
         throw new RangeError('Unsupported portfolio report schema version.');
     }
