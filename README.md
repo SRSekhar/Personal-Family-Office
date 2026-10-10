@@ -1,136 +1,66 @@
 # PFO OS
 
-> **Personal Family Office Operating System**
+**Personal Family Office Operating System** — an early-stage project exploring an engineering-first, AI-assisted way to manage personal and family finances.
 
-An enterprise-grade, AI-native platform for managing personal wealth using engineering discipline, automation, and long-term financial planning.
+> **Status:** early development. This repository is not yet a production-ready financial application. Roadmap items are plans, not shipped capabilities.
 
----
+## Product direction
 
-## Vision
+PFO OS aims to help individuals and families maintain structured financial records, run deterministic calculations, track goals, analyze portfolios, generate repeatable reports, and use AI to explain—not replace—validated analysis.
 
-To build a long-lived Personal Family Office platform that enables the Principal to preserve, grow, manage and review wealth through structured data, automation and explainable decision-making.
+## Engineering principles
 
----
+- Clean Architecture and domain-driven design.
+- Deterministic, testable financial calculations separated from AI interpretation.
+- Data ownership, exportability, and explainability.
+- No invented market data, holdings, or balances.
+- Security and privacy by design.
 
-## Mission
+## Current repository
 
-PFO OS combines software engineering practices with personal finance to create a repeatable and maintainable financial operating system.
+The TypeScript monorepo contains early domain-model and package foundations. The dashboard, reporting, production data workflows, AI integrations, and paid product capabilities are not yet production-ready.
 
-The platform is designed to:
-
-- Manage financial assets and liabilities.
-- Track financial goals.
-- Analyze investment portfolios.
-- Generate executive reports.
-- Support Financial Independence (FIRE).
-- Enable AI-assisted financial reviews.
-- Preserve financial knowledge across decades.
-
----
-
-## Core Principles
-
-- Repository is the Memory.
-- Data is the Source of Truth.
-- Reports are Generated.
-- Principal First.
-- Architecture Before Automation.
-- Production Quality Only.
-
----
-
-## Architecture
-
-PFO OS follows:
-
-- Clean Architecture
-- Domain Driven Design
-- SOLID Principles
-- GitHub Flow
-- Semantic Versioning
-
----
-
-## Repository Structure
-
-```
-apps/
-packages/
-docs/
-data/
-reports/
-templates/
-scripts/
-.ai/
+```text
+apps/       Application entry points (planned/in development)
+packages/   Reusable TypeScript packages
+docs/       Product, architecture, governance, and security documentation
+scripts/    Development and repository automation
+.ai/        Project context and engineering handoff
 ```
 
----
+## Development setup
 
-## Getting Started
-
-### Repository Bootstrap
-
-Initialize the repository:
+Requirements: Node.js 22.x and pnpm 11.10.0, matching the current package metadata.
 
 ```powershell
-pwsh ./scripts/build/Initialize-PFO.ps1
+corepack enable
+pnpm install
+pnpm test
+pnpm lint
 ```
 
-Validate the repository:
+Root build and validation commands are still being standardized. Review package-level scripts and project-state documentation before treating a command as a complete CI gate.
 
-```powershell
-pwsh ./scripts/build/Initialize-PFO.ps1 -Validate
-```
+## Security and personal data
 
-Run repository diagnostics:
+This GitHub repository is **public**. Do not commit real financial records, account identifiers, statements, tax documents, credentials, API keys, private reports, or personal configuration. Use synthetic examples only. See [SECURITY.md](SECURITY.md) and [the repository exposure review](docs/security/REPOSITORY_EXPOSURE_REVIEW.md).
 
-```powershell
-pwsh ./scripts/build/Initialize-PFO.ps1 -Doctor
-```
+## Licensing
 
-### Repository Onboarding
+There is currently **no usable open-source license in this repository**. The empty LICENSE.md does not grant permission to reuse, redistribute, or modify the code. Public visibility is not the same as an open-source license. Licensing and the open-core product boundary are still under review.
 
-1. Read `START_HERE.md`
-2. Review `pfo.json`
-3. Read `.ai/AI_CONTEXT.md`
-4. Continue with the current work order.
+## Product and monetization
 
----
-
-## Current Status
-
-Version
-
-0.1.0
-
-Current Sprint
-
-Platform Foundation
-
-Status
-
-Active Development
-
----
+Candidate directions include a free reusable framework with paid professional features, support, or hosted services. No paid service is currently offered from this repository.
 
 ## Roadmap
 
-See:
+See [ROADMAP.md](ROADMAP.md). Roadmap items are plans, not claims of shipped functionality.
 
-ROADMAP.md
+## Contributing
 
----
+See [CONTRIBUTING.md](CONTRIBUTING.md). Until licensing and the public/private product boundary are finalized, do not assume that submitting a contribution grants any particular license or commercial arrangement.
 
-## Architecture
+## Disclaimer
 
-See:
-
-ARCHITECTURE.md
-
----
-
-## License
-
-Private Repository
-
-All Rights Reserved.
+PFO OS is software for organizing information and performing calculations. It is not a bank, broker, tax adviser, or registered investment adviser. Outputs require validation and are not a substitute for qualified financial, tax, or legal advice.
