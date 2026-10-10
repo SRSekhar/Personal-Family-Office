@@ -209,8 +209,13 @@ function assertValidDate(name: string, value: Date): void {
 }
 
 function assertValidDateString(name: string, value: string): void {
-    if (value.trim().length === 0 || Number.isNaN(Date.parse(value))) {
-        throw new RangeError(`${name} must be a valid date string.`);
+    if (value.trim().length === 0) {
+        throw new RangeError(`${name} must be a valid ISO-8601 UTC timestamp.`);
+    }
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString() !== value) {
+        throw new RangeError(`${name} must be a valid ISO-8601 UTC timestamp.`);
     }
 }
 
