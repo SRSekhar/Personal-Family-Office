@@ -65,7 +65,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         }
 
         for (const entry of entries) {
-            if (!entry.isDirectory() || entry.name === '.bin') {
+            if ((!entry.isDirectory() && !entry.isSymbolicLink()) || entry.name === '.bin') {
                 continue;
             }
 
@@ -74,7 +74,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
                 const scopedPackages = await readdir(scopeDirectory, { withFileTypes: true });
 
                 for (const scopedPackage of scopedPackages) {
-                    if (!scopedPackage.isDirectory()) {
+                    if (!scopedPackage.isDirectory() && !scopedPackage.isSymbolicLink()) {
                         continue;
                     }
 
