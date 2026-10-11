@@ -1,59 +1,39 @@
 # PFO OS Autonomous Engineering
 
-## Purpose
+## Selected operating mode: ChatGPT + GitHub integration
 
-This workflow runs on GitHub-hosted infrastructure, independently of the Principal's computer. It is scheduled every six hours and can also be started manually from the repository's **Actions** tab.
+PFO OS engineering work is performed through the scheduled ChatGPT task and the available GitHub integration. This mode does **not** require an OpenAI API key, an Anthropic API key, a Claude OAuth token, or model-provider credentials stored in GitHub Actions.
 
-Each run is limited to one active-sprint increment. It creates a branch, asks the coding agent to implement and test the change, opens a pull request, waits for both the repository CI and full-history secret scan, and merges only when both checks succeed. If validation fails or required checks are missing, it leaves the pull request open.
+The scheduled task checks the live repository, active sprint, open pull requests, and CI/security results; selects one small, sprint-aligned engineering increment; inspects existing implementation; and proposes a focused change. It should merge only after relevant CI and full-history secret scanning pass and the change is safe under the repository's existing rules. It must not invent APIs, models, financial data, customer evidence, product requirements, or legal conclusions.
 
-The workflow is deliberately not triggered by issue or pull-request comments; untrusted public content must not be able to invoke a write-capable agent.
+The task runs periodically through ChatGPT; it is not a continuously running process and does not guarantee a change on every run. Do not claim work happened between runs. Repository changes, PRs, commits, and CI results are the evidence of actual progress.
 
-## One-time GitHub setup required
+## GitHub Actions responsibilities
 
-The assistant cannot create or read repository Actions secrets. Add them in:
+GitHub Actions remains responsible for repository CI, tests, and security scanning. The separate API-dependent, GitHub-hosted autonomous coding workflow has been removed because the selected operating mode does not use provider APIs or model credentials. Do not reintroduce an API-dependent coding workflow unless the Principal explicitly changes this decision.
 
-**Repository → Settings → Secrets and variables → Actions → New repository secret**
+## Operating rules
 
-### 1. Model authentication — configure exactly one
+- Inspect `.ai/AI_CONTEXT.md`, `.ai/PROJECT_STATE.md`, `.ai/CURRENT_SPRINT.md`, `.ai/HANDOFF.md`, open PRs, and recent CI results before selecting work.
+- Work in small, independently reviewable increments aligned with the active sprint.
+- Inspect existing code before making changes; preserve the repository's established architecture and merge method.
+- Run and verify relevant checks. Never claim tests passed unless the results are visible and successful.
+- Do not merge when required checks are missing or failing.
+- Do not change repository visibility, project licensing, branch protections, or unresolved product/legal boundaries.
+- Never commit secrets or real personal financial data. Public repository content must use synthetic data only.
+- Do not fabricate customer interviews, revenue, demand validation, or legal clearance.
+- Treat dependency license inventories as evidence, not as legal clearance.
+- Do not submit external applications or contact customers without explicit authorization.
 
-Choose one of the following:
+## Credentials and secret handling
 
-- `CLAUDE_CODE_OAUTH_TOKEN`: a Claude Code OAuth token from an eligible Claude plan. Anthropic documents `claude setup-token` as the setup method for supported Pro/Max accounts. Generate it on a trusted computer, then paste the token directly into GitHub Secrets. Never commit or send it in chat.
-- `ANTHROPIC_API_KEY`: an Anthropic API key. API usage may incur separate charges; a Claude subscription does not automatically mean API usage is free.
+No model-provider API credential is needed for this selected mode. Do not request or store one for the scheduled ChatGPT workflow. GitHub integration access is managed by the connected GitHub integration, not by placing a personal access token in repository files or this document. Never paste credentials into chat or commit them to the repository.
 
-The workflow prefers `ANTHROPIC_API_KEY` if both are present. Do not assume an application for a free program has been approved or that free API access exists.
+If an API key is ever exposed, revoke it in the provider's dashboard and do not reuse it.
 
-Official setup guidance: https://github.com/anthropics/claude-code-action/blob/main/docs/setup.md
+## Verification
 
-### 2. Repository write token
-
-Create a **fine-grained personal access token** scoped only to `SRSekhar/Personal-Family-Office`, and store it as `PFO_AUTOMATION_TOKEN`.
-
-Grant only the permissions needed for this workflow:
-
-- Contents: Read and write
-- Pull requests: Read and write
-- Actions: Read-only
-
-The token is used to push the agent branch, create the pull request, read check results, and merge only after the required checks succeed. Do not use a classic token with broad access if a repository-scoped fine-grained token is available. Set an expiry and rotate it when needed.
-
-GitHub documentation: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
-
-## Enable and verify
-
-1. Add the model credential and `PFO_AUTOMATION_TOKEN` as Actions secrets.
-2. Merge the workflow into `main`.
-3. Open **Actions → PFO Autonomous Engineering → Run workflow** once.
-4. Confirm that a run creates a focused PR, the CI and secret-scan checks start, and the PR is merged only after both report success.
-5. If the workflow fails, inspect the run logs. Missing credentials, insufficient token permissions, branch protection, failed checks, model usage limits, and billing limits are not bypassed automatically.
-
-## Security and operating limits
-
-- The workflow runs at most one agent task per scheduled execution.
-- The workflow never intentionally pushes directly to `main`.
-- It must not change repository visibility, project licensing, financial data, legal positions, or the public/private product boundary.
-- It must not fabricate customer interviews, revenue, validation results, or test results.
-- The public repository must contain synthetic data only.
-- The agent is restricted to repository files and a narrow set of test/status commands; this reduces but cannot eliminate agent risk.
-- GitHub-hosted runs, model use, token quotas, and repository policy can still fail. This is scheduled automation, not an uninterrupted process or a guarantee that every task will succeed.
-- Branch protection and repository rules remain authoritative. The workflow does not bypass them.
+- In ChatGPT, confirm the **PFO OS Autonomous Engineering** scheduled task is enabled.
+- In GitHub, review repository commits, pull requests, and CI/security checks to verify any reported work.
+- If no change or PR exists, do not infer that an engineering increment was completed.
+- If a run cannot access the repository or cannot complete a safe task, report the concrete blocker rather than fabricating progress.
