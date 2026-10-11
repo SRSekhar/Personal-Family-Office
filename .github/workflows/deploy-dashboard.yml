@@ -1,0 +1,56 @@
+name: Deploy PFO OS Dashboard
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/dashboard/**"
+      - ".github/workflows/deploy-dashboard.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pfo-dashboard-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Package dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate dashboard files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s apps/dashboard/index.html
+          test -s apps/dashboard/styles.css
+          test -s apps/dashboard/app.js
+          node --check apps/dashboard/app.js
+          if grep -R -nE 'https?://[^ ]+\.(js|css)(\?|["'\'' ])' apps/dashboard; then
+            echo "::error::Dashboard must not load remote JavaScript or CSS."
+            exit 1
+          fi
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: apps/dashboard
+
+  deploy:
+    name: Publish dashboard
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
