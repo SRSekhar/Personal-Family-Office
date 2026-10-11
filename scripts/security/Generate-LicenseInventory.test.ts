@@ -50,8 +50,8 @@ describe('generateLicenseInventory', () => {
             const report = await generateLicenseInventory(pnpmStore);
 
             expect(report).toContain('Unique third-party package versions: **3**');
-            expect(report).toContain('| alpha | 1.0.0 | MIT | LICENSE.md |');
-            expect(report).toContain('| @scope/beta | 2.0.0 | Apache-2.0 | NOTICE |');
+            expect(report).toMatch(/\| alpha \| 1\.0\.0 \| MIT \| LICENSE\.md \(\d+ bytes, SHA-256: [a-f0-9]{64}\) \|/);
+            expect(report).toMatch(/\| @scope\/beta \| 2\.0\.0 \| Apache-2\.0 \| NOTICE \(\d+ bytes, SHA-256: [a-f0-9]{64}\) \|/);
             expect(report).toContain('| gamma | 3.0.0 | UNKNOWN | NONE FOUND |');
             expect(report).toContain('Package versions requiring manual license review: **1**');
         } finally {
@@ -90,7 +90,7 @@ describe('generateLicenseInventory', () => {
             const report = await generateLicenseInventory(pnpmStore);
 
             expect(report).toContain('Unique third-party package versions: **2**');
-            expect(report).toContain('| regular | 1.2.3 | MIT | LICENSE.md |');
+            expect(report).toMatch(/\| regular \| 1\.2\.3 \| MIT \| LICENSE\.md \(\d+ bytes, SHA-256: [a-f0-9]{64}\) \|/);
             expect(report).toContain('| @scope/scoped | 2.3.4 | ISC | NONE FOUND |');
         } finally {
             await rm(temporaryDirectory, { recursive: true, force: true });
