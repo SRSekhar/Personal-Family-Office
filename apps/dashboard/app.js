@@ -125,6 +125,13 @@ function updateCategoryOptions(selectedCategory) {
 }
 
 function openRecordDialog(type = 'asset', record = null) {
+    if (workspace === 'demo') {
+        if (record) {
+            showToast('Sample records are read-only. Switch to your private workspace to manage your own records.');
+            return;
+        }
+        switchWorkspace('private');
+    }
     editingId = record ? record.id : null;
     $('#record-form').reset();
     $('#dialog-title').textContent = record ? 'Edit record' : 'Add a record';
@@ -216,7 +223,6 @@ $('#record-form').addEventListener('submit', (event) => {
         showToast('Enter a name, category and valid non-negative value.');
         return;
     }
-    if (workspace === 'demo') switchWorkspace('private');
     if (editingId) {
         records = records.map((item) => item.id === editingId ? { ...item, name, category, type, value } : item);
     } else {
@@ -238,6 +244,10 @@ $('#records-body').addEventListener('click', (event) => {
         if (record) openRecordDialog(record.type, record);
     }
     if (deleteId) {
+        if (workspace === 'demo') {
+            showToast('Sample records are read-only. Switch to your private workspace to manage your own records.');
+            return;
+        }
         const record = records.find((item) => item.id === deleteId);
         if (!record) return;
         if (window.confirm(`Delete "${record.name}" from this workspace?`)) {
