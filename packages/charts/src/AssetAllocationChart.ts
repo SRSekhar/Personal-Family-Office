@@ -90,7 +90,7 @@ function validateInput(input: AssetAllocationChartInput): void {
         throw new RangeError('totalValue must be a finite, non-negative number.');
     }
 
-    if (input.title.trim().length === 0) {
+    if ((input.title ?? 'Asset allocation').trim().length === 0) {
         throw new RangeError('title must not be empty.');
     }
 
