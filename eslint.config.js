@@ -25,6 +25,16 @@ export default tseslint.config(
     },
 
     {
+        // The static dashboard runs in the browser and has no Node runtime.
+        files: ['apps/dashboard/**/*.js'],
+        languageOptions: {
+            globals: {
+                ...globals.browser
+            }
+        }
+    },
+
+    {
         files: ['**/*.ts'],
 
         languageOptions: {
