@@ -108,7 +108,8 @@ jobs:
             exit 1
           fi
 
-          AHEAD_BY="$(gh api "repos/$GH_REPO/compare/main...$BRANCH_NAME" --jq '.ahead_by')"
+          git fetch origin "refs/heads/$BRANCH_NAME:refs/remotes/origin/pfo-agent-check"
+          AHEAD_BY="$(git rev-list --count origin/main..refs/remotes/origin/pfo-agent-check)"
           if [[ "$AHEAD_BY" == "0" ]]; then
             echo "No commits differ from main; nothing to propose."
             exit 0
