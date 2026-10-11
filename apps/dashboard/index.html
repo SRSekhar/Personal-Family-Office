@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <meta name="description" content="PFO OS — a private, local-first workspace for understanding your household finances.">
+    <title>PFO OS — Financial workspace</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.js"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" aria-label="Main navigation">
+            <a class="brand" href="./" aria-label="PFO OS home">
+                <span class="brand-mark">P</span>
+                <span><strong>PFO OS</strong><small>PERSONAL FAMILY OFFICE</small></span>
+            </a>
+            <div class="workspace-label">WORKSPACE</div>
+            <nav>
+                <a class="nav-item active" href="#overview" aria-current="page"><span class="nav-icon">◫</span> Overview</a>
+                <a class="nav-item" href="#records"><span class="nav-icon">▤</span> Financial records</a>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="privacy-card"><span class="privacy-dot"></span><div><strong>Private by design</strong><p>Your workspace stays in this browser.</p></div></div>
+                <div class="sidebar-footer">EARLY ACCESS · 0.1.0</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb">Workspace <span>/</span> <strong id="page-breadcrumb">Overview</strong></div>
+                <div class="topbar-actions">
+                    <span class="local-badge"><span></span> Local workspace</span>
+                    <button class="button button-secondary button-small" id="export-button" type="button">Export data ↗</button>
+                </div>
+            </header>
+
+            <section class="page-intro" id="overview">
+                <div>
+                    <p class="eyebrow">YOUR FINANCIAL PICTURE</p>
+                    <h1>Good to see you.</h1>
+                    <p class="intro-copy">A clearer view of what you own, what you owe, and how it all fits together.</p>
+                </div>
+                <div class="intro-actions">
+                    <span class="sample-pill" id="workspace-label">SAMPLE WORKSPACE</span>
+                    <button class="button button-primary" id="add-record-button" type="button"><span>＋</span> Add record</button>
+                </div>
+            </section>
+
+            <section class="notice" id="sample-notice" aria-live="polite">
+                <span class="notice-icon">✳</span>
+                <div><strong>You’re exploring with sample data</strong><p>These example figures are fictional. Switch to your private workspace to enter your own records.</p></div>
+                <button class="text-button" id="switch-private-button" type="button">Use my data <span>→</span></button>
+            </section>
+
+            <section class="metric-grid" aria-label="Financial summary">
+                <article class="metric-card metric-primary">
+                    <div class="metric-heading"><span>Net worth</span><span class="metric-symbol">↗</span></div>
+                    <div class="metric-value" id="net-worth">—</div>
+                    <div class="metric-foot"><span class="metric-indicator"></span><span id="net-worth-caption">Assets minus liabilities</span></div>
+                    <div class="metric-watermark">₹</div>
+                </article>
+                <article class="metric-card">
+                    <div class="metric-heading"><span>Total assets</span><span class="metric-symbol asset-symbol">＋</span></div>
+                    <div class="metric-value" id="total-assets">—</div>
+                    <div class="metric-foot"><span id="asset-count">0 records</span></div>
+                </article>
+                <article class="metric-card">
+                    <div class="metric-heading"><span>Total liabilities</span><span class="metric-symbol liability-symbol">−</span></div>
+                    <div class="metric-value" id="total-liabilities">—</div>
+                    <div class="metric-foot"><span id="liability-count">0 records</span></div>
+                </article>
+                <article class="metric-card">
+                    <div class="metric-heading"><span>Financial records</span><span class="metric-symbol records-symbol">▤</span></div>
+                    <div class="metric-value" id="record-count">0</div>
+                    <div class="metric-foot">Assets and liabilities</div>
+                </article>
+            </section>
+
+            <div class="content-grid">
+                <section class="panel allocation-panel" aria-labelledby="allocation-heading">
+                    <div class="panel-header">
+                        <div><p class="eyebrow">WHERE IT SITS</p><h2 id="allocation-heading">Asset allocation</h2></div>
+                        <span class="panel-tag">By category</span>
+                    </div>
+                    <div id="allocation-content" class="allocation-content"></div>
+                </section>
+
+                <section class="panel quick-panel" aria-labelledby="quick-heading">
+                    <div class="panel-header"><div><p class="eyebrow">TAKE ACTION</p><h2 id="quick-heading">Quick actions</h2></div></div>
+                    <button class="action-row" id="quick-add-asset" type="button"><span class="action-icon green">＋</span><span><strong>Add an asset</strong><small>Cash, investments, property and more</small></span><span class="action-arrow">→</span></button>
+                    <button class="action-row" id="quick-add-liability" type="button"><span class="action-icon orange">−</span><span><strong>Add a liability</strong><small>Loans and other amounts you owe</small></span><span class="action-arrow">→</span></button>
+                    <button class="action-row" id="import-button" type="button"><span class="action-icon blue">↥</span><span><strong>Import a backup</strong><small>Restore a PFO OS JSON export</small></span><span class="action-arrow">→</span></button>
+                    <input type="file" id="import-file" accept="application/json,.json" hidden>
+                    <div class="quick-foot"><span class="lock-icon">⌑</span> No bank connection. No external data feeds.</div>
+                </section>
+            </div>
+
+            <section class="panel records-panel" id="records" aria-labelledby="records-heading">
+                <div class="panel-header records-header">
+                    <div><p class="eyebrow">YOUR BALANCE SHEET</p><h2 id="records-heading">Financial records</h2></div>
+                    <div class="records-actions"><label class="search-box"><span>⌕</span><input id="record-search" type="search" placeholder="Search records" aria-label="Search financial records"></label><button class="button button-secondary button-small" id="view-all-button" type="button">View all</button></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th scope="col">Record</th><th scope="col">Category</th><th scope="col">Type</th><th scope="col" class="align-right">Current value</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+                        <tbody id="records-body"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state" id="empty-records" hidden><span class="empty-icon">▤</span><strong>No financial records yet</strong><p>Add your first asset or liability to start building your financial picture.</p><button class="button button-primary" id="empty-add-button" type="button">＋ Add your first record</button></div>
+                <div class="table-footer"><span id="records-summary">Showing 0 records</span><span>Values are user-entered and are not independently verified.</span></div>
+            </section>
+
+            <footer class="app-footer"><span>© PFO OS · Built for clarity and control.</span><span>Early development · Not financial advice</span></footer>
+        </main>
+    </div>
+
+    <dialog id="record-dialog" class="record-dialog">
+        <form id="record-form">
+            <div class="dialog-header"><div><p class="eyebrow">FINANCIAL RECORD</p><h2 id="dialog-title">Add a record</h2></div><button class="icon-button" id="close-dialog-button" type="button" aria-label="Close dialog">×</button></div>
+            <label class="field-label" for="record-name">Name<input id="record-name" name="name" required maxlength="80" placeholder="e.g. Savings account"></label>
+            <div class="field-grid">
+                <label class="field-label" for="record-type">Record type<select id="record-type" name="type"><option value="asset">Asset — I own it</option><option value="liability">Liability — I owe it</option></select></label>
+                <label class="field-label" for="record-category">Category<select id="record-category" name="category"></select></label>
+            </div>
+            <label class="field-label" for="record-value">Current value <span id="currency-hint">(INR)</span><input id="record-value" name="value" type="number" min="0" step="0.01" required inputmode="decimal" placeholder="0.00"></label>
+            <p class="form-note">This value is stored locally in this browser. Enter only information you are comfortable keeping on this device.</p>
+            <div class="dialog-actions"><button class="button button-secondary" id="cancel-dialog-button" type="button">Cancel</button><button class="button button-primary" type="submit">Save record</button></div>
+        </form>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
