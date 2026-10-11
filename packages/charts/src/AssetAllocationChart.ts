@@ -55,13 +55,13 @@ export function renderAssetAllocationChart({
     let offset = 0;
     const segments = allocations.map((allocation, index) => {
         const width = allocation.weight * 100;
-        const segment = `<rect class="pfo-allocation-segment" data-category="${escapeHtml(allocation.category)}" x="${offset.toFixed(4)}" y="0" width="${width.toFixed(4)}" height="16" fill="${SEGMENT_COLORS[index % SEGMENT_COLORS.length]}" />`;
+        const segment = `<rect class="pfo-allocation-segment" data-category="${escapeHtml(allocation.category)}" x="${offset.toFixed(4)}" y="0" width="${width.toFixed(4)}" height="16" fill="${segmentColor(index)}" />`;
         offset += width;
         return segment;
     }).join('');
 
     const rows = allocations.map((allocation, index) => `<tr>
-    <th scope="row"><span class="pfo-allocation-swatch" aria-hidden="true" style="background-color:${SEGMENT_COLORS[index % SEGMENT_COLORS.length]}"></span>${escapeHtml(allocation.category)}</th>
+    <th scope="row"><span class="pfo-allocation-swatch" aria-hidden="true" style="background-color:${segmentColor(index)}"></span>${escapeHtml(allocation.category)}</th>
     <td>${currencyFormatter(allocation.value)}</td>
     <td>${(allocation.weight * 100).toFixed(2)}%</td>
 </tr>`).join('');
@@ -79,6 +79,10 @@ export function renderAssetAllocationChart({
         <tbody>${rows}</tbody>
     </table>
 </section>`;
+}
+
+function segmentColor(index: number): string {
+    return SEGMENT_COLORS[index % SEGMENT_COLORS.length] ?? SEGMENT_COLORS[0];
 }
 
 function validateInput(input: AssetAllocationChartInput): void {
