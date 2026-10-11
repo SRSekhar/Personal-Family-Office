@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -10,10 +11,19 @@ const licenseNoticeFilename = /^(license|licence|notice|copying|copyright|patent
 
 async function findRootLicenseFiles(packageDirectory) {
     const entries = await readdir(packageDirectory, { withFileTypes: true });
-    return entries
+    const filenames = entries
         .filter((entry) => entry.isFile() && licenseNoticeFilename.test(entry.name))
         .map((entry) => entry.name)
         .sort((left, right) => left.localeCompare(right));
+
+    return Promise.all(filenames.map(async (name) => {
+        const content = await readFile(join(packageDirectory, name));
+        return {
+            name,
+            bytes: content.byteLength,
+            sha256: createHash('sha256').update(content).digest('hex')
+        };
+    }));
 }
 
 /**
@@ -50,7 +60,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
 
         if (existing) {
             existing.licenses.add(license);
-            licenseFiles.forEach((file) => existing.licenseFiles.add(file));
+            licenseFiles.forEach((file) => existing.licenseFiles.set(`${file.name}\0${file.sha256}`, file));
             return;
         }
 
@@ -58,7 +68,7 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
             name: packageMetadata.name,
             version: packageMetadata.version,
             licenses: new Set([license]),
-            licenseFiles: new Set(licenseFiles),
+            licenseFiles: new Map(licenseFiles.map((file) => [`${file.name}\0${file.sha256}`, file])),
             path: packagePath
         });
     }
@@ -117,7 +127,10 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
             license: licenses.length > 1
                 ? `CONFLICTING LICENSE METADATA: ${licenses.join(' / ')}`
                 : licenses[0],
-            licenseFiles: [...item.licenseFiles].sort((left, right) => left.localeCompare(right)),
+            licenseFiles: [...item.licenseFiles.values()].sort((left, right) => {
+                const byName = left.name.localeCompare(right.name);
+                return byName !== 0 ? byName : left.sha256.localeCompare(right.sha256);
+            }),
             path: item.path
         };
     }).sort((left, right) => {
@@ -134,9 +147,15 @@ export async function generateLicenseInventory(pnpmStoreDirectory) {
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([license, count]) => `| ${escapeMarkdown(license)} | ${count} |`);
 
-    const packageRows = rows.map((item) =>
-        `| ${escapeMarkdown(item.name)} | ${escapeMarkdown(item.version)} | ${escapeMarkdown(item.license)} | ${escapeMarkdown(item.licenseFiles.length > 0 ? item.licenseFiles.join(', ') : 'NONE FOUND')} | ${escapeMarkdown(item.path)} |`
-    );
+    const packageRows = rows.map((item) => {
+        const licenseEvidence = item.licenseFiles.length > 0
+            ? item.licenseFiles.map((file) =>
+                `${file.name} (${file.bytes} bytes, SHA-256: ${file.sha256})`
+            ).join(', ')
+            : 'NONE FOUND';
+
+        return `| ${escapeMarkdown(item.name)} | ${escapeMarkdown(item.version)} | ${escapeMarkdown(item.license)} | ${escapeMarkdown(licenseEvidence)} | ${escapeMarkdown(item.path)} |`;
+    });
 
     const commonPermissiveLicenses = new Set([
         'MIT',
@@ -158,7 +177,7 @@ Generated: ${new Date().toISOString()}
 
 ## Scope and limitations
 
-This inventory reads package metadata from the installed pnpm dependency store, which is resolved from the repository lockfile in CI. It records each unique npm package name and version, declared license metadata, and matching license/notice filenames found at the installed package root. Filename discovery does not inspect file contents or prove that notices are sufficient for redistribution.
+This inventory reads package metadata from the installed pnpm dependency store, which is resolved from the repository lockfile in CI. It records each unique npm package name and version, declared license metadata, and matching root-level license/notice filenames with byte lengths and SHA-256 fingerprints of their installed contents. These fingerprints make evidence changes detectable but do not establish that a file is complete, applicable, or sufficient for redistribution.
 
 This is **not a legal compatibility determination**. License metadata may be missing, incomplete, inaccurate, dual-licensed, or require a separate license/NOTICE file. This inventory does not include the repository's own license decision, GitHub Actions, Node.js, the pnpm executable, operating-system components, or non-npm assets. Review package license texts and notice obligations before redistribution or commercial release.
 
@@ -173,7 +192,7 @@ ${summaryRows.join('\n')}
 
 ## Package inventory
 
-| Package | Version | License metadata | Root license/notice files | Installed package path |
+| Package | Version | License metadata | Root license/notice evidence (name, bytes, SHA-256) | Installed package path |
 | --- | --- | --- | --- | --- |
 ${packageRows.join('\n')}
 `;
