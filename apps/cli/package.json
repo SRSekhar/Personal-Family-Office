@@ -1,0 +1,29 @@
+{
+  "name": "@pfo/cli",
+  "version": "0.1.0",
+  "description": "Local-first command-line host for deterministic PFO OS reports.",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "pfo-report": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src tests"
+  },
+  "dependencies": {
+    "@pfo/analytics": "workspace:*",
+    "@pfo/core": "workspace:*",
+    "@pfo/models": "workspace:*",
+    "@pfo/reports": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}
