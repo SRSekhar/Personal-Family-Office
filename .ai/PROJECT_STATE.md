@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Report Engine / Release Safety
-- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, currency-code, nested monetary currency, net-worth, analysis-total, and allocation-reconciliation invariants, and exposes canonical timestamps through semantic HTML time elements. The first-pass evidence review for nine dependency-license flags is documented. A new CI check packed all nine exact npm versions with lifecycle scripts disabled; all tarball integrity values matched `pnpm-lock.yaml`, and each tarball contained a root-level license file with byte length and SHA-256 recorded in the evidence review. Legal/distribution dispositions remain open. The dashboard is implemented, but its live deployment is blocked until GitHub Pages is enabled in repository Settings → Pages with Source set to GitHub Actions. A customer-discovery playbook is available; market demand remains unvalidated.
+- **Status:** Deterministic calculators, portfolio analysis, the offline HTML report renderer, and the local report CLI are merged. Report validation now enforces malformed-payload, currency-code, nested monetary currency, net-worth, analysis-total, and allocation-reconciliation invariants, and exposes canonical timestamps through semantic HTML time elements. The first-pass evidence review for nine dependency-license flags is documented. A new CI check packed all nine exact npm versions with lifecycle scripts disabled; all tarball integrity values matched `pnpm-lock.yaml`, and each tarball contained a root-level license file with byte length and SHA-256 recorded in the evidence review. Legal/distribution dispositions remain open. The dashboard is implemented, but its live deployment is blocked until GitHub Pages is enabled in repository Settings → Pages with Source set to GitHub Actions. A customer-discovery playbook is available; market demand remains unvalidated.
 
 ## Foundation Verified
 
@@ -36,7 +36,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 ## Next Deliverables
 
 1. Define the distribution boundary for the nine flagged packages (development/build-only versus shipped dependencies) and map the Blue Oak notice and MPL source-availability obligations to that boundary; preserve unresolved status until qualified legal review.
-2. Define the application/CLI boundary before implementing report-to-file commands, and define persistence/source-of-truth requirements before historical snapshots.
+2. Define persistence and source-of-truth requirements before implementing historical snapshot storage; the report CLI is deliberately local-only and stateless.
 3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
 4. Execute the customer-discovery experiment and validate a paid-pilot hypothesis before investing in paid tiers.
 

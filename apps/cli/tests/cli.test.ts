@@ -1,11 +1,12 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { PassThrough } from 'node:stream';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createReportHtmlFromInput, parsePortfolioInput } from '../src/portfolio-input.js';
-import { parseCliArguments, writeReportFile } from '../src/index.js';
+import { parseCliArguments, runCli, writeReportFile } from '../src/index.js';
 
 const fixturePath = new URL('../examples/sample-portfolio.json', import.meta.url);
 const sampleInput: unknown = JSON.parse(await readFile(fixturePath, 'utf8'));
@@ -98,6 +99,41 @@ describe('parseCliArguments', () => {
             expect(result.generatedAt?.toISOString()).toBe('2026-10-13T12:00:00.000Z');
             expect(result.force).toBe(true);
         }
+    });
+});
+
+describe('runCli end-to-end', () => {
+    it('reads the versioned input and writes an offline HTML report', async () => {
+        const directory = await createTemporaryDirectory();
+        const inputPath = join(directory, 'portfolio.json');
+        const outputPath = join(directory, 'portfolio-report.html');
+        await writeFile(inputPath, JSON.stringify(sampleInput), 'utf8');
+
+        const stdout = new PassThrough();
+        const stderr = new PassThrough();
+        let stdoutText = '';
+        let stderrText = '';
+        stdout.on('data', (chunk: Buffer) => {
+            stdoutText += chunk.toString('utf8');
+        });
+        stderr.on('data', (chunk: Buffer) => {
+            stderrText += chunk.toString('utf8');
+        });
+
+        const exitCode = await runCli([
+            'create',
+            '--input', inputPath,
+            '--output', outputPath,
+            '--generated-at', '2026-10-13T12:00:00.000Z'
+        ], stdout, stderr);
+
+        expect(exitCode).toBe(0);
+        expect(stdoutText).toContain('Report written:');
+        expect(stderrText).toBe('');
+        const html = await readFile(outputPath, 'utf8');
+        expect(html).toContain('Fictional Sample Household');
+        expect(html).toContain('Asset allocation by category');
+        expect(html).not.toContain('<script');
     });
 });
 

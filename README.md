@@ -18,10 +18,10 @@ PFO OS aims to help individuals and families maintain structured financial recor
 
 ## Current repository
 
-The TypeScript monorepo contains early domain-model and package foundations, plus tested deterministic CAGR and annual compound-growth calculators. The dashboard, reporting, production data workflows, AI integrations, and paid product capabilities are not yet production-ready.
+The TypeScript monorepo contains deterministic financial models/calculators, portfolio analysis, an offline HTML report renderer, a local report CLI, and a static browser dashboard. These are early development capabilities, not a production-ready financial application; data ingestion, persistence, hosted services, AI integrations, and paid product capabilities remain incomplete.
 
 ```text
-apps/       Application entry points (planned/in development)
+apps/       Local report CLI and static browser dashboard
 packages/   Reusable TypeScript packages
 docs/       Product, architecture, governance, and security documentation
 scripts/    Development and repository automation
@@ -39,7 +39,20 @@ pnpm test
 pnpm lint
 ```
 
-Root build and validation commands are still being standardized. Review package-level scripts and project-state documentation before treating a command as a complete CI gate.
+Use the root commands below for the current CI-aligned build, typecheck, lint, and test gates. The CLI and dashboard remain early-stage and require review before production financial use.
+
+## Local report CLI
+
+The local `@pfo/cli` host turns a versioned JSON portfolio input into a self-contained HTML report using the existing deterministic analysis and report packages. It requires explicit source selections and a valuation timestamp, rejects mixed currencies and unknown fields, and performs no network, database, market-data, or AI calls.
+
+```powershell
+New-Item -ItemType Directory -Force reports
+pnpm install --frozen-lockfile
+pnpm build
+node apps/cli/dist/index.js create --input apps/cli/examples/sample-portfolio.json --output reports/sample-portfolio.html
+```
+
+The example input is synthetic. Generated reports can contain sensitive financial information; keep real inputs and outputs out of version control. The root `reports/` directory and `*.pfo-report.html` files are ignored.
 
 ## Security and personal data
 
