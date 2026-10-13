@@ -39,7 +39,8 @@ Existing output is not overwritten unless `--force` is supplied. The valuation t
 ```powershell
 New-Item -ItemType Directory -Force reports
 pnpm build
-node apps/cli/dist/index.js create --format dashboard-backup --input "$env:USERPROFILE\\Downloads\\pfo-dashboard-backup.json" --as-of 2026-10-01T00:00:00.000Z --output reports/dashboard-report.html
+$backup = Join-Path $env:USERPROFILE "Downloads\\pfo-dashboard-backup.json"
+node apps/cli/dist/index.js create --format dashboard-backup --input $backup --as-of 2026-10-01T00:00:00.000Z --output reports/dashboard-report.html
 ```
 
 The dashboard backup's `exportedAt` field records when the file was exported, not when the financial values were valid. Therefore `--as-of` is required and must be the valuation date you intend the report to describe. Dashboard records are mapped to generic `Other` asset/liability types, while their original categories are retained for reporting. No inference, currency conversion, or network lookup occurs.
