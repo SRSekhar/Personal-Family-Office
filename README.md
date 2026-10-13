@@ -41,6 +41,18 @@ pnpm lint
 
 Use the root commands below for the current CI-aligned build, typecheck, lint, and test gates. The CLI and dashboard remain early-stage and require review before production financial use.
 
+## Local dashboard preview
+
+Run the static dashboard on your own machine without GitHub Pages:
+
+```powershell
+pnpm dashboard:serve
+```
+
+Open `http://127.0.0.1:4173/` in your browser. To choose a different port, set `$env:PFO_DASHBOARD_PORT = "4174"` before running the command. The server binds only to loopback, serves files from `apps/dashboard`, and does not expose a public network listener. Dashboard records remain in that browser origin's local storage; this preview server does not receive or persist them.
+
+This is a local development preview, not a production hosting service. Publishing the hosted GitHub Pages demo still requires the one-time repository setting **Settings → Pages → Source: GitHub Actions**.
+
 ## Local report CLI
 
 The local `@pfo/cli` host turns a versioned JSON portfolio input into a self-contained HTML report using the existing deterministic analysis and report packages. It requires explicit source selections and a valuation timestamp, rejects mixed currencies and unknown fields, and performs no network, database, market-data, or AI calls.
