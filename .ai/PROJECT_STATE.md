@@ -35,7 +35,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Compare the recorded artifact license fingerprints with version-tagged upstream files and review complete license/notice obligations for the nine flagged dependency versions; preserve unresolved status until the intended distribution model is reviewed.
+1. Define the distribution boundary for the nine flagged packages (development/build-only versus shipped dependencies) and map the Blue Oak notice and MPL source-availability obligations to that boundary; preserve unresolved status until qualified legal review.
 2. Define the application/CLI boundary before implementing report-to-file commands, and define persistence/source-of-truth requirements before historical snapshots.
 3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
 4. Execute the customer-discovery experiment and validate a paid-pilot hypothesis before investing in paid tiers.
@@ -47,7 +47,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Historical repository content and commit metadata have not been fully scanned.
 - The Anthropic application draft is prepared but has not been submitted.
 - No revenue, customer demand, or product-market fit has been validated.
-- The nine dependency-license inventory flags passed packed-tarball integrity and root-license-file checks in CI; exact-text comparison, distribution-scope review, and legal disposition remain outstanding.
+- The nine dependency-license inventory flags passed packed-tarball integrity and root-license-file checks in CI; all nine artifact license hashes match inspected upstream license texts. Distribution-scope review and legal disposition remain outstanding.
 - GitHub Pages deployment is blocked by the repository-level Pages setting; the workflow token cannot create the site automatically.
 
 ## Last Updated
