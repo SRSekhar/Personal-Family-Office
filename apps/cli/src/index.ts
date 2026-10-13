@@ -157,9 +157,13 @@ export async function runCli(
             throw new Error(`Input file is not valid JSON: ${inputPath}`);
         }
 
-        const reportInput = command.format === 'dashboard-backup'
-            ? convertDashboardBackupToPortfolioInput(payload, command.asOfDate as Date)
-            : payload;
+        let reportInput: unknown = payload;
+        if (command.format === 'dashboard-backup') {
+            if (!command.asOfDate) {
+                throw new Error('--as-of is required with --format dashboard-backup; export time is not a valuation date.');
+            }
+            reportInput = convertDashboardBackupToPortfolioInput(payload, command.asOfDate);
+        }
         const html = createReportHtmlFromInput(reportInput, command.generatedAt ?? new Date());
         await writeReportFile(outputPath, html, command.force);
         stdout.write(`Report written: ${outputPath}\n`);
