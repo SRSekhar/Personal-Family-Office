@@ -49,7 +49,8 @@ describe('local dashboard preview server', () => {
         expect(response.headers.get('content-type')).toContain('text/html');
         expect(response.headers.get('cache-control')).toBe('no-store');
         expect(response.headers.get('x-content-type-options')).toBe('nosniff');
-        expect(response.headers.get('content-security-policy')).toContain("default-src 'self'");\n        expect(response.headers.get('content-security-policy')).toContain("style-src 'self' 'unsafe-inline'");
+        expect(response.headers.get('content-security-policy')).toContain("default-src 'self'");
+        expect(response.headers.get('content-security-policy')).toContain("style-src 'self' 'unsafe-inline'");
         expect(await response.text()).toContain('Local PFO');
     });
 
