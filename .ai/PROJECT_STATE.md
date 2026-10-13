@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Report Engine / Release Safety
-- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, currency-code, nested monetary currency, net-worth, analysis-total, and allocation-reconciliation invariants, and exposes canonical timestamps through semantic HTML time elements. The first-pass evidence review for nine dependency-license flags is documented. CI records root-level license/notice filenames and found a license file for all nine; file-content, exact-artifact, and legal dispositions remain open. A customer-discovery playbook is available; market demand remains unvalidated.
+- **Status:** Deterministic calculators, portfolio analysis, and the offline HTML report renderer are merged. Report validation now enforces malformed-payload, currency-code, nested monetary currency, net-worth, analysis-total, and allocation-reconciliation invariants, and exposes canonical timestamps through semantic HTML time elements. The first-pass evidence review for nine dependency-license flags is documented. A new CI check packed all nine exact npm versions with lifecycle scripts disabled; all tarball integrity values matched `pnpm-lock.yaml`, and each tarball contained a root-level license file with byte length and SHA-256 recorded in the evidence review. Legal/distribution dispositions remain open. The dashboard is implemented, but its live deployment is blocked until GitHub Pages is enabled in repository Settings → Pages with Source set to GitHub Actions. A customer-discovery playbook is available; market demand remains unvalidated.
 
 ## Foundation Verified
 
@@ -35,7 +35,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Inspect packed npm artifacts and included notices for the nine flagged dependency versions; preserve unresolved status until the intended distribution model is reviewed.
+1. Compare the recorded artifact license fingerprints with version-tagged upstream files and review complete license/notice obligations for the nine flagged dependency versions; preserve unresolved status until the intended distribution model is reviewed.
 2. Define the application/CLI boundary before implementing report-to-file commands, and define persistence/source-of-truth requirements before historical snapshots.
 3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
 4. Execute the customer-discovery experiment and validate a paid-pilot hypothesis before investing in paid tiers.
@@ -47,8 +47,9 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Historical repository content and commit metadata have not been fully scanned.
 - The Anthropic application draft is prepared but has not been submitted.
 - No revenue, customer demand, or product-market fit has been validated.
-- The nine dependency-license inventory flags have a first-pass upstream evidence record, but packed-artifact/notice checks and legal disposition remain outstanding.
+- The nine dependency-license inventory flags passed packed-tarball integrity and root-license-file checks in CI; exact-text comparison, distribution-scope review, and legal disposition remain outstanding.
+- GitHub Pages deployment is blocked by the repository-level Pages setting; the workflow token cannot create the site automatically.
 
 ## Last Updated
 
-2026-10-10
+2026-10-13
