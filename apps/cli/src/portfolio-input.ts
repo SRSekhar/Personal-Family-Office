@@ -99,13 +99,13 @@ export function convertDashboardBackupToPortfolioInput(payload: unknown, asOfDat
     const assetRecords = records.filter((record) => record.type === 'asset');
     const liabilityRecords = records.filter((record) => record.type === 'liability');
     const assets = assetRecords.map((record, index) => ({
-        id: `dashboard-asset-${String(index + 1).padStart(4, '0')}`,
+        id: dashboardRecordId('asset', index),
         name: record.name,
         type: AssetType.Other,
         value: { amount: record.value, currency }
     }));
     const liabilities = liabilityRecords.map((record, index) => ({
-        id: `dashboard-liability-${String(index + 1).padStart(4, '0')}`,
+        id: dashboardRecordId('liability', index),
         name: record.name,
         type: LiabilityType.Other,
         outstandingAmount: { amount: record.value, currency }
@@ -113,14 +113,14 @@ export function convertDashboardBackupToPortfolioInput(payload: unknown, asOfDat
     const selections = [
         ...assetRecords.map((record, index) => ({
             source: 'asset',
-            sourceId: assets[index]!.id,
-            canonicalId: assets[index]!.id,
+            sourceId: dashboardRecordId('asset', index),
+            canonicalId: dashboardRecordId('asset', index),
             category: record.category
         })),
         ...liabilityRecords.map((record, index) => ({
             source: 'liability',
-            sourceId: liabilities[index]!.id,
-            canonicalId: liabilities[index]!.id,
+            sourceId: dashboardRecordId('liability', index),
+            canonicalId: dashboardRecordId('liability', index),
             category: record.category
         }))
     ];
@@ -233,6 +233,10 @@ function parseMoney(value: unknown, expectedCurrency: Currency, path: string): M
     }
 
     return new Money(amount, currency);
+}
+
+function dashboardRecordId(type: 'asset' | 'liability', index: number): string {
+    return `dashboard-${type}-${String(index + 1).padStart(4, '0')}`;
 }
 
 interface DashboardBackupRecord {
