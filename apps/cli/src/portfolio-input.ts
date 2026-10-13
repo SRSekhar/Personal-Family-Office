@@ -183,10 +183,10 @@ function parseArray<T>(
         throw new Error(`${path} must be an array.`);
     }
 
-    return value.map((item: unknown, index: number) => parser(item, `${path}[${index}]`));
+    return value.map((item: unknown, index: number) => parser(item, `${path}[${String(index)}]`));
 }
 
-function assertUniqueIds(items: readonly { readonly id: Identifier }[], path: string): void {
+function assertUniqueIds(items: ReadonlyArray<{ readonly id: Identifier }>, path: string): void {
     const seen = new Set<string>();
     for (const item of items) {
         const id = item.id.toString();
