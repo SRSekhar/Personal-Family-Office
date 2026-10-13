@@ -77,7 +77,7 @@ async function main() {
             const spec = `${name}@${version}`;
             const packOutput = run('npm', [
                 'pack', spec, '--ignore-scripts', '--json', '--pack-destination', tempDirectory
-            ]);
+            ], { cwd: tempDirectory });
             const metadata = packMetadata(packOutput);
             const lockfileMatch = lockfile.includes(metadata.integrity);
             const tarballPath = join(tempDirectory, basename(metadata.filename));
