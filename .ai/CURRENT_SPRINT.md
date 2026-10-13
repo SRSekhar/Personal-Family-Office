@@ -39,7 +39,7 @@ The deterministic analytics engine, offline HTML report renderer, and local repo
 
 ## Next Deliverables
 
-1. Define the distribution boundary for the nine flagged dependencies and map the Blue Oak notice and MPL source-availability obligations to it; do not infer legal clearance from matching license text alone.
+1. Confirm the intended distribution artifact, validate its actual contents against the current dependency paths, and map the Blue Oak notice/MPL source-availability obligations; do not infer legal clearance from matching license text alone.
 2. Define persistence and source-of-truth requirements before implementing historical snapshot storage; the report CLI remains local-only and stateless.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
 4. Execute the 8–10 interview experiment in the customer-discovery playbook and validate a paid-pilot hypothesis.
