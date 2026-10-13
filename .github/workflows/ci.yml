@@ -48,6 +48,17 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Inspect packed dependency license artifacts
+        run: node scripts/security/Inspect-PackedLicenseArtifacts.mjs --output docs/security/PACKED_DEPENDENCY_LICENSE_ARTIFACT_EVIDENCE.md
+
+      - name: Upload packed dependency license evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packed-dependency-license-evidence
+          path: docs/security/PACKED_DEPENDENCY_LICENSE_ARTIFACT_EVIDENCE.md
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Audit dependency vulnerabilities
         run: pnpm audit --audit-level=high
 
