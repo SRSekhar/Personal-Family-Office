@@ -42,7 +42,9 @@ export function createDashboardServer(rootDirectory = dashboardRoot) {
     const root = realpathSync(resolve(rootDirectory));
 
     return createServer(async (request, response) => {
-        for (const [name, value] of Object.entries(securityHeaders)) {\n            response.setHeader(name, value);\n        }
+        for (const [name, value] of Object.entries(securityHeaders)) {
+            response.setHeader(name, value);
+        }
 
         if (request.method !== 'GET' && request.method !== 'HEAD') {
             response.writeHead(405, { Allow: 'GET, HEAD', 'Content-Type': 'text/plain; charset=utf-8' });
