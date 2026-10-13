@@ -33,15 +33,15 @@ export function parseCliArguments(args: readonly string[]): CliCommand {
         return { kind: 'help' };
     }
     if (args[0] !== 'create') {
-        throw new Error(`Unsupported command "${args[0]}". Run pfo-report --help for usage.`);
+        throw new Error(`Unsupported command "${args[0] ?? "(missing)"}. Run pfo-report --help for usage.`);
     }
 
     const values = new Map<string, string>();
     let force = false;
     for (let index = 1; index < args.length; index += 1) {
-        const flag = args[index];
+        const flag = args[index] ?? '';
         if (flag === '--force') {
-            if (force) throw new Error('--force must not be repeated.');
+            if (force) {\n                throw new Error('--force must not be repeated.');\n            }
             force = true;
             continue;
         }
