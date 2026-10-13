@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { realpathSync } from 'node:fs';
 import { readFile, realpath, stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, URL } from 'node:url';
 import process from 'node:process';
 
 const dashboardRoot = realpathSync(new URL('../../apps/dashboard/', import.meta.url));
@@ -42,7 +42,7 @@ export function createDashboardServer(rootDirectory = dashboardRoot) {
     const root = realpathSync(resolve(rootDirectory));
 
     return createServer(async (request, response) => {
-        response.setHeaders(new Headers(Object.entries(securityHeaders)));
+        for (const [name, value] of Object.entries(securityHeaders)) {\n            response.setHeader(name, value);\n        }
 
         if (request.method !== 'GET' && request.method !== 'HEAD') {
             response.writeHead(405, { Allow: 'GET, HEAD', 'Content-Type': 'text/plain; charset=utf-8' });
