@@ -1,3 +1,5 @@
+import { validateBackupPayload } from './backup.js';
+
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
 const COLORS = ['#176b4d', '#4d8b70', '#9dbb9f', '#c4a15d', '#7898b6', '#a18cb5', '#d18b70', '#7c8a82'];
@@ -174,16 +176,8 @@ function importData(file) {
     reader.addEventListener('load', () => {
         try {
             const parsed = JSON.parse(String(reader.result));
-            if (parsed.schemaVersion !== 1 || !Array.isArray(parsed.records)) throw new Error('Unsupported backup format.');
-            const validated = parsed.records.map((item) => {
-                if (!item || typeof item.name !== 'string' || item.name.trim() === ''
-                    || typeof item.category !== 'string' || item.category.trim() === ''
-                    || !['asset', 'liability'].includes(item.type)
-                    || !Number.isFinite(item.value) || item.value < 0) {
-                    throw new Error('The backup contains an invalid financial record.');
-                }
-                return { id: crypto.randomUUID(), name: item.name.trim(), category: item.category.trim(), type: item.type, value: item.value };
-            });
+            const validated = validateBackupPayload(parsed, CURRENCY)
+                .map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
             records = validated;
             if (savePrivateRecords()) {
