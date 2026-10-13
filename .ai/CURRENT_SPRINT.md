@@ -32,13 +32,13 @@ The deterministic analytics engine and offline HTML report renderer are merged i
 
 ## In Progress
 
-- Compare packed license fingerprints against version-tagged upstream license texts and review complete notice/redistribution obligations for all nine dependency entries, preserving manual-review status until evidence supports a disposition.
+- Define whether each flagged dependency is included in a distributable product or used only for development/build, then map the Blue Oak notice and MPL source-availability obligations to that boundary. Preserve manual-review status until qualified review supports a disposition.
 - Complete the one-time GitHub Pages repository setup and verify the dashboard deployment.
 - Keep project licensing and the public/private product boundary as explicit release gates; no license or visibility change is authorized.
 
 ## Next Deliverables
 
-1. Compare the recorded packed-artifact license fingerprints with version-tagged upstream license files and review complete license/NOTICE obligations for the nine flagged dependency versions; do not infer legal clearance from filename presence.
+1. Define the distribution boundary for the nine flagged dependencies and map the Blue Oak notice and MPL source-availability obligations to it; do not infer legal clearance from matching license text alone.
 2. Define the application/CLI boundary before adding report-to-file host commands.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
 4. Execute the 8–10 interview experiment in the customer-discovery playbook and validate a paid-pilot hypothesis.

@@ -42,7 +42,14 @@ The new CI inspection packed each exact npm version with lifecycle scripts disab
 
 No additional root-level license/notice filenames were detected in these nine packed tarballs. The detailed machine-generated report was uploaded as the `packed-dependency-license-evidence` artifact from CI run 38430307691 and is retained for 30 days.
 
-These results close the *mechanical packed-artifact and lockfile-integrity check* for all nine versions. They do not establish legal compatibility, determine whether these packages are redistributed in a production product, or replace review of the complete license terms and notice obligations. All nine remain on manual review until the distribution boundary and licensing decisions are explicit.
+These results close the *mechanical packed-artifact and lockfile-integrity check* for all nine versions. A byte-level SHA-256 comparison against the version-tagged upstream `LICENSE.md` files for the seven BlueOak packages matched every artifact fingerprint. The `lightningcss@1.33.0` artifact's `LICENSE` fingerprint matched the upstream v1.33.0 license file, and the platform-specific `lightningcss-linux-x64-gnu@1.33.0` artifact contains a license file with that same fingerprint. Thus, all nine artifact license files match the inspected upstream license text at the byte level.
+
+## License obligations to carry into distribution review
+
+- The Blue Oak Model License text in these artifacts says recipients of a copy, including changes, must also receive the license text or a link to it. The `glob` and `package-json-from-dist` license files also contain a `src/` carve-out referring to the respective license files for those source packages; review the actual published file set and applicable scope before drawing conclusions.
+- The MPL-2.0 text in both Lightning CSS artifacts includes source-form distribution requirements (Section 3.1), executable-form source-availability requirements (Section 3.2), and restrictions on removing or altering license notices (Section 3.4). Whether and how these requirements apply depends on whether the relevant Covered Software is distributed, the form of distribution, and any modifications.
+
+These clauses are a review checklist, not a legal determination. The checks do not establish legal compatibility or determine whether these packages are redistributed in a production product. All nine remain on manual review until the product distribution boundary and licensing decisions are explicit.
 
 ## What this review establishes
 
@@ -54,7 +61,7 @@ These results close the *mechanical packed-artifact and lockfile-integrity check
 
 ## Remaining release actions
 
-1. Compare the artifact-level license fingerprints with the version-tagged upstream license files and review the complete license texts, attribution/notice requirements, and applicable redistribution obligations.
+1. Define whether any flagged packages are included in a distributable product or are only development/build tools; map the applicable Blue Oak and MPL obligations to that distribution model.
 2. Confirm whether any of these packages or their code are shipped in production artifacts, as distinct from being used only by development/test tooling.
 3. Inspect the packed contents and included notice/license files for `lightningcss-linux-x64-gnu@1.33.0`; its npm metadata already reports MPL-2.0.
 4. Determine the required attribution/notice and source-availability steps for the intended distribution model with qualified legal review.

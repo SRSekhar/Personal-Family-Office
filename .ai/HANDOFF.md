@@ -34,7 +34,7 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 ## Immediate Next Steps
 
-1. Finish comparing artifact-level license fingerprints with version-tagged upstream license files and review complete license/notice obligations; all nine packed tarballs passed lockfile-integrity and root-license-file checks, but legal disposition is intentionally open.
+1. Define whether the flagged packages are included in a distributable product or are only development/build tools, then map the Blue Oak and MPL obligations to that distribution model. All nine packed tarballs passed lockfile-integrity checks and their artifact license hashes match the inspected upstream texts; legal disposition is intentionally open.
 2. Enable GitHub Pages once in repository Settings → Pages → Source: GitHub Actions, then rerun the dashboard deployment workflow and verify the live page.
 3. Define the application/CLI boundary before report-to-file host commands and define persistence/source-of-truth requirements before historical snapshots.
 4. Run the 8–10 interview experiment using `docs/product/CUSTOMER_DISCOVERY_PLAYBOOK.md`; record only anonymized notes and evidence.
