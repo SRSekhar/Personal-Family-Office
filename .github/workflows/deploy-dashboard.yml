@@ -38,7 +38,7 @@ jobs:
           test -s apps/dashboard/styles.css
           test -s apps/dashboard/app.js
           node --check apps/dashboard/app.js
-          if grep -R -nE 'https?://[^ ]+\\.(js|css)(\\?|["'\\'' ])' apps/dashboard; then
+          if grep -R -nE 'https?://[^ ]+\.(js|css)(\?|["'\\'' ])' apps/dashboard; then
             echo "::error::Dashboard must not load remote JavaScript or CSS."
             exit 1
           fi
