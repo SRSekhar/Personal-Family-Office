@@ -70,6 +70,78 @@ export function parsePortfolioInput(payload: unknown): ParsedPortfolioInput {
     return { portfolio, currency, selections, asOfDate };
 }
 
+export function convertDashboardBackupToPortfolioInput(payload: unknown, asOfDate: Date): unknown {
+    const root = asRecord(payload, 'backup');
+    assertOnlyKeys(root, ['schemaVersion', 'currency', 'exportedAt', 'records'], 'backup');
+
+    if (root['schemaVersion'] !== 1) {
+        throw new Error('backup.schemaVersion must be 1.');
+    }
+    const currency = parseEnum(root['currency'], Object.values(Currency), 'backup.currency');
+    if ('exportedAt' in root) {
+        parseCanonicalUtcTimestamp(root['exportedAt'], 'backup.exportedAt');
+    }
+    if (!(asOfDate instanceof Date) || Number.isNaN(asOfDate.getTime())) {
+        throw new Error('A valid valuation date is required for dashboard backups; export time is not treated as valuation time.');
+    }
+
+    const records = parseArray(root['records'], 'backup.records', parseDashboardBackupRecord);
+    const seenRecordIds = new Set<string>();
+    for (const record of records) {
+        if (record.id !== undefined) {
+            if (seenRecordIds.has(record.id)) {
+                throw new Error(`backup.records contains duplicate id "${record.id}".`);
+            }
+            seenRecordIds.add(record.id);
+        }
+    }
+
+    const assetRecords = records.filter((record) => record.type === 'asset');
+    const liabilityRecords = records.filter((record) => record.type === 'liability');
+    const assets = assetRecords.map((record, index) => ({
+        id: `dashboard-asset-${String(index + 1).padStart(4, '0')}`,
+        name: record.name,
+        type: AssetType.Other,
+        value: { amount: record.value, currency }
+    }));
+    const liabilities = liabilityRecords.map((record, index) => ({
+        id: `dashboard-liability-${String(index + 1).padStart(4, '0')}`,
+        name: record.name,
+        type: LiabilityType.Other,
+        outstandingAmount: { amount: record.value, currency }
+    }));
+    const selections = [
+        ...assetRecords.map((record, index) => ({
+            source: 'asset',
+            sourceId: assets[index]!.id,
+            canonicalId: assets[index]!.id,
+            category: record.category
+        })),
+        ...liabilityRecords.map((record, index) => ({
+            source: 'liability',
+            sourceId: liabilities[index]!.id,
+            canonicalId: liabilities[index]!.id,
+            category: record.category
+        }))
+    ];
+
+    return {
+        schemaVersion: 1,
+        currency,
+        asOfDate: asOfDate.toISOString(),
+        portfolio: {
+            id: 'dashboard-backup',
+            name: 'Imported Dashboard Backup',
+            description: 'Converted from a local dashboard backup. Generic domain types are used; original categories are preserved.',
+            assets,
+            investments: [],
+            liabilities,
+            properties: []
+        },
+        selections
+    };
+}
+
 export function parseCanonicalUtcTimestamp(value: unknown, path: string): Date {
     if (typeof value !== 'string') {
         throw new Error(`${path} must be a canonical ISO-8601 UTC timestamp.`);
@@ -161,6 +233,33 @@ function parseMoney(value: unknown, expectedCurrency: Currency, path: string): M
     }
 
     return new Money(amount, currency);
+}
+
+interface DashboardBackupRecord {
+    readonly id: string | undefined;
+    readonly name: string;
+    readonly category: string;
+    readonly type: 'asset' | 'liability';
+    readonly value: number;
+}
+
+function parseDashboardBackupRecord(value: unknown, path: string): DashboardBackupRecord {
+    const record = asRecord(value, path);
+    assertOnlyKeys(record, ['id', 'name', 'category', 'type', 'value'], path);
+    const id = 'id' in record ? requireString(record['id'], `${path}.id`) : undefined;
+    const amount = requireNumber(record['value'], `${path}.value`);
+    if (amount < 0) {
+        throw new Error(`${path}.value must be greater than or equal to zero.`);
+    }
+    const type = parseEnum(record['type'], ['asset', 'liability'] as const, `${path}.type`);
+
+    return {
+        id,
+        name: requireString(record['name'], `${path}.name`),
+        category: requireString(record['category'], `${path}.category`),
+        type,
+        value: amount
+    };
 }
 
 function parseSelection(value: unknown, path: string): PortfolioPositionSelection {
