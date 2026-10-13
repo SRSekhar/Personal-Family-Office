@@ -14,7 +14,7 @@ Maintain deterministic, testable portfolio analysis and privacy-conscious offlin
 
 ## Current Status
 
-The deterministic analytics engine and offline HTML report renderer are merged into `main`. PRs #35, #36, #38–#40, and #42–#48, #50–#52 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps with semantic HTML time elements, currency-code shape, nested monetary currency consistency, net-worth arithmetic, analysis total reconciliation, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, PR #45 adds root-level license/notice filename detection, and PR #46 records the resulting evidence. CI run 38430307691 packed all nine exact npm artifacts with lifecycle scripts disabled; every tarball integrity matched `pnpm-lock.yaml`, and each contained a root-level license file with recorded byte length and SHA-256. Legal/distribution disposition remains open. Dashboard deployment remains blocked until GitHub Pages is enabled once in repository Settings → Pages with Source set to GitHub Actions. PR #48 adds an operational customer-discovery playbook; demand is still unvalidated.
+The deterministic analytics engine, offline HTML report renderer, and local report CLI are merged into `main`. PRs #35, #36, #38–#40, and #42–#48, #50–#52 are merged; #37 was closed as superseded. Report validation now covers canonical timestamps with semantic HTML time elements, currency-code shape, nested monetary currency consistency, net-worth arithmetic, analysis total reconciliation, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, PR #45 adds root-level license/notice filename detection, and PR #46 records the resulting evidence. CI run 38430307691 packed all nine exact npm artifacts with lifecycle scripts disabled; every tarball integrity matched `pnpm-lock.yaml`, and each contained a root-level license file with recorded byte length and SHA-256. Legal/distribution disposition remains open. Dashboard deployment remains blocked until GitHub Pages is enabled once in repository Settings → Pages with Source set to GitHub Actions. PR #48 adds an operational customer-discovery playbook; demand is still unvalidated.
 
 ## Completed
 
@@ -25,6 +25,7 @@ The deterministic analytics engine and offline HTML report renderer are merged i
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
 - Versioned portfolio report model and self-contained offline HTML renderer, with semantic timestamps, currency-code, nested-currency, net-worth, analysis-total, malformed-payload, and allocation-reconciliation validation
+- Local `@pfo/cli` host with versioned JSON input validation, explicit position selections, currency safeguards, and safe HTML output
 - TypeScript package build, typecheck, lint, and test gates in CI
 - High-severity dependency vulnerability audit in CI
 - First-pass evidence review and root-level license-file inventory for all nine flagged dependency-license entries, with final dispositions intentionally open
@@ -39,7 +40,7 @@ The deterministic analytics engine and offline HTML report renderer are merged i
 ## Next Deliverables
 
 1. Define the distribution boundary for the nine flagged dependencies and map the Blue Oak notice and MPL source-availability obligations to it; do not infer legal clearance from matching license text alone.
-2. Define the application/CLI boundary before adding report-to-file host commands.
+2. Define persistence and source-of-truth requirements before implementing historical snapshot storage; the report CLI remains local-only and stateless.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
 4. Execute the 8–10 interview experiment in the customer-discovery playbook and validate a paid-pilot hypothesis.
 
