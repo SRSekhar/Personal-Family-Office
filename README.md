@@ -66,6 +66,19 @@ node apps/cli/dist/index.js create --input apps/cli/examples/sample-portfolio.js
 
 The example input is synthetic. Generated reports can contain sensitive financial information; keep real inputs and outputs out of version control. The root `reports/` directory and `*.pfo-report.html` files are ignored.
 
+### Report a dashboard backup
+
+1. Run `pnpm dashboard:serve` and enter your data in the local browser workspace.
+2. Use the dashboard's JSON export and save the backup to a private local path.
+3. Build the CLI if you have not already, then generate the report:
+
+```powershell
+pnpm build
+node apps/cli/dist/index.js create --format dashboard-backup --input "$env:USERPROFILE\\Downloads\\pfo-dashboard-backup.json" --as-of 2026-10-01T00:00:00.000Z --output reports/dashboard-report.html
+```
+
+Choose `--as-of` to represent the date the values actually describe. The dashboard's `exportedAt` timestamp is not treated as a valuation date. Dashboard asset/liability records are converted to generic domain types while their reporting categories are preserved; the CLI does not infer investments or property subtypes, and it does not convert currencies.
+
 ## Security and personal data
 
 This GitHub repository is **public**. Do not commit real financial records, account identifiers, statements, tax documents, credentials, API keys, private reports, or personal configuration. Use synthetic examples only. See [SECURITY.md](SECURITY.md), [the repository exposure review](docs/security/REPOSITORY_EXPOSURE_REVIEW.md), and the [third-party dependency license inventory](docs/security/DEPENDENCY_LICENSE_INVENTORY.md). The inventory records package metadata; it is not legal clearance.
