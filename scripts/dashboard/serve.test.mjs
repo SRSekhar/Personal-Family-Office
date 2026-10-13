@@ -34,7 +34,7 @@ async function startServer(root) {
 }
 
 afterEach(async () => {
-    await Promise.all(servers.splice(0).map((server) => new Promise<void>((resolve, reject) => {
+    await Promise.all(servers.splice(0).map((server) => new Promise((resolve, reject) => {
         server.close((error) => error ? reject(error) : resolve());
     })));
     await Promise.all(temporaryDirectories.splice(0).map((directory) =>
