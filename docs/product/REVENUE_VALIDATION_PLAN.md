@@ -46,7 +46,15 @@ Build only after interviews confirm the workflow.
 
 Defer bank integrations, automated document extraction, AI-generated recommendations, brokerage connections, and multi-user cloud hosting until the basic workflow has proven useful. Do not invent APIs or use real financial data in public fixtures.
 
-## 4. Revenue Hypotheses
+## 4. Current Prototype Status (2026-10-13)
+
+The repository now has a local-first dashboard, JSON backup import/export, a local-only preview server, deterministic portfolio analysis, an offline HTML renderer, and a CLI that can turn either the versioned portfolio-input format or a dashboard backup into a self-contained report.
+
+This makes a concierge demonstration possible without hosting financial records. It does **not** yet provide reviewed CSV ingestion, historical snapshot persistence/trends, bank/brokerage integrations, scheduled reports, multi-user collaboration, or a hosted subscription. Dashboard backup conversion preserves the user's categories but maps assets and liabilities to generic domain types; it is not a full asset-class importer.
+
+No customer interviews, paid pilots, revenue, or retention outcomes are recorded here. The prototype is not evidence of product-market fit. Use it to test the actual reporting workflow with prospective users and record anonymized evidence using the discovery playbook.
+
+## 5. Revenue Hypotheses
 
 ### Near-term: paid setup and reporting pilot
 
@@ -65,7 +73,7 @@ If the pilot demonstrates repeat use, test a subscription around:
 
 Possible offers include premium reports, managed backups, family collaboration, support, and hosted services. These are options to validate—not committed features.
 
-## 5. 30-Day Validation Experiment
+## 6. 30-Day Validation Experiment
 
 Use the operational [Customer Discovery Playbook](CUSTOMER_DISCOVERY_PLAYBOOK.md) for the interview script, anonymized record template, privacy guardrails, and evidence classification.
 
@@ -93,7 +101,7 @@ Use the operational [Customer Discovery Playbook](CUSTOMER_DISCOVERY_PLAYBOOK.md
 
 Continue building the subscription MVP only if evidence supports it. Otherwise, revise the target segment or problem statement.
 
-## 6. Initial Evidence Thresholds
+## 7. Initial Evidence Thresholds
 
 Treat these as decision rules for the experiment, not industry benchmarks:
 
@@ -105,7 +113,7 @@ Treat these as decision rules for the experiment, not industry benchmarks:
 
 If interest is positive but nobody will pay, do not interpret compliments or waitlist sign-ups as product-market fit.
 
-## 7. Success Metrics After Launch
+## 8. Success Metrics After Launch
 
 - Time from signup to first useful financial summary.
 - Percentage of users completing a monthly review.
@@ -116,7 +124,7 @@ If interest is positive but nobody will pay, do not interpret compliments or wai
 - Import correction rate and calculation error rate.
 - User trust, data export success, and deletion success.
 
-## 8. Privacy, Legal, and Trust Guardrails
+## 9. Privacy, Legal, and Trust Guardrails
 
 - Never commit real financial statements, account identifiers, balances, credentials, or personal reports to the public repository.
 - Use synthetic fixtures and sample data.
@@ -126,7 +134,7 @@ If interest is positive but nobody will pay, do not interpret compliments or wai
 - Avoid buy/sell recommendations until applicable Indian regulatory and legal requirements have been reviewed by qualified counsel.
 - Do not promise investment outcomes, guaranteed returns, or a legal/compliance status that has not been established.
 
-## 9. Decisions Needed Before a Public Product Release
+## 10. Decisions Needed Before a Public Product Release
 
 1. Public framework versus private application repository.
 2. License strategy for reusable components.
