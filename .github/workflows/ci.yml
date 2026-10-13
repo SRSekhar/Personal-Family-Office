@@ -35,11 +35,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Capture generated workspace importer block
-        if: always()
-        run: sed -n '/^importers:/,/^packages:/p' pnpm-lock.yaml
+        run: pnpm install --frozen-lockfile
 
       - name: Generate dependency license inventory
         run: node scripts/security/Generate-LicenseInventory.mjs --output docs/security/DEPENDENCY_LICENSE_INVENTORY.md
