@@ -6,7 +6,7 @@ PFO OS — Personal Family Office Operating System
 
 ## Current State
 
-The technical foundation, deterministic calculators, portfolio analysis, and offline HTML report renderer are merged to main. PRs #35, #36, #38–#40, #42–#48, and #50–#52 are merged; #37 was closed as superseded. Report validation covers semantic canonical timestamps, currency-code shape, nested monetary currency consistency, net-worth consistency, analysis-total reconciliation, malformed top-level/allocation payloads, and allocation reconciliation. PR #43 merged at `8a39612d5ac1696fdb7390a9f65506c520363320` after CI and full-history secret scanning passed. PR #42 records first-pass upstream license evidence, and PR #45 adds root-level license/notice filename detection to the CI inventory. The generated artifact found a root-level license file for all nine flagged versions; exact artifact contents and legal disposition remain open. PR #48 adds the interview guide for the revenue-validation experiment; no customer demand has been validated yet.
+The technical foundation, deterministic calculators, portfolio analysis, offline HTML report renderer, local-first dashboard, and dashboard backup-currency guard are merged to main. Dashboard action updates were merged in PRs #58, #62, and #64; PR #66 documents the required Pages setup. PR #67 added a reproducible CI check of all nine flagged npm tarballs: every packed tarball integrity matched `pnpm-lock.yaml`, and every tarball contained a root-level license file whose byte length and SHA-256 are recorded in `docs/security/DEPENDENCY_LICENSE_EVIDENCE_REVIEW.md`. Legal/distribution disposition remains open. The dashboard deployment still needs the repository's one-time GitHub Pages setting configured (Settings → Pages → Source: GitHub Actions); workflow logs confirmed the `GITHUB_TOKEN` cannot create the Pages site automatically. PR #48 adds the interview guide for the revenue-validation experiment; no customer demand has been validated yet.
 
 ## Verified CI
 
@@ -34,10 +34,11 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 ## Immediate Next Steps
 
-1. Inspect the exact packed npm artifacts and included license/NOTICE files for the nine flagged dependency versions; do not equate metadata with clearance.
-2. Define the application/CLI boundary before report-to-file host commands and define persistence/source-of-truth requirements before historical snapshots.
-3. Run the 8–10 interview experiment using `docs/product/CUSTOMER_DISCOVERY_PLAYBOOK.md`; record only anonymized notes and evidence.
-4. Keep licensing/product-boundary decisions explicit; do not change repository visibility or license automatically. The Claude for Open Source application remains unsubmitted.
+1. Finish comparing artifact-level license fingerprints with version-tagged upstream license files and review complete license/notice obligations; all nine packed tarballs passed lockfile-integrity and root-license-file checks, but legal disposition is intentionally open.
+2. Enable GitHub Pages once in repository Settings → Pages → Source: GitHub Actions, then rerun the dashboard deployment workflow and verify the live page.
+3. Define the application/CLI boundary before report-to-file host commands and define persistence/source-of-truth requirements before historical snapshots.
+4. Run the 8–10 interview experiment using `docs/product/CUSTOMER_DISCOVERY_PLAYBOOK.md`; record only anonymized notes and evidence.
+5. Keep licensing/product-boundary decisions explicit; do not change repository visibility or license automatically. The Claude for Open Source application remains unsubmitted.
 
 ## Important Constraints
 
