@@ -6,7 +6,7 @@ PFO OS — Personal Family Office Operating System
 
 ## Current State
 
-The technical foundation, deterministic calculators, portfolio analysis, offline HTML report renderer, local-first dashboard, dashboard backup-currency guard, and local report CLI are merged to main. Dashboard action updates were merged in PRs #58, #62, and #64; PR #66 documents the required Pages setup. PR #67 added a reproducible CI check of all nine flagged npm tarballs: every packed tarball integrity matched `pnpm-lock.yaml`, and every tarball contained a root-level license file whose byte length and SHA-256 are recorded in `docs/security/DEPENDENCY_LICENSE_EVIDENCE_REVIEW.md`. Legal/distribution disposition remains open. The dashboard deployment still needs the repository's one-time GitHub Pages setting configured (Settings → Pages → Source: GitHub Actions); workflow logs confirmed the `GITHUB_TOKEN` cannot create the Pages site automatically. PR #48 adds the interview guide for the revenue-validation experiment; no customer demand has been validated yet.
+The technical foundation, deterministic calculators, portfolio analysis, offline HTML report renderer, local-first dashboard, dashboard backup-currency guard, and local report CLI are merged to main. Dashboard action updates were merged in PRs #58, #62, and #64; PR #66 documents the required Pages setup. PR #67 added a reproducible CI check of all nine flagged npm tarballs: every packed tarball integrity matched `pnpm-lock.yaml`, and every tarball contained a root-level license file whose byte length and SHA-256 are recorded in `docs/security/DEPENDENCY_LICENSE_EVIDENCE_REVIEW.md`. Legal/distribution disposition remains open. The dashboard can now be previewed locally with `pnpm dashboard:serve` (loopback-only, no external data service). The hosted GitHub Pages demo still needs the repository's one-time setting configured (Settings → Pages → Source: GitHub Actions); workflow logs confirmed the `GITHUB_TOKEN` cannot create the Pages site automatically. PR #48 adds the interview guide for the revenue-validation experiment; no customer demand has been validated yet.
 
 ## Verified CI
 
@@ -36,7 +36,7 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 ## Immediate Next Steps
 
 1. Confirm the intended distribution artifact (source repository, compiled CLI, bundled app, or hosted product), then validate the actual artifact and map the Blue Oak/MPL obligations. Current manifests and lockfile point to development/build/test-only dependency paths, but legal disposition remains open.
-2. Enable GitHub Pages once in repository Settings → Pages → Source: GitHub Actions, then rerun the dashboard deployment workflow and verify the live page.
+2. If a hosted demo is desired, enable GitHub Pages once in repository Settings → Pages → Source: GitHub Actions, then rerun the dashboard deployment workflow and verify the live page. Local preview is already available via `pnpm dashboard:serve`.
 3. Define persistence and source-of-truth requirements before historical snapshots; the first report CLI deliberately remains local-only and stateless.
 4. Run the 8–10 interview experiment using `docs/product/CUSTOMER_DISCOVERY_PLAYBOOK.md`; record only anonymized notes and evidence.
 5. Keep licensing/product-boundary decisions explicit; do not change repository visibility or license automatically. The Claude for Open Source application remains unsubmitted.
