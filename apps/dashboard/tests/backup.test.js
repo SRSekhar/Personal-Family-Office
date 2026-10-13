@@ -21,7 +21,7 @@ describe('validateBackupPayload', () => {
     });
 
     it('rejects a backup with a missing currency', () => {
-        const { currency: _currency, ...withoutCurrency } = validBackup;
+        const withoutCurrency = { schemaVersion: 1, records: validBackup.records };
         expect(() => validateBackupPayload(withoutCurrency, 'INR'))
             .toThrow('Backup currency must be INR');
     });
