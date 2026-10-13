@@ -79,6 +79,13 @@
         "packages/analytics/src/*"
       ],
 
+      "@pfo/reports": [
+        "packages/reports/src/index.ts"
+      ],
+      "@pfo/reports/*": [
+        "packages/reports/src/*"
+      ],
+
       "@pfo/charts": [
         "packages/charts/src/index.ts"
       ],
