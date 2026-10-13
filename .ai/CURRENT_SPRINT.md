@@ -25,7 +25,7 @@ The deterministic analytics engine, offline HTML report renderer, and local repo
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
 - Versioned portfolio report model and self-contained offline HTML renderer, with semantic timestamps, currency-code, nested-currency, net-worth, analysis-total, malformed-payload, and allocation-reconciliation validation
-- Local `@pfo/cli` host with versioned JSON input validation, explicit position selections, currency safeguards, and safe HTML output
+- Local `@pfo/cli` host with versioned portfolio-input and dashboard-backup modes, explicit valuation date for backups, currency safeguards, and safe HTML output
 - TypeScript package build, typecheck, lint, and test gates in CI
 - High-severity dependency vulnerability audit in CI
 - First-pass evidence review and root-level license-file inventory for all nine flagged dependency-license entries, with final dispositions intentionally open
@@ -40,7 +40,7 @@ The deterministic analytics engine, offline HTML report renderer, and local repo
 ## Next Deliverables
 
 1. Confirm the intended distribution artifact, validate its actual contents against the current dependency paths, and map the Blue Oak notice/MPL source-availability obligations; do not infer legal clearance from matching license text alone.
-2. Define persistence and source-of-truth requirements before implementing historical snapshot storage; the report CLI remains local-only and stateless.
+2. Use the local dashboard-to-report flow to conduct the documented customer-discovery experiment; prioritize actual user evidence and paid-pilot commitments before adding persistence or new feature families.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
 4. Execute the 8–10 interview experiment in the customer-discovery playbook and validate a paid-pilot hypothesis.
 
