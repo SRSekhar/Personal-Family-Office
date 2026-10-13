@@ -35,7 +35,7 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 ## Immediate Next Steps
 
-1. Define whether the flagged packages are included in a distributable product or are only development/build tools, then map the Blue Oak and MPL obligations to that distribution model. All nine packed tarballs passed lockfile-integrity checks and their artifact license hashes match the inspected upstream texts; legal disposition is intentionally open.
+1. Confirm the intended distribution artifact (source repository, compiled CLI, bundled app, or hosted product), then validate the actual artifact and map the Blue Oak/MPL obligations. Current manifests and lockfile point to development/build/test-only dependency paths, but legal disposition remains open.
 2. Enable GitHub Pages once in repository Settings → Pages → Source: GitHub Actions, then rerun the dashboard deployment workflow and verify the live page.
 3. Define persistence and source-of-truth requirements before historical snapshots; the first report CLI deliberately remains local-only and stateless.
 4. Run the 8–10 interview experiment using `docs/product/CUSTOMER_DISCOVERY_PLAYBOOK.md`; record only anonymized notes and evidence.
