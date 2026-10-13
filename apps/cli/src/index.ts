@@ -6,13 +6,15 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
-import { createReportHtmlFromInput, parseCanonicalUtcTimestamp } from './portfolio-input.js';
+import { convertDashboardBackupToPortfolioInput, createReportHtmlFromInput, parseCanonicalUtcTimestamp } from './portfolio-input.js';
 
 interface CreateCommand {
     readonly kind: 'create';
     readonly inputPath: string;
     readonly outputPath: string;
     readonly generatedAt: Date | undefined;
+    readonly format: 'portfolio-input' | 'dashboard-backup';
+    readonly asOfDate: Date | undefined;
     readonly force: boolean;
 }
 
@@ -21,10 +23,10 @@ type CliCommand = CreateCommand | { readonly kind: 'help' };
 const usage = `PFO OS local report CLI
 
 Usage:
-  pfo-report create --input <portfolio.json> --output <report.html> [--generated-at <UTC timestamp>] [--force]
+  pfo-report create --input <input.json> --output <report.html> [--format portfolio-input|dashboard-backup] [--as-of <UTC timestamp>] [--generated-at <UTC timestamp>] [--force]
   pfo-report --help
 
-The input must use schemaVersion 1 and explicit position selections. All amounts must use the declared currency.
+The portfolio-input format requires schemaVersion 1, an asOfDate, and explicit position selections.\nThe dashboard-backup format requires --as-of because export time is not a valuation date.
 No network access, market data, currency conversion, database, or AI service is used.
 Existing output files are not overwritten unless --force is supplied.`;
 
@@ -47,7 +49,7 @@ export function parseCliArguments(args: readonly string[]): CliCommand {
             force = true;
             continue;
         }
-        if (flag !== '--input' && flag !== '--output' && flag !== '--generated-at') {
+        if (flag !== '--input' && flag !== '--output' && flag !== '--generated-at' && flag !== '--format' && flag !== '--as-of') {
             throw new Error(`Unsupported option "${flag}". Run pfo-report --help for usage.`);
         }
         if (values.has(flag)) {
@@ -68,6 +70,21 @@ export function parseCliArguments(args: readonly string[]): CliCommand {
     }
 
     const generatedAtValue = values.get('--generated-at');
+    const formatValue = values.get('--format') ?? 'portfolio-input';
+    if (formatValue !== 'portfolio-input' && formatValue !== 'dashboard-backup') {
+        throw new Error('--format must be portfolio-input or dashboard-backup.');
+    }
+    const asOfValue = values.get('--as-of');
+    const asOfDate = asOfValue === undefined
+        ? undefined
+        : parseCanonicalUtcTimestamp(asOfValue, '--as-of');
+    if (formatValue === 'dashboard-backup' && asOfDate === undefined) {
+        throw new Error('--as-of is required with --format dashboard-backup; export time is not a valuation date.');
+    }
+    if (formatValue === 'portfolio-input' && asOfDate !== undefined) {
+        throw new Error('--as-of is only supported with --format dashboard-backup; portfolio-input includes asOfDate.');
+    }
+
     return {
         kind: 'create',
         inputPath,
@@ -75,6 +92,8 @@ export function parseCliArguments(args: readonly string[]): CliCommand {
         generatedAt: generatedAtValue === undefined
             ? undefined
             : parseCanonicalUtcTimestamp(generatedAtValue, '--generated-at'),
+        format: formatValue,
+        asOfDate,
         force
     };
 }
@@ -138,7 +157,10 @@ export async function runCli(
             throw new Error(`Input file is not valid JSON: ${inputPath}`);
         }
 
-        const html = createReportHtmlFromInput(payload, command.generatedAt ?? new Date());
+        const reportInput = command.format === 'dashboard-backup'
+            ? convertDashboardBackupToPortfolioInput(payload, command.asOfDate as Date)
+            : payload;
+        const html = createReportHtmlFromInput(reportInput, command.generatedAt ?? new Date());
         await writeReportFile(outputPath, html, command.force);
         stdout.write(`Report written: ${outputPath}\n`);
         return 0;
