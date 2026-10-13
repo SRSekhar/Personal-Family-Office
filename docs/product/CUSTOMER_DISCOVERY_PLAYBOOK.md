@@ -69,6 +69,25 @@ Do not promise that a future product is secure, compliant, or production-ready. 
 
 Only after the workflow and pain are understood, ask whether the participant would consider a **paid, narrowly scoped setup/reporting pilot**. If they are interested, explain the scope and limitations before discussing price. A positive reaction is not a paid commitment.
 
+## Optional prototype walkthrough (only after understanding the participant's workflow)
+
+Use this short demonstration only if the participant's real recent workflow matches the problem being investigated. Do not lead with the demo and do not use a participant's private data.
+
+1. Start the local browser workspace with `pnpm dashboard:serve`.
+2. Use synthetic records to show the local-first dashboard and JSON export.
+3. Build the report CLI with `pnpm build`.
+4. Convert the synthetic dashboard backup into a self-contained report, using a valuation date that describes the data:
+
+```powershell
+New-Item -ItemType Directory -Force reports
+$backup = Join-Path $env:USERPROFILE "Downloads\\pfo-dashboard-backup.json"
+node apps/cli/dist/index.js create --format dashboard-backup --input $backup --as-of 2026-10-01T00:00:00.000Z --output reports/dashboard-report.html
+```
+
+5. Open the HTML report and ask the participant to compare it with the output they create today: what is useful, what is missing, and what would need to change before they would repeat the workflow?
+
+State the limitations plainly: dashboard records are mapped to generic asset/liability types with categories preserved; the CLI does not infer investment/property subtypes, convert currencies, import bank/brokerage data, store historical snapshots, or upload data. Use only synthetic data during the demo. If a participant wants to try real records, let them operate locally on their own device; do not ask them to send records or backups.
+
 ## What the concierge pilot may test
 
 Only offer a pilot after confirming the participant's problem and consent. Keep the initial scope to:
