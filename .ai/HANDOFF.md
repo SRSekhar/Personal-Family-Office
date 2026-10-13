@@ -28,7 +28,7 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - Configuration-driven PowerShell initializer with initialize, validate, doctor, and WhatIf modes.
 - Safe repository-relative path validation and no-overwrite behavior.
 - Git ignore rules for root local financial data and generated reports.
-- Local `@pfo/cli` host that validates versioned JSON portfolio input and writes a self-contained offline HTML report using the existing deterministic analysis/report packages.
+- Local `@pfo/cli` host that validates versioned portfolio input or converts a dashboard JSON backup into a self-contained offline HTML report. Dashboard-backup mode requires an explicit `--as-of` valuation timestamp and preserves categories while mapping assets/liabilities to generic domain types.
 - Deterministic CAGR calculation.
 - Annual compound-growth projection with beginning/end contribution timing.
 - XIRR for dated cash flows, using ACT/365 and bisection; multi-sign-change cash flows are rejected to avoid ambiguous results.
@@ -37,7 +37,7 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 1. Confirm the intended distribution artifact (source repository, compiled CLI, bundled app, or hosted product), then validate the actual artifact and map the Blue Oak/MPL obligations. Current manifests and lockfile point to development/build/test-only dependency paths, but legal disposition remains open.
 2. If a hosted demo is desired, enable GitHub Pages once in repository Settings → Pages → Source: GitHub Actions, then rerun the dashboard deployment workflow and verify the live page. Local preview is already available via `pnpm dashboard:serve`.
-3. Define persistence and source-of-truth requirements before historical snapshots; the first report CLI deliberately remains local-only and stateless.
+3. Run customer-discovery interviews and paid-pilot validation using the now-demonstrable dashboard-backup-to-report workflow; do not treat prototype completion as demand validation. Define persistence/source-of-truth requirements before historical snapshots.
 4. Run the 8–10 interview experiment using `docs/product/CUSTOMER_DISCOVERY_PLAYBOOK.md`; record only anonymized notes and evidence.
 5. Keep licensing/product-boundary decisions explicit; do not change repository visibility or license automatically. The Claude for Open Source application remains unsubmitted.
 

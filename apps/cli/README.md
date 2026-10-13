@@ -30,6 +30,21 @@ node apps/cli/dist/index.js create --input apps/cli/examples/sample-portfolio.js
 
 Existing output is not overwritten unless `--force` is supplied. The valuation timestamp (`asOfDate`) is required in the input; it is never inferred. Output is self-contained HTML and can be opened offline.
 
+## Generate a report from a dashboard backup
+
+1. Start the local dashboard with `pnpm dashboard:serve`.
+2. Export the dashboard workspace as JSON and save it to a private local file.
+3. Run the CLI with the explicit valuation date:
+
+```powershell
+New-Item -ItemType Directory -Force reports
+pnpm build
+$backup = Join-Path $env:USERPROFILE "Downloads\pfo-dashboard-backup.json"
+node apps/cli/dist/index.js create --format dashboard-backup --input $backup --as-of 2026-10-01T00:00:00.000Z --output reports/dashboard-report.html
+```
+
+The dashboard backup's `exportedAt` field records when the file was exported, not when the financial values were valid. Therefore `--as-of` is required and must be the valuation date you intend the report to describe. Dashboard records are mapped to generic `Other` asset/liability types, while their original categories are retained for reporting. No inference, currency conversion, or network lookup occurs.
+
 ## Input contract (schema version 1)
 
 - `schemaVersion` must be `1`.

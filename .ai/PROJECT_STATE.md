@@ -36,7 +36,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 ## Next Deliverables
 
 1. Confirm the intended distribution artifact (source repository, compiled CLI, bundled app, or hosted product), validate the actual artifact against the current dependency paths, and map Blue Oak notice/MPL source-availability obligations; preserve unresolved status until qualified legal review.
-2. Define persistence and source-of-truth requirements before implementing historical snapshot storage; the report CLI is deliberately local-only and stateless.
+2. Validate the dashboard-to-report workflow with prospective users and seek two paid pilot commitments before expanding scope. Define persistence/source-of-truth requirements before historical snapshot storage.
 3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
 4. Execute the customer-discovery experiment and validate a paid-pilot hypothesis before investing in paid tiers.
 
