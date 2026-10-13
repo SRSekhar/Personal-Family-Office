@@ -13,24 +13,6 @@ importers:
         specifier: 11.25.0
         version: 11.25.0
 
-  apps/cli:
-    dependencies:
-      '@pfo/analytics':
-        specifier: workspace:*
-        version: link:../../packages/analytics
-      '@pfo/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@pfo/models':
-        specifier: workspace:*
-        version: link:../../packages/models
-      '@pfo/reports':
-        specifier: workspace:*
-        version: link:../../packages/reports
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
 
 packages:
 
@@ -259,6 +241,25 @@ importers:
       vitest:
         specifier: ^5.0.3
         version: 5.0.3(@types/node@26.6.4)(@vitest/coverage-v8@5.0.3)(vite@8.3.4(@types/node@26.6.4)(esbuild@0.28.2)(tsx@4.23.15))
+
+  apps/cli:
+    dependencies:
+      '@pfo/analytics':
+        specifier: workspace:*
+        version: link:../../packages/analytics
+      '@pfo/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pfo/models':
+        specifier: workspace:*
+        version: link:../../packages/models
+      '@pfo/reports':
+        specifier: workspace:*
+        version: link:../../packages/reports
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/analytics:
     dependencies:
