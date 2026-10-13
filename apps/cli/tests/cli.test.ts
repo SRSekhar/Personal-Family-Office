@@ -34,7 +34,11 @@ describe('parsePortfolioInput', () => {
         const invalid = structuredClone(sampleInput) as {
             portfolio: { assets: Array<{ value: { currency: string } }> };
         };
-        const firstAsset = invalid.portfolio.assets[0];\n        if (!firstAsset) throw new Error('Sample fixture must include one asset.');\n        firstAsset.value.currency = 'USD';
+        const firstAsset = invalid.portfolio.assets[0];
+        if (!firstAsset) {
+            throw new Error('Sample fixture must include one asset.');
+        }
+        firstAsset.value.currency = 'USD';
         expect(() => parsePortfolioInput(invalid)).toThrow('currency must match input.currency (INR)');
     });
 
@@ -52,7 +56,12 @@ describe('parsePortfolioInput', () => {
         const invalid = structuredClone(sampleInput) as {
             selections: Array<{ source: string; sourceId: string; canonicalId: string; category: string }>;
         };
-        const firstSelection = invalid.selections[0];\n        const secondSelection = invalid.selections[1];\n        if (!firstSelection || !secondSelection) throw new Error('Sample fixture must include two selections.');\n        secondSelection.canonicalId = firstSelection.canonicalId;
+        const firstSelection = invalid.selections[0];
+        const secondSelection = invalid.selections[1];
+        if (!firstSelection || !secondSelection) {
+            throw new Error('Sample fixture must include two selections.');
+        }
+        secondSelection.canonicalId = firstSelection.canonicalId;
         expect(() => createReportHtmlFromInput(invalid, new Date('2026-10-13T12:00:00.000Z')))
             .toThrow('Duplicate canonical position ID');
     });
