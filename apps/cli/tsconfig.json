@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "ignoreDeprecations": "6.0"
+  },
+  "references": [
+    { "path": "../../packages/core" },
+    { "path": "../../packages/models" },
+    { "path": "../../packages/calculators" },
+    { "path": "../../packages/analytics" },
+    { "path": "../../packages/reports" }
+  ],
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules", "tests"]
+}

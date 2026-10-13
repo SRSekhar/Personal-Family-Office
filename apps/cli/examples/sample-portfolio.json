@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "currency": "INR",
+  "asOfDate": "2026-10-13T00:00:00.000Z",
+  "portfolio": {
+    "id": "sample-household",
+    "name": "Fictional Sample Household",
+    "description": "Synthetic data for demonstrating the PFO OS report CLI.",
+    "assets": [
+      {
+        "id": "sample-cash-account",
+        "name": "Sample cash account",
+        "type": "BankAccount",
+        "value": { "amount": 100000, "currency": "INR" }
+      }
+    ],
+    "investments": [],
+    "liabilities": [
+      {
+        "id": "sample-home-loan",
+        "name": "Sample home loan",
+        "type": "HomeLoan",
+        "outstandingAmount": { "amount": 25000, "currency": "INR" }
+      }
+    ],
+    "properties": []
+  },
+  "selections": [
+    {
+      "source": "asset",
+      "sourceId": "sample-cash-account",
+      "canonicalId": "sample-cash-account",
+      "category": "Cash"
+    },
+    {
+      "source": "liability",
+      "sourceId": "sample-home-loan",
+      "canonicalId": "sample-home-loan",
+      "category": "Loans"
+    }
+  ]
+}

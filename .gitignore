@@ -67,6 +67,7 @@ temp/
 # Reports
 # ============================================================================
 /reports/
+*.pfo-report.html
 playwright-report/
 test-results/
 

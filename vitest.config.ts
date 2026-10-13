@@ -4,7 +4,8 @@ export default defineConfig({
     test: {
         // Each workspace package may provide its own vitest.config.ts.
         projects: [
-            'packages/*'
+            'packages/*',
+            'apps/cli'
         ]
     }
 });
