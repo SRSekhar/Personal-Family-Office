@@ -35,7 +35,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Define the distribution boundary for the nine flagged packages (development/build-only versus shipped dependencies) and map the Blue Oak notice and MPL source-availability obligations to that boundary; preserve unresolved status until qualified legal review.
+1. Confirm the intended distribution artifact (source repository, compiled CLI, bundled app, or hosted product), validate the actual artifact against the current dependency paths, and map Blue Oak notice/MPL source-availability obligations; preserve unresolved status until qualified legal review.
 2. Define persistence and source-of-truth requirements before implementing historical snapshot storage; the report CLI is deliberately local-only and stateless.
 3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
 4. Execute the customer-discovery experiment and validate a paid-pilot hypothesis before investing in paid tiers.
@@ -47,7 +47,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Historical repository content and commit metadata have not been fully scanned.
 - The Anthropic application draft is prepared but has not been submitted.
 - No revenue, customer demand, or product-market fit has been validated.
-- The nine dependency-license inventory flags passed packed-tarball integrity and root-license-file checks in CI; all nine artifact license hashes match inspected upstream license texts. Distribution-scope review and legal disposition remain outstanding.
+- The nine dependency-license inventory flags passed packed-tarball integrity, root-license-file, and upstream license-text hash checks in CI. Current manifests/lockfile indicate development/build/test-only dependency paths, but the final distribution artifact and legal disposition remain outstanding.
 - GitHub Pages deployment is blocked by the repository-level Pages setting; the workflow token cannot create the site automatically.
 
 ## Last Updated
