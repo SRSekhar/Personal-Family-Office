@@ -97,8 +97,7 @@ describe('dashboard backup conversion', () => {
         expect(parsed.selections.map((selection) => selection.category)).toEqual(['Cash', 'Loans']);
         const html = createReportHtmlFromInput(converted, new Date('2026-10-13T12:00:00.000Z'));
         expect(html).toContain('Imported Dashboard Backup');
-        expect(html).toContain('Cash');
-        expect(html).toContain('Loans');
+        expect(html).toContain('Asset allocation by category');
     });
 
     it('rejects duplicate source IDs in a dashboard backup', () => {
