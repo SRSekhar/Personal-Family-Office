@@ -22,7 +22,27 @@ The installed dependency inventory alone does not establish whether each package
 | `path-scurry@2.0.2` | BlueOak-1.0.0 | [package.json](https://github.com/isaacs/path-scurry/blob/v2.0.2/package.json) · [LICENSE.md](https://github.com/isaacs/path-scurry/blob/v2.0.2/LICENSE.md) | Tagged package metadata declares BlueOak-1.0.0 and publishes `dist`; the generated CI inventory found root-level `LICENSE.md` in the installed package. The upstream license text includes a notice provision requiring recipients to receive the license text or a link to the license. | Manual review remains open |
 | `rimraf@6.1.3` | BlueOak-1.0.0 | [package.json](https://github.com/isaacs/rimraf/blob/v6.1.3/package.json) · [LICENSE.md](https://github.com/isaacs/rimraf/blob/v6.1.3/LICENSE.md) | Tagged package metadata declares BlueOak-1.0.0 and publishes `dist`; the generated CI inventory found root-level `LICENSE.md` in the installed package. The upstream repository tree includes a separate historical benchmark license; verify the published artifact and applicable notice set. | Manual review remains open |
 | `lightningcss@1.33.0` | MPL-2.0 | [package.json](https://github.com/parcel-bundler/lightningcss/blob/v1.33.0/package.json) · [LICENSE](https://github.com/parcel-bundler/lightningcss/blob/v1.33.0/LICENSE) · [selectors/LICENSE](https://github.com/parcel-bundler/lightningcss/blob/v1.33.0/selectors/LICENSE) | Tagged package metadata declares MPL-2.0. Both the root license file and the selectors license file contain Mozilla Public License 2.0 text; the generated CI inventory found root-level `LICENSE` in the installed package. Review applicable source/notice and distribution obligations for the actual artifact before redistribution. | Manual review remains open |
-| `lightningcss-linux-x64-gnu@1.33.0` | MPL-2.0 | [Official npm package page](https://www.npmjs.com/package/lightningcss-linux-x64-gnu/v/1.33.0) reports MPL-2.0 and identifies it as the x86_64 Linux GNU build of lightningcss. The source repository evidence above is for `lightningcss@1.33.0`, not a direct inspection of this platform-specific package tarball. | The official npm package page reports MPL-2.0, and the generated CI inventory found root-level `LICENSE` in the installed package. The exact packed contents and license-file contents have not been independently inspected. Do not infer full clearance from metadata or filename presence alone. | Manual review remains open; artifact check outstanding |
+| `lightningcss-linux-x64-gnu@1.33.0` | MPL-2.0 | [Official npm package page](https://www.npmjs.com/package/lightningcss-linux-x64-gnu/v/1.33.0) reports MPL-2.0 and identifies it as the x86_64 Linux GNU build of lightningcss. CI packed the exact version and confirmed its tarball integrity matches `pnpm-lock.yaml`. | The published tarball contains root-level `LICENSE` (15,648 bytes; SHA-256 `5eba353fe5076ac3432177f8ab1cf75e3afcd0584251e37c3bfead5f447d040e`), matching the same fingerprint observed for `lightningcss@1.33.0`. The fingerprint establishes the artifact's file identity, not legal sufficiency or compatibility. | Manual review remains open; legal/distribution disposition outstanding |
+
+## Published-artifact inspection (CI run 38430307691)
+
+The new CI inspection packed each exact npm version with lifecycle scripts disabled, compared the registry-reported tarball integrity against the repository lockfile, and hashed root-level license/notice files from the actual tarball.
+
+| Package/version | Tarball integrity matches lockfile | Root-level license/notice file | Size | SHA-256 |
+| --- | --- | --- | ---: | --- |
+| `glob@13.0.6` | Yes | `LICENSE.md` | 1,764 bytes | `a49c9ba464796f65b59fca3f1e6ca40912df1e859f575383223f7ec6c5baae09` |
+| `lru-cache@11.5.3` | Yes | `LICENSE.md` | 1,552 bytes | `8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004` |
+| `minimatch@10.2.6` | Yes | `LICENSE.md` | 1,550 bytes | `2c7c5d22ed5a8ee968c64757710979afcd77438c48b4a265b94e615babd8a901` |
+| `minipass@7.1.3` | Yes | `LICENSE.md` | 1,552 bytes | `8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004` |
+| `package-json-from-dist@1.0.1` | Yes | `LICENSE.md` | 1,764 bytes | `a49c9ba464796f65b59fca3f1e6ca40912df1e859f575383223f7ec6c5baae09` |
+| `path-scurry@2.0.2` | Yes | `LICENSE.md` | 1,552 bytes | `8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004` |
+| `rimraf@6.1.3` | Yes | `LICENSE.md` | 1,552 bytes | `8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004` |
+| `lightningcss@1.33.0` | Yes | `LICENSE` | 15,648 bytes | `5eba353fe5076ac3432177f8ab1cf75e3afcd0584251e37c3bfead5f447d040e` |
+| `lightningcss-linux-x64-gnu@1.33.0` | Yes | `LICENSE` | 15,648 bytes | `5eba353fe5076ac3432177f8ab1cf75e3afcd0584251e37c3bfead5f447d040e` |
+
+No additional root-level license/notice filenames were detected in these nine packed tarballs. The detailed machine-generated report was uploaded as the `packed-dependency-license-evidence` artifact from CI run 38430307691 and is retained for 30 days.
+
+These results close the *mechanical packed-artifact and lockfile-integrity check* for all nine versions. They do not establish legal compatibility, determine whether these packages are redistributed in a production product, or replace review of the complete license terms and notice obligations. All nine remain on manual review until the distribution boundary and licensing decisions are explicit.
 
 ## What this review establishes
 
@@ -34,7 +54,7 @@ The installed dependency inventory alone does not establish whether each package
 
 ## Remaining release actions
 
-1. Inspect the exact npm tarballs or packed contents for all nine versions, and compare the root-level filenames observed in CI with the published artifacts and their file contents.
+1. Compare the artifact-level license fingerprints with the version-tagged upstream license files and review the complete license texts, attribution/notice requirements, and applicable redistribution obligations.
 2. Confirm whether any of these packages or their code are shipped in production artifacts, as distinct from being used only by development/test tooling.
 3. Inspect the packed contents and included notice/license files for `lightningcss-linux-x64-gnu@1.33.0`; its npm metadata already reports MPL-2.0.
 4. Determine the required attribution/notice and source-availability steps for the intended distribution model with qualified legal review.
