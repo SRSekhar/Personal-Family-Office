@@ -10,7 +10,7 @@ import { createDashboardServer, parsePort } from './serve.mjs';
 const temporaryDirectories = [];
 const servers = [];
 
-async function createRoot(): Promise<string> {
+async function createRoot() {
     const directory = await mkdtemp(join(tmpdir(), 'pfo-dashboard-test-'));
     temporaryDirectories.push(directory);
     const root = join(directory, 'public');
@@ -21,7 +21,7 @@ async function createRoot(): Promise<string> {
     return root;
 }
 
-async function startServer(root: string): Promise<string> {
+async function startServer(root) {
     const server = createDashboardServer(root);
     servers.push(server);
     server.listen(0, '127.0.0.1');
