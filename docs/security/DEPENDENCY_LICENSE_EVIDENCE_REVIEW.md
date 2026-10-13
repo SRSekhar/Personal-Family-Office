@@ -44,6 +44,17 @@ No additional root-level license/notice filenames were detected in these nine pa
 
 These results close the *mechanical packed-artifact and lockfile-integrity check* for all nine versions. A byte-level SHA-256 comparison against the version-tagged upstream `LICENSE.md` files for the seven BlueOak packages matched every artifact fingerprint. The `lightningcss@1.33.0` artifact's `LICENSE` fingerprint matched the upstream v1.33.0 license file, and the platform-specific `lightningcss-linux-x64-gnu@1.33.0` artifact contains a license file with that same fingerprint. Thus, all nine artifact license files match the inspected upstream license text at the byte level.
 
+## Current workspace dependency paths (technical assessment only)
+
+The current lockfile and manifests show these paths:
+
+- **Blue Oak Model License group:** root development dependency `rimraf@6.1.3` → `glob@13.0.6` and `package-json-from-dist@1.0.1`; `glob` → `minimatch@10.2.6`, `minipass@7.1.3`, and `path-scurry@2.0.2`; `path-scurry` → `lru-cache@11.5.3` and `minipass@7.1.3`.
+- **MPL-2.0 group:** root development/test dependency `vitest@5.0.3` uses Vite; `vite@8.3.4` depends on `lightningcss@1.33.0`, which declares `lightningcss-linux-x64-gnu@1.33.0` as an optional platform package.
+- The current `@pfo/cli` package declares only `@pfo/*` workspace packages as runtime dependencies; TypeScript is a development dependency. Its build compiles TypeScript and does not bundle these third-party packages. The browser dashboard is static HTML/CSS/JavaScript.
+- The PFO CLI workspace is marked `private: true`; no published PFO CLI package or production bundle containing these flagged dependencies was found in the current repository state.
+
+This points to the nine flagged packages being development/build/test tooling in the current implementation. It is a technical dependency-path assessment, not legal clearance. Before release, verify the actual distribution artifact and decide whether users receive source with development dependencies, a compiled CLI, or a hosted product. Re-run this review if bundling, packaging, or runtime dependencies change.
+
 ## License obligations to carry into distribution review
 
 - The Blue Oak Model License text in these artifacts says recipients of a copy, including changes, must also receive the license text or a link to it. The `glob` and `package-json-from-dist` license files also contain a `src/` carve-out referring to the respective license files for those source packages; review the actual published file set and applicable scope before drawing conclusions.
@@ -61,7 +72,7 @@ These clauses are a review checklist, not a legal determination. The checks do n
 
 ## Remaining release actions
 
-1. Define whether any flagged packages are included in a distributable product or are only development/build tools; map the applicable Blue Oak and MPL obligations to that distribution model.
+1. Confirm the intended distribution artifact (source repository, compiled CLI, bundled application, or hosted product), then validate the actual artifact against the technical dependency paths above and map the applicable Blue Oak/MPL obligations.
 2. Confirm whether any of these packages or their code are shipped in production artifacts, as distinct from being used only by development/test tooling.
 3. Inspect the packed contents and included notice/license files for `lightningcss-linux-x64-gnu@1.33.0`; its npm metadata already reports MPL-2.0.
 4. Determine the required attribution/notice and source-availability steps for the intended distribution model with qualified legal review.
