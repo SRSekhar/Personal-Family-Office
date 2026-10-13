@@ -1,3 +1,4 @@
+/* global fetch */
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { once } from 'node:events';
 import { tmpdir } from 'node:os';
