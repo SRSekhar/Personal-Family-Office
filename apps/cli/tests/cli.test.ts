@@ -197,7 +197,7 @@ describe('runCli end-to-end', () => {
         const html = await readFile(outputPath, 'utf8');
         expect(html).toContain('Imported Dashboard Backup');
         expect(html).toContain('Cash');
-        expect(html).toContain('Loans');
+        expect(html).toContain('Asset allocation by category');
     });
 
     it('reads the versioned input and writes an offline HTML report', async () => {
