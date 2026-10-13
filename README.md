@@ -74,7 +74,7 @@ The example input is synthetic. Generated reports can contain sensitive financia
 
 ```powershell
 pnpm build
-$backup = Join-Path $env:USERPROFILE "Downloads\\pfo-dashboard-backup.json"
+$backup = Join-Path $env:USERPROFILE "Downloads\pfo-dashboard-backup.json"
 node apps/cli/dist/index.js create --format dashboard-backup --input $backup --as-of 2026-10-01T00:00:00.000Z --output reports/dashboard-report.html
 ```
 
