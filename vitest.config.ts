@@ -5,7 +5,7 @@ export default defineConfig({
         // Each workspace package may provide its own vitest.config.ts.
         projects: [
             'packages/*',
-            'apps/cli'
+            'apps/cli',\n            'scripts/dashboard'
         ]
     }
 });
