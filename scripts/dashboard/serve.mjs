@@ -25,7 +25,7 @@ const securityHeaders = {
     'X-Frame-Options': 'DENY'
 };
 
-export function parsePort(value = process.env['PFO_DASHBOARD_PORT']): number {
+export function parsePort(value = process.env['PFO_DASHBOARD_PORT']) {
     if (value === undefined || value.trim() === '') {
         return 4173;
     }
