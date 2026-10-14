@@ -1,4 +1,5 @@
 import { validateBackupPayload } from './backup.js';
+import { persistJson } from './storage.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -43,14 +44,12 @@ function readPrivateRecords() {
     }
 }
 
-function savePrivateRecords() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        return true;
-    } catch {
-        showToast('Could not save locally. Check browser storage availability.');
-        return false;
+function savePrivateRecords(nextRecords) {
+    const saved = persistJson(localStorage, STORAGE_KEY, nextRecords);
+    if (!saved) {
+        showToast('Could not save locally. Check browser storage availability. Your previous saved records are unchanged.');
     }
+    return saved;
 }
 
 function switchWorkspace(nextWorkspace) {
@@ -179,8 +178,8 @@ function importData(file) {
             const validated = validateBackupPayload(parsed, CURRENCY)
                 .map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            records = validated;
-            if (savePrivateRecords()) {
+            if (savePrivateRecords(validated)) {
+                records = validated;
                 render();
                 showToast(`Imported ${records.length} records into your private workspace.`);
             }
@@ -217,15 +216,15 @@ $('#record-form').addEventListener('submit', (event) => {
         showToast('Enter a name, category and valid non-negative value.');
         return;
     }
-    if (editingId) {
-        records = records.map((item) => item.id === editingId ? { ...item, name, category, type, value } : item);
-    } else {
-        records.push({ id: crypto.randomUUID(), name, category, type, value });
-    }
-    if (savePrivateRecords()) {
+    const wasEditing = Boolean(editingId);
+    const nextRecords = wasEditing
+        ? records.map((item) => item.id === editingId ? { ...item, name, category, type, value } : item)
+        : [...records, { id: crypto.randomUUID(), name, category, type, value }];
+    if (savePrivateRecords(nextRecords)) {
+        records = nextRecords;
         render();
         closeRecordDialog();
-        showToast(editingId ? 'Record updated.' : 'Record saved in this browser.');
+        showToast(wasEditing ? 'Record updated.' : 'Record saved in this browser.');
     }
 });
 $('#records-body').addEventListener('click', (event) => {
@@ -245,10 +244,12 @@ $('#records-body').addEventListener('click', (event) => {
         const record = records.find((item) => item.id === deleteId);
         if (!record) return;
         if (window.confirm(`Delete "${record.name}" from this workspace?`)) {
-            records = records.filter((item) => item.id !== deleteId);
-            if (workspace === 'private') savePrivateRecords();
-            render();
-            showToast('Record deleted.');
+            const nextRecords = records.filter((item) => item.id !== deleteId);
+            if (workspace === 'private' && savePrivateRecords(nextRecords)) {
+                records = nextRecords;
+                render();
+                showToast('Record deleted.');
+            }
         }
     }
 });
