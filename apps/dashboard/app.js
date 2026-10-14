@@ -1,5 +1,5 @@
 import { validateBackupPayload } from './backup.js';
-import { persistJson } from './storage.js';
+import { persistJson, readJsonArray } from './storage.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -16,6 +16,7 @@ const demoRecords = [
 ];
 let records = [];
 let workspace = 'demo';
+let privateStorageHealthy = true;
 let editingId = null;
 let toastTimer;
 
@@ -29,27 +30,32 @@ const escapeHtml = (value) => String(value)
     .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 
 function readPrivateRecords() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) return [];
-        const parsed = JSON.parse(saved);
-        if (!Array.isArray(parsed)) return [];
-        return parsed.filter((record) => record && typeof record.id === 'string'
-            && typeof record.name === 'string' && typeof record.category === 'string'
-            && (record.type === 'asset' || record.type === 'liability')
-            && Number.isFinite(record.value) && record.value >= 0);
-    } catch {
-        showToast('Saved data could not be read. Your browser storage may be unavailable.');
+    const result = readJsonArray(localStorage, STORAGE_KEY, (record) => record
+        && typeof record.id === 'string'
+        && typeof record.name === 'string' && record.name.trim() !== ''
+        && typeof record.category === 'string' && record.category.trim() !== ''
+        && (record.type === 'asset' || record.type === 'liability')
+        && Number.isFinite(record.value) && record.value >= 0);
+    privateStorageHealthy = result.ok;
+    if (!result.ok) {
+        showToast('Saved data could not be safely read. It has been left untouched. Import a valid backup to recover this workspace before editing.');
         return [];
     }
+    return result.records;
 }
 
-function savePrivateRecords(nextRecords) {
+function savePrivateRecords(nextRecords, allowRecovery = false) {
+    if (!privateStorageHealthy && !allowRecovery) {
+        showToast('Editing is paused because saved data could not be read. Import a valid backup to recover safely; existing storage will not be overwritten.');
+        return false;
+    }
     const saved = persistJson(localStorage, STORAGE_KEY, nextRecords);
     if (!saved) {
         showToast('Could not save locally. Check browser storage availability. Your previous saved records are unchanged.');
+        return false;
     }
-    return saved;
+    privateStorageHealthy = true;
+    return true;
 }
 
 function switchWorkspace(nextWorkspace) {
@@ -178,7 +184,7 @@ function importData(file) {
             const validated = validateBackupPayload(parsed, CURRENCY)
                 .map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            if (savePrivateRecords(validated)) {
+            if (savePrivateRecords(validated, true)) {
                 records = validated;
                 render();
                 showToast(`Imported ${records.length} records into your private workspace.`);
