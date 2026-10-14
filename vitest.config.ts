@@ -6,6 +6,7 @@ export default defineConfig({
         projects: [
             'packages/*',
             'apps/cli',
+            'apps/dashboard',
             'scripts/dashboard'
         ]
     }
