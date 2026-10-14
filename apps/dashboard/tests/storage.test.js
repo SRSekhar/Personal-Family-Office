@@ -28,7 +28,8 @@ describe('persistJson', () => {
 });
 
 describe('readJsonArray', () => {
-    const isRecord = (item) => item && typeof item.id === 'string' && Number.isFinite(item.value);
+    const isRecord = (item) => item && typeof item.id === 'string' && item.id.trim() !== ''
+        && Number.isFinite(item.value) && item.value >= 0;
 
     it('returns an empty array when no saved value exists', () => {
         expect(readJsonArray({ getItem: vi.fn(() => null) }, 'pfo-records', isRecord))
