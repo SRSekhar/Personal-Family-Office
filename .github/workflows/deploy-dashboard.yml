@@ -26,8 +26,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
       - name: Validate dashboard files
         shell: bash
         run: |
@@ -36,10 +34,15 @@ jobs:
           test -s apps/dashboard/styles.css
           test -s apps/dashboard/app.js
           node --check apps/dashboard/app.js
+          grep -q 'hosted-privacy-notice' apps/dashboard/index.html
+          grep -q 'function isHostedPublicDemo' apps/dashboard/app.js
+          grep -q 'showLocalWorkspaceRequired' apps/dashboard/app.js
           if grep -R -nE 'https?://[^ ]+\.(js|css)(\?|["'\'' ])' apps/dashboard; then
             echo "::error::Dashboard must not load remote JavaScript or CSS."
             exit 1
           fi
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
