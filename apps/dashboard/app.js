@@ -311,7 +311,13 @@ $('#import-button').addEventListener('click', () => {
         showLocalWorkspaceRequired();
         return;
     }
-    if (workspace === 'demo' && !window.confirm('Importing replaces the current view with your private workspace. Continue?')) return;
+    if (workspace === 'demo') {
+        if (!window.confirm('Importing replaces the sample view with your private workspace. Continue?')) return;
+    } else if (!privateStorageHealthy) {
+        if (!window.confirm('Saved data could not be read. Importing a valid backup will replace the unreadable saved data. Continue?')) return;
+    } else if (records.length > 0) {
+        if (!window.confirm('Importing replaces all records in your private workspace. Export a backup first if you want to keep them. Continue?')) return;
+    }
     $('#import-file').click();
 });
 $('#import-file').addEventListener('change', (event) => importData(event.target.files?.[0]));
