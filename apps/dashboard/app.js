@@ -71,7 +71,12 @@ function isHostedPublicDemo() {
 }
 
 function showHostedPrivacyWarning() {
-    $('#hosted-privacy-notice').hidden = !isHostedPublicDemo();
+    const isHosted = isHostedPublicDemo();
+    $('#hosted-privacy-notice').hidden = !isHosted;
+    if (isHosted) {
+        $('.privacy-card strong').textContent = 'Public demo only';
+        $('.privacy-card p').textContent = 'Use the local preview for private records.';
+    }
 }
 
 function showLocalWorkspaceRequired() {
