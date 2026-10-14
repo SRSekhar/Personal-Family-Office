@@ -1,5 +1,5 @@
 import { validateBackupPayload } from './backup.js';
-import { persistJson } from './storage.js';
+import { persistJson, readJsonArray } from './storage.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -16,6 +16,7 @@ const demoRecords = [
 ];
 let records = [];
 let workspace = 'demo';
+let privateStorageHealthy = true;
 let editingId = null;
 let toastTimer;
 
@@ -29,27 +30,45 @@ const escapeHtml = (value) => String(value)
     .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 
 function readPrivateRecords() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) return [];
-        const parsed = JSON.parse(saved);
-        if (!Array.isArray(parsed)) return [];
-        return parsed.filter((record) => record && typeof record.id === 'string'
-            && typeof record.name === 'string' && typeof record.category === 'string'
-            && (record.type === 'asset' || record.type === 'liability')
-            && Number.isFinite(record.value) && record.value >= 0);
-    } catch {
-        showToast('Saved data could not be read. Your browser storage may be unavailable.');
+    const seenIds = new Set();
+    const result = readJsonArray(localStorage, STORAGE_KEY, (record) => {
+        if (!record || typeof record.id !== 'string' || record.id.trim() === ''
+            || seenIds.has(record.id)
+            || typeof record.name !== 'string' || record.name.trim() === ''
+            || typeof record.category !== 'string' || record.category.trim() === ''
+            || !['asset', 'liability'].includes(record.type)
+            || !Number.isFinite(record.value) || record.value < 0) {
+            return false;
+        }
+        seenIds.add(record.id);
+        return true;
+    });
+    privateStorageHealthy = result.ok;
+    if (!result.ok) {
+        showToast('Saved data could not be safely read. It has been left untouched. Import a valid backup to recover this workspace before editing.');
         return [];
     }
+    return result.records;
 }
 
-function savePrivateRecords(nextRecords) {
+function savePrivateRecords(nextRecords, allowRecovery = false) {
+    if (!privateStorageHealthy && !allowRecovery) {
+        showToast('Editing is paused because saved data could not be read. Import a valid backup to recover safely; existing storage will not be overwritten.');
+        return false;
+    }
     const saved = persistJson(localStorage, STORAGE_KEY, nextRecords);
     if (!saved) {
         showToast('Could not save locally. Check browser storage availability. Your previous saved records are unchanged.');
+        return false;
     }
-    return saved;
+    privateStorageHealthy = true;
+    return true;
+}
+
+function showHostedPrivacyWarning() {
+    const hostname = window.location.hostname;
+    const isGitHubPages = hostname === 'github.io' || hostname.endsWith('.github.io');
+    $('#hosted-privacy-notice').hidden = !isGitHubPages;
 }
 
 function switchWorkspace(nextWorkspace) {
@@ -158,6 +177,10 @@ function showToast(message) {
 }
 
 function exportData() {
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
+        return;
+    }
     const payload = { schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), records };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -178,7 +201,7 @@ function importData(file) {
             const validated = validateBackupPayload(parsed, CURRENCY)
                 .map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            if (savePrivateRecords(validated)) {
+            if (savePrivateRecords(validated, true)) {
                 records = validated;
                 render();
                 showToast(`Imported ${records.length} records into your private workspace.`);
@@ -271,4 +294,5 @@ document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('
     $('#page-breadcrumb').textContent = item.textContent.trim().replace(/^[◫▤]\s*/, '');
 }));
 
+showHostedPrivacyWarning();
 switchWorkspace('demo');
