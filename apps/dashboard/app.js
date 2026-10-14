@@ -164,6 +164,10 @@ function showToast(message) {
 }
 
 function exportData() {
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
+        return;
+    }
     const payload = { schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), records };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
