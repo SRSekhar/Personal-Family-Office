@@ -30,12 +30,19 @@ const escapeHtml = (value) => String(value)
     .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 
 function readPrivateRecords() {
-    const result = readJsonArray(localStorage, STORAGE_KEY, (record) => record
-        && typeof record.id === 'string'
-        && typeof record.name === 'string' && record.name.trim() !== ''
-        && typeof record.category === 'string' && record.category.trim() !== ''
-        && (record.type === 'asset' || record.type === 'liability')
-        && Number.isFinite(record.value) && record.value >= 0);
+    const seenIds = new Set();
+    const result = readJsonArray(localStorage, STORAGE_KEY, (record) => {
+        if (!record || typeof record.id !== 'string' || record.id.trim() === ''
+            || seenIds.has(record.id)
+            || typeof record.name !== 'string' || record.name.trim() === ''
+            || typeof record.category !== 'string' || record.category.trim() === ''
+            || !['asset', 'liability'].includes(record.type)
+            || !Number.isFinite(record.value) || record.value < 0) {
+            return false;
+        }
+        seenIds.add(record.id);
+        return true;
+    });
     privateStorageHealthy = result.ok;
     if (!result.ok) {
         showToast('Saved data could not be safely read. It has been left untouched. Import a valid backup to recover this workspace before editing.');
