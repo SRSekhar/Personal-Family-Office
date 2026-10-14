@@ -8,13 +8,13 @@ PFO OS — Personal Family Office Operating System
 
 The technical foundation, deterministic calculators, portfolio analysis, offline HTML report renderer, local-first dashboard, dashboard backup-currency guard, and local report CLI are merged to main. Dashboard action updates were merged in PRs #58, #62, and #64; PR #66 documents the required Pages setup. PR #67 added a reproducible CI check of all nine flagged npm tarballs: every packed tarball integrity matched `pnpm-lock.yaml`, and every tarball contained a root-level license file whose byte length and SHA-256 are recorded in `docs/security/DEPENDENCY_LICENSE_EVIDENCE_REVIEW.md`. Legal/distribution disposition remains open. The dashboard can now be previewed locally with `pnpm dashboard:serve` (loopback-only, no external data service). The hosted GitHub Pages demo still needs the repository's one-time setting configured (Settings → Pages → Source: GitHub Actions); workflow logs confirmed the `GITHUB_TOKEN` cannot create the Pages site automatically. PR #48 adds the interview guide for the revenue-validation experiment; no customer demand has been validated yet.
 
-
-
 ## Latest Follow-up (2026-10-14)
 
 - PR #89 merged: dashboard record add/edit/delete/import now writes the candidate JSON to browser storage before updating in-memory records. Failed storage writes leave the previously saved state unchanged and display an explicit warning; focused persistence tests were added. Main-branch CI and full-history secret scan passed for the PR.
 - PR #90 merged: corrected the dependency license evidence review's last-refresh date and clarified that CI inspected the exact `lightningcss-linux-x64-gnu@1.33.0` tarball's root `LICENSE` file. This is evidence of file presence/identity, not legal clearance.
 - PR #88 merged: documented the Claude for Open Source eligibility evidence. The current evidence does not establish a qualifying threshold; the application remains unsubmitted and identity fields must not be inferred.
+- PR #92 merged: ADR-0002 documents historical snapshot requirements and compares browser storage, local files, SQLite, self-hosted, and hosted options. It deliberately makes no technology decision before customer workflow and deployment requirements are validated.
+- PR #93 merged: refreshed the public GitHub search evidence for Claude for Open Source. The search returned 64 merged PRs in the prior 12 months, all in the applicant-owned repository; it does not establish the external-PR eligibility route. The application remains unsubmitted.
 - Dashboard Actions upgrades are merged: `upload-pages-artifact@v5`, `configure-pages@v6`, and `deploy-pages@v5`. Hosted deployment remains blocked until a repository owner enables GitHub Pages under Settings → Pages → Source: GitHub Actions. The workflow token cannot create the Pages site automatically. Local preview remains available with `pnpm dashboard:serve`.
 
 ## Verified CI
