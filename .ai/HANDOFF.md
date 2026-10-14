@@ -17,6 +17,8 @@ The technical foundation, deterministic calculators, portfolio analysis, offline
 - PR #93 merged: refreshed the public GitHub search evidence for Claude for Open Source. The search returned 64 merged PRs in the prior 12 months, all in the applicant-owned repository; it does not establish the external-PR eligibility route. The application remains unsubmitted.
 - Dashboard Actions upgrades are merged: `upload-pages-artifact@v5`, `configure-pages@v6`, and `deploy-pages@v5`. Hosted deployment remains blocked until a repository owner enables GitHub Pages under Settings → Pages → Source: GitHub Actions. The workflow token cannot create the Pages site automatically. Local preview remains available with `pnpm dashboard:serve`.
 - PR #95 merged: unreadable or invalid saved dashboard data now fails closed; duplicate record IDs are rejected, normal edits/exports cannot overwrite or misrepresent unreadable data, and validated backup import is the recovery path. Tests cover malformed JSON, invalid data, duplicate IDs, storage read failures, and writes. The hosted dashboard displays a public-demo privacy warning; use the loopback-only local preview for sensitive records. CI and full-history secret scanning passed before merge.
+- PR #97 merged: the `*.github.io` hosted dashboard is sample-only. It blocks private-workspace entry and backup imports and directs users to `pnpm dashboard:serve`; local preview retains personal-record functionality.
+- PR #98 merged: dashboard static-file, JavaScript syntax, privacy-notice, sample-only-guard, and no-remote-asset checks run before GitHub Pages setup and on pull requests. The validation workflow passed; actual publication still needs Settings → Pages → Source: GitHub Actions.
 
 ## Verified CI
 
