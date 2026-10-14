@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Report Engine / Release Safety
-- **Status:** Deterministic calculators, portfolio analysis, the offline HTML report renderer, and the local report CLI are merged. Report validation now enforces malformed-payload, currency-code, nested monetary currency, net-worth, analysis-total, and allocation-reconciliation invariants, and exposes canonical timestamps through semantic HTML time elements. The first-pass evidence review for nine dependency-license flags is documented. A new CI check packed all nine exact npm versions with lifecycle scripts disabled; all tarball integrity values matched `pnpm-lock.yaml`, and each tarball contained a root-level license file with byte length and SHA-256 recorded in the evidence review. Legal/distribution dispositions remain open. The dashboard is implemented and now has a loopback-only local preview (`pnpm dashboard:serve`). Its hosted deployment remains blocked until GitHub Pages is enabled in repository Settings → Pages with Source set to GitHub Actions. A customer-discovery playbook is available; market demand remains unvalidated.
+- **Status:** Deterministic calculators, portfolio analysis, the offline HTML report renderer, and the local report CLI are merged. Report validation enforces malformed-payload, currency-code, nested monetary currency, net-worth, analysis-total, and allocation-reconciliation invariants, and exposes canonical timestamps through semantic HTML time elements. The dashboard has currency-validated backup import and atomic record persistence: add/edit/delete/import only commit in-memory changes after browser storage accepts the write. The latest persistence tests cover successful writes, storage exceptions, and serialization failures. The dashboard's local preview is loopback-only (`pnpm dashboard:serve`); hosted deployment remains blocked until GitHub Pages is enabled in Settings → Pages with Source set to GitHub Actions. The three GitHub Pages action upgrades are merged. All nine flagged dependency versions passed packed-tarball integrity and root-license-file checks, with license fingerprints recorded; legal/distribution disposition remains open. ADR-0002 documents historical snapshot requirements and compares storage options without selecting a technology. Customer discovery and paid demand remain unvalidated. The Claude for Open Source draft is unsubmitted; a public GitHub search found 64 merged PRs in the last 12 months, all in the applicant-owned repository, and did not establish the external-PR eligibility route.
 
 ## Foundation Verified
 
@@ -52,4 +52,4 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Last Updated
 
-2026-10-13
+2026-10-14
