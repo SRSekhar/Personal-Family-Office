@@ -1,4 +1,5 @@
 import { validateBackupPayload } from './backup.js';
+import { persistJson } from './storage.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -44,13 +45,11 @@ function readPrivateRecords() {
 }
 
 function savePrivateRecords(nextRecords) {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextRecords));
-        return true;
-    } catch {
+    const saved = persistJson(localStorage, STORAGE_KEY, nextRecords);
+    if (!saved) {
         showToast('Could not save locally. Check browser storage availability. Your previous saved records are unchanged.');
-        return false;
     }
+    return saved;
 }
 
 function switchWorkspace(nextWorkspace) {
