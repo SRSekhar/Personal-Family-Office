@@ -1,6 +1,10 @@
 name: Deploy PFO OS Dashboard
 
 on:
+  pull_request:
+    paths:
+      - "apps/dashboard/**"
+      - ".github/workflows/deploy-dashboard.yml"
   push:
     branches:
       - main
@@ -42,6 +46,7 @@ jobs:
             exit 1
           fi
       - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
@@ -50,6 +55,7 @@ jobs:
 
   deploy:
     name: Publish dashboard
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:
