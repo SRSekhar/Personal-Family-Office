@@ -1,6 +1,6 @@
 # Dependency License Evidence Review
 
-**Review date:** 2026-10-10  
+**Review date:** 2026-10-13 (latest packed-artifact evidence refresh)  
 **Status:** Evidence collected; legal/redistribution disposition remains open.  
 **Source inventory:** [DEPENDENCY_LICENSE_INVENTORY.md](DEPENDENCY_LICENSE_INVENTORY.md), generated from the installed pnpm dependency store resolved by the lockfile.
 
@@ -66,7 +66,7 @@ These clauses are a review checklist, not a legal determination. The checks do n
 
 - The seven BlueOak-1.0.0 package versions' upstream tagged `package.json` files and license files were inspected.
 - The upstream tagged `lightningcss@1.33.0` package metadata declares MPL-2.0, and the repository contains MPL-2.0 license text at the root and under `selectors/`.
-- The official npm page for `lightningcss-linux-x64-gnu@1.33.0` also reports MPL-2.0; its exact packed contents and included notice/license files have not been independently inspected in this pass.
+- The official npm page for `lightningcss-linux-x64-gnu@1.33.0` reports MPL-2.0. CI packed the exact version, verified its tarball integrity against `pnpm-lock.yaml`, and inspected its root-level `LICENSE` file (size and SHA-256 recorded above). This establishes the presence and identity of that file, but does not by itself establish legal sufficiency or compatibility.
 - Several BlueOak license texts contain an explicit notice provision. The inventory generator does not prove that required notices are present in a future PFO OS distribution.
 - No conclusion is made that any license is compatible or incompatible with the eventual PFO OS license or business model.
 
