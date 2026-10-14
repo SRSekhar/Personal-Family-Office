@@ -6,7 +6,12 @@ export default defineConfig({
         projects: [
             'packages/*',
             'apps/cli',
-            'apps/dashboard',
+            {
+                test: {
+                    name: 'dashboard-app',
+                    include: ['apps/dashboard/tests/**/*.test.js']
+                }
+            },
             'scripts/dashboard'
         ]
     }
