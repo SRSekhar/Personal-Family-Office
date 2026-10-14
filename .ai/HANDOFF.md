@@ -16,6 +16,7 @@ The technical foundation, deterministic calculators, portfolio analysis, offline
 - PR #92 merged: ADR-0002 documents historical snapshot requirements and compares browser storage, local files, SQLite, self-hosted, and hosted options. It deliberately makes no technology decision before customer workflow and deployment requirements are validated.
 - PR #93 merged: refreshed the public GitHub search evidence for Claude for Open Source. The search returned 64 merged PRs in the prior 12 months, all in the applicant-owned repository; it does not establish the external-PR eligibility route. The application remains unsubmitted.
 - Dashboard Actions upgrades are merged: `upload-pages-artifact@v5`, `configure-pages@v6`, and `deploy-pages@v5`. Hosted deployment remains blocked until a repository owner enables GitHub Pages under Settings → Pages → Source: GitHub Actions. The workflow token cannot create the Pages site automatically. Local preview remains available with `pnpm dashboard:serve`.
+- PR #95 merged: unreadable or invalid saved dashboard data now fails closed; duplicate record IDs are rejected, normal edits/exports cannot overwrite or misrepresent unreadable data, and validated backup import is the recovery path. Tests cover malformed JSON, invalid data, duplicate IDs, storage read failures, and writes. The hosted dashboard displays a public-demo privacy warning; use the loopback-only local preview for sensitive records. CI and full-history secret scanning passed before merge.
 
 ## Verified CI
 
