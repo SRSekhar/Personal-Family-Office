@@ -20,6 +20,7 @@ The technical foundation, deterministic calculators, portfolio analysis, offline
 - PR #97 merged: the `*.github.io` hosted dashboard is sample-only. It blocks private-workspace entry and backup imports and directs users to `pnpm dashboard:serve`; local preview retains personal-record functionality.
 - PR #98 merged: dashboard static-file, JavaScript syntax, privacy-notice, sample-only-guard, and no-remote-asset checks run before GitHub Pages setup and on pull requests. The validation workflow passed; actual publication still needs Settings → Pages → Source: GitHub Actions.
 - PR #100 merged: root Vitest now includes the dashboard storage and backup test suites. The first run revealed an invalid test predicate in a fixture; the corrected suite passed 185 tests across 27 files in PR CI.
+- PR #102 merged: importing a backup now requires confirmation before replacing existing private records, and shows a specific confirmation before recovering unreadable saved storage.
 
 ## Verified CI
 
