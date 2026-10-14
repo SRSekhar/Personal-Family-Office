@@ -83,7 +83,7 @@ function switchWorkspace(nextWorkspace) {
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
-    $('#switch-private-button').textContent = 'Use my data →';
+    $('#switch-private-button').textContent = isHostedPublicDemo() ? 'Use locally →' : 'Use my data →';
     render();
 }
 
