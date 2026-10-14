@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { persistJson } from '../storage.js';
+import { persistJson, readJsonArray } from '../storage.js';
 
 describe('persistJson', () => {
     it('writes the complete next value as JSON', () => {
@@ -24,5 +24,41 @@ describe('persistJson', () => {
 
         expect(persistJson(storage, 'pfo-records', value)).toBe(false);
         expect(storage.setItem).not.toHaveBeenCalled();
+    });
+});
+
+describe('readJsonArray', () => {
+    const isRecord = (item) => item && typeof item.id === 'string' && Number.isFinite(item.value);
+
+    it('returns an empty array when no saved value exists', () => {
+        expect(readJsonArray({ getItem: vi.fn(() => null) }, 'pfo-records', isRecord))
+            .toEqual({ ok: true, records: [] });
+    });
+
+    it('reads a fully valid saved array', () => {
+        const records = [{ id: 'record-1', value: 1250 }];
+        expect(readJsonArray({ getItem: vi.fn(() => JSON.stringify(records)) }, 'pfo-records', isRecord))
+            .toEqual({ ok: true, records });
+    });
+
+    it('rejects malformed JSON without returning a partial dataset', () => {
+        expect(readJsonArray({ getItem: vi.fn(() => '{broken') }, 'pfo-records', isRecord))
+            .toEqual({ ok: false, records: [] });
+    });
+
+    it('rejects a non-array root without returning a partial dataset', () => {
+        expect(readJsonArray({ getItem: vi.fn(() => JSON.stringify({ id: 'record-1', value: 1 })) }, 'pfo-records', isRecord))
+            .toEqual({ ok: false, records: [] });
+    });
+
+    it('rejects the entire dataset when any record is invalid', () => {
+        const serialized = JSON.stringify([{ id: 'record-1', value: 1250 }, { id: '', value: -1 }]);
+        expect(readJsonArray({ getItem: vi.fn(() => serialized) }, 'pfo-records', isRecord))
+            .toEqual({ ok: false, records: [] });
+    });
+
+    it('fails closed when browser storage cannot be read', () => {
+        const storage = { getItem: vi.fn(() => { throw new Error('Storage unavailable'); }) };
+        expect(readJsonArray(storage, 'pfo-records', isRecord)).toEqual({ ok: false, records: [] });
     });
 });
