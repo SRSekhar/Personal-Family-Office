@@ -43,12 +43,12 @@ function readPrivateRecords() {
     }
 }
 
-function savePrivateRecords() {
+function savePrivateRecords(nextRecords) {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextRecords));
         return true;
     } catch {
-        showToast('Could not save locally. Check browser storage availability.');
+        showToast('Could not save locally. Check browser storage availability. Your previous saved records are unchanged.');
         return false;
     }
 }
@@ -179,8 +179,8 @@ function importData(file) {
             const validated = validateBackupPayload(parsed, CURRENCY)
                 .map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            records = validated;
-            if (savePrivateRecords()) {
+            if (savePrivateRecords(validated)) {
+                records = validated;
                 render();
                 showToast(`Imported ${records.length} records into your private workspace.`);
             }
@@ -217,15 +217,15 @@ $('#record-form').addEventListener('submit', (event) => {
         showToast('Enter a name, category and valid non-negative value.');
         return;
     }
-    if (editingId) {
-        records = records.map((item) => item.id === editingId ? { ...item, name, category, type, value } : item);
-    } else {
-        records.push({ id: crypto.randomUUID(), name, category, type, value });
-    }
-    if (savePrivateRecords()) {
+    const wasEditing = Boolean(editingId);
+    const nextRecords = wasEditing
+        ? records.map((item) => item.id === editingId ? { ...item, name, category, type, value } : item)
+        : [...records, { id: crypto.randomUUID(), name, category, type, value }];
+    if (savePrivateRecords(nextRecords)) {
+        records = nextRecords;
         render();
         closeRecordDialog();
-        showToast(editingId ? 'Record updated.' : 'Record saved in this browser.');
+        showToast(wasEditing ? 'Record updated.' : 'Record saved in this browser.');
     }
 });
 $('#records-body').addEventListener('click', (event) => {
@@ -245,10 +245,12 @@ $('#records-body').addEventListener('click', (event) => {
         const record = records.find((item) => item.id === deleteId);
         if (!record) return;
         if (window.confirm(`Delete "${record.name}" from this workspace?`)) {
-            records = records.filter((item) => item.id !== deleteId);
-            if (workspace === 'private') savePrivateRecords();
-            render();
-            showToast('Record deleted.');
+            const nextRecords = records.filter((item) => item.id !== deleteId);
+            if (workspace === 'private' && savePrivateRecords(nextRecords)) {
+                records = nextRecords;
+                render();
+                showToast('Record deleted.');
+            }
         }
     }
 });
