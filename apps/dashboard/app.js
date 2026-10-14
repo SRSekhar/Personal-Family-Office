@@ -65,10 +65,17 @@ function savePrivateRecords(nextRecords, allowRecovery = false) {
     return true;
 }
 
-function showHostedPrivacyWarning() {
+function isHostedPublicDemo() {
     const hostname = window.location.hostname;
-    const isGitHubPages = hostname === 'github.io' || hostname.endsWith('.github.io');
-    $('#hosted-privacy-notice').hidden = !isGitHubPages;
+    return hostname === 'github.io' || hostname.endsWith('.github.io');
+}
+
+function showHostedPrivacyWarning() {
+    $('#hosted-privacy-notice').hidden = !isHostedPublicDemo();
+}
+
+function showLocalWorkspaceRequired() {
+    showToast('The public hosted demo is sample-only. Run pnpm dashboard:serve locally to enter or import personal financial records.');
 }
 
 function switchWorkspace(nextWorkspace) {
@@ -145,6 +152,10 @@ function updateCategoryOptions(selectedCategory) {
 }
 
 function openRecordDialog(type = 'asset', record = null) {
+    if (isHostedPublicDemo()) {
+        showLocalWorkspaceRequired();
+        return;
+    }
     if (workspace === 'demo') {
         if (record) {
             showToast('Sample records are read-only. Switch to your private workspace to manage your own records.');
@@ -193,6 +204,10 @@ function exportData() {
 }
 
 function importData(file) {
+    if (isHostedPublicDemo()) {
+        showLocalWorkspaceRequired();
+        return;
+    }
     if (!file) return;
     const reader = new FileReader();
     reader.addEventListener('load', () => {
@@ -220,6 +235,10 @@ $('#quick-add-asset').addEventListener('click', () => openRecordDialog('asset'))
 $('#quick-add-liability').addEventListener('click', () => openRecordDialog('liability'));
 $('#empty-add-button').addEventListener('click', () => openRecordDialog());
 $('#switch-private-button').addEventListener('click', () => {
+    if (isHostedPublicDemo()) {
+        showLocalWorkspaceRequired();
+        return;
+    }
     switchWorkspace('private');
     showToast('Private workspace ready. Your entries stay in this browser.');
 });
@@ -283,6 +302,10 @@ $('#view-all-button').addEventListener('click', () => {
 });
 $('#export-button').addEventListener('click', exportData);
 $('#import-button').addEventListener('click', () => {
+    if (isHostedPublicDemo()) {
+        showLocalWorkspaceRequired();
+        return;
+    }
     if (workspace === 'demo' && !window.confirm('Importing replaces the current view with your private workspace. Continue?')) return;
     $('#import-file').click();
 });
