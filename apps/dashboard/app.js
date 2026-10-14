@@ -71,12 +71,6 @@ function showHostedPrivacyWarning() {
     $('#hosted-privacy-notice').hidden = !isGitHubPages;
 }
 
-function showHostedPrivacyWarning() {
-    const hostname = window.location.hostname;
-    const isGitHubPages = hostname === 'github.io' || hostname.endsWith('.github.io');
-    $('#hosted-privacy-notice').hidden = !isGitHubPages;
-}
-
 function switchWorkspace(nextWorkspace) {
     workspace = nextWorkspace;
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
@@ -300,6 +294,5 @@ document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('
     $('#page-breadcrumb').textContent = item.textContent.trim().replace(/^[◫▤]\s*/, '');
 }));
 
-showHostedPrivacyWarning();
 showHostedPrivacyWarning();
 switchWorkspace('demo');
