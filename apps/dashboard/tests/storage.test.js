@@ -57,6 +57,18 @@ describe('readJsonArray', () => {
             .toEqual({ ok: false, records: [] });
     });
 
+    it('rejects duplicate record identifiers', () => {
+        const seenIds = new Set();
+        const isUniqueRecord = (item) => {
+            if (!isRecord(item) || seenIds.has(item.id)) return false;
+            seenIds.add(item.id);
+            return true;
+        };
+        const records = [{ id: 'record-1', value: 10 }, { id: 'record-1', value: 20 }];
+        expect(readJsonArray({ getItem: vi.fn(() => JSON.stringify(records)) }, 'pfo-records', isUniqueRecord))
+            .toEqual({ ok: false, records: [] });
+    });
+
     it('fails closed when browser storage cannot be read', () => {
         const storage = { getItem: vi.fn(() => { throw new Error('Storage unavailable'); }) };
         expect(readJsonArray(storage, 'pfo-records', isRecord)).toEqual({ ok: false, records: [] });
