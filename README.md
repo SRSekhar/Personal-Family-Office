@@ -51,7 +51,7 @@ pnpm dashboard:serve
 
 Open `http://127.0.0.1:4173/` in your browser. To choose a different port, set `$env:PFO_DASHBOARD_PORT = "4174"` before running the command. The server binds only to loopback, serves files from `apps/dashboard`, and does not expose a public network listener. Dashboard records remain in that browser origin's local storage; this preview server does not receive or persist them.
 
-This is a local development preview, not a production hosting service. Publishing the hosted GitHub Pages demo still requires the one-time repository setting **Settings → Pages → Source: GitHub Actions**. The hosted `*.github.io` demo is sample-only: it blocks private-workspace entry and backup imports because browser storage on a public GitHub Pages origin is not a secure private vault. Use the loopback-only preview for personal household records.
+This is a local development preview, not a production hosting service. Publishing the hosted GitHub Pages demo still requires the one-time repository setting **Settings → Pages → Source: GitHub Actions**. The hosted dashboard is sample-only on every non-loopback hostname: private-workspace entry and backup imports are blocked because a hosted origin is not the trusted local workspace. Personal records are available only from `localhost`/`127.0.0.1`/IPv6 loopback; use the loopback-only preview for household records.
 
 ## Local report CLI
 
