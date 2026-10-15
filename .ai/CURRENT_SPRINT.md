@@ -63,3 +63,10 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - Require relevant CI and full-history secret-scanning checks to pass before merging; complete routine, low-risk PRs after those checks pass.
 - Do not change repository visibility or licensing, make legal/financial determinations, or include real personal financial data.
 - Treat roadmap items as planned until implementation and tests demonstrate completion.
+
+
+## Follow-up (2026-10-15)
+
+- PR #104 merged: personal-record entry/import is now allowed only on loopback hostnames (`localhost`, `127.0.0.1`, IPv6 loopback); all other origins remain sample-only. Focused tests cover allowed and blocked hostnames.
+- PR #105 merged: root CI now checks dashboard HTML/controller ID consistency, duplicate IDs, local CSS/JS entry assets, and relative module imports. The Pages packaging workflow was updated to validate the loopback privacy helper rather than the removed GitHub-hostname-specific function. CI and full-history secret scan passed before merge.
+- Deployment remains blocked until a repository owner enables GitHub Pages under Settings → Pages → Source: GitHub Actions. The pull-request packaging/validation job can pass without this setting; actual publication cannot.

@@ -55,6 +55,12 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 4. Run the 8–10 interview experiment using `docs/product/CUSTOMER_DISCOVERY_PLAYBOOK.md`; record only anonymized notes and evidence.
 5. Keep licensing/product-boundary decisions explicit; do not change repository visibility or license automatically. The Claude for Open Source application remains unsubmitted.
 
+## Latest Follow-up (2026-10-15)
+
+- PR #104 merged: private dashboard records are restricted to loopback origins only (`localhost`, `127.0.0.1`, IPv6 loopback). Any non-loopback origin is sample-only; focused tests cover the host allowlist.
+- PR #105 merged: dashboard static-integrity regression tests verify HTML IDs, controller selectors, local entry assets, and relative module imports. The Pages workflow's validation check now follows the shared loopback guard helper. PR CI, full-history secret scan, and pull-request dashboard packaging passed before merge.
+- Main CI and full-history secret scanning should be rechecked after the latest merge. GitHub Pages deployment still fails at Pages setup until the owner sets **Settings → Pages → Source: GitHub Actions**. Do not claim the hosted dashboard is published until a deployment succeeds and the live page is verified.
+
 ## Important Constraints
 
 - Never commit real personal financial data, statements, credentials, or private reports.
