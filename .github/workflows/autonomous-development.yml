@@ -64,7 +64,7 @@ jobs:
           persist-credentials: true
 
       - name: Run bounded autonomous development cycle
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@a26b07d8c778b0c43f64618e5fd29fd0f8af72e8 # v1.0.250
         env:
           GH_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
         with:
