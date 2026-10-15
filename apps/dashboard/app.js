@@ -1,5 +1,6 @@
 import { validateBackupPayload } from './backup.js';
 import { persistJson, readJsonArray } from './storage.js';
+import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -65,13 +66,8 @@ function savePrivateRecords(nextRecords, allowRecovery = false) {
     return true;
 }
 
-function isHostedPublicDemo() {
-    const hostname = window.location.hostname;
-    return hostname === 'github.io' || hostname.endsWith('.github.io');
-}
-
 function showHostedPrivacyWarning() {
-    const isHosted = isHostedPublicDemo();
+    const isHosted = !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#hosted-privacy-notice').hidden = !isHosted;
     if (isHosted) {
         $('.privacy-card strong').textContent = 'Public demo only';
@@ -88,7 +84,7 @@ function switchWorkspace(nextWorkspace) {
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
-    $('#switch-private-button').textContent = isHostedPublicDemo() ? 'Use locally →' : 'Use my data →';
+    $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
     render();
 }
 
@@ -157,7 +153,7 @@ function updateCategoryOptions(selectedCategory) {
 }
 
 function openRecordDialog(type = 'asset', record = null) {
-    if (isHostedPublicDemo()) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
         return;
     }
@@ -209,7 +205,7 @@ function exportData() {
 }
 
 function importData(file) {
-    if (isHostedPublicDemo()) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
         return;
     }
@@ -240,7 +236,7 @@ $('#quick-add-asset').addEventListener('click', () => openRecordDialog('asset'))
 $('#quick-add-liability').addEventListener('click', () => openRecordDialog('liability'));
 $('#empty-add-button').addEventListener('click', () => openRecordDialog());
 $('#switch-private-button').addEventListener('click', () => {
-    if (isHostedPublicDemo()) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
         return;
     }
@@ -307,7 +303,7 @@ $('#view-all-button').addEventListener('click', () => {
 });
 $('#export-button').addEventListener('click', exportData);
 $('#import-button').addEventListener('click', () => {
-    if (isHostedPublicDemo()) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
         return;
     }
