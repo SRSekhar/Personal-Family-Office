@@ -17,6 +17,12 @@ export type { CompoundGrowthInput, ContributionTiming } from './CompoundGrowth.j
 export { calculateFireReadiness } from './FireReadiness.js';
 export type { FireReadinessInput, FireReadinessResult } from './FireReadiness.js';
 
+export { compareFireReadinessScenarios } from './FireScenarioComparison.js';
+export type {
+    FireReadinessScenario,
+    FireReadinessScenarioResult
+} from './FireScenarioComparison.js';
+
 export { calculateXirr } from './Xirr.js';
 export type { XirrCashFlow } from './Xirr.js';
 
