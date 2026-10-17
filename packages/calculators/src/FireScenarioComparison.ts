@@ -50,11 +50,15 @@ export function compareFireReadinessScenarios(
         }
         seenIds.add(scenario.id);
 
+        // Capture a snapshot so later caller mutations cannot make the
+        // recorded assumptions disagree with the already-calculated result.
+        const input: FireReadinessInput = { ...scenario.input };
+
         return {
             id: scenario.id,
             name: scenario.name,
-            input: scenario.input,
-            result: calculateFireReadiness(scenario.input)
+            input,
+            result: calculateFireReadiness(input)
         };
     });
 }
