@@ -23,7 +23,7 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - Repository foundation, bootstrap, and CI quality gates
 - Scheduled full-history Gitleaks scanning; latest recorded scans passed without findings
 - Dependabot workspace and GitHub Actions updates
-- CAGR, annual compound-growth projection, and XIRR calculators
+- CAGR, annual compound-growth projection, XIRR, and deterministic FIRE-readiness calculators (the FIRE calculator is related roadmap progress; the full planner remains unfinished)
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
 - Versioned portfolio report model and self-contained offline HTML renderer, with semantic timestamps, currency-code, nested-currency, net-worth, analysis-total, malformed-payload, and allocation-reconciliation validation
@@ -41,10 +41,10 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 
 ## Next Deliverables
 
-1. Confirm the intended distribution artifact, validate its actual contents against the current dependency paths, and map the Blue Oak notice/MPL source-availability obligations; do not infer legal clearance from matching license text alone.
-2. Use the local dashboard-to-report flow to conduct the documented customer-discovery experiment; prioritize actual user evidence and paid-pilot commitments before adding persistence or new feature families.
+1. Continue planned product work on the deterministic FIRE engine with clearly defined inputs, assumptions, and output requirements before adding planner UI or probabilistic scenarios.
+2. Use the local dashboard-to-report flow to conduct the documented customer-discovery experiment; prioritize actual user evidence and paid-pilot commitments before adding persistence or unrelated feature families.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
-4. Execute the 8–10 interview experiment in the customer-discovery playbook and validate a paid-pilot hypothesis.
+4. Keep distribution-artifact, dependency-license, and product-boundary decisions as release gates before external distribution; do not let unresolved release decisions stop safe local-first product development.
 
 ## Release-Safety Work Still Open
 
@@ -70,3 +70,12 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - PR #104 merged: personal-record entry/import is now allowed only on loopback hostnames (`localhost`, `127.0.0.1`, IPv6 loopback); all other origins remain sample-only. Focused tests cover allowed and blocked hostnames.
 - PR #105 merged: root CI now checks dashboard HTML/controller ID consistency, duplicate IDs, local CSS/JS entry assets, and relative module imports. The Pages packaging workflow was updated to validate the loopback privacy helper rather than the removed GitHub-hostname-specific function. CI and full-history secret scan passed before merge.
 - Deployment remains blocked until a repository owner enables GitHub Pages under Settings → Pages → Source: GitHub Actions. The pull-request packaging/validation job can pass without this setting; actual publication cannot.
+
+
+## Follow-up (2026-10-17)
+
+- PR #107 merged: hourly autonomous-development workflow is committed, but the first end-to-end agent run still needs secrets and a successful manual verification.
+- PR #108 merged: HCNSEC gateway authentication is an optional mode alongside Claude Code OAuth; live authentication remains unverified.
+- PR #109 merged: the agent no longer receives the repository write token in its shell environment. A post-agent publishing step handles branch push and PR creation/update. CI and full-history secret scanning passed before merge.
+- PR #110 merged: deterministic FIRE-readiness calculation is now implemented and tested in `@pfo/calculators`. It calculates projected portfolio value, inflation-adjusted retirement spending, target corpus from an explicit withdrawal rate, and surplus/shortfall. It is not a complete retirement planner.
+- The next FIRE increment should retain deterministic, explicit assumptions; do not add market data, financial recommendations, historical storage, or Monte Carlo behavior without a clear requirements basis.

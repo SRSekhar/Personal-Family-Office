@@ -29,16 +29,17 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 
 - CAGR calculation with input validation and edge-case tests.
 - Annual compound-growth projection with explicit contribution timing, input validation, overflow checks, and tests.
+- Deterministic FIRE-readiness scenario: projected investable portfolio, inflation-adjusted annual retirement spending, target corpus from an explicit withdrawal-rate assumption, and surplus/shortfall; assumptions and limitations are documented and tested.
 - XIRR for dated cash flows using ACT/365 and bisection, with date/amount validation and explicit rejection of multi-sign-change cash-flow series.
 
 These are mathematical utilities, not investment advice or guaranteed forecasts. XIRR currently supports cash-flow streams with exactly one sign change to avoid ambiguous roots.
 
 ## Next Deliverables
 
-1. Confirm the intended distribution artifact (source repository, compiled CLI, bundled app, or hosted product), validate the actual artifact against the current dependency paths, and map Blue Oak notice/MPL source-availability obligations; preserve unresolved status until qualified legal review.
-2. Validate the dashboard-to-report workflow with prospective users and seek two paid pilot commitments before expanding scope. Define persistence/source-of-truth requirements before historical snapshot storage.
-3. Decide the public/private product boundary and licensing only after ownership and redistribution obligations are reviewed; do not change repository visibility or licensing automatically.
-4. Execute the customer-discovery experiment and validate a paid-pilot hypothesis before investing in paid tiers.
+1. Continue the planned FIRE engine with a transparent scenario-comparison/planner experience only after defining its inputs, assumptions, and output requirements; keep deterministic calculations separate from any future probabilistic analysis.
+2. Validate the local dashboard-to-report workflow with prospective users and seek two paid-pilot commitments before expanding scope. Define persistence/source-of-truth requirements before historical snapshot storage.
+3. Execute the documented 8–10 interview customer-discovery experiment and record only anonymized evidence; do not treat prototype completion as evidence of demand.
+4. Keep licensing, distribution-artifact, and public/private-boundary questions as release gates before distributing or hosting the product. Do not change repository visibility or licensing automatically; these gates should not block safe local-first product work.
 
 ## Blockers and Risks
 
@@ -50,6 +51,16 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - The nine dependency-license inventory flags passed packed-tarball integrity, root-license-file, and upstream license-text hash checks in CI. Current manifests/lockfile indicate development/build/test-only dependency paths, but the final distribution artifact and legal disposition remain outstanding.
 - GitHub Pages deployment is blocked by the repository-level Pages setting; the workflow token cannot create the site automatically.
 
+
+## Latest Follow-up (2026-10-17)
+
+- PR #107 merged: hourly autonomous-development workflow committed; first end-to-end agent run is not yet verified.
+- PR #108 merged: optional HCNSEC gateway authentication documented alongside Claude Code OAuth; live gateway authentication remains unverified.
+- PR #109 merged: the autonomous agent receives read-only GitHub context, and the repository write token is only used by a post-agent publishing step. CI and full-history secret scanning passed before merge.
+- PR #110 merged: deterministic FIRE-readiness calculator added to `@pfo/calculators`, with focused validation tests and documented assumptions. The broader FIRE planner remains unfinished.
+- Manual Actions setup remains required: either `HCNSEC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`, plus `PFO_AUTOMATION_TOKEN`. After setup, run the workflow manually and verify a complete agent run.
+- Product validation and paid-pilot evidence remain open. GitHub Pages setup and legal/distribution review remain release gates, not reasons to stop safe local-first product development.
+
 ## Last Updated
 
-2026-10-15
+2026-10-17
