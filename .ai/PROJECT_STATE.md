@@ -38,7 +38,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Define the FIRE planner UI/input/output contract using the now-implemented readiness, scenario-comparison, and required-contribution calculators. Keep assumptions visible and deterministic calculations separate from any future probabilistic analysis; do not build planner UI until its requirements are explicit.
+1. Review proposed ADR-0003, resolve the listed FIRE planner input/output and interaction questions with user evidence, then implement the local-first UI using the existing readiness, scenario-comparison, and required-contribution calculators. Keep assumptions visible and deterministic calculations separate from any future probabilistic analysis.
 2. Validate the local dashboard-to-report workflow with prospective users and seek two paid-pilot commitments before expanding scope. Define persistence/source-of-truth requirements before historical snapshot storage.
 3. Execute the documented 8–10 interview customer-discovery experiment and record only anonymized evidence; do not treat prototype completion as evidence of demand.
 4. Keep licensing, distribution-artifact, and public/private-boundary questions as release gates before distributing or hosting the product. Do not change repository visibility or licensing automatically; these gates should not block safe local-first product work.
