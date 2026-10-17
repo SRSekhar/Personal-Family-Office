@@ -9,6 +9,8 @@ PFO OS can run one bounded engineering cycle every hour through GitHub Actions, 
 - Runtime: GitHub-hosted Ubuntu runner; a run is limited to 50 minutes.
 - Output: focused feature branch and pull request; the agent does **not** merge pull requests.
 - Safety: repository privacy, licensing, legal/distribution decisions, real financial data, credentials, and external settings are out of scope for automatic changes.
+- Token isolation: the agent receives only the workflow's read-only GitHub token. The write-capable `PFO_AUTOMATION_TOKEN` is supplied only to a separate post-agent publish step, after the model/action has exited. Git checkout credentials are not persisted.
+- PR title/body metadata is written to the runner's temporary directory, not committed into the repository.
 - If no safe, actionable task is ready, the agent should report the blocker instead of manufacturing work.
 
 ## Authentication modes
@@ -30,7 +32,7 @@ Configure one AI authentication mode and the GitHub automation token under **Set
 
 ### Required for either mode — GitHub automation token
 
-Create a fine-grained personal access token scoped only to `SRSekhar/Personal-Family-Office`. Grant **Contents: Read and write**, **Pull requests: Read and write**, **Issues: Read and write**, and **Actions: Read-only**. Store it as `PFO_AUTOMATION_TOKEN`, set an expiry, and rotate it when required. The token is used only as a GitHub Actions secret.
+Create a fine-grained personal access token scoped only to `SRSekhar/Personal-Family-Office`. Grant **Contents: Read and write**, **Pull requests: Read and write**, **Issues: Read and write**, and **Actions: Read-only**. Store it as `PFO_AUTOMATION_TOKEN`, set an expiry, and rotate it when required. The workflow does not expose this write token to the model's shell environment: a separate step uses it only after the agent exits to push the committed branch and create/update the pull request.
 
 If both AI secrets are configured, the workflow selects HCNSEC gateway mode. The preflight checks for required secrets without printing their values. Until one AI secret and `PFO_AUTOMATION_TOKEN` are configured, scheduled/manual runs skip the agent and display setup instructions in the run summary.
 
