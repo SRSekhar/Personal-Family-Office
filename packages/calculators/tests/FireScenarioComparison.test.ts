@@ -55,6 +55,17 @@ describe('compareFireReadinessScenarios', () => {
         expect(results[0]?.input.expectedAnnualReturn).not.toBe(input.expectedAnnualReturn);
     });
 
+    it('prevents consumers from mutating the returned assumptions snapshot', () => {
+        const results = compareFireReadinessScenarios([
+            { id: 'immutable', name: 'Immutable snapshot', input: { ...baseInput } }
+        ]);
+        const resultInput = results[0]!.input;
+
+        expect(Object.isFrozen(resultInput)).toBe(true);
+        expect(Reflect.set(resultInput, 'expectedAnnualReturn', 0.2)).toBe(false);
+        expect(resultInput.expectedAnnualReturn).toBe(0.07);
+    });
+
     it('returns an empty list for an empty comparison', () => {
         expect(compareFireReadinessScenarios([])).toEqual([]);
     });
