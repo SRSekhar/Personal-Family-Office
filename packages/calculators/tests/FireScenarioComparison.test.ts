@@ -41,6 +41,20 @@ describe('compareFireReadinessScenarios', () => {
             .toBe(results[0]?.result.targetCorpusAtRetirement);
     });
 
+    it('preserves an input snapshot when the caller later mutates its source object', () => {
+        const input = { ...baseInput };
+        const results = compareFireReadinessScenarios([
+            { id: 'snapshot', name: 'Snapshot', input }
+        ]);
+        const projectedPortfolio = results[0]?.result.projectedPortfolioAtRetirement;
+
+        input.expectedAnnualReturn = 0.2;
+
+        expect(results[0]?.input.expectedAnnualReturn).toBe(0.07);
+        expect(results[0]?.result.projectedPortfolioAtRetirement).toBe(projectedPortfolio);
+        expect(results[0]?.input.expectedAnnualReturn).not.toBe(input.expectedAnnualReturn);
+    });
+
     it('returns an empty list for an empty comparison', () => {
         expect(compareFireReadinessScenarios([])).toEqual([]);
     });
