@@ -15,9 +15,9 @@ describe('calculateFireReadiness', () => {
             contributionTiming: 'end'
         });
 
-        expect(result.projectedPortfolioAtRetirement).toBeCloseTo(3_076_781.3, 0);
-        expect(result.projectedAnnualRetirementSpending).toBeCloseTo(444_073.6, 0);
-        expect(result.targetCorpusAtRetirement).toBeCloseTo(11_101_840, -1);
+        expect(result.projectedPortfolioAtRetirement).toBeCloseTo(3_348_796.2, 0);
+        expect(result.projectedAnnualRetirementSpending).toBeCloseTo(444_073.3, 0);
+        expect(result.targetCorpusAtRetirement).toBeCloseTo(11_101_832.1, 0);
         expect(result.surplusOrShortfall).toBeCloseTo(
             result.projectedPortfolioAtRetirement - result.targetCorpusAtRetirement,
             10
