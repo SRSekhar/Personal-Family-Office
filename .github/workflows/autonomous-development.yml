@@ -1,6 +1,11 @@
 name: PFO Autonomous Development
 
 on:
+  # Start another bounded cycle after a reviewed change lands on main.
+  # Agent publication pushes only agent/* branches, so it does not self-trigger.
+  push:
+    branches:
+      - main
   schedule:
     # Hourly, offset from the top of the hour to reduce scheduling contention.
     - cron: "17 * * * *"
