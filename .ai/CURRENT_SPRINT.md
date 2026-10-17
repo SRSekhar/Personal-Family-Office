@@ -87,3 +87,9 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - PR #113 merged after full CI and Secret Scan passed: deterministic scenario comparison is implemented and documented.
 - PR #114 merged after full CI and Secret Scan passed: the required annual FIRE contribution solver is implemented with tests for zero/negative return assumptions and zero-year boundaries.
 - HCNSEC and `PFO_AUTOMATION_TOKEN` are configured. The previous agent run failed before producing a PR; do not mark autonomous delivery complete until the corrected workflow produces a valid PR and CI passes.
+
+
+## Follow-up (2026-10-17, autonomous trigger correction)
+
+- PR #116's push-triggered run failed before agent execution because the pinned Claude Code Action rejects `push` events. PR #117 removes that trigger and schedules two bounded cycles per hour at minute 17 and 47 UTC; manual dispatch remains available. PR CI and Secret Scan passed.
+- Verify the next scheduled/manual run end-to-end. A successful preflight alone is not evidence of autonomous code delivery.
