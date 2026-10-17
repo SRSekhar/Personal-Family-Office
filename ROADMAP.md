@@ -101,11 +101,14 @@ Any future recommendations require explicit assumptions, explainability, and app
 
 # Version 0.7 — FIRE Engine
 
-**Status:** Planned
+**Status:** In Progress
 
-- Retirement planner
+- Deterministic FIRE-readiness calculator foundation: projected portfolio, inflation-adjusted retirement spending, target corpus from an explicit withdrawal-rate assumption, and surplus/shortfall.
+- Retirement planner UI and scenario comparison
 - Monte Carlo scenarios
 - Goal tracking
+
+The current calculator is a deterministic scenario, not a probability model or guarantee. It excludes taxes, fees, investment volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. Keep assumptions visible and validated before exposing results in a user-facing planner.
 
 ---
 

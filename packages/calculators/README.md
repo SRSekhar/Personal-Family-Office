@@ -38,6 +38,27 @@ const projectedValue = projectCompoundGrowth({
 
 The projection compounds annually. The annual rate is a decimal, periods are whole years, and recurring contributions are annual. The caller must supply and disclose assumptions. The result is a mathematical scenario—not a forecast or guarantee—and excludes taxes, fees, inflation, volatility, and changing contributions.
 
+### FIRE readiness scenario
+
+```typescript
+import { calculateFireReadiness } from '@pfo/calculators';
+
+const readiness = calculateFireReadiness({
+    currentPortfolio: 1_000_000,
+    annualContribution: 100_000,
+    yearsToRetirement: 10,
+    expectedAnnualReturn: 0.07,
+    annualInflationRate: 0.04,
+    annualRetirementSpendingToday: 300_000,
+    withdrawalRate: 0.04,
+    contributionTiming: 'end'
+});
+```
+
+The calculator estimates projected portfolio value using a nominal annual return and constant nominal annual contributions. It inflates annual retirement spending from today's money to the retirement year, then calculates the target corpus as that spending divided by the caller-supplied withdrawal rate. A positive `surplusOrShortfall` means the projected value exceeds the target; a negative value means a shortfall.
+
+This is a deterministic screening scenario, not a probability model, financial recommendation, or guarantee. It excludes taxes, fees, volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. The withdrawal rate and all return/inflation assumptions must be chosen and disclosed by the caller.
+
 ### XIRR (irregular cash-flow return)
 
 ```typescript
@@ -87,7 +108,6 @@ Asset allocation groups asset positions by their supplied category and returns e
 
 ## Planned capabilities
 
-- FIRE and retirement projections
 - Loan amortization
 - Tax estimation
 - Portfolio performance analytics
@@ -104,6 +124,7 @@ src/
     FinancialPosition.ts
     NetWorth.ts
     AssetAllocation.ts
+    FireReadiness.ts
     index.ts
 tests/
     Cagr.test.ts
@@ -111,6 +132,7 @@ tests/
     Xirr.test.ts
     NetWorth.test.ts
     AssetAllocation.test.ts
+    FireReadiness.test.ts
 ```
 
 ## Development
