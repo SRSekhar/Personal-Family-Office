@@ -20,29 +20,41 @@ jobs:
     timeout-minutes: 2
     outputs:
       ready: ${{ steps.credentials.outputs.ready }}
+      auth_mode: ${{ steps.credentials.outputs.auth_mode }}
     steps:
       - name: Check required secrets without exposing their values
         id: credentials
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          HCNSEC_API_KEY: ${{ secrets.HCNSEC_API_KEY }}
           PFO_AUTOMATION_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
         shell: bash
         run: |
-          if [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" && -n "$PFO_AUTOMATION_TOKEN" ]]; then
+          if [[ -n "$HCNSEC_API_KEY" && -n "$PFO_AUTOMATION_TOKEN" ]]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "Both required secrets are configured."
+            echo "auth_mode=hcnsec" >> "$GITHUB_OUTPUT"
+            {
+              echo "## HCNSEC gateway mode selected"
+              echo
+              echo "The gateway will receive the code and prompts used by this engineering run. Do not store private financial records in the repository."
+            } >> "$GITHUB_STEP_SUMMARY"
+          elif [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" && -n "$PFO_AUTOMATION_TOKEN" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "auth_mode=claude" >> "$GITHUB_OUTPUT"
+            echo "Claude Code OAuth mode selected."
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "auth_mode=none" >> "$GITHUB_OUTPUT"
             {
               echo "## Autonomous development is not configured yet"
               echo
-              echo "Add these repository Actions secrets to enable agent runs:"
-              [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]] || echo "- `CLAUDE_CODE_OAUTH_TOKEN` — Claude Code OAuth token from a supported Pro/Max subscription."
+              echo "Add the GitHub Actions secrets for one supported AI authentication mode, plus the GitHub automation token:"
+              [[ -n "$HCNSEC_API_KEY" || -n "$CLAUDE_CODE_OAUTH_TOKEN" ]] || echo "- Either `HCNSEC_API_KEY` (HCNSEC gateway key) or `CLAUDE_CODE_OAUTH_TOKEN` (Claude Code OAuth token)."
               [[ -n "$PFO_AUTOMATION_TOKEN" ]] || echo "- `PFO_AUTOMATION_TOKEN` — fine-grained GitHub token scoped to this repository with Contents, Pull requests, and Issues read/write; Actions read."
               echo
               echo "No credentials were printed or modified by this workflow."
             } >> "$GITHUB_STEP_SUMMARY"
-            echo "::warning::Autonomous agent skipped because one or more required repository secrets are missing. See the job summary."
+            echo "::warning::Autonomous agent skipped because required repository secrets are missing. See the job summary."
           fi
 
   develop:
@@ -67,8 +79,11 @@ jobs:
         uses: anthropics/claude-code-action@a26b07d8c778b0c43f64618e5fd29fd0f8af72e8 # v1.0.250
         env:
           GH_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+          ANTHROPIC_BASE_URL: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && 'https://api.hcnsec.cn' || '' }}
+          ANTHROPIC_CUSTOM_HEADERS: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('Authorization: Bearer {0}', secrets.HCNSEC_API_KEY) || '' }}
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
+          claude_code_oauth_token: ${{ needs.preflight.outputs.auth_mode == 'claude' && secrets.CLAUDE_CODE_OAUTH_TOKEN || '' }}
           github_token: ${{ secrets.PFO_AUTOMATION_TOKEN }}
           prompt: |
             You are the autonomous engineering agent for PFO OS in this repository. Perform exactly one focused, production-quality engineering cycle, not a broad rewrite.
@@ -101,5 +116,6 @@ jobs:
             - Do not modify this workflow or its permissions unless needed to fix a demonstrable defect; explain any such change in the PR.
             - Keep scope narrow and preserve existing architecture. If a task requires an unresolved product/legal/architecture decision, stop that task and record the decision needed.
           claude_args: |
+            ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'DeepSeek-V4-Pro') || '' }}
             --max-turns 25
             --allowedTools "Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(gh:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
