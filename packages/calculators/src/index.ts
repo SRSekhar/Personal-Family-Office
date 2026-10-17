@@ -14,6 +14,9 @@ export type { CagrInput } from './Cagr.js';
 export { projectCompoundGrowth } from './CompoundGrowth.js';
 export type { CompoundGrowthInput, ContributionTiming } from './CompoundGrowth.js';
 
+export { calculateFireReadiness } from './FireReadiness.js';
+export type { FireReadinessInput, FireReadinessResult } from './FireReadiness.js';
+
 export { calculateXirr } from './Xirr.js';
 export type { XirrCashFlow } from './Xirr.js';
 
