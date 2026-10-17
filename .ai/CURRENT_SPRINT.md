@@ -23,7 +23,7 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - Repository foundation, bootstrap, and CI quality gates
 - Scheduled full-history Gitleaks scanning; latest recorded scans passed without findings
 - Dependabot workspace and GitHub Actions updates
-- CAGR, annual compound-growth projection, XIRR, and deterministic FIRE-readiness calculators (the FIRE calculator is related roadmap progress; the full planner remains unfinished)
+- CAGR, annual compound-growth projection, XIRR, deterministic FIRE readiness, ordered scenario comparison, and required annual contribution solver (the planner UI and any probabilistic analysis remain unfinished)
 - Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
 - Portfolio mapping and analysis composition with duplicate-selection protection
 - Versioned portfolio report model and self-contained offline HTML renderer, with semantic timestamps, currency-code, nested-currency, net-worth, analysis-total, malformed-payload, and allocation-reconciliation validation
@@ -41,7 +41,7 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 
 ## Next Deliverables
 
-1. Continue planned product work on the deterministic FIRE engine with clearly defined inputs, assumptions, and output requirements before adding planner UI or probabilistic scenarios.
+1. Review proposed ADR-0003 and validate its open FIRE planner questions before implementing local-first UI with the existing calculator APIs.
 2. Use the local dashboard-to-report flow to conduct the documented customer-discovery experiment; prioritize actual user evidence and paid-pilot commitments before adding persistence or unrelated feature families.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
 4. Keep distribution-artifact, dependency-license, and product-boundary decisions as release gates before external distribution; do not let unresolved release decisions stop safe local-first product development.
@@ -79,3 +79,11 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - PR #109 merged: the agent no longer receives the repository write token in its shell environment. A post-agent publishing step handles branch push and PR creation/update. CI and full-history secret scanning passed before merge.
 - PR #110 merged: deterministic FIRE-readiness calculation is now implemented and tested in `@pfo/calculators`. It calculates projected portfolio value, inflation-adjusted retirement spending, target corpus from an explicit withdrawal rate, and surplus/shortfall. It is not a complete retirement planner.
 - The next FIRE increment should retain deterministic, explicit assumptions; do not add market data, financial recommendations, historical storage, or Monte Carlo behavior without a clear requirements basis.
+
+
+## Follow-up (2026-10-17, continued)
+
+- PR #112 merged after CI and Secret Scan passed: the autonomous agent now has its native file tools allowed, a 40-turn budget, corrected preflight diagnostics, and clean allowed-tools quoting. The workflow still needs an end-to-end post-merge run.
+- PR #113 merged after full CI and Secret Scan passed: deterministic scenario comparison is implemented and documented.
+- PR #114 merged after full CI and Secret Scan passed: the required annual FIRE contribution solver is implemented with tests for zero/negative return assumptions and zero-year boundaries.
+- HCNSEC and `PFO_AUTOMATION_TOKEN` are configured. The previous agent run failed before producing a PR; do not mark autonomous delivery complete until the corrected workflow produces a valid PR and CI passes.

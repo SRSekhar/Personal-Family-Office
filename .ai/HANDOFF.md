@@ -79,3 +79,19 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - The full FIRE planner, scenario comparison/UI, Monte Carlo analysis, and goal tracking remain unfinished. Do not imply that the calculator alone constitutes a complete retirement plan.
 - The autonomous workflow's required secrets are still an operational setup step: either `HCNSEC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`, plus `PFO_AUTOMATION_TOKEN`. Configure them only in repository Actions secrets, then manually run the workflow once and verify its output. Never paste secrets into chat or commit them.
 - Existing release blockers remain: the GitHub Pages repository setting has not been enabled through this connection; customer demand and paid pilots remain unvalidated; legal/distribution disposition remains a human release gate. These should not prevent safe, local-first product development.
+
+
+## Latest Follow-up (2026-10-17, continued)
+
+- PR #112 merged: added Claude Code native file tools to the allowed-tools list, increased the turn budget to 40, corrected the missing-token summary quoting, and removed a stray quote from the allowed-tools argument. PR CI and Secret Scan passed.
+- PR #113 merged: added `compareFireReadinessScenarios` with input validation, explicit per-scenario assumptions, ordered deterministic results, tests, and documentation. It does not rank scenarios or make recommendations.
+- PR #114 merged: added `calculateRequiredFireContribution` to solve the constant annual contribution required to reach the inflation-adjusted FIRE target. It handles already-met targets, zero-year shortfalls, zero/negative return assumptions, and floating-point rounding conservatively. Full CI and Secret Scan passed.
+- The latest main commit after these merges is `1361c0513ec8abb8308758d9bf4fecb9d9542274`. Main CI for this commit is being verified separately.
+- The HCNSEC gateway key and `PFO_AUTOMATION_TOKEN` are configured. The previous manual agent run authenticated and initialized the gateway but failed before publishing a PR because of tool/turn-limit issues. The corrected workflow has not yet been proven end-to-end; verify the next scheduled run, including branch/PR publication and CI.
+
+## Immediate Next Steps
+
+1. Verify the post-merge main CI for PR #114 and the next scheduled autonomous-development run.
+2. Confirm the corrected agent publishes one focused, tested PR without exposing the write token to the agent.
+3. Review proposed ADR-0003 and validate its open questions before implementing the local-first FIRE planner UI; retain transparent assumptions and deterministic math.
+4. Continue to keep real financial data out of the public repository. Customer demand, paid pilots, licensing/distribution review, and GitHub Pages setup remain open and must not be represented as complete.
