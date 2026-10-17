@@ -98,6 +98,28 @@ const comparison = compareFireReadinessScenarios([
 
 Each comparison scenario supplies its own complete assumptions. Results preserve input order and return the scenario ID/name, the original inputs, and the existing FIRE readiness result. IDs must be non-empty and unique; names must be non-empty. Invalid financial assumptions are rejected by the underlying calculator. The function does not rank scenarios or recommend an assumption set. This is a deterministic comparison, not a probability model or a guarantee.
 
+### Required annual FIRE contribution
+
+```typescript
+import { calculateRequiredFireContribution } from '@pfo/calculators';
+
+const required = calculateRequiredFireContribution({
+    currentPortfolio: 1_000_000,
+    yearsToRetirement: 10,
+    expectedAnnualReturn: 0.07,
+    annualInflationRate: 0.04,
+    annualRetirementSpendingToday: 300_000,
+    withdrawalRate: 0.04,
+    contributionTiming: 'end'
+});
+
+console.log(required.requiredAnnualContribution);
+```
+
+The solver calculates the inflation-adjusted target corpus and solves for the constant nominal annual contribution that reaches it under the supplied return and contribution-timing assumptions. It returns both the required annual contribution and the existing FIRE readiness result. Contribution timing supports `beginning` and `end`, and defaults to `end`. If the current portfolio already meets the target, the required contribution is zero. If a shortfall remains and retirement is now (zero years remaining), it throws because future contributions cannot close that shortfall in this model.
+
+This is deterministic scenario math, not a recommendation or guarantee. It excludes taxes, fees, volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. The contribution is held constant in nominal terms; assumptions should be disclosed and tested for sensitivity.
+
 ### XIRR (irregular cash-flow return)
 
 ```typescript
@@ -165,6 +187,7 @@ src/
     AssetAllocation.ts
     FireReadiness.ts
     FireScenarioComparison.ts
+    RequiredFireContribution.ts
     index.ts
 tests/
     Cagr.test.ts
@@ -174,6 +197,7 @@ tests/
     AssetAllocation.test.ts
     FireReadiness.test.ts
     FireScenarioComparison.test.ts
+    RequiredFireContribution.test.ts
 ```
 
 ## Development

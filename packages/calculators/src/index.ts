@@ -23,6 +23,12 @@ export type {
     FireReadinessScenarioResult
 } from './FireScenarioComparison.js';
 
+export { calculateRequiredFireContribution } from './RequiredFireContribution.js';
+export type {
+    RequiredFireContributionInput,
+    RequiredFireContributionResult
+} from './RequiredFireContribution.js';
+
 export { calculateXirr } from './Xirr.js';
 export type { XirrCashFlow } from './Xirr.js';
 
