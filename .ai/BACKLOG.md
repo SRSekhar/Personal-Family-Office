@@ -91,15 +91,20 @@ Features
 
 Status
 
+In Progress
+
+Implemented
+
+- Deterministic FIRE readiness scenario with explicit nominal return, inflation, retirement-spending, withdrawal-rate, and contribution-timing assumptions (PR #110)
+- Deterministic scenario comparison that preserves each scenario's assumptions and caller-supplied order without ranking/recommendations (PR #113)
+- Required annual contribution solver with validated zero-year and zero/negative-return edge cases (PR #114)
+
 Planned
 
-Features
-
-- Retirement Calculator
-- FIRE Probability
-- Safe Withdrawal
-- Monte Carlo Simulation
-- Goal Tracking
+- Local-first planner UI contract and interface, guided by proposed ADR-0003
+- Goal tracking
+- Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
+- FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
 
 ---
 
