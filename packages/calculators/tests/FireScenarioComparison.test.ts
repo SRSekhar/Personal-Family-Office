@@ -59,7 +59,7 @@ describe('compareFireReadinessScenarios', () => {
         const results = compareFireReadinessScenarios([
             { id: 'immutable', name: 'Immutable snapshot', input: { ...baseInput } }
         ]);
-        const resultInput = results[0]!.input;
+        const resultInput = results[0]?.input ?? baseInput;
 
         expect(Object.isFrozen(resultInput)).toBe(true);
         expect(Reflect.set(resultInput, 'expectedAnnualReturn', 0.2)).toBe(false);
