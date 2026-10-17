@@ -72,7 +72,7 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 ## Latest Follow-up (2026-10-17)
 
-- PR #107 merged: an hourly GitHub Actions autonomous-development workflow was added. It is scheduled at minute 17 each hour (UTC) and can also be manually dispatched. The first end-to-end agent run remains unverified until the required Actions secrets are configured and a manual run succeeds.
+- PR #107 merged: an hourly GitHub Actions autonomous-development workflow was added. It is scheduled twice hourly at minutes 17 and 47 UTC and can also be manually dispatched. The first end-to-end agent run remains unverified until the required Actions secrets are configured and a manual run succeeds.
 - PR #108 merged: the workflow now supports HCNSEC gateway authentication alongside Claude Code OAuth. HCNSEC uses the Claude Code-compatible endpoint at `https://api.hcnsec.cn` with a configurable model (default `DeepSeek-V4-Pro`). Authentication and a complete agent run through the gateway have not yet been verified. A third-party gateway receives the prompts and repository content required for the run.
 - PR #109 merged: the autonomous workflow no longer exposes the repository write token as the agent's `GH_TOKEN`, and checkout credentials are not persisted. The agent receives a read-only GitHub token; a separate post-agent step receives the write token to push a branch and create/update a PR. PR CI and full-history secret scanning passed before merge.
 - PR #110 merged: `@pfo/calculators` now exports a deterministic FIRE-readiness calculator. It projects an investable portfolio under an explicit nominal return and constant nominal annual contribution, inflates retirement spending, derives a target corpus from the supplied withdrawal-rate assumption, and reports surplus/shortfall. Focused tests and the full CI/secret-scan checks passed before merge. It is a scenario calculator, not a probability model, recommendation, or guarantee.
@@ -86,7 +86,7 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - PR #112 merged: added Claude Code native file tools to the allowed-tools list, increased the turn budget to 40, corrected the missing-token summary quoting, and removed a stray quote from the allowed-tools argument. PR CI and Secret Scan passed.
 - PR #113 merged: added `compareFireReadinessScenarios` with input validation, explicit per-scenario assumptions, ordered deterministic results, tests, and documentation. It does not rank scenarios or make recommendations.
 - PR #114 merged: added `calculateRequiredFireContribution` to solve the constant annual contribution required to reach the inflation-adjusted FIRE target. It handles already-met targets, zero-year shortfalls, zero/negative return assumptions, and floating-point rounding conservatively. Full CI and Secret Scan passed.
-- The latest main commit after these merges is `1361c0513ec8abb8308758d9bf4fecb9d9542274`. Main CI for this commit is being verified separately.
+- The FIRE feature merges through PR #114 passed CI and Secret Scan on main. PR #117's trigger correction passed PR CI and Secret Scan; verify the post-merge main checks and the next scheduled autonomous run.
 - The HCNSEC gateway key and `PFO_AUTOMATION_TOKEN` are configured. The previous manual agent run authenticated and initialized the gateway but failed before publishing a PR because of tool/turn-limit issues. The corrected workflow has not yet been proven end-to-end; verify the next scheduled run, including branch/PR publication and CI.
 
 ## Immediate Next Steps
@@ -95,3 +95,5 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 2. Confirm the corrected agent publishes one focused, tested PR without exposing the write token to the agent.
 3. Review proposed ADR-0003 and validate its open questions before implementing the local-first FIRE planner UI; retain transparent assumptions and deterministic math.
 4. Continue to keep real financial data out of the public repository. Customer demand, paid pilots, licensing/distribution review, and GitHub Pages setup remain open and must not be represented as complete.
+
+- PR #116's immediate post-merge run failed with `Unsupported event type: push`; no agent work was performed. PR #117 removed the unsupported trigger and changed the cadence to twice hourly. Do not report autonomous delivery as working until a scheduled/manual run publishes a valid PR.

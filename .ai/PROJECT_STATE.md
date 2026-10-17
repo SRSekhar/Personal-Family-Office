@@ -69,3 +69,6 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 ## Last Updated
 
 2026-10-17
+
+- PR #116 added a main-push trigger, but its first run failed immediately with `Unsupported event type: push` before the agent executed. PR #117 removed that unsupported trigger and changed the schedule to twice hourly at minutes 17 and 47 UTC; PR CI and Secret Scan passed.
+- End-to-end autonomous delivery remains unverified. The next scheduled/manual run must reach the agent, create a focused commit, publish a PR, and pass PR CI before the workflow is considered operational.
