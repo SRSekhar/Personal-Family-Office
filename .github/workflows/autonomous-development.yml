@@ -50,7 +50,7 @@ jobs:
               echo
               echo "Add the GitHub Actions secrets for one supported AI authentication mode, plus the GitHub automation token:"
               [[ -n "$HCNSEC_API_KEY" || -n "$CLAUDE_CODE_OAUTH_TOKEN" ]] || echo "- Either `HCNSEC_API_KEY` (HCNSEC gateway key) or `CLAUDE_CODE_OAUTH_TOKEN` (Claude Code OAuth token)."
-              [[ -n "$PFO_AUTOMATION_TOKEN" ]] || echo "- `PFO_AUTOMATION_TOKEN` — fine-grained GitHub token scoped to this repository with Contents, Pull requests, and Issues read/write; Actions read."
+              [[ -n "$PFO_AUTOMATION_TOKEN" ]] || echo "- PFO_AUTOMATION_TOKEN — fine-grained GitHub token scoped to this repository with Contents, Pull requests, and Issues read/write; Actions read."
               echo
               echo "No credentials were printed or modified by this workflow."
             } >> "$GITHUB_STEP_SUMMARY"
@@ -120,8 +120,8 @@ jobs:
             - Keep scope narrow and preserve existing architecture. If a task requires an unresolved product/legal/architecture decision, stop that task and record the decision needed.
           claude_args: |
             ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'DeepSeek-V4-Pro') || '' }}
-            --max-turns 25
-            --allowedTools "Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
+            --max-turns 40
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
 
       - name: Publish committed change as a pull request
         if: success()
