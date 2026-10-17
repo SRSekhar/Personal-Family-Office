@@ -1,0 +1,105 @@
+name: PFO Autonomous Development
+
+on:
+  schedule:
+    # Hourly, offset from the top of the hour to reduce scheduling contention.
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pfo-autonomous-development
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Check autonomous-run credentials
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      ready: ${{ steps.credentials.outputs.ready }}
+    steps:
+      - name: Check required secrets without exposing their values
+        id: credentials
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          PFO_AUTOMATION_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" && -n "$PFO_AUTOMATION_TOKEN" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "Both required secrets are configured."
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Autonomous development is not configured yet"
+              echo
+              echo "Add these repository Actions secrets to enable agent runs:"
+              [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]] || echo "- `CLAUDE_CODE_OAUTH_TOKEN` — Claude Code OAuth token from a supported Pro/Max subscription."
+              [[ -n "$PFO_AUTOMATION_TOKEN" ]] || echo "- `PFO_AUTOMATION_TOKEN` — fine-grained GitHub token scoped to this repository with Contents, Pull requests, and Issues read/write; Actions read."
+              echo
+              echo "No credentials were printed or modified by this workflow."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::Autonomous agent skipped because one or more required repository secrets are missing. See the job summary."
+          fi
+
+  develop:
+    name: Autonomous engineering cycle
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+          persist-credentials: true
+
+      - name: Run bounded autonomous development cycle
+        uses: anthropics/claude-code-action@a26b07d8c778b0c43f64618e5fd29fd0f8af72e8 # v1.0.250
+        env:
+          GH_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+          prompt: |
+            You are the autonomous engineering agent for PFO OS in this repository. Perform exactly one focused, production-quality engineering cycle, not a broad rewrite.
+
+            Start by reading .ai/START_HERE.md if present, then .ai/PROJECT_STATE.md, .ai/CURRENT_SPRINT.md, .ai/HANDOFF.md, relevant architecture/decision records, package.json, and the relevant source/tests. Check git status and open pull requests before changing anything. Treat repository files as the source of truth; do not assume undocumented APIs, data models, selectors, or configuration.
+
+            PRIORITY ORDER:
+            1. Fix an actionable, reproducible correctness, privacy, security, data-integrity, build, or test issue.
+            2. Complete the highest-priority unfinished deliverable already recorded in the project state, without crossing a decision boundary.
+            3. Add focused tests/docs for a concrete existing gap.
+            Do not invent product requirements or make speculative features just to create activity. If no safe, well-scoped task is ready, make no code changes and record the blocker/next step in the workflow summary.
+
+            WORKFLOW:
+            - Check existing open PRs. If an existing autonomous-development PR is open, inspect its branch and continue that work rather than creating a duplicate. Otherwise create a new branch named agent/pfo-hourly-<UTC timestamp>.
+            - Make one small coherent change with tests. Use the repository's existing package manager and scripts; do not update dependencies unless required by the task.
+            - Run the most relevant tests and, where practical, pnpm lint, pnpm typecheck, pnpm build, and pnpm test. Report exact commands and results. Never claim a check passed unless it actually ran successfully.
+            - Review the final diff for secrets, personal/real financial data, accidental broad changes, and unsafe behavior.
+            - Update the relevant project handoff/state documentation with only verified facts, blockers, and the next concrete step.
+            - Commit and push the branch, then create or update a pull request with a clear summary and test results. Use GH_TOKEN/gh CLI when needed. If the GitHub token cannot trigger checks or write the PR, report the blocker instead of bypassing permissions.
+            - If no meaningful change is safe, do not create an empty commit or empty PR.
+
+            HARD GUARDRAILS:
+            - Never merge a PR automatically. Keep changes in a PR for review.
+            - Never change repository visibility, licensing, legal/distribution status, secrets, billing, or external service settings.
+            - Do not commit real financial records, personal financial data, credentials, tokens, private configuration, or generated customer data.
+            - Do not publish/deploy the dashboard or enable GitHub Pages automatically.
+            - Do not make trades, move money, contact customers, submit applications, or claim revenue/customer validation.
+            - Do not add fake endpoints, fake data models, placeholders, or unsupported claims.
+            - Do not use destructive commands, rewrite history, force-push, or bypass CI/security checks.
+            - Do not modify this workflow or its permissions unless needed to fix a demonstrable defect; explain any such change in the PR.
+            - Keep scope narrow and preserve existing architecture. If a task requires an unresolved product/legal/architecture decision, stop that task and record the decision needed.
+          claude_args: |
+            --max-turns 25
+            --allowedTools "Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(gh:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
