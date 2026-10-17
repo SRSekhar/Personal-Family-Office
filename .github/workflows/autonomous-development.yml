@@ -80,7 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
           ANTHROPIC_BASE_URL: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && 'https://api.hcnsec.cn' || '' }}
-          ANTHROPIC_CUSTOM_HEADERS: "${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('Authorization: Bearer {0}', secrets.HCNSEC_API_KEY) || '' }}"
+          ANTHROPIC_AUTH_TOKEN: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
         with:
           anthropic_api_key: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
           claude_code_oauth_token: ${{ needs.preflight.outputs.auth_mode == 'claude' && secrets.CLAUDE_CODE_OAUTH_TOKEN || '' }}
