@@ -36,7 +36,7 @@ describe('compareFireReadinessScenarios', () => {
         }));
         expect(results[1]?.input.expectedAnnualReturn).toBe(0.04);
         expect(results[1]?.result.projectedPortfolioAtRetirement)
-            .toBeLessThan(results[0]!.result.projectedPortfolioAtRetirement);
+            .toBeLessThan(results[0]?.result.projectedPortfolioAtRetirement ?? Number.POSITIVE_INFINITY);
         expect(results[1]?.result.targetCorpusAtRetirement)
             .toBe(results[0]?.result.targetCorpusAtRetirement);
     });
