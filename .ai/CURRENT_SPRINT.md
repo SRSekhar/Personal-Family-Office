@@ -41,7 +41,7 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 
 ## Next Deliverables
 
-1. Define the FIRE planner UI/input/output contract using the implemented readiness, scenario-comparison, and required-contribution APIs before adding UI or probabilistic scenarios.
+1. Review proposed ADR-0003 and validate its open FIRE planner questions before implementing local-first UI with the existing calculator APIs.
 2. Use the local dashboard-to-report flow to conduct the documented customer-discovery experiment; prioritize actual user evidence and paid-pilot commitments before adding persistence or unrelated feature families.
 3. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
 4. Keep distribution-artifact, dependency-license, and product-boundary decisions as release gates before external distribution; do not let unresolved release decisions stop safe local-first product development.
