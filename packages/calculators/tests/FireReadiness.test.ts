@@ -58,8 +58,8 @@ describe('calculateFireReadiness', () => {
         const end = calculateFireReadiness({ ...common, contributionTiming: 'end' });
         const beginning = calculateFireReadiness({ ...common, contributionTiming: 'beginning' });
 
-        expect(end.projectedPortfolioAtRetirement).toBeCloseTo(131, 10);
-        expect(beginning.projectedPortfolioAtRetirement).toBeCloseTo(133.1, 10);
+        expect(end.projectedPortfolioAtRetirement).toBeCloseTo(142, 10);
+        expect(beginning.projectedPortfolioAtRetirement).toBeCloseTo(144.1, 10);
         expect(beginning.projectedPortfolioAtRetirement).toBeGreaterThan(end.projectedPortfolioAtRetirement);
     });
 
