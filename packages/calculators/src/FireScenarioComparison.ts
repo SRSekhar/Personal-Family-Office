@@ -50,9 +50,9 @@ export function compareFireReadinessScenarios(
         }
         seenIds.add(scenario.id);
 
-        // Capture a snapshot so later caller mutations cannot make the
-        // recorded assumptions disagree with the already-calculated result.
-        const input: FireReadinessInput = { ...scenario.input };
+        // Freeze the flat input snapshot so neither the caller's source object
+        // nor consumers of the result can rewrite the assumptions after calculation.
+        const input: FireReadinessInput = Object.freeze({ ...scenario.input });
 
         return {
             id: scenario.id,
