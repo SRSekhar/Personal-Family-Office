@@ -106,8 +106,8 @@ describe('calculateFireReadiness', () => {
             .toThrow(RangeError);
     });
 
-    it('rejects a result that overflows the numeric range', () => {
-        expect(() => calculateFireReadiness({
+    it.each([
+        ['projected portfolio', {
             currentPortfolio: 1e308,
             annualContribution: 0,
             yearsToRetirement: 100,
@@ -115,6 +115,26 @@ describe('calculateFireReadiness', () => {
             annualInflationRate: 0,
             annualRetirementSpendingToday: 0,
             withdrawalRate: 0.04
-        })).toThrow(RangeError);
+        }],
+        ['inflation-adjusted spending', {
+            currentPortfolio: 0,
+            annualContribution: 0,
+            yearsToRetirement: 2,
+            expectedAnnualReturn: 0,
+            annualInflationRate: 1,
+            annualRetirementSpendingToday: 1e308,
+            withdrawalRate: 0.04
+        }],
+        ['target corpus', {
+            currentPortfolio: 0,
+            annualContribution: 0,
+            yearsToRetirement: 0,
+            expectedAnnualReturn: 0,
+            annualInflationRate: 0,
+            annualRetirementSpendingToday: 1e308,
+            withdrawalRate: 0.01
+        }]
+    ])('rejects a result when %s overflows the numeric range', (_description, input) => {
+        expect(() => calculateFireReadiness(input)).toThrow(RangeError);
     });
 });
