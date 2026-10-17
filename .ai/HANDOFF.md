@@ -93,5 +93,5 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 1. Verify the post-merge main CI for PR #114 and the next scheduled autonomous-development run.
 2. Confirm the corrected agent publishes one focused, tested PR without exposing the write token to the agent.
-3. Define the FIRE planner's input/output contract before implementing UI; retain transparent assumptions and deterministic math.
+3. Review proposed ADR-0003 and validate its open questions before implementing the local-first FIRE planner UI; retain transparent assumptions and deterministic math.
 4. Continue to keep real financial data out of the public repository. Customer demand, paid pilots, licensing/distribution review, and GitHub Pages setup remain open and must not be represented as complete.
