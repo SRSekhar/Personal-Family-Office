@@ -68,3 +68,14 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - Do not change repository visibility or publish a license without an explicit product-boundary decision.
 - Do not claim the Anthropic application was submitted; the current document is a draft.
 - Do not mark a task complete until tests or validation have actually run.
+
+
+## Latest Follow-up (2026-10-17)
+
+- PR #107 merged: an hourly GitHub Actions autonomous-development workflow was added. It is scheduled at minute 17 each hour (UTC) and can also be manually dispatched. The first end-to-end agent run remains unverified until the required Actions secrets are configured and a manual run succeeds.
+- PR #108 merged: the workflow now supports HCNSEC gateway authentication alongside Claude Code OAuth. HCNSEC uses the Claude Code-compatible endpoint at `https://api.hcnsec.cn` with a configurable model (default `DeepSeek-V4-Pro`). Authentication and a complete agent run through the gateway have not yet been verified. A third-party gateway receives the prompts and repository content required for the run.
+- PR #109 merged: the autonomous workflow no longer exposes the repository write token as the agent's `GH_TOKEN`, and checkout credentials are not persisted. The agent receives a read-only GitHub token; a separate post-agent step receives the write token to push a branch and create/update a PR. PR CI and full-history secret scanning passed before merge.
+- PR #110 merged: `@pfo/calculators` now exports a deterministic FIRE-readiness calculator. It projects an investable portfolio under an explicit nominal return and constant nominal annual contribution, inflates retirement spending, derives a target corpus from the supplied withdrawal-rate assumption, and reports surplus/shortfall. Focused tests and the full CI/secret-scan checks passed before merge. It is a scenario calculator, not a probability model, recommendation, or guarantee.
+- The full FIRE planner, scenario comparison/UI, Monte Carlo analysis, and goal tracking remain unfinished. Do not imply that the calculator alone constitutes a complete retirement plan.
+- The autonomous workflow's required secrets are still an operational setup step: either `HCNSEC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`, plus `PFO_AUTOMATION_TOKEN`. Configure them only in repository Actions secrets, then manually run the workflow once and verify its output. Never paste secrets into chat or commit them.
+- Existing release blockers remain: the GitHub Pages repository setting has not been enabled through this connection; customer demand and paid pilots remain unvalidated; legal/distribution disposition remains a human release gate. These should not prevent safe, local-first product development.
