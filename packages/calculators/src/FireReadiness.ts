@@ -95,8 +95,11 @@ export function calculateFireReadiness({
         contributionTiming
     });
 
-    const projectedAnnualRetirementSpending = annualRetirementSpendingToday *
-        Math.exp(yearsToRetirement * Math.log1p(annualInflationRate));
+    // Preserve the exact zero-spending result without evaluating an inflation
+    // factor that may overflow for extreme (but finite) assumptions.
+    const projectedAnnualRetirementSpending = annualRetirementSpendingToday === 0
+        ? 0
+        : annualRetirementSpendingToday * Math.exp(yearsToRetirement * Math.log1p(annualInflationRate));
     const targetCorpusAtRetirement = projectedAnnualRetirementSpending / withdrawalRate;
     const surplusOrShortfall = projectedPortfolioAtRetirement - targetCorpusAtRetirement;
 
