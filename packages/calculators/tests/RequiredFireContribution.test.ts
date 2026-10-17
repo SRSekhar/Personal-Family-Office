@@ -74,6 +74,19 @@ describe('calculateRequiredFireContribution', () => {
         expect(beginning.readiness.isOnTrack).toBe(true);
     });
 
+
+    it('rejects a required contribution that exceeds the numeric range', () => {
+        expect(() => calculateRequiredFireContribution({
+            currentPortfolio: 0,
+            yearsToRetirement: 1,
+            expectedAnnualReturn: -0.999,
+            annualInflationRate: 0,
+            annualRetirementSpendingToday: 1e308,
+            withdrawalRate: 1,
+            contributionTiming: 'beginning'
+        })).toThrow(RangeError);
+    });
+
     it('rejects a shortfall when no years remain until retirement', () => {
         expect(() => calculateRequiredFireContribution({
             ...baseInput,
