@@ -59,6 +59,45 @@ The calculator estimates projected portfolio value using a nominal annual return
 
 This is a deterministic screening scenario, not a probability model, financial recommendation, or guarantee. It excludes taxes, fees, volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. The withdrawal rate and all return/inflation assumptions must be chosen and disclosed by the caller.
 
+### FIRE scenario comparison
+
+```typescript
+import { compareFireReadinessScenarios } from '@pfo/calculators';
+
+const comparison = compareFireReadinessScenarios([
+    {
+        id: 'base',
+        name: 'Base case',
+        input: {
+            currentPortfolio: 1_000_000,
+            annualContribution: 100_000,
+            yearsToRetirement: 10,
+            expectedAnnualReturn: 0.07,
+            annualInflationRate: 0.04,
+            annualRetirementSpendingToday: 300_000,
+            withdrawalRate: 0.04,
+            contributionTiming: 'end'
+        }
+    },
+    {
+        id: 'lower-return',
+        name: 'Lower return',
+        input: {
+            currentPortfolio: 1_000_000,
+            annualContribution: 100_000,
+            yearsToRetirement: 10,
+            expectedAnnualReturn: 0.04,
+            annualInflationRate: 0.04,
+            annualRetirementSpendingToday: 300_000,
+            withdrawalRate: 0.04,
+            contributionTiming: 'end'
+        }
+    }
+]);
+```
+
+Each comparison scenario supplies its own complete assumptions. Results preserve input order and return the scenario ID/name, the original inputs, and the existing FIRE readiness result. IDs must be non-empty and unique; names must be non-empty. Invalid financial assumptions are rejected by the underlying calculator. The function does not rank scenarios or recommend an assumption set. This is a deterministic comparison, not a probability model or a guarantee.
+
 ### XIRR (irregular cash-flow return)
 
 ```typescript
@@ -125,6 +164,7 @@ src/
     NetWorth.ts
     AssetAllocation.ts
     FireReadiness.ts
+    FireScenarioComparison.ts
     index.ts
 tests/
     Cagr.test.ts
@@ -133,6 +173,7 @@ tests/
     NetWorth.test.ts
     AssetAllocation.test.ts
     FireReadiness.test.ts
+    FireScenarioComparison.test.ts
 ```
 
 ## Development
