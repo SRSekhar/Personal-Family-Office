@@ -77,6 +77,8 @@ jobs:
       - name: Run bounded autonomous development cycle
         uses: anthropics/claude-code-action@a26b07d8c778b0c43f64618e5fd29fd0f8af72e8 # v1.0.250
         env:
+          PFO_PR_TITLE_FILE: ${{ runner.temp }}/pfo-pr-title.txt
+          PFO_PR_BODY_FILE: ${{ runner.temp }}/pfo-pr-body.md
           ANTHROPIC_BASE_URL: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && 'https://api.hcnsec.cn' || '' }}
           ANTHROPIC_AUTH_TOKEN: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
         with:
@@ -100,7 +102,7 @@ jobs:
             - Run the most relevant tests and, where practical, pnpm lint, pnpm typecheck, pnpm build, and pnpm test. Report exact commands and results. Never claim a check passed unless it actually ran successfully.
             - Review the final diff for secrets, personal/real financial data, accidental broad changes, and unsafe behavior.
             - Update the relevant project handoff/state documentation with only verified facts, blockers, and the next concrete step.
-            - Prepare a plain-text PR title in .automation/pr-title.txt and a Markdown PR summary in .automation/pr-body.md. Include the change summary, exact tests run/results, and any unresolved validation. Do not put credentials or personal financial data in either file.
+            - Prepare a plain-text PR title at the path in PFO_PR_TITLE_FILE and a Markdown PR summary at the path in PFO_PR_BODY_FILE. These paths are in the runner temporary directory, outside the repository. Include the change summary, exact tests run/results, and any unresolved validation. Do not put credentials or personal financial data in either file.
             - Commit the changes locally. Do not push, create/edit PRs, or attempt any GitHub write operation; a separate post-agent step publishes the branch and PR after the agent exits.
             - If no meaningful change is safe, do not create an empty commit or empty PR.
 
@@ -126,6 +128,8 @@ jobs:
           PFO_AUTOMATION_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
           GH_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          PFO_PR_TITLE_FILE: ${{ runner.temp }}/pfo-pr-title.txt
+          PFO_PR_BODY_FILE: ${{ runner.temp }}/pfo-pr-body.md
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'main' }}
         shell: bash
         run: |
@@ -142,12 +146,12 @@ jobs:
             exit 0
           fi
 
-          if [[ ! -s .automation/pr-title.txt || ! -s .automation/pr-body.md ]]; then
-            echo "::error::Agent did not create the required PR title/body files."
+          if [[ ! -s "$PFO_PR_TITLE_FILE" || ! -s "$PFO_PR_BODY_FILE" ]]; then
+            echo "::error::Agent did not create the required PR title/body files in the runner temporary directory."
             exit 1
           fi
 
-          title="$(head -n 1 .automation/pr-title.txt | tr -d '\r')"
+          title="$(head -n 1 "$PFO_PR_TITLE_FILE" | tr -d '\r')"
           if [[ -z "$title" || "${#title}" -gt 200 ]]; then
             echo "::error::PR title must be non-empty and no longer than 200 characters."
             exit 1
@@ -177,8 +181,8 @@ jobs:
 
           existing_pr="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')"
           if [[ -n "$existing_pr" ]]; then
-            gh pr edit "$existing_pr" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file .automation/pr-body.md
+            gh pr edit "$existing_pr" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$PFO_PR_BODY_FILE"
             echo "Updated existing PR #$existing_pr."
           else
-            gh pr create --repo "$GITHUB_REPOSITORY" --base "$GITHUB_DEFAULT_BRANCH" --head "$branch" --title "$title" --body-file .automation/pr-body.md
+            gh pr create --repo "$GITHUB_REPOSITORY" --base "$GITHUB_DEFAULT_BRANCH" --head "$branch" --title "$title" --body-file "$PFO_PR_BODY_FILE"
           fi
