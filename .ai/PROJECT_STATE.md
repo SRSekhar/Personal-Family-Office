@@ -30,13 +30,15 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 - CAGR calculation with input validation and edge-case tests.
 - Annual compound-growth projection with explicit contribution timing, input validation, overflow checks, and tests.
 - Deterministic FIRE-readiness scenario: projected investable portfolio, inflation-adjusted annual retirement spending, target corpus from an explicit withdrawal-rate assumption, and surplus/shortfall; assumptions and limitations are documented and tested.
+- Deterministic FIRE scenario comparison: evaluates independently specified assumptions in caller-supplied order, preserves inputs/results, rejects blank/duplicate identifiers, and does not rank or recommend scenarios (PR #113).
+- Required annual FIRE contribution solver: solves the constant nominal annual contribution needed to meet the inflation-adjusted target, returns zero when the current portfolio is sufficient, and rejects an unmet target with zero years remaining (PR #114).
 - XIRR for dated cash flows using ACT/365 and bisection, with date/amount validation and explicit rejection of multi-sign-change cash-flow series.
 
 These are mathematical utilities, not investment advice or guaranteed forecasts. XIRR currently supports cash-flow streams with exactly one sign change to avoid ambiguous roots.
 
 ## Next Deliverables
 
-1. Continue the planned FIRE engine with a transparent scenario-comparison/planner experience only after defining its inputs, assumptions, and output requirements; keep deterministic calculations separate from any future probabilistic analysis.
+1. Define the FIRE planner UI/input/output contract using the now-implemented readiness, scenario-comparison, and required-contribution calculators. Keep assumptions visible and deterministic calculations separate from any future probabilistic analysis; do not build planner UI until its requirements are explicit.
 2. Validate the local dashboard-to-report workflow with prospective users and seek two paid-pilot commitments before expanding scope. Define persistence/source-of-truth requirements before historical snapshot storage.
 3. Execute the documented 8–10 interview customer-discovery experiment and record only anonymized evidence; do not treat prototype completion as evidence of demand.
 4. Keep licensing, distribution-artifact, and public/private-boundary questions as release gates before distributing or hosting the product. Do not change repository visibility or licensing automatically; these gates should not block safe local-first product work.
@@ -58,7 +60,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #108 merged: optional HCNSEC gateway authentication documented alongside Claude Code OAuth; live gateway authentication remains unverified.
 - PR #109 merged: the autonomous agent receives read-only GitHub context, and the repository write token is only used by a post-agent publishing step. CI and full-history secret scanning passed before merge.
 - PR #110 merged: deterministic FIRE-readiness calculator added to `@pfo/calculators`, with focused validation tests and documented assumptions. The broader FIRE planner remains unfinished.
-- Manual Actions setup remains required: either `HCNSEC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`, plus `PFO_AUTOMATION_TOKEN`. After setup, run the workflow manually and verify a complete agent run.
+- PR #112 merged: added native Claude Code file tools to the allowed-tools list, raised the turn budget from 25 to 40, fixed the missing-token diagnostic quoting, and removed a stray trailing quote from the allowed-tools argument. PR CI and secret scan passed.
+- PR #113 merged: added tested deterministic FIRE scenario comparison with explicit assumptions and no automatic ranking/recommendation. Full CI and secret scan passed.
+- PR #114 merged: added the required annual FIRE contribution solver with boundary/invalid-input tests and documented assumptions. Full CI and secret scan passed.
+- HCNSEC and `PFO_AUTOMATION_TOKEN` are configured. The previous manual run authenticated and initialized the gateway but failed before publishing a PR due to agent tool/turn limits. PR #112 fixes those defects; the first end-to-end run on the corrected workflow remains unverified until a run publishes a valid PR and its CI passes.
 - Product validation and paid-pilot evidence remain open. GitHub Pages setup and legal/distribution review remain release gates, not reasons to stop safe local-first product development.
 
 ## Last Updated
