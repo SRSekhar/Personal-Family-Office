@@ -116,7 +116,7 @@ const required = calculateRequiredFireContribution({
 console.log(required.requiredAnnualContribution);
 ```
 
-The solver calculates the inflation-adjusted target corpus and solves for the constant nominal annual contribution that reaches it under the supplied return and contribution-timing assumptions. It returns both the required annual contribution and the existing FIRE readiness result. If the current portfolio already meets the target, the required contribution is zero. If a shortfall remains and retirement is now (zero years remaining), it throws because future contributions cannot close that shortfall in this model.
+The solver calculates the inflation-adjusted target corpus and solves for the constant nominal annual contribution that reaches it under the supplied return and contribution-timing assumptions. It returns both the required annual contribution and the existing FIRE readiness result. Contribution timing supports `beginning` and `end`, and defaults to `end`. If the current portfolio already meets the target, the required contribution is zero. If a shortfall remains and retirement is now (zero years remaining), it throws because future contributions cannot close that shortfall in this model.
 
 This is deterministic scenario math, not a recommendation or guarantee. It excludes taxes, fees, volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. The contribution is held constant in nominal terms; assumptions should be disclosed and tested for sensitivity.
 
