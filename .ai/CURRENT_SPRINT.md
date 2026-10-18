@@ -20,6 +20,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #145 — deterministic single-goal progress calculator and session-only dashboard Goal Tracker; reports progress, amount remaining, target date, and completion/overdue state without persistence or return projections.
 - CI, full-history Secret Scan, and dashboard packaging passed on each feature PR before merge.
 - PR #147 — CI static accessibility-contract regression checks for FIRE/Goal Tracker form labels, validation alerts, live regions, section naming, and progress indicator. These are structural checks, not interactive browser verification.
+- PR #149 — corrected Goal Tracker progress indicator's accessible value wording to report the percentage of target, including when the accumulated amount exceeds 100%; CI, Secret Scan, and dashboard packaging passed.
 - Product improvement log is maintained in `docs/product/IMPROVEMENT_LOG.md`.
 
 ## In Progress

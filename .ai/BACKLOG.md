@@ -156,7 +156,7 @@ Implemented
 Implemented
 
 - Stable record sorting by name A–Z or value ascending/descending, combined with current search and type filters (PR #130)
-- CI static accessibility-contract checks for FIRE/Goal Tracker labels, validation alerts, live regions, semantic naming, and progress indicator (PR #147); interactive accessibility validation remains open
+- CI static accessibility-contract checks for FIRE/Goal Tracker labels, validation alerts, live regions, semantic naming, and progress indicator (PR #147), plus accurate percentage-of-target accessible wording (PR #149); interactive accessibility validation remains open
 
 Planned
 
