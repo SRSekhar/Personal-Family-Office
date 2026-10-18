@@ -27,7 +27,9 @@ export function calculateGoalProgress(input: GoalProgressInput): GoalProgressRes
         throw new RangeError('Target date must be a valid calendar date in YYYY-MM-DD format.');
     }
 
-    const [year, month, day] = input.targetDate.split('-').map(Number);
+    const year = Number(input.targetDate.slice(0, 4));
+    const month = Number(input.targetDate.slice(5, 7));
+    const day = Number(input.targetDate.slice(8, 10));
     const targetTimestamp = Date.UTC(year, month - 1, day);
     const normalizedTarget = new Date(targetTimestamp);
     if (normalizedTarget.getUTCFullYear() !== year || normalizedTarget.getUTCMonth() !== month - 1 || normalizedTarget.getUTCDate() !== day) {
