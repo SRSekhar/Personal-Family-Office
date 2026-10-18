@@ -133,10 +133,15 @@ try {
     await page.setViewportSize({ width: 320, height: 800 });
     const viewport = await page.evaluate(() => ({
         width: globalThis.window.innerWidth,
-        documentWidth: globalThis.document.documentElement.scrollWidth
+        documentWidth: globalThis.document.documentElement.scrollWidth,
+        offenders: [...globalThis.document.querySelectorAll('body *')]
+            .map((element) => ({ tag: element.tagName, id: element.id, className: String(element.className).slice(0, 80),
+                left: Math.round(element.getBoundingClientRect().left), right: Math.round(element.getBoundingClientRect().right) }))
+            .filter((element) => element.right > globalThis.window.innerWidth + 1 || element.left < -1)
+            .slice(0, 12)
     }));
     assert.ok(viewport.documentWidth <= viewport.width,
-        `narrow viewport should not cause page-level horizontal overflow (viewport ${viewport.width}, document ${viewport.documentWidth})`);
+        `narrow viewport should not cause page-level horizontal overflow (viewport ${viewport.width}, document ${viewport.documentWidth}, offenders ${JSON.stringify(viewport.offenders)})`);
     process.stdout.write('PASS: keyboard tab order reaches FIRE controls and 320px layout has no page-level horizontal overflow.\\n');
 
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
