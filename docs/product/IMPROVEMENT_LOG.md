@@ -123,4 +123,4 @@ Do not record personal financial values or claim customer demand without evidenc
 - Report checks require a standalone HTML document without executable scripts or remote asset dependencies, and verify that comparison reports include all three named scenarios.
 - CI installs Playwright into a temporary directory rather than adding a permanent workspace dependency, installs Chromium, prepares browser calculator modules from the current package build, and runs the browser smoke script.
 - This is automated Chromium coverage for key workflows, not a claim that keyboard-only navigation, screen-reader behavior, responsive breakpoints, or 400% zoom have been manually verified. Those remain follow-up validation items.
-- Validation status: pending CI execution on PR #156 (do not treat the suite as passing until the workflow result is green).
+- Validation: PR #156 CI passed on head `0e1c0e1ee967030dd70b61f30737e406b0fb286c`, including lint, typecheck, build, existing tests, Chromium installation, and the real-browser smoke suite; Secret Scan also passed. This confirms the automated paths listed above, not the separate manual accessibility checks.
