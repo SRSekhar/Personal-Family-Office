@@ -20,6 +20,7 @@
             <nav>
                 <a class="nav-item active" href="#overview" aria-current="page"><span class="nav-icon">◫</span> Overview</a>
                 <a class="nav-item" href="#records"><span class="nav-icon">▤</span> Financial records</a>
+                <a class="nav-item" href="#fire-planner"><span class="nav-icon">◎</span> FIRE planner</a>
             </nav>
             <div class="sidebar-bottom">
                 <div class="privacy-card"><span class="privacy-dot"></span><div><strong>Private by design</strong><p>Your workspace stays in this browser.</p></div></div>
@@ -103,6 +104,36 @@
                 </section>
             </div>
 
+
+            <section class="panel fire-planner-panel" id="fire-planner" aria-labelledby="fire-planner-heading">
+                <div class="panel-header"><div><p class="eyebrow">RETIREMENT SCENARIO</p><h2 id="fire-planner-heading">FIRE planner</h2></div><span class="panel-tag">Deterministic · INR</span></div>
+                <p class="fire-planner-intro">Explore a retirement scenario using explicit assumptions. Calculations run locally; inputs and results are not saved.</p>
+                <div class="notice" id="fire-planner-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for planning</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal retirement assumptions.</p></div></div>
+                <form id="fire-planner-form">
+                  <div class="fire-input-grid">
+                    <label class="field-label" for="fire-current-portfolio">Current investable portfolio (₹)<input id="fire-current-portfolio" name="currentPortfolio" type="number" min="0" step="any" required value="0"></label>
+                    <label class="field-label" for="fire-annual-contribution">Annual contribution (₹)<input id="fire-annual-contribution" name="annualContribution" type="number" min="0" step="any" required value="0"></label>
+                    <label class="field-label" for="fire-years">Years until retirement<input id="fire-years" name="yearsToRetirement" type="number" min="0" step="1" required value="10"></label>
+                    <label class="field-label" for="fire-return">Expected annual return (%)<input id="fire-return" name="expectedAnnualReturn" type="number" min="-99.99" step="any" required value="7"></label>
+                    <label class="field-label" for="fire-inflation">Annual inflation (%)<input id="fire-inflation" name="annualInflationRate" type="number" min="0" step="any" required value="3"></label>
+                    <label class="field-label" for="fire-spending">Annual spending in today's money (₹)<input id="fire-spending" name="annualRetirementSpendingToday" type="number" min="0" step="any" required value="0"></label>
+                    <label class="field-label" for="fire-withdrawal">Initial withdrawal rate (%)<input id="fire-withdrawal" name="withdrawalRate" type="number" min="0.01" max="100" step="any" required value="4"></label>
+                    <label class="field-label" for="fire-contribution-timing">Contribution timing<select id="fire-contribution-timing" name="contributionTiming"><option value="end">End of year</option><option value="beginning">Beginning of year</option></select></label>
+                  </div>
+                  <p class="fire-assumptions-note">Annual contributions stay constant in nominal terms. Return, inflation and withdrawal rate are assumptions, not predictions or guarantees. Taxes, fees, volatility, sequence risk, benefits and changing contributions are excluded.</p>
+                  <div class="fire-actions"><button class="button button-primary" type="submit">Calculate readiness</button><button class="button button-secondary" id="fire-required-button" type="button">Solve required annual contribution</button><button class="button button-secondary" id="fire-reset-button" type="button">Reset assumptions</button></div>
+                  <p id="fire-validation" role="alert" hidden></p>
+                </form>
+                <section id="fire-results" class="fire-results" aria-labelledby="fire-results-heading" aria-live="polite" hidden>
+                  <div class="fire-result-heading"><div><p class="eyebrow">SCENARIO RESULT</p><h3 id="fire-results-heading">Retirement scenario</h3></div><span id="fire-status" class="fire-status"></span></div>
+                  <div class="fire-result-grid">
+                    <article><span>Projected portfolio</span><strong id="fire-projected-portfolio">—</strong><small>At retirement</small></article>
+                    <article><span>Target corpus</span><strong id="fire-target-corpus">—</strong><small>Spending divided by withdrawal rate</small></article>
+                    <article><span>Annual spending</span><strong id="fire-projected-spending">—</strong><small>Inflation-adjusted</small></article>
+                    <article><span>Surplus / shortfall</span><strong id="fire-gap">—</strong><small>Against target corpus</small></article>
+                  </div><p id="fire-required-result" class="fire-required-result" hidden></p>
+                </section>
+            </section>
             <section class="panel records-panel" id="records" aria-labelledby="records-heading">
                 <div class="panel-header records-header">
                     <div><p class="eyebrow">YOUR BALANCE SHEET</p><h2 id="records-heading">Financial records</h2></div>

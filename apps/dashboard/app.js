@@ -5,6 +5,8 @@ import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
+import { calculateFireReadiness } from './calculators-runtime/FireReadiness.js';
+import { calculateRequiredFireContribution } from './calculators-runtime/RequiredFireContribution.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -82,6 +84,62 @@ function savePrivateRecords(nextRecords, allowRecovery = false) {
     return true;
 }
 
+
+function fireInput() {
+    const form = $('#fire-planner-form');
+    const n = (name) => Number(form.elements[name].value);
+    return {
+        currentPortfolio: n('currentPortfolio'), annualContribution: n('annualContribution'),
+        yearsToRetirement: n('yearsToRetirement'), expectedAnnualReturn: n('expectedAnnualReturn') / 100,
+        annualInflationRate: n('annualInflationRate') / 100,
+        annualRetirementSpendingToday: n('annualRetirementSpendingToday'),
+        withdrawalRate: n('withdrawalRate') / 100, contributionTiming: form.elements.contributionTiming.value
+    };
+}
+function fireError(message = '') {
+    $('#fire-validation').textContent = message;
+    $('#fire-validation').hidden = !message;
+}
+function showFireResult(result, required = null) {
+    $('#fire-results').hidden = false;
+    $('#fire-status').textContent = result.isOnTrack ? 'On track under assumptions' : 'Shortfall under assumptions';
+    $('#fire-status').className = 'fire-status ' + (result.isOnTrack ? 'on-track' : 'shortfall');
+    $('#fire-projected-portfolio').textContent = money(result.projectedPortfolioAtRetirement);
+    $('#fire-target-corpus').textContent = money(result.targetCorpusAtRetirement);
+    $('#fire-projected-spending').textContent = money(result.projectedAnnualRetirementSpending);
+    $('#fire-gap').textContent = (result.surplusOrShortfall < 0 ? '−' : '+') + money(Math.abs(result.surplusOrShortfall));
+    const out = $('#fire-required-result');
+    out.hidden = required === null;
+    out.textContent = required === null ? '' : 'Required constant annual contribution: ' + money(required) + '. Mathematical scenario only; not a recommendation.';
+}
+function calculateFire(solve = false) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        fireError('Use the loopback-only dashboard before entering retirement assumptions.');
+        return;
+    }
+    fireError();
+    try {
+        const input = fireInput();
+        if (solve) {
+            const result = calculateRequiredFireContribution({
+                currentPortfolio: input.currentPortfolio, yearsToRetirement: input.yearsToRetirement,
+                expectedAnnualReturn: input.expectedAnnualReturn, annualInflationRate: input.annualInflationRate,
+                annualRetirementSpendingToday: input.annualRetirementSpendingToday,
+                withdrawalRate: input.withdrawalRate, contributionTiming: input.contributionTiming
+            });
+            showFireResult(result.readiness, result.requiredAnnualContribution);
+        } else showFireResult(calculateFireReadiness(input));
+    } catch (error) {
+        $('#fire-results').hidden = true;
+        fireError(error instanceof Error ? error.message : 'Check all assumptions and try again.');
+    }
+}
+function resetFire() {
+    const form = $('#fire-planner-form');
+    const defaults = {currentPortfolio:0,annualContribution:0,yearsToRetirement:10,expectedAnnualReturn:7,annualInflationRate:3,annualRetirementSpendingToday:0,withdrawalRate:4,contributionTiming:'end'};
+    for (const [name,value] of Object.entries(defaults)) form.elements[name].value = String(value);
+    fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true;
+}
 function showHostedPrivacyWarning() {
     const isHosted = !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#hosted-privacy-notice').hidden = !isHosted;
@@ -319,6 +377,11 @@ function importData(file) {
     reader.readAsText(file);
 }
 
+
+$('#fire-planner-form').addEventListener('submit', (event) => { event.preventDefault(); calculateFire(); });
+$('#fire-required-button').addEventListener('click', () => calculateFire(true));
+$('#fire-reset-button').addEventListener('click', resetFire);
+$('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; });
 $('#add-record-button').addEventListener('click', () => openRecordDialog());
 $('#quick-add-asset').addEventListener('click', () => openRecordDialog('asset'));
 $('#quick-add-liability').addEventListener('click', () => openRecordDialog('liability'));
@@ -427,4 +490,8 @@ document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('
 }));
 
 showHostedPrivacyWarning();
+if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+    $('#fire-planner-hosted-notice').hidden = false;
+    $('#fire-planner-form').querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
+}
 switchWorkspace('demo');

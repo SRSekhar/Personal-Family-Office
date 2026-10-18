@@ -30,6 +30,22 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build browser calculator modules
+        run: |
+          pnpm --filter @pfo/models build
+          pnpm --filter @pfo/calculators build
+          node scripts/dashboard/prepare-calculators.mjs
       - name: Validate dashboard files
         shell: bash
         run: |
@@ -38,6 +54,9 @@ jobs:
           test -s apps/dashboard/styles.css
           test -s apps/dashboard/app.js
           test -s apps/dashboard/workspace-security.js
+          test -s apps/dashboard/calculators-runtime/FireReadiness.js
+          test -s apps/dashboard/calculators-runtime/RequiredFireContribution.js
+          test -s apps/dashboard/calculators-runtime/CompoundGrowth.js
           node --check apps/dashboard/app.js
           node --check apps/dashboard/workspace-security.js
           grep -q 'hosted-privacy-notice' apps/dashboard/index.html

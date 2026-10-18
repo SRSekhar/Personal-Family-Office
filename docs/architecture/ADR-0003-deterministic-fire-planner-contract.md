@@ -1,6 +1,6 @@
 # ADR-0003: Deterministic FIRE planner input/output contract
 
-- **Status:** Proposed — requirements contract for review; no UI or persistence decision is finalized
+- **Status:** Accepted for the first local-only planner increment
 - **Date:** 2026-10-17
 - **Scope:** Local-first FIRE scenario planning
 - **Depends on:** Existing @pfo/calculators FIRE readiness, scenario comparison, and required annual contribution APIs
@@ -9,7 +9,7 @@
 
 PFO OS now has deterministic calculators for FIRE readiness, comparing independently specified scenarios, and solving the annual contribution needed to reach a target corpus. The dashboard is a static, vanilla-JavaScript application that runs locally for private records; non-loopback hosted origins are sample-only. The existing dashboard record model does not distinguish liquid investable portfolio value from property, insurance, cash, or other asset categories with enough precision to safely infer a FIRE portfolio.
 
-The next step is to define the planner contract before adding UI. This ADR deliberately does not authorize a storage, bundling, or dashboard-integration change.
+The first planner is a dedicated dashboard section. Inputs and results remain in memory only. The browser reuses the existing tested calculator implementation through locally built JavaScript ES modules; financial formulas are not duplicated and no remote code is introduced.
 
 ## Proposed input contract
 
@@ -64,17 +64,23 @@ The interface must not rank scenarios, select a preferred scenario, or present a
 - Do not rely on color alone to communicate on-track versus shortfall status.
 - Display the assumption set and limitations alongside the result, not only in separate documentation.
 
-## Open questions before UI implementation
+## Decisions for the first UI increment
 
-- Should the first planner be a separate navigation page or a dedicated section of the current dashboard?
-- Should scenario inputs remain ephemeral for the first version, or is explicit save/export required for the target workflow?
-- Should the planner initially accept only annual contributions, or is a separate monthly-contribution model required? Do not silently convert monthly contributions without defining timing and compounding semantics.
-- Which user task should be validated first: a single retirement target, comparing assumptions, or solving for required contribution?
-- Does customer discovery support a dedicated planner UI before further report/dashboard expansion?
+- **Navigation:** dedicated FIRE Planner section in the existing dashboard.
+- **Persistence:** assumptions and results remain ephemeral and are never automatically saved.
+- **Contributions:** annual only; monthly modeling is deferred and no silent conversion is allowed.
+- **Sequence:** single-scenario readiness and required annual contribution first; scenario comparison follows.
+- **Product priority:** deliver core product features before autonomous engineering workflow enhancements.
+
+## Browser integration
+
+- `@pfo/calculators` remains the source of truth. `scripts/dashboard/prepare-calculators.mjs` copies its compiled runtime modules into a generated dashboard directory; generated files are not hand-maintained or committed.
+- `pnpm dashboard:serve` builds the calculator dependencies and prepares modules before starting the existing loopback-only server.
+- The Pages packaging workflow builds the same modules into the static artifact. Hosted non-loopback planner controls are disabled; personal assumptions belong in the local-only workspace.
 
 ## Guardrails
 
-- This ADR defines a proposed contract; it does not claim the planner UI is implemented.
+- This ADR records the accepted first-increment contract and browser integration boundary.
 - Do not choose persistence, introduce a bundler, or alter the private/public boundary under this ADR.
 - Do not add investment recommendations, return predictions, market data, or Monte Carlo analysis without a separately reviewed requirements and validation plan.
 - Keep the feature local-first and test the existing loopback-only private workspace guard if UI routes or storage behavior change.
