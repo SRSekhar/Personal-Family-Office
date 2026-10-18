@@ -1,5 +1,6 @@
 import { validateBackupPayload } from './backup.js';
 import { recordsToCsv } from './csv-export.js';
+import { calculateFinancialTotals } from './financial-totals.js';
 import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
@@ -35,6 +36,8 @@ const escapeHtml = (value) => String(value)
 
 function readPrivateRecords() {
     const seenIds = new Set();
+    let assets = 0;
+    let liabilities = 0;
     const result = readJsonArray(localStorage, STORAGE_KEY, (record) => {
         if (!record || typeof record.id !== 'string' || record.id.trim() === ''
             || seenIds.has(record.id)
@@ -44,6 +47,10 @@ function readPrivateRecords() {
             || !Number.isFinite(record.value) || record.value < 0) {
             return false;
         }
+        const nextTotal = record.type === 'asset' ? assets + record.value : liabilities + record.value;
+        if (!Number.isFinite(nextTotal)) return false;
+        if (record.type === 'asset') assets = nextTotal;
+        else liabilities = nextTotal;
         seenIds.add(record.id);
         return true;
     });
@@ -58,6 +65,12 @@ function readPrivateRecords() {
 function savePrivateRecords(nextRecords, allowRecovery = false) {
     if (!privateStorageHealthy && !allowRecovery) {
         showToast('Editing is paused because saved data could not be read. Import a valid backup to recover safely; existing storage will not be overwritten.');
+        return false;
+    }
+    try {
+        calculateFinancialTotals(nextRecords);
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Financial totals are outside the supported numeric range.');
         return false;
     }
     const saved = persistJson(localStorage, STORAGE_KEY, nextRecords);
@@ -92,9 +105,7 @@ function switchWorkspace(nextWorkspace) {
 }
 
 function totals() {
-    const assets = records.filter((item) => item.type === 'asset').reduce((sum, item) => sum + item.value, 0);
-    const liabilities = records.filter((item) => item.type === 'liability').reduce((sum, item) => sum + item.value, 0);
-    return { assets, liabilities, netWorth: assets - liabilities };
+    return calculateFinancialTotals(records);
 }
 
 function render() {
