@@ -107,3 +107,10 @@ Deliver a usable local-first workflow that lets a household enter or import its 
 3. Validate the open FIRE planner choices in ADR-0003 with intended users before building the UI; do not silently select a workflow.
 4. Exercise the existing synthetic dashboard-backup → CLI → offline report flow only if a concrete coverage gap remains; avoid duplicate tests.
 5. Use the existing customer-discovery playbook to validate demand before adding unrelated feature families, persistence, AI advice, or hosted services.
+
+
+## Follow-up — Record sorting (2026-10-18)
+
+- PR #130 merged stable local sorting by name or numeric value, composable with search and asset/liability filters. Tests cover stable ties and non-mutating behavior.
+- The dashboard README, backlog, and sprint handoff now describe CSV export, type filtering, and sorting together.
+- Keep the next product increment aligned with the execution contract: verify main-branch CI/Secret Scan, verify autonomous workflow end-to-end, and validate ADR-0003's unresolved FIRE planner choices before starting that UI. Do not treat local UI enhancements as evidence of customer demand.
