@@ -97,6 +97,15 @@ jobs:
             3. Add focused tests/docs for a concrete existing gap.
             Do not invent product requirements or make speculative features just to create activity. If no safe, well-scoped task is ready, make no code changes and record the blocker/next step in the workflow summary.
 
+            TURN-EFFICIENCY CONTRACT (the prior scheduled run exhausted all 60 turns without publishing a change):
+            - By turn 8, choose exactly one task from the priority order and state the selected task in your working notes. Do not keep comparing unrelated tasks.
+            - By turn 12, begin the implementation or record a concrete blocker and stop. Do not spend turns exploring the whole repository.
+            - Read each relevant file once where possible; use targeted search for exact symbols instead of repeatedly reopening files or reading large documents.
+            - Inspect no more than one directly relevant ADR and one overlapping PR unless a specific finding requires more.
+            - Implement in a narrow diff (normally at most 3 production files plus focused tests/docs). Avoid adding dependencies.
+            - Run focused tests once, and allow at most one correction cycle for test/lint failures. Do not poll or wait for external workflow runs.
+            - Before committing, verify the branch contains a real diff, tests actually ran, and both PR title/body files are written. If a task cannot meet these constraints, exit with a precise blocker rather than exhausting the turn budget.
+
             WORKFLOW:
             - Inspect git status and the specific source/tests required for one task. Check only overlapping open PRs; avoid broad repository exploration.
             - Create a branch named agent/pfo-hourly-<UTC timestamp>, unless continuing a directly relevant existing agent/pfo-hourly-* branch.
