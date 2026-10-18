@@ -42,6 +42,19 @@ try {
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
+    await page.keyboard.press('Tab');
+    assert.equal(
+        await page.evaluate(() => globalThis.document.activeElement?.classList.contains('skip-link')),
+        true,
+        'the first keyboard Tab should reveal and focus the skip link'
+    );
+    await page.keyboard.press('Enter');
+    assert.equal(
+        await page.evaluate(() => globalThis.document.activeElement?.id),
+        'main-content',
+        'activating the skip link should move focus to the main content landmark'
+    );
+    process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\\n');
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
     await page.locator('#fire-annual-contribution').fill('300000');
     await page.getByLabel('Years until retirement').fill('10');
