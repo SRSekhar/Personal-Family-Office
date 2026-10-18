@@ -131,3 +131,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a keyboard Tab-order assertion that reaches the first FIRE planner field and a 320 CSS-pixel viewport check for page-level horizontal overflow.
 - These checks improve regression coverage but do not replace manual screen-reader testing, real browser zoom at 400%, or comprehensive responsive testing across browsers. Those remain open.
 - Validation: the Chromium browser smoke suite passed on PR #157 head `b09a0118bca15b523cdc63f755c92e0ec32e6e39`, including Goal Tracker, keyboard tab reachability, and 320px layout. The test exposed page-level overflow from the absolutely positioned screen-reader-only label inside the records table; adding a negative left offset keeps the visually hidden label off the right edge without removing it from the accessibility tree. CI and Secret Scan passed; the dashboard packaging workflow also passed. Manual screen-reader testing and an actual 400% zoom audit remain open.
+
+
+### Keyboard skip navigation — in progress
+- Added a visually hidden, keyboard-revealed “Skip to main content” link as the first focusable control, targeting the main landmark.
+- Added static integrity coverage and Chromium interaction checks for first-Tab focus and Enter activation moving focus to main content.
+- Kept the target focusable with `tabindex="-1"` and preserved the browser's focus indication; the link remains available to assistive technology.
+- Validation status: pending CI, Secret Scan, and dashboard packaging on the feature PR. This does not replace screen-reader testing or a full WCAG audit.
