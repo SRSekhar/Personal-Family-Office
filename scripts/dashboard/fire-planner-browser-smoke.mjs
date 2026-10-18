@@ -97,8 +97,8 @@ try {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.evaluate(() => {
         globalThis.__scrollIntoViewBehavior = null;
-        globalThis.__originalScrollIntoView = Element.prototype.scrollIntoView;
-        Element.prototype.scrollIntoView = function (options) {
+        globalThis.__originalScrollIntoView = globalThis.Element.prototype.scrollIntoView;
+        globalThis.Element.prototype.scrollIntoView = function (options) {
             globalThis.__scrollIntoViewBehavior = options?.behavior;
             return globalThis.__originalScrollIntoView.call(this, options);
         };
@@ -109,7 +109,7 @@ try {
         'auto',
         'scenario panel navigation should avoid smooth scrolling when reduced motion is requested'
     );
-    await page.evaluate(() => { Element.prototype.scrollIntoView = globalThis.__originalScrollIntoView; });
+    await page.evaluate(() => { globalThis.Element.prototype.scrollIntoView = globalThis.__originalScrollIntoView; });
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     assert.equal(await page.locator('#fire-comparison').isVisible(), true, 'scenario comparison panel should open');
     process.stdout.write('PASS: scenario navigation respects the reduced-motion preference.\n');
