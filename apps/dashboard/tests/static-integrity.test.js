@@ -83,6 +83,13 @@ describe('FIRE planner interaction contracts', () => {
         expect(calculateFire).toContain("lastFireReportScenarios = [];");
         expect(app).toContain("$('#fire-required-button').addEventListener('click', () => calculateFire(true));");
     });
+
+    it('respects reduced-motion preferences when revealing the scenario comparison', async () => {
+        const app = await readDashboardFile('app.js');
+        expect(app).toContain("window.matchMedia('(prefers-reduced-motion: reduce)').matches");
+        expect(app).toContain("panel.scrollIntoView({ behavior, block: 'start' });");
+    });
+
 });
 
 describe('dashboard export reliability', () => {
