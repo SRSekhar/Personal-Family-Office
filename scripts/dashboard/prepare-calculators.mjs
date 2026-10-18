@@ -7,7 +7,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const source = resolve(root, 'packages/calculators/dist');
 const destination = resolve(root, 'apps/dashboard/calculators-runtime');
 await mkdir(destination, { recursive: true });
-for (const name of ['CompoundGrowth.js', 'FireReadiness.js', 'RequiredFireContribution.js']) {
+for (const name of ['CompoundGrowth.js', 'FireReadiness.js', 'FireScenarioComparison.js', 'RequiredFireContribution.js']) {
   await copyFile(resolve(source, name), resolve(destination, name));
 }
 process.stdout.write('Prepared local FIRE calculator modules.\n');
