@@ -100,3 +100,11 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - PR #123 was closed as superseded by PR #124.
 - PR #125 merged after CI and Secret Scan passed: it reduces unnecessary agent context loading and increases the bounded turn budget to 60. Main-branch Secret Scan passed; main-branch CI was still running at the time of this update.
 - End-to-end autonomous delivery remains unverified. The latest completed scheduled run before this change failed with `error_max_turns`; verify a later scheduled run actually creates/publishes a focused PR before marking W0 complete.
+
+
+## Dashboard Increment (2026-10-18)
+
+- PR #127 merged: local CSV export with CSV quoting, spreadsheet-formula-like text neutralization, malformed-record rejection, and focused unit tests. PR CI, full-history Secret Scan, and dashboard workflow checks passed.
+- PR #128 merged: accessible asset/liability type filter combined with existing search, a distinct no-matches state, and focused filter tests. PR CI, full-history Secret Scan, and dashboard workflow checks passed.
+- The dashboard remains local-first: filtering is in-memory, and exports are generated in the browser. No financial formulas, storage model, hosted privacy rules, or FIRE planner UI changed.
+- Main-branch CI and Secret Scan are being checked after the merges. The main-branch dashboard deployment job still fails at **Configure GitHub Pages** because the one-time repository Pages setting remains unresolved; do not change repository settings without owner action.
