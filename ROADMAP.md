@@ -73,17 +73,20 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Annual review
 - Investment review
 - Self-contained HTML financial summary with deterministic semantic timestamps, XSS-safe rendering, net-worth and analysis-total consistency checks, malformed-payload and currency-code guards, nested currency consistency, and allocation value/weight reconciliation
+- Validated self-contained FIRE scenario HTML reports with explicit download, assumption disclosure, no scripts/remote assets, and XSS-safe scenario names (PR #142)
 - PDF, DOCX, and Excel exports remain planned; define the application/CLI boundary before implementing file-export commands
 
 ---
 
 # Version 0.5 — Dashboard
 
-**Status:** Planned
+**Status:** In Progress — core local-first dashboard and FIRE planner are implemented
 
-- Principal dashboard
-- Portfolio explorer
-- Charts and KPIs
+- Dashboard for assets, liabilities, net worth, category allocation, record CRUD, search, filtering, sorting, reset, and CSV/JSON export
+- Local-only FIRE planner with readiness calculation, required annual contribution, and ordered three-scenario comparison
+- Explicit download of self-contained offline FIRE scenario HTML reports
+- Remaining: interactive browser verification, accessibility/400% zoom validation, and customer feedback
+- Charts, historical timelines, portfolio explorer, and additional KPIs remain deferred until snapshot requirements and customer needs are validated
 
 ---
 
@@ -101,12 +104,14 @@ Any future recommendations require explicit assumptions, explainability, and app
 
 # Version 0.7 — FIRE Engine
 
-**Status:** In Progress
+**Status:** In Progress — deterministic planning workflow implemented; user validation remains open
 
 - Deterministic FIRE-readiness calculator foundation: projected portfolio, inflation-adjusted retirement spending, target corpus from an explicit withdrawal-rate assumption, and surplus/shortfall.
-- Retirement planner UI and scenario comparison
-- Monte Carlo scenarios
-- Goal tracking
+- Local-only planner UI and required annual contribution action (PR #139)
+- Three-scenario comparison preserving entered order and explicit assumptions (PR #141)
+- Explicit downloadable offline HTML reports for one or more scenarios (PR #142)
+- Remaining: keyboard/accessibility and 400% zoom verification, customer discovery, and any future goal-tracking requirements
+- Monte Carlo scenarios only after a separate requirements and validation plan
 
 The current calculator is a deterministic scenario, not a probability model or guarantee. It excludes taxes, fees, investment volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. Keep assumptions visible and validated before exposing results in a user-facing planner.
 

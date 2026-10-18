@@ -2,7 +2,7 @@
 
 ## Sprint
 
-Sprint 3 — Report Engine / Release Safety
+Sprint 4 — FIRE Planner and Offline Report Workflow
 
 ## Version
 
@@ -10,108 +10,36 @@ Sprint 3 — Report Engine / Release Safety
 
 ## Goal
 
-Maintain deterministic, testable portfolio analysis and privacy-conscious offline reporting while closing security, licensing, and release-readiness gaps.
-
-## Current Status
-
-The deterministic analytics engine, offline HTML report renderer, and local report CLI are merged into `main`. PRs #35, #36, #38–#40, and #42–#48, #50–#52 are merged; #37 was closed as superseded. Report validation covers canonical timestamps with semantic HTML time elements, currency-code shape, nested monetary currency consistency, net-worth arithmetic, analysis total reconciliation, malformed payloads, and allocation-value/weight reconciliation. PR #43 CI and full-history secret scanning passed before merge (merge commit `8a39612d5ac1696fdb7390a9f65506c520363320`). PR #42 records first-pass upstream license evidence, PR #45 adds root-level license/notice filename detection, and PR #46 records the resulting evidence. CI run 38430307691 packed all nine exact npm artifacts with lifecycle scripts disabled; every tarball integrity matched `pnpm-lock.yaml`, and each contained a root-level license file with recorded byte length and SHA-256. Legal/distribution disposition remains open. Local dashboard preview is available via `pnpm dashboard:serve`; hosted deployment remains blocked until GitHub Pages is enabled once in repository Settings → Pages with Source set to GitHub Actions. PR #48 adds an operational customer-discovery playbook; demand is still unvalidated.
-
-Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import operations persist candidate records before changing in-memory state, so failed browser-storage writes do not appear successful; focused storage tests cover normal writes, storage exceptions, and serialization failures. PR #90 corrected the dependency evidence review's date and its statement about the inspected Lightning CSS platform tarball. PR #88 and PR #93 recorded refreshed Claude for Open Source eligibility evidence: a public search found 64 merged PRs in the last 12 months, all in the applicant-owned repository, so the 100-external-PR route is not evidenced and the application remains unsubmitted. ADR-0002 now records historical-snapshot persistence requirements and compares storage options without selecting a technology. PR #95 also hardens unreadable dashboard storage: malformed JSON, invalid records, duplicate IDs, and storage read failures now fail closed; normal edits/exports cannot overwrite or misrepresent the saved dataset, and a validated backup import is the explicit recovery path. The dashboard private workspace is restricted to loopback hostnames (`localhost`, `127.0.0.1`, IPv6 loopback); all other origins are sample-only. PR #104 adds a tested host-allowlist helper so future custom domains or hosted environments cannot accidentally enable personal-record entry/import. PR #98 moved dashboard file/syntax/privacy-guard validation before Pages setup and added pull-request validation, while the one-time Pages repository setting remains a deployment blocker. CI and full-history secret scanning passed before merge. PR #100 includes the dashboard storage and backup test directory in root Vitest; after correcting an invalid test fixture, CI passed 185 tests across 27 files. PR #102 adds explicit confirmation before a backup replaces existing private records and a separate confirmation for recovery from unreadable storage.
+Deliver a usable local-first retirement planning workflow that calculates readiness, compares explicit scenarios, solves required annual contributions, and lets the user download a private offline HTML report without automatic persistence or network submission.
 
 ## Completed
 
-- Repository foundation, bootstrap, and CI quality gates
-- Scheduled full-history Gitleaks scanning; latest recorded scans passed without findings
-- Dependabot workspace and GitHub Actions updates
-- CAGR, annual compound-growth projection, XIRR, deterministic FIRE readiness, ordered scenario comparison, and required annual contribution solver (the planner UI and any probabilistic analysis remain unfinished)
-- Net-worth and asset-allocation calculators with explicit currency and canonical-ID rules
-- Portfolio mapping and analysis composition with duplicate-selection protection
-- Versioned portfolio report model and self-contained offline HTML renderer, with semantic timestamps, currency-code, nested-currency, net-worth, analysis-total, malformed-payload, and allocation-reconciliation validation
-- Local `@pfo/cli` host with versioned portfolio-input and dashboard-backup modes, explicit valuation date for backups, currency safeguards, and safe HTML output
-- TypeScript package build, typecheck, lint, and test gates in CI
-- High-severity dependency vulnerability audit in CI
-- First-pass evidence review and root-level license-file inventory for all nine flagged dependency-license entries, with final dispositions intentionally open
-- Customer-discovery interview playbook linked from the revenue validation plan
-- PR #124: zero retirement spending remains exactly zero even when an extreme inflation assumption would overflow; regression test merged
-- PR #125: autonomous workflow prompt now limits context loading and broad exploration, and the bounded agent turn budget is 60 rather than 40; PR checks passed and the merge is on `main`
+- PR #139 — local-only FIRE planner UI with validated assumptions, readiness outputs, required annual contribution action, reset, and ephemeral inputs/results.
+- PR #141 — three-scenario comparison using the existing tested calculator; user-entered order and assumptions are preserved, and scenarios are not ranked or recommended.
+- PR #142 — validated, self-contained, script-free FIRE scenario HTML report for single scenarios and comparisons, with XSS-safe rendering and explicit download actions.
+- CI, full-history Secret Scan, and dashboard packaging passed on each feature PR before merge.
+- Product improvement log is maintained in `docs/product/IMPROVEMENT_LOG.md`.
 
 ## In Progress
 
-- Autonomous workflow run `39104693039` passed credential preflight but failed after exhausting all 60 agent turns (`error_max_turns`) without a publishable branch. PR #125's previous prompt/context reduction was insufficient. This branch adds explicit turn milestones, a narrow diff budget, and a single test-correction cycle; the next scheduled run must verify whether it produces a valid PR.
-- Main-branch CI and full-history Secret Scan passed after the latest dashboard/documentation merges (CI `39104404521`, Secret Scan `39104404525`).
-- Define whether each flagged dependency is included in a distributable product or used only for development/build, then map the Blue Oak notice and MPL source-availability obligations to that boundary. Preserve manual-review status until qualified review supports a disposition.
-- Complete the one-time GitHub Pages repository setup and verify the dashboard deployment.
-- Keep project licensing and the public/private product boundary as explicit release gates; no license or visibility change is authorized.
+- Interactive browser validation of calculation actions, invalid-input messaging, report downloads, and keyboard-only use.
+- Verify responsive layout and usability at 400% zoom.
+- Validate the local dashboard-to-offline-report workflow end to end; do not use real household data in the public repository or test fixtures.
+- Customer demand remains unvalidated; plan the documented 8–10 anonymized interviews and seek two paid-pilot commitments.
 
 ## Next Deliverables
 
-1. Verify the autonomous workflow's next scheduled run and capture whether it creates a valid PR, including the actual conclusion and publication result.
-2. Validate the open FIRE planner choices in ADR-0003 before implementing the local-first UI with existing calculator APIs.
-3. Use the local dashboard-to-report flow to conduct the documented customer-discovery experiment; prioritize actual user evidence and paid-pilot commitments before adding persistence or unrelated feature families.
-4. Establish persistence and source-of-truth requirements before implementing historical snapshot storage.
-5. Keep distribution-artifact, dependency-license, and product-boundary decisions as release gates before external distribution; do not let unresolved release decisions stop safe local-first product development.
+1. Complete interactive browser and accessibility verification.
+2. Run the offline report workflow using fictional data, then confirm reports open without network access.
+3. Capture anonymized customer-discovery evidence and update the product log.
+4. Define valuation-date and recovery requirements before selecting historical snapshot persistence.
+5. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
-## Release-Safety Work Still Open
+## Release Gates and Constraints
 
-- Third-party dependency license and notice review
-- Project licensing and public/private product-boundary decision
-- Anthropic Claude for Open Source eligibility; the application remains unsubmitted
-- Separate review for personal financial data and other sensitive material
-- Customer discovery and paid-pilot validation
-- Legal review before any hosted financial product or investment-related recommendations
-
-## Operating Rules
-
-- Inspect the live repository and existing implementation before making changes.
-- Keep changes small, testable, independently reviewable, and aligned with documented work.
-- Require relevant CI and full-history secret-scanning checks to pass before merging; complete routine, low-risk PRs after those checks pass.
-- Do not change repository visibility or licensing, make legal/financial determinations, or include real personal financial data.
-- Treat roadmap items as planned until implementation and tests demonstrate completion.
-
-## Follow-up (2026-10-15)
-
-- PR #104 merged: personal-record entry/import is now allowed only on loopback hostnames (`localhost`, `127.0.0.1`, IPv6 loopback); all other origins remain sample-only. Focused tests cover allowed and blocked hostnames.
-- PR #105 merged: root CI now checks dashboard HTML/controller ID consistency, duplicate IDs, local CSS/JS entry assets, and relative module imports. The Pages packaging workflow was updated to validate the loopback privacy helper rather than the removed GitHub-hostname-specific function. CI and full-history secret scan passed before merge.
-- Deployment remains blocked until a repository owner enables GitHub Pages under Settings → Pages → Source: GitHub Actions. The pull-request packaging/validation job can pass without this setting; actual publication cannot.
-
-## Follow-up (2026-10-17)
-
-- PR #107 merged: hourly autonomous-development workflow is committed, but the first end-to-end agent run still needs secrets and a successful manual verification.
-- PR #108 merged: HCNSEC gateway authentication is an optional mode alongside Claude Code OAuth; live authentication remains unverified.
-- PR #109 merged: the agent no longer receives the repository write token in its shell environment. A post-agent publishing step handles branch push and PR creation/update. CI and full-history secret scanning passed before merge.
-- PR #110 merged: deterministic FIRE-readiness calculation is now implemented and tested in `@pfo/calculators`. It calculates projected portfolio value, inflation-adjusted retirement spending, target corpus from an explicit withdrawal rate, and surplus/shortfall. It is not a complete retirement planner.
-- The next FIRE increment should retain deterministic, explicit assumptions; do not add market data, financial recommendations, historical storage, or Monte Carlo behavior without a clear requirements basis.
-
-## Follow-up (2026-10-17, continued)
-
-- PR #112 merged after CI and Secret Scan passed: the autonomous agent now has its native file tools allowed, a 40-turn budget, corrected preflight diagnostics, and clean allowed-tools quoting. The workflow still needs an end-to-end post-merge run.
-- PR #113 merged after full CI and Secret Scan passed: deterministic scenario comparison is implemented and documented.
-- PR #114 merged after full CI and Secret Scan passed: the required annual FIRE contribution solver is implemented with tests for zero/negative return assumptions and zero-year boundaries.
-- HCNSEC and `PFO_AUTOMATION_TOKEN` are configured. The previous agent run failed before producing a PR; do not mark autonomous delivery complete until the corrected workflow produces a valid PR and CI passes.
-
-## Follow-up (2026-10-17, autonomous trigger correction)
-
-- PR #116's push-triggered run failed before agent execution because the pinned Claude Code Action rejects `push` events. PR #117 removes that trigger and schedules two bounded cycles per hour at minute 17 and 47 UTC; manual dispatch remains available. PR CI and Secret Scan passed.
-- Verify the next scheduled/manual run end-to-end. A successful preflight alone is not evidence of autonomous code delivery.
-
-## Follow-up (2026-10-18)
-
-- PR #124 merged: FIRE readiness now preserves a zero-spending result without evaluating an inflation factor that would overflow; a regression test covers the extreme-inflation boundary.
-- PR #123 was closed as superseded by PR #124.
-- PR #125 merged after CI and Secret Scan passed: it reduces unnecessary agent context loading and increases the bounded turn budget to 60. Main-branch Secret Scan passed; main-branch CI was still running at the time of this update.
-- End-to-end autonomous delivery remains unverified. The latest completed scheduled run before this change failed with `error_max_turns`; verify a later scheduled run actually creates/publishes a focused PR before marking W0 complete.
-
-
-## Dashboard Increment (2026-10-18)
-
-- PR #127 merged: local CSV export with CSV quoting, spreadsheet-formula-like text neutralization, malformed-record rejection, and focused unit tests. PR CI, full-history Secret Scan, and dashboard workflow checks passed.
-- PR #128 merged: accessible asset/liability type filter combined with existing search, a distinct no-matches state, and focused filter tests. PR CI, full-history Secret Scan, and dashboard workflow checks passed.
-- The dashboard remains local-first: filtering is in-memory, and exports are generated in the browser. No financial formulas, storage model, hosted privacy rules, or FIRE planner UI changed.
-- Main-branch CI and full-history Secret Scan passed after PR #128 (runs `39103792075` and `39103792098`) and again after the documentation/sorting updates (runs `39104225320` and `39104225335`). The main-branch dashboard deployment job still fails at **Configure GitHub Pages** because the one-time repository Pages setting remains unresolved; do not change repository settings without owner action.
-
-
-## Record Sorting Increment (2026-10-18)
-
-- PR #130 merged: users can sort the current financial-record view by name A–Z, value high-to-low, or value low-to-high, with the original order available as the default. Sorting combines with search and asset/liability filtering, is stable for ties, and does not mutate stored records.
-- Focused unit tests cover default order, case-insensitive names, numeric order, stable ties, and invalid arguments. PR CI, full-history Secret Scan, and dashboard workflow validation passed.
-- README and backlog now reflect the shipped dashboard capabilities. FIRE planner requirements in ADR-0003, local-first privacy controls, and the Pages owner-setup gate remain unchanged.
+- The dashboard package builds successfully in pull-request CI, but publishing requires the repository owner to configure Settings → Pages with Source set to GitHub Actions.
+- The repository is public and has no valid open-source license yet. Do not change visibility or license automatically.
+- Historical repository content and commit metadata require a separate credential-exposure review.
+- Dependency licensing/distribution disposition remains open.
+- Do not add automatic FIRE persistence, external financial data, telemetry, AI calls, investment recommendations, or Monte Carlo analysis without a separately reviewed decision.
+- Autonomous engineering workflow improvements are intentionally deprioritized until core product functionality and customer validation are substantially further along.

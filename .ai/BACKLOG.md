@@ -98,10 +98,14 @@ Implemented
 - Deterministic FIRE readiness scenario with explicit nominal return, inflation, retirement-spending, withdrawal-rate, and contribution-timing assumptions (PR #110)
 - Deterministic scenario comparison that preserves each scenario's assumptions and caller-supplied order without ranking/recommendations (PR #113)
 - Required annual contribution solver with validated zero-year and zero/negative-return edge cases (PR #114)
+- Local-only dashboard FIRE planner with ephemeral assumptions/results and hosted-origin controls disabled (PR #139)
+- Three-scenario comparison UI with explicit assumption copying, per-scenario inputs, ordered results, and no ranking/recommendation (PR #141)
+- Validated, self-contained offline HTML report export for a single scenario or comparison, with XSS escaping and no network submission (PR #142)
 
 Planned
 
-- Local-first planner UI contract and interface, guided by proposed ADR-0003
+- Keyboard/accessibility and 400% zoom verification of the planner and comparison UI
+- End-to-end offline report workflow validation with prospective users
 - Goal tracking
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
@@ -114,7 +118,7 @@ Status
 
 In Progress
 
-Implemented and merged (PR #33), with follow-up hardening in PRs #36, #38–#40, #43, #47, #50, #51, and #52:
+Implemented and merged (PR #33), with follow-up hardening in PRs #36, #38–#40, #43, #47, #50, #51, and #52. PR #142 also adds a validated offline HTML report for FIRE scenarios:
 - Versioned portfolio report model
 - Self-contained HTML financial summary with XSS-safe rendering
 - Canonical UTC timestamp validation
