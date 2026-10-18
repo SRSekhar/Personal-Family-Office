@@ -90,3 +90,20 @@ Deliver a usable local-first workflow that lets a household enter or import its 
 3. Validate the open FIRE planner choices in ADR-0003 before implementing the smallest complete local-first UI.
 4. Run/extend the synthetic dashboard-backup → CLI → offline report workflow only where a concrete gap is identified; avoid duplicating existing coverage.
 5. Use the report workflow and customer-discovery playbook to validate customer value before expanding scope.
+
+
+## Follow-up — Dashboard usability increment (2026-10-18)
+
+- PR #127 merged: safe local CSV export with tests for quoting, formula-like text neutralization, and invalid input.
+- PR #128 merged: accessible asset/liability filtering combined with search, plus a no-matches state and deterministic unit tests.
+- The dashboard README and product backlog now describe these capabilities. These changes do not resolve the separate FIRE planner UI requirements gate in ADR-0003.
+- PR CI and full-history Secret Scan passed for both feature PRs. Main CI/Secret Scan are checked separately after merge; a passing PR run is not treated as proof of main-branch health.
+- Main-branch dashboard deployment still fails at the GitHub Pages configuration step. The one-time Settings → Pages → Source: GitHub Actions setup remains an owner action and has not been changed.
+
+## Next execution sequence (refreshed)
+
+1. Verify main-branch CI and full-history Secret Scan after PR #128; record the actual results.
+2. Verify the autonomous workflow end-to-end after PR #125: a scheduled run must publish a valid focused PR; do not treat a credential preflight or no-op run as success.
+3. Validate the open FIRE planner choices in ADR-0003 with intended users before building the UI; do not silently select a workflow.
+4. Exercise the existing synthetic dashboard-backup → CLI → offline report flow only if a concrete coverage gap remains; avoid duplicate tests.
+5. Use the existing customer-discovery playbook to validate demand before adding unrelated feature families, persistence, AI advice, or hosted services.
