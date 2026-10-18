@@ -10,6 +10,7 @@
     <script type="module" src="./app.js"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="app-shell">
         <aside class="sidebar" aria-label="Main navigation">
             <a class="brand" href="./" aria-label="PFO OS home">
@@ -29,7 +30,7 @@
             </div>
         </aside>
 
-        <main class="main-content">
+        <main class="main-content" id="main-content" tabindex="-1">
             <header class="topbar">
                 <div class="breadcrumb">Workspace <span>/</span> <strong id="page-breadcrumb">Overview</strong></div>
                 <div class="topbar-actions">
