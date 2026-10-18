@@ -46,3 +46,6 @@ export type {
     FinancialPosition,
     FinancialPositionContext
 } from './FinancialPosition.js';
+
+export { calculateGoalProgress } from './GoalProgress.js';
+export type { GoalProgressInput, GoalProgressResult } from './GoalProgress.js';
