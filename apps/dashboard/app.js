@@ -160,6 +160,7 @@ function setCompareValidation(message = '') {
     $('#fire-compare-validation').hidden = message === '';
 }
 function compareFireScenarios() {
+    if (!$('#fire-planner-form').reportValidity()) return;
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         setCompareValidation('Use the loopback-only dashboard before entering retirement assumptions.');
         return;
@@ -189,6 +190,7 @@ function compareFireScenarios() {
     }
 }
 function copyFireAssumptionsToScenarios() {
+    if (!$('#fire-planner-form').reportValidity()) return;
     const base = fireInput();
     for (const key of ['a', 'b', 'c']) {
         $(`#fire-compare-${key}-contribution`).value = String(base.annualContribution);
