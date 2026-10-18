@@ -37,6 +37,6 @@ describe('calculateGoalProgress', () => {
     ])('rejects %s', (_label, overrides) => {
         expect(() => calculateGoalProgress({
             targetAmount: 100, currentAmount: 10, targetDate: '2027-10-18', asOfDate, ...overrides
-        } as Parameters<typeof calculateGoalProgress>[0])).toThrow(RangeError);
+        })).toThrow(RangeError);
     });
 });
