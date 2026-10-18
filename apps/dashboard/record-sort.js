@@ -12,7 +12,7 @@ export function sortFinancialRecords(records, sortOrder = 'default') {
     return records
         .map((record, index) => ({ record, index }))
         .sort((left, right) => {
-            let comparison = 0;
+            let comparison;
             if (sortOrder === 'name-asc') {
                 const leftName = String(left.record.name).toLowerCase();
                 const rightName = String(right.record.name).toLowerCase();
