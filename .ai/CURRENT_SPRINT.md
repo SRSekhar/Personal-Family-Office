@@ -24,7 +24,8 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 
 ## In Progress
 
-- Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.\n- Interactive browser validation of FIRE calculation actions, Goal Tracker progress/reset/validation, invalid-input messaging, report downloads, and keyboard-only use remains open.
+- Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.
+- Interactive browser validation of FIRE calculation actions, Goal Tracker progress/reset/validation, invalid-input messaging, report downloads, and keyboard-only use remains open.
 - Verify responsive layout and usability at 400% zoom.
 - Validate the local dashboard-to-offline-report workflow end to end; do not use real household data in the public repository or test fixtures.
 - Customer demand remains unvalidated; plan the documented 8–10 anonymized interviews and seek two paid-pilot commitments.
