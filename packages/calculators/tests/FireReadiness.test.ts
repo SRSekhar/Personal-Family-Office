@@ -106,6 +106,23 @@ describe('calculateFireReadiness', () => {
             .toThrow(RangeError);
     });
 
+    it('preserves zero retirement spending when the inflation factor overflows', () => {
+        const result = calculateFireReadiness({
+            currentPortfolio: 0,
+            annualContribution: 0,
+            yearsToRetirement: 2,
+            expectedAnnualReturn: 0,
+            annualInflationRate: 1e308,
+            annualRetirementSpendingToday: 0,
+            withdrawalRate: 0.04
+        });
+
+        expect(result.projectedAnnualRetirementSpending).toBe(0);
+        expect(result.targetCorpusAtRetirement).toBe(0);
+        expect(result.surplusOrShortfall).toBe(0);
+        expect(result.isOnTrack).toBe(true);
+    });
+
     it.each([
         ['projected portfolio', {
             currentPortfolio: 1e308,
