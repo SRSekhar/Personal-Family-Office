@@ -90,3 +90,9 @@ For each meaningful product increment, record:
 - **Safety/privacy impact:** Data handling, persistence, network access, and recovery implications.
 
 Do not record personal financial values or claim customer demand without evidence.
+
+
+### Accessibility contract regression checks — follow-up
+- Added static-integrity checks for explicit labels on FIRE/Goal Tracker form controls, accessible validation alerts, polite result announcements, semantic section naming, and the native progress indicator's accessible name.
+- These checks catch structural regressions in CI without adding a new dependency or changing the dashboard runtime.
+- They are **not** a substitute for real browser testing, keyboard-only verification, screen-reader checks, or 400% zoom validation. Those remain open and must not be reported as completed.
