@@ -108,3 +108,10 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - PR #128 merged: accessible asset/liability type filter combined with existing search, a distinct no-matches state, and focused filter tests. PR CI, full-history Secret Scan, and dashboard workflow checks passed.
 - The dashboard remains local-first: filtering is in-memory, and exports are generated in the browser. No financial formulas, storage model, hosted privacy rules, or FIRE planner UI changed.
 - Main-branch CI and Secret Scan are being checked after the merges. The main-branch dashboard deployment job still fails at **Configure GitHub Pages** because the one-time repository Pages setting remains unresolved; do not change repository settings without owner action.
+
+
+## Record Sorting Increment (2026-10-18)
+
+- PR #130 merged: users can sort the current financial-record view by name A–Z, value high-to-low, or value low-to-high, with the original order available as the default. Sorting combines with search and asset/liability filtering, is stable for ties, and does not mutate stored records.
+- Focused unit tests cover default order, case-insensitive names, numeric order, stable ties, and invalid arguments. PR CI, full-history Secret Scan, and dashboard workflow validation passed.
+- README and backlog now reflect the shipped dashboard capabilities. FIRE planner requirements in ADR-0003, local-first privacy controls, and the Pages owner-setup gate remain unchanged.
