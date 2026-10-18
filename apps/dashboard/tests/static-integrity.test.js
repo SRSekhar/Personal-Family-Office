@@ -70,6 +70,18 @@ describe('dashboard static integrity', () => {
 });
 
 
+
+    it('keeps navigation state synchronized with direct links and browser history', async () => {
+        const app = await readDashboardFile('app.js');
+        expect(app).toContain('function syncActiveNavigation()');
+        expect(app).toContain("const currentHash = window.location.hash || '#overview';");
+        expect(app).toContain("window.addEventListener('hashchange', syncActiveNavigation);");
+        expect(app).toContain('syncActiveNavigation();');
+        expect(app).toContain("item.classList.toggle('active', isActive);");
+        expect(app).toContain("item.setAttribute('aria-current', 'page')");
+        expect(app).toContain("$('#page-breadcrumb').textContent = activeItem.textContent.trim()");
+    });
+
 describe('FIRE planner interaction contracts', () => {
     it('validates required form fields before solving for an annual contribution', async () => {
         const app = await readDashboardFile('app.js');
