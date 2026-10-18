@@ -459,8 +459,11 @@ function exportData() {
     const link = document.createElement('a');
     link.href = url;
     link.download = 'pfo-os-financial-records.json';
+    document.body.append(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    // Keep the object URL alive briefly so the browser can begin consuming the download.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('Workspace exported to this device.');
 }
 
