@@ -72,9 +72,11 @@ try {
     assert.match(await page.locator('#fire-required-result').innerText(), /Required constant annual contribution:/);
     console.log('PASS: required annual contribution solver returns a visible result.');
 
-    await page.getByRole('button', { name: 'Download offline HTML report' }).click();
-    const singleDownload = await page.waitForEvent('download');
-    await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', '600000');
+    const [singleDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByRole('button', { name: 'Download offline HTML report' }).click()
+    ]);
+    await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', '₹6,00,000');
     console.log('PASS: single-scenario report downloads as standalone, script-free HTML.');
 
     await page.getByRole('button', { name: 'Compare scenarios' }).click();
@@ -86,14 +88,16 @@ try {
     await page.locator('#fire-compare-b-contribution').fill('300000');
     await page.locator('#fire-compare-c-name').fill('Higher saving');
     await page.locator('#fire-compare-c-contribution').fill('500000');
-    await page.getByRole('button', { name: 'Run comparison' }).click();
+    await page.locator('#fire-compare-run').click();
     assert.equal(await page.locator('#fire-compare-results').isVisible(), true, 'comparison results should appear');
     assert.equal(await page.locator('#fire-compare-body tr').count(), 3, 'comparison should render all three scenarios');
     assert.match(await page.locator('#fire-compare-body').innerText(), /Conservative[\s\S]*Baseline[\s\S]*Higher saving/);
     console.log('PASS: three-scenario comparison renders each scenario in entered order.');
 
-    await page.getByRole('button', { name: 'Download comparison report' }).click();
-    const comparisonDownload = await page.waitForEvent('download');
+    const [comparisonDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByRole('button', { name: 'Download comparison report' }).click()
+    ]);
     await assertOfflineReport(comparisonDownload, 'pfo-fire-comparison-report.html', 'Conservative');
     const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
     assert.ok(comparisonHtml.includes('Baseline') && comparisonHtml.includes('Higher saving'),
