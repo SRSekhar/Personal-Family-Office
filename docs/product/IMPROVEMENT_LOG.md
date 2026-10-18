@@ -71,6 +71,14 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - The dashboard keeps values in memory only; refresh clears them. It does not infer progress from financial records, project returns, or recommend contributions.
 - Calculator tests cover normal progress, over-target completion, overdue goals, and invalid inputs. CI typecheck/lint and browser-level accessibility checks must pass before this increment is considered complete.
 
+### Required-contribution validation and stale-result protection — PRs #152–#153
+- PR #152 added native form validity checking before solving for a required annual contribution, preventing blank required number fields from being interpreted as zero.
+- PR #153 clears the previous FIRE result and in-memory report scenario when the solver's validity check fails, so a failed attempt cannot leave an old result presented as current.
+- CI, Secret Scan, and dashboard packaging passed on both PR heads before merge.
+- The dashboard already clears result/report state when the main FIRE assumptions change. The new guard protects the solver's own invalid-submit path as an additional defense.
+- These are regression-protected code paths, not proof of browser-level behavior. Manual/browser verification of invalid submission, report-download availability, keyboard interaction, and screen-reader announcements remains open.
+- After PR #152 merged, the main dashboard deployment workflow failed at the GitHub Pages configuration step, while packaging succeeded. Owner-side Pages setup is still a release prerequisite; do not describe the hosted deployment as verified until a successful main-branch deployment is confirmed.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.
