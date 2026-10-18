@@ -141,7 +141,16 @@ function renderAllocation(totalAssets) {
 function renderRecords() {
     const query = $('#record-search').value;
     const typeFilter = $('#records-type-filter').value;
-    const filtered = sortFinancialRecords(filterFinancialRecords(records, query, typeFilter), $('#records-sort-order').value);
+    const categoryFilter = $('#records-category-filter');
+    const selectedCategory = categoryFilter.value;
+    const categories = [...new Set(records.map((item) => item.category))].sort((a, b) => a.localeCompare(b, 'en'));
+    categoryFilter.innerHTML = `<option value="all">All categories</option>${categories.map((category) =>
+        `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('')}`;
+    categoryFilter.value = categories.includes(selectedCategory) ? selectedCategory : 'all';
+    const filtered = sortFinancialRecords(
+        filterFinancialRecords(records, query, typeFilter, categoryFilter.value),
+        $('#records-sort-order').value
+    );
     const visible = $('#view-all-button').dataset.all === 'true' ? filtered : filtered.slice(0, 5);
     $('#records-body').innerHTML = visible.map((item) => {
         const asset = item.type === 'asset';
@@ -156,7 +165,7 @@ function renderRecords() {
     $('#empty-records').hidden = records.length !== 0;
     $('#no-matching-records').hidden = records.length === 0 || filtered.length !== 0;
     $('.table-wrap').hidden = records.length === 0 || filtered.length === 0;
-    const hasFilter = query.trim() !== '' || typeFilter !== 'all';
+    const hasFilter = query.trim() !== '' || typeFilter !== 'all' || categoryFilter.value !== 'all';
     const hasActiveViewOptions = hasFilter || $('#records-sort-order').value !== 'default';
     $('#records-summary').textContent = hasFilter
         ? `Showing ${visible.length} of ${filtered.length} matching records`
@@ -341,10 +350,12 @@ $('#records-body').addEventListener('click', (event) => {
 });
 $('#record-search').addEventListener('input', renderRecords);
 $('#records-type-filter').addEventListener('change', renderRecords);
+$('#records-category-filter').addEventListener('change', renderRecords);
 $('#records-sort-order').addEventListener('change', renderRecords);
 $('#reset-record-view-button').addEventListener('click', () => {
     $('#record-search').value = '';
     $('#records-type-filter').value = 'all';
+    $('#records-category-filter').value = 'all';
     $('#records-sort-order').value = 'default';
     $('#view-all-button').dataset.all = 'false';
     renderRecords();
