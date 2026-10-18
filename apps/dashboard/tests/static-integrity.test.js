@@ -65,16 +65,21 @@ describe('dashboard accessibility contracts', () => {
         const goalSection = html.slice(html.indexOf('id="goal-tracker"'), html.indexOf('id="records"'));
 
         for (const [sectionName, section] of [['FIRE planner', fireSection], ['Goal tracker', goalSection]]) {
-            const controlIds = [...section.matchAll(/<(?:input|select|textarea)\b[^>]*\\bid=["']([^"']+)["'][^>]*>/gi)]
+            const controlIds = [...section.matchAll(/<(?:input|select|textarea)\b[^>]*\bid=["']([^"']+)["'][^>]*>/gi)]
                 .map((match) => match[1])
                 .filter((id) => !['import-file'].includes(id));
+
+            expect(
+                controlIds,
+                \`${sectionName} section must expose controls for label validation\`
+            ).not.toHaveLength(0);
+
             for (const id of controlIds) {
                 expect(
                     section,
-                    `${sectionName} control #${id} must have an explicitly associated label`
-                ).toMatch(new RegExp(`<label\\b[^>]*\\bfor=["']${id}["']`));
-            }
-        }
+                    \`${sectionName} control #\${id} must have an explicitly associated label\`
+                ).toMatch(new RegExp(\`<label\\\\b[^>]*\\\\bfor=["']\${id}["']\`));
+            }        }
     });
 
     it('exposes result announcements, validation alerts, and a named native progress indicator', async () => {
