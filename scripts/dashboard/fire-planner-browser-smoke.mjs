@@ -1,0 +1,113 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { once } from 'node:events';
+import { createDashboardServer } from './serve.mjs';
+
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright');
+
+const server = createDashboardServer();
+let browser;
+let temporaryDirectory;
+
+async function assertOfflineReport(download, expectedFilename, expectedText) {
+    assert.equal(download.suggestedFilename(), expectedFilename);
+    const path = join(temporaryDirectory, expectedFilename);
+    await download.saveAs(path);
+    const html = await readFile(path, 'utf8');
+    assert.match(html, /<!doctype html/i, 'report should be a standalone HTML document');
+    assert.ok(html.includes(expectedText), `report should contain expected assumption text: ${expectedText}`);
+    assert.doesNotMatch(html, /<script\b/i, 'offline report must not contain executable scripts');
+    assert.doesNotMatch(html, /<(?:script|link|img)\b[^>]*(?:src|href)=["']https?:\/\//i,
+        'offline report must not depend on remote assets');
+    return html;
+}
+
+try {
+    temporaryDirectory = await mkdtemp(join(tmpdir(), 'pfo-fire-browser-'));
+    server.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const address = server.address();
+    assert.ok(address && typeof address === 'object');
+    const baseUrl = `http://127.0.0.1:${address.port}/`;
+
+    browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({ acceptDownloads: true });
+    const page = await context.newPage();
+    const pageErrors = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+
+    await page.goto(baseUrl, { waitUntil: 'networkidle' });
+    await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
+    await page.getByLabel('Annual contribution (₹)').fill('300000');
+    await page.getByLabel('Years until retirement').fill('10');
+    await page.getByLabel('Expected annual return (%)').fill('7');
+    await page.getByLabel('Annual inflation (%)').fill('3');
+    await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
+    await page.getByLabel('Initial withdrawal rate (%)').fill('4');
+
+    await page.getByRole('button', { name: 'Calculate readiness' }).click();
+    assert.equal(await page.locator('#fire-results').isVisible(), true, 'readiness results should appear');
+    assert.notEqual((await page.locator('#fire-projected-portfolio').innerText()).trim(), '—');
+    assert.notEqual((await page.locator('#fire-target-corpus').innerText()).trim(), '—');
+    console.log('PASS: FIRE readiness calculates and displays results.');
+
+    // Bypass the input event intentionally so this specifically exercises the invalid-submit stale-result guard.
+    await page.locator('#fire-spending').evaluate((element) => { element.value = ''; });
+    await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
+    assert.equal(await page.locator('#fire-results').isHidden(), true,
+        'an invalid required-contribution solve must clear stale results');
+    assert.equal(await page.locator('#fire-required-result').isHidden(), true,
+        'an invalid solve must clear the previous required-contribution message');
+    console.log('PASS: invalid required-contribution submission clears stale results.');
+
+    await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
+    await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
+    assert.equal(await page.locator('#fire-results').isVisible(), true, 'valid solver results should appear');
+    assert.equal(await page.locator('#fire-required-result').isVisible(), true,
+        'required annual contribution should be displayed');
+    assert.match(await page.locator('#fire-required-result').innerText(), /Required constant annual contribution:/);
+    console.log('PASS: required annual contribution solver returns a visible result.');
+
+    await page.getByRole('button', { name: 'Download offline HTML report' }).click();
+    const singleDownload = await page.waitForEvent('download');
+    await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', '600000');
+    console.log('PASS: single-scenario report downloads as standalone, script-free HTML.');
+
+    await page.getByRole('button', { name: 'Compare scenarios' }).click();
+    assert.equal(await page.locator('#fire-comparison').isVisible(), true, 'scenario comparison panel should open');
+    await page.getByRole('button', { name: 'Copy current assumptions into all scenarios' }).click();
+    await page.locator('#fire-compare-a-name').fill('Conservative');
+    await page.locator('#fire-compare-a-contribution').fill('200000');
+    await page.locator('#fire-compare-b-name').fill('Baseline');
+    await page.locator('#fire-compare-b-contribution').fill('300000');
+    await page.locator('#fire-compare-c-name').fill('Higher saving');
+    await page.locator('#fire-compare-c-contribution').fill('500000');
+    await page.getByRole('button', { name: 'Run comparison' }).click();
+    assert.equal(await page.locator('#fire-compare-results').isVisible(), true, 'comparison results should appear');
+    assert.equal(await page.locator('#fire-compare-body tr').count(), 3, 'comparison should render all three scenarios');
+    assert.match(await page.locator('#fire-compare-body').innerText(), /Conservative[\s\S]*Baseline[\s\S]*Higher saving/);
+    console.log('PASS: three-scenario comparison renders each scenario in entered order.');
+
+    await page.getByRole('button', { name: 'Download comparison report' }).click();
+    const comparisonDownload = await page.waitForEvent('download');
+    await assertOfflineReport(comparisonDownload, 'pfo-fire-comparison-report.html', 'Conservative');
+    const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
+    assert.ok(comparisonHtml.includes('Baseline') && comparisonHtml.includes('Higher saving'),
+        'comparison report should include all three scenario names');
+    console.log('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.');
+
+    assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
+    console.log('PASS: no uncaught browser JavaScript errors.');
+    await context.close();
+} catch (error) {
+    console.error('FIRE planner browser smoke test failed.');
+    throw error;
+} finally {
+    if (browser) await browser.close();
+    if (server.listening) await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    if (temporaryDirectory) await rm(temporaryDirectory, { recursive: true, force: true });
+}
