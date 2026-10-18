@@ -54,7 +54,7 @@ try {
         'main-content',
         'activating the skip link should move focus to the main content landmark'
     );
-    process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\\n');
+    process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
     await page.locator('#fire-annual-contribution').fill('300000');
     await page.getByLabel('Years until retirement').fill('10');
@@ -131,7 +131,22 @@ try {
     assert.equal(await page.locator('#goal-progress-bar').getAttribute('aria-valuetext'), '25 percent of target');
     await page.getByRole('button', { name: 'Reset goal' }).click();
     assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
-    process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\\n');
+    process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
+
+    await page.locator('#switch-private-button').click();
+    const [backupDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-button').click()
+    ]);
+    assert.equal(backupDownload.suggestedFilename(), 'pfo-os-financial-records.json');
+    const backupPath = join(temporaryDirectory, 'pfo-os-financial-records.json');
+    await backupDownload.saveAs(backupPath);
+    const backup = JSON.parse(await readFile(backupPath, 'utf8'));
+    assert.equal(backup.schemaVersion, 1, 'JSON backup should declare its schema version');
+    assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
+    assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
+    assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
+    process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     let reachedFireInput = false;
@@ -155,7 +170,7 @@ try {
     }));
     assert.ok(viewport.documentWidth <= viewport.width,
         `narrow viewport should not cause page-level horizontal overflow (viewport ${viewport.width}, document ${viewport.documentWidth}, offenders ${JSON.stringify(viewport.offenders)})`);
-    process.stdout.write('PASS: keyboard tab order reaches FIRE controls and 320px layout has no page-level horizontal overflow.\\n');
+    process.stdout.write('PASS: keyboard tab order reaches FIRE controls and 320px layout has no page-level horizontal overflow.\n');
 
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');

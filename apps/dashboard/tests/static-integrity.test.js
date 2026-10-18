@@ -85,6 +85,20 @@ describe('FIRE planner interaction contracts', () => {
     });
 });
 
+describe('dashboard export reliability', () => {
+    it('keeps the JSON backup object URL alive briefly after initiating download', async () => {
+        const app = await readDashboardFile('app.js');
+        const exportData = app.slice(app.indexOf('function exportData()'), app.indexOf('function exportCsv()'));
+
+        expect(exportData).toContain("link.download = 'pfo-os-financial-records.json';");
+        expect(exportData).toContain('document.body.append(link);');
+        expect(exportData).toContain('link.remove();');
+        expect(exportData).toMatch(/setTimeout\(\(\) => URL\.revokeObjectURL\(url\), 1000\)/);
+        expect(exportData).not.toMatch(/link\.click\(\);\s*URL\.revokeObjectURL\(url\)/);
+    });
+});
+
+
 
 describe('dashboard accessibility contracts', () => {
     it('associates labels with FIRE and goal tracker form controls', async () => {

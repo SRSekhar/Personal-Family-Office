@@ -138,3 +138,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added static integrity coverage and Chromium interaction checks for first-Tab focus and Enter activation moving focus to main content.
 - Kept the target focusable with `tabindex="-1"` and preserved the browser's focus indication; the link remains available to assistive technology.
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the feature PR. This does not replace screen-reader testing or a full WCAG audit.
+
+
+### JSON backup download reliability — in progress
+- Updated JSON backup export to attach the download link to the document, remove it after activation, and defer object-URL revocation briefly so browsers can begin consuming the file before its URL is released.
+- Added a static regression contract and a Chromium download test that parses the downloaded backup and verifies its schema version, currency, records array, and export timestamp.
+- This does not change the backup format or store data anywhere new; the browser download remains local to the user's device.
+- Validation status: pending CI, Secret Scan, and dashboard packaging on the feature PR.
