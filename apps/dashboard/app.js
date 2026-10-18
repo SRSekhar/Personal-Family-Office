@@ -532,7 +532,12 @@ function importData(file) {
             const validated = validateBackupPayload(parsed, CURRENCY)
                 .map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            if (savePrivateRecords(validated, true)) {
+            const replacementConfirmed = records.length === 0 || window.confirm(
+                'Importing this backup will replace all records in your private workspace. Export a backup first if you want to keep the current records. Continue?'
+            );
+            if (!replacementConfirmed) {
+                showToast('Import cancelled. Your existing records were not changed.');
+            } else if (savePrivateRecords(validated, true)) {
                 records = validated;
                 render();
                 showToast(`Imported ${records.length} records into your private workspace.`);

@@ -159,3 +159,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a static contract and Chromium test that emulates the reduced-motion preference and observes the requested scroll behavior.
 - This addresses one specific motion preference; it does not claim a complete motion/accessibility audit.
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
+
+
+### Confirm backup replacement before overwriting existing records — in progress
+- Importing a valid backup now prompts before replacing a non-empty private workspace. Cancelling leaves existing records unchanged; confirming intentionally replaces them.
+- The prompt is shown only after the backup parses and passes schema/currency/record validation, so malformed files cannot trigger a misleading replacement confirmation.
+- Added Chromium coverage for both cancel-preserves-data and confirm-replaces-data paths using synthetic records and verifying recalculated totals.
+- The prompt is skipped for an empty workspace, preserving the normal first-import flow. Existing local-only privacy boundaries and backup schema are unchanged.
+- Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
