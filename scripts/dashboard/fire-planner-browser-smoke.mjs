@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -147,6 +148,38 @@ try {
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
+
+    const validBackup = {
+        schemaVersion: 1,
+        currency: 'INR',
+        exportedAt: new Date().toISOString(),
+        records: [{ name: 'Imported browser asset', category: 'Investments', type: 'asset', value: 123456 }]
+    };
+    await page.locator('#import-file').setInputFiles({
+        name: 'valid-backup.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(validBackup))
+    });
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#records-body')?.innerText.includes('Imported browser asset')
+    );
+    assert.match(await page.locator('#net-worth').innerText(), /1,23,456/,
+        'imported financial records should update the dashboard totals');
+    process.stdout.write('PASS: importing a valid backup updates the private workspace and totals.\n');
+
+    await page.locator('#import-file').setInputFiles({
+        name: 'invalid-backup.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify({ schemaVersion: 999, currency: 'INR', records: [] }))
+    });
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('Unsupported backup format.')
+    );
+    assert.ok((await page.locator('#records-body').innerText()).includes('Imported browser asset'),
+        'a rejected backup must not overwrite the previously imported records');
+    assert.match(await page.locator('#net-worth').innerText(), /1,23,456/,
+        'a rejected backup must preserve the prior financial totals');
+    process.stdout.write('PASS: invalid backup rejection preserves the current records and totals.\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     let reachedFireInput = false;

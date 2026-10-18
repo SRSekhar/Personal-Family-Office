@@ -145,3 +145,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a static regression contract and a Chromium download test that parses the downloaded backup and verifies its schema version, currency, records array, and export timestamp.
 - This does not change the backup format or store data anywhere new; the browser download remains local to the user's device.
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the feature PR.
+
+
+### Backup import round-trip and failure safety — in progress
+- Extended Chromium coverage to import a valid versioned INR backup and verify that the financial record and net-worth total update.
+- Added a malformed-schema import attempt and assertions that the existing record and totals remain unchanged after rejection.
+- This is end-to-end validation using synthetic test data in a temporary browser context; it does not touch real user records or change the backup schema.
+- Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
