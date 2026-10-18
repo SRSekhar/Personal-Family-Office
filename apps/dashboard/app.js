@@ -142,6 +142,9 @@ function readCompareScenarios() {
         const read = (suffix) => $(`#fire-compare-${key}-${suffix}`);
         const name = read('name').value.trim();
         if (!name) throw new RangeError('Each scenario needs a name.');
+        for (const field of ['contribution', 'return', 'inflation', 'withdrawal']) {
+            if (read(field).value.trim() === '') throw new RangeError(`Enter a value for scenario ${name}: ${field}.`);
+        }
         return { id: key, name, input: {
             ...base,
             annualContribution: Number(read('contribution').value),
@@ -170,7 +173,7 @@ function compareFireScenarios() {
             const assumptions = document.createElement('td');
             const name = document.createElement('strong'); name.textContent = scenario.name;
             const detail = document.createElement('p'); detail.className = 'fire-scenario-assumptions';
-            detail.textContent = `Annual contribution ${money(scenario.input.annualContribution)} · Return ${number(scenario.input.expectedAnnualReturn * 100)}% · Inflation ${number(scenario.input.annualInflationRate * 100)}% · Withdrawal ${number(scenario.input.withdrawalRate * 100)}% · Contributions at ${scenario.input.contributionTiming === 'beginning' ? 'year start' : 'year end'}`;
+            detail.textContent = `Portfolio ${money(scenario.input.currentPortfolio)} · ${scenario.input.yearsToRetirement} years · Spending today ${money(scenario.input.annualRetirementSpendingToday)} / year · Contribution ${money(scenario.input.annualContribution)} / year · Return ${number(scenario.input.expectedAnnualReturn * 100)}% · Inflation ${number(scenario.input.annualInflationRate * 100)}% · Withdrawal ${number(scenario.input.withdrawalRate * 100)}% · Contributions at ${scenario.input.contributionTiming === 'beginning' ? 'year start' : 'year end'}`;
             assumptions.append(name, detail);
             const portfolio = document.createElement('td'); portfolio.textContent = money(scenario.result.projectedPortfolioAtRetirement);
             const target = document.createElement('td'); target.textContent = money(scenario.result.targetCorpusAtRetirement);
@@ -201,6 +204,11 @@ function resetFire() {
     const defaults = {currentPortfolio:0,annualContribution:0,yearsToRetirement:10,expectedAnnualReturn:7,annualInflationRate:3,annualRetirementSpendingToday:0,withdrawalRate:4,contributionTiming:'end'};
     for (const [name,value] of Object.entries(defaults)) form.elements[name].value = String(value);
     fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true; $('#fire-compare-results').hidden = true; setCompareValidation();
+    for (const key of ['a', 'b', 'c']) {
+        $(`#fire-compare-${key}-name`).value = `Scenario ${key.toUpperCase()}`;
+        for (const field of ['contribution', 'return', 'inflation', 'withdrawal']) $(`#fire-compare-${key}-${field}`).value = '';
+        $(`#fire-compare-${key}-timing`).value = 'end';
+    }
 }
 function showHostedPrivacyWarning() {
     const isHosted = !isPrivateWorkspaceAllowed(window.location.hostname);
