@@ -27,9 +27,16 @@ describe('filterFinancialRecords', () => {
         expect(filterFinancialRecords(records, 'loan', 'asset')).toEqual([]);
     });
 
+    it('filters by category and combines category with search and type', () => {
+        expect(filterFinancialRecords(records, '', 'all', 'Investments').map((record) => record.id)).toEqual(['3']);
+        expect(filterFinancialRecords(records, 'mutual', 'asset', 'Investments').map((record) => record.id)).toEqual(['3']);
+        expect(filterFinancialRecords(records, '', 'liability', 'Investments')).toEqual([]);
+    });
+
     it('rejects invalid filter arguments', () => {
         expect(() => filterFinancialRecords(null)).toThrow('Records must be an array');
         expect(() => filterFinancialRecords(records, 10)).toThrow('Search query must be a string');
         expect(() => filterFinancialRecords(records, '', 'property')).toThrow('Record type filter must be all, asset, or liability');
+        expect(() => filterFinancialRecords(records, '', 'all', '')).toThrow('Record category filter must be a non-empty string');
     });
 });

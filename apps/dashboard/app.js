@@ -141,7 +141,16 @@ function renderAllocation(totalAssets) {
 function renderRecords() {
     const query = $('#record-search').value;
     const typeFilter = $('#records-type-filter').value;
-    const filtered = sortFinancialRecords(filterFinancialRecords(records, query, typeFilter), $('#records-sort-order').value);
+    const categoryFilter = $('#records-category-filter');
+    const selectedCategory = categoryFilter.value;
+    const categories = [...new Set(records.map((item) => item.category))].sort((a, b) => a.localeCompare(b, 'en'));
+    categoryFilter.innerHTML = `<option value="all">All categories</option>${categories.map((category) =>
+        `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('')}`;
+    categoryFilter.value = categories.includes(selectedCategory) ? selectedCategory : 'all';
+    const filtered = sortFinancialRecords(
+        filterFinancialRecords(records, query, typeFilter, categoryFilter.value),
+        $('#records-sort-order').value
+    );
     const visible = $('#view-all-button').dataset.all === 'true' ? filtered : filtered.slice(0, 5);
     $('#records-body').innerHTML = visible.map((item) => {
         const asset = item.type === 'asset';
@@ -156,12 +165,13 @@ function renderRecords() {
     $('#empty-records').hidden = records.length !== 0;
     $('#no-matching-records').hidden = records.length === 0 || filtered.length !== 0;
     $('.table-wrap').hidden = records.length === 0 || filtered.length === 0;
-    const hasFilter = query.trim() !== '' || typeFilter !== 'all';
+    const hasFilter = query.trim() !== '' || typeFilter !== 'all' || categoryFilter.value !== 'all';
     const hasActiveViewOptions = hasFilter || $('#records-sort-order').value !== 'default';
     $('#records-summary').textContent = hasFilter
         ? `Showing ${visible.length} of ${filtered.length} matching records`
         : `Showing ${visible.length} of ${records.length} records`;
     $('#reset-record-view-button').hidden = !hasActiveViewOptions;
+    $('#export-view-csv-button').hidden = !hasActiveViewOptions;
     $('#view-all-button').hidden = filtered.length <= 5;
     $('#view-all-button').textContent = $('#view-all-button').dataset.all === 'true' ? 'Show less' : 'View all';
 }
@@ -245,6 +255,36 @@ function exportCsv() {
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('CSV exported to this device.');
+}
+
+function exportViewCsv() {
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
+        return;
+    }
+    let csv;
+    try {
+        const filteredRecords = sortFinancialRecords(
+            filterFinancialRecords(
+                records,
+                $('#record-search').value,
+                $('#records-type-filter').value,
+                $('#records-category-filter').value
+            ),
+            $('#records-sort-order').value
+        );
+        csv = recordsToCsv(filteredRecords, CURRENCY);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-financial-records-view.csv';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast(`Exported ${filteredRecords.length} matching records to CSV.`);
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create CSV export.');
+    }
 }
 
 function importData(file) {
@@ -341,10 +381,12 @@ $('#records-body').addEventListener('click', (event) => {
 });
 $('#record-search').addEventListener('input', renderRecords);
 $('#records-type-filter').addEventListener('change', renderRecords);
+$('#records-category-filter').addEventListener('change', renderRecords);
 $('#records-sort-order').addEventListener('change', renderRecords);
 $('#reset-record-view-button').addEventListener('click', () => {
     $('#record-search').value = '';
     $('#records-type-filter').value = 'all';
+    $('#records-category-filter').value = 'all';
     $('#records-sort-order').value = 'default';
     $('#view-all-button').dataset.all = 'false';
     renderRecords();
@@ -356,6 +398,7 @@ $('#view-all-button').addEventListener('click', () => {
 });
 $('#export-button').addEventListener('click', exportData);
 $('#export-csv-button').addEventListener('click', exportCsv);
+$('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
