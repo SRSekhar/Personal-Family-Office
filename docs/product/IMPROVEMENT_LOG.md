@@ -167,3 +167,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added Chromium coverage for both cancel-preserves-data and confirm-replaces-data paths using synthetic records and verifying recalculated totals.
 - The prompt is skipped for an empty workspace, preserving the normal first-import flow. Existing local-only privacy boundaries and backup schema are unchanged.
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
+
+
+### Navigation state follows browser history — implementation in progress
+- The sidebar previously updated its active item and breadcrumb only on link clicks. Browser Back/Forward or loading a deep-linked section could change the URL fragment without updating those visual and assistive-technology cues.
+- Centralized navigation synchronization around the current URL fragment, retained click responsiveness, and added a `hashchange` listener plus initial synchronization. Unknown fragments fall back to Overview.
+- Added a static regression contract for initial sync, fragment-history handling, active styling, and `aria-current`.
+- Validation status: implementation committed to a focused PR branch; CI and browser verification are pending. This does not claim a complete accessibility audit.
