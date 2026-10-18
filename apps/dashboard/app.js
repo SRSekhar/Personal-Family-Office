@@ -167,6 +167,11 @@ function renderRecords() {
     $('.table-wrap').hidden = records.length === 0 || filtered.length === 0;
     const hasFilter = query.trim() !== '' || typeFilter !== 'all' || categoryFilter.value !== 'all';
     const hasActiveViewOptions = hasFilter || $('#records-sort-order').value !== 'default';
+    const matchingTotals = calculateFinancialTotals(filtered);
+    $('#filtered-record-totals').hidden = !hasFilter;
+    $('#filtered-record-totals').textContent = hasFilter
+        ? `Matching totals — Assets: ${money(matchingTotals.assets)} · Liabilities: ${money(matchingTotals.liabilities)} · Net worth: ${money(matchingTotals.netWorth)}`
+        : '';
     $('#records-summary').textContent = hasFilter
         ? `Showing ${visible.length} of ${filtered.length} matching records`
         : `Showing ${visible.length} of ${records.length} records`;
