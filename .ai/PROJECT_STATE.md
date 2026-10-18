@@ -47,7 +47,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 2. Validate the complete local dashboard-to-offline-report workflow, including single-scenario and comparison downloads opened without network access.
 3. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
 4. Define the source of truth, valuation-date semantics, and recovery requirements before implementing historical snapshot persistence.
-5. Complete repository credential-exposure review, licensing/distribution review, and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
+5. Manually review historical repository content and commit metadata for accidental secrets; finish software distribution/legal review and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
 
 ## Blockers and Risks
 
