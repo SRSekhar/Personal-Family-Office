@@ -85,6 +85,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Dashboard for assets, liabilities, net worth, category allocation, record CRUD, search, filtering, sorting, reset, and CSV/JSON export
 - Local-only FIRE planner with readiness calculation, required annual contribution, and ordered three-scenario comparison
 - Explicit download of self-contained offline FIRE scenario HTML reports
+- Session-only Goal Tracker for one target, with validated progress and completion/overdue state (PR #145)
 - Remaining: interactive browser verification, accessibility/400% zoom validation, and customer feedback
 - Charts, historical timelines, portfolio explorer, and additional KPIs remain deferred until snapshot requirements and customer needs are validated
 
@@ -110,7 +111,7 @@ Any future recommendations require explicit assumptions, explainability, and app
 - Local-only planner UI and required annual contribution action (PR #139)
 - Three-scenario comparison preserving entered order and explicit assumptions (PR #141)
 - Explicit downloadable offline HTML reports for one or more scenarios (PR #142)
-- Remaining: keyboard/accessibility and 400% zoom verification, customer discovery, and any future goal-tracking requirements
+- Remaining: keyboard/accessibility and 400% zoom verification, customer discovery, and follow-up requirements for managing multiple goals and deciding persistence
 - Monte Carlo scenarios only after a separate requirements and validation plan
 
 The current calculator is a deterministic scenario, not a probability model or guarantee. It excludes taxes, fees, investment volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. Keep assumptions visible and validated before exposing results in a user-facing planner.
