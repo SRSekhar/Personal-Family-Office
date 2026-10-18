@@ -71,15 +71,16 @@ describe('dashboard accessibility contracts', () => {
 
             expect(
                 controlIds,
-                \`${sectionName} section must expose controls for label validation\`
+                sectionName + ' section must expose controls for label validation'
             ).not.toHaveLength(0);
 
             for (const id of controlIds) {
                 expect(
                     section,
-                    \`${sectionName} control #\${id} must have an explicitly associated label\`
-                ).toMatch(new RegExp(\`<label\\\\b[^>]*\\\\bfor=["']\${id}["']\`));
-            }        }
+                    sectionName + ' control #' + id + ' must have an explicitly associated label'
+                ).toMatch(new RegExp('<label\\b[^>]*\\bfor=["\\']' + id + '["\\']'));
+            }
+        }
     });
 
     it('exposes result announcements, validation alerts, and a named native progress indicator', async () => {
