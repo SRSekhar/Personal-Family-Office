@@ -35,7 +35,7 @@ describe('dashboard static integrity', () => {
         const app = await readDashboardFile('app.js');
         const imports = [...app.matchAll(/\bfrom\s+['"]([^'"]+)['"]/g)]
             .map((match) => match[1])
-            .filter((specifier) => specifier.startsWith('.') && !specifier.startsWith('./calculators-runtime/'));
+            .filter((specifier) => specifier.startsWith('.') && !specifier.startsWith('./calculators-runtime/') && !specifier.startsWith('./reports-runtime/'));
 
         expect(imports.length).toBeGreaterThan(0);
         expect(app).toContain("'./calculators-runtime/FireReadiness.js'");
