@@ -19,7 +19,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
 - FIRE report export is explicit user action. Reports are script-free, self-contained HTML, validate report inputs/results, escape untrusted scenario names, and are generated locally without network submission.
-- The dashboard's static artifact is packaged successfully by CI. Publishing remains blocked until the repository owner configures GitHub Pages in Settings → Pages with Source set to GitHub Actions.
+- The dashboard's static artifact is packaged successfully by CI. PR #145 adds a session-only Goal Tracker for one target with progress, remaining amount, target date, and completion/overdue status; its calculator, dashboard integration, tests, and documentation passed PR CI, Secret Scan, and dashboard packaging before merge. Publishing remains blocked until the repository owner configures GitHub Pages in Settings → Pages with Source set to GitHub Actions.
 - Customer demand remains unvalidated; no revenue or paid-pilot commitment is claimed.
 
 ## Foundation Verified
@@ -43,7 +43,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Perform interactive browser validation of the FIRE planner, comparison controls, validation/status messaging, keyboard operation, responsive layout, and 400% zoom.
+1. Perform interactive browser validation of the FIRE planner, comparison controls, Goal Tracker, validation/status messaging, keyboard operation, responsive layout, and 400% zoom.
 2. Validate the complete local dashboard-to-offline-report workflow, including single-scenario and comparison downloads opened without network access.
 3. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
 4. Define the source of truth, valuation-date semantics, and recovery requirements before implementing historical snapshot persistence.
@@ -65,6 +65,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #139 merged the local-only FIRE planner after CI, dashboard packaging, and Secret Scan passed.
 - PR #141 merged the ordered three-scenario comparison UI after CI, dashboard packaging, and Secret Scan passed.
 - PR #142 merged validated, self-contained FIRE scenario HTML reports and explicit download actions after CI, dashboard packaging, and Secret Scan passed. Manual browser/accessibility verification remains open.
+- PR #145 merged a deterministic goal-progress calculator and session-only Goal Tracker UI after CI, Secret Scan, and dashboard packaging passed. It does not persist goals or project returns.
 - Product priority remains complete user workflows and customer validation; autonomous engineering workflow work is intentionally deferred.
 
 - PR #107 merged: hourly autonomous-development workflow committed; first end-to-end agent run is not yet verified.
@@ -79,7 +80,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Last Updated
 
-2026-10-17
+2026-10-18
 
 - PR #116 added a main-push trigger, but its first run failed immediately with `Unsupported event type: push` before the agent executed. PR #117 removed that unsupported trigger and changed the schedule to twice hourly at minutes 17 and 47 UTC; PR CI and Secret Scan passed.
 - End-to-end autonomous delivery remains unverified. The next scheduled/manual run must reach the agent, create a focused commit, publish a PR, and pass PR CI before the workflow is considered operational.
