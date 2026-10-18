@@ -106,7 +106,7 @@
             <section class="panel records-panel" id="records" aria-labelledby="records-heading">
                 <div class="panel-header records-header">
                     <div><p class="eyebrow">YOUR BALANCE SHEET</p><h2 id="records-heading">Financial records</h2></div>
-                    <div class="records-actions"><label class="search-box"><span>⌕</span><input id="record-search" type="search" placeholder="Search records" aria-label="Search financial records"></label><button class="button button-secondary button-small" id="view-all-button" type="button">View all</button></div>
+                    <div class="records-actions"><label class="search-box"><span>⌕</span><input id="record-search" type="search" placeholder="Search records" aria-label="Search financial records"></label><label class="sr-only" for="records-type-filter">Filter financial records by type</label><select id="records-type-filter" class="filter-select" aria-label="Filter financial records by type"><option value="all">All types</option><option value="asset">Assets</option><option value="liability">Liabilities</option></select><button class="button button-secondary button-small" id="view-all-button" type="button">View all</button></div>
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -115,6 +115,7 @@
                     </table>
                 </div>
                 <div class="empty-state" id="empty-records" hidden><span class="empty-icon">▤</span><strong>No financial records yet</strong><p>Add your first asset or liability to start building your financial picture.</p><button class="button button-primary" id="empty-add-button" type="button">＋ Add your first record</button></div>
+                <div class="empty-state" id="no-matching-records" hidden><span class="empty-icon">⌕</span><strong>No matching records</strong><p>Try another search term or change the record type filter.</p></div>
                 <div class="table-footer"><span id="records-summary">Showing 0 records</span><span>Values are user-entered and are not independently verified.</span></div>
             </section>
 
