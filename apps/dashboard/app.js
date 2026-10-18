@@ -1,6 +1,7 @@
 import { validateBackupPayload } from './backup.js';
 import { recordsToCsv } from './csv-export.js';
 import { filterFinancialRecords } from './record-filter.js';
+import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
@@ -129,7 +130,7 @@ function renderAllocation(totalAssets) {
 function renderRecords() {
     const query = $('#record-search').value;
     const typeFilter = $('#records-type-filter').value;
-    const filtered = filterFinancialRecords(records, query, typeFilter);
+    const filtered = sortFinancialRecords(filterFinancialRecords(records, query, typeFilter), $('#records-sort-order').value);
     const visible = $('#view-all-button').dataset.all === 'true' ? filtered : filtered.slice(0, 5);
     $('#records-body').innerHTML = visible.map((item) => {
         const asset = item.type === 'asset';
@@ -327,6 +328,7 @@ $('#records-body').addEventListener('click', (event) => {
 });
 $('#record-search').addEventListener('input', renderRecords);
 $('#records-type-filter').addEventListener('change', renderRecords);
+$('#records-sort-order').addEventListener('change', renderRecords);
 $('#view-all-button').addEventListener('click', () => {
     $('#view-all-button').dataset.all = $('#view-all-button').dataset.all !== 'true' ? 'true' : 'false';
     renderRecords();
