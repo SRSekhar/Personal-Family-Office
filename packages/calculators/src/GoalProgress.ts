@@ -23,7 +23,7 @@ export function calculateGoalProgress(input: GoalProgressInput): GoalProgressRes
     if (!Number.isFinite(input.currentAmount) || input.currentAmount < 0) {
         throw new RangeError('Current amount must be a finite non-negative number.');
     }
-    if (typeof input.targetDate !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(input.targetDate)) {
+    if (typeof input.targetDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.targetDate)) {
         throw new RangeError('Target date must be a valid calendar date in YYYY-MM-DD format.');
     }
 
