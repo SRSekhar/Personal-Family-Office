@@ -116,3 +116,11 @@ Do not record personal financial values or claim customer demand without evidenc
 ### Goal progress accessibility wording — follow-up
 - Updated the progress indicator's accessible value text to say the percentage is 'of target', so a completed goal above 100% is not announced as an impossible percentage 'complete'. The visual percentage remains uncapped to show the amount above target, while the native progress bar remains capped at 100.
 - Added a static regression assertion for the accessible wording. Browser/screen-reader validation remains open.
+
+
+### FIRE planner real-browser regression suite — in progress
+- Added a Chromium smoke script that serves the actual dashboard on loopback and exercises FIRE readiness, invalid required-contribution submission clearing stale results, successful required-contribution solving, three-scenario comparison, and both offline HTML report downloads.
+- Report checks require a standalone HTML document without executable scripts or remote asset dependencies, and verify that comparison reports include all three named scenarios.
+- CI installs Playwright into a temporary directory rather than adding a permanent workspace dependency, installs Chromium, prepares browser calculator modules from the current package build, and runs the browser smoke script.
+- This is automated Chromium coverage for key workflows, not a claim that keyboard-only navigation, screen-reader behavior, responsive breakpoints, or 400% zoom have been manually verified. Those remain follow-up validation items.
+- Validation status: pending CI execution on PR #156 (do not treat the suite as passing until the workflow result is green).
