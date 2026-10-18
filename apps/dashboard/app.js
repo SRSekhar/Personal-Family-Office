@@ -9,6 +9,7 @@ import { calculateFireReadiness } from './calculators-runtime/FireReadiness.js';
 import { compareFireReadinessScenarios } from './calculators-runtime/FireScenarioComparison.js';
 import { createFireScenarioReport, renderFireScenarioReportHtml } from './reports-runtime/FireScenarioReport.js';
 import { calculateRequiredFireContribution } from './calculators-runtime/RequiredFireContribution.js';
+import { calculateGoalProgress } from './calculators-runtime/GoalProgress.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -252,6 +253,52 @@ function resetFire() {
         $(`#fire-compare-${key}-timing`).value = 'end';
     }
 }
+function calculateGoal(event) {
+    event?.preventDefault();
+    const form = $('#goal-tracker-form');
+    $('#goal-validation').hidden = true;
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        $('#goal-validation').textContent = 'Use the loopback-only dashboard before entering personal financial goals.';
+        $('#goal-validation').hidden = false;
+        return;
+    }
+    try {
+        const name = form.elements.goalName.value.trim();
+        if (!name) throw new RangeError('Enter a name for this goal.');
+        const result = calculateGoalProgress({
+            targetAmount: Number(form.elements.targetAmount.value),
+            currentAmount: Number(form.elements.currentAmount.value),
+            targetDate: form.elements.targetDate.value
+        });
+        $('#goal-results-heading').textContent = name;
+        $('#goal-status').textContent = result.isComplete ? 'Goal reached' : result.isOverdue ? 'Past target date' : 'In progress';
+        $('#goal-status').className = 'fire-status ' + (result.isComplete ? 'on-track' : result.isOverdue ? 'shortfall' : 'on-track');
+        $('#goal-progress-percent').textContent = number(result.progressPercent) + '%';
+        $('#goal-progress-detail').textContent = money(result.currentAmount) + ' accumulated';
+        $('#goal-progress-bar').value = Math.min(100, result.progressPercent);
+        $('#goal-progress-bar').setAttribute('aria-valuetext', number(result.progressPercent) + ' percent complete');
+        $('#goal-target-result').textContent = money(result.targetAmount);
+        $('#goal-remaining-result').textContent = money(result.amountRemaining);
+        $('#goal-date-result').textContent = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(form.elements.targetDate.value + 'T00:00:00Z'));
+        $('#goal-time-result').textContent = result.isComplete ? 'Target reached' : result.daysRemaining < 0 ? Math.abs(result.daysRemaining) + ' days overdue' : result.daysRemaining + ' days remaining';
+        $('#goal-results').hidden = false;
+    } catch (error) {
+        $('#goal-results').hidden = true;
+        $('#goal-validation').textContent = error instanceof Error ? error.message : 'Check the goal details and try again.';
+        $('#goal-validation').hidden = false;
+    }
+}
+function resetGoal() {
+    const form = $('#goal-tracker-form');
+    form.reset();
+    form.elements.goalName.value = 'My financial goal';
+    form.elements.targetAmount.value = '1000000';
+    form.elements.currentAmount.value = '0';
+    form.elements.targetDate.value = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
+    $('#goal-validation').hidden = true;
+    $('#goal-results').hidden = true;
+}
+
 function showHostedPrivacyWarning() {
     const isHosted = !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#hosted-privacy-notice').hidden = !isHosted;
@@ -500,6 +547,9 @@ $('#fire-copy-assumptions').addEventListener('click', copyFireAssumptionsToScena
 $('#fire-compare-run').addEventListener('click', compareFireScenarios);
 $('#fire-comparison').addEventListener('input', () => { setCompareValidation(); $('#fire-compare-results').hidden = true; });
 $('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; $('#fire-compare-results').hidden = true; lastFireReportScenarios = []; lastComparisonReportScenarios = []; });
+$('#goal-tracker-form').addEventListener('submit', calculateGoal);
+$('#goal-reset-button').addEventListener('click', resetGoal);
+$('#goal-tracker-form').addEventListener('input', () => { $('#goal-results').hidden = true; $('#goal-validation').hidden = true; });
 $('#add-record-button').addEventListener('click', () => openRecordDialog());
 $('#quick-add-asset').addEventListener('click', () => openRecordDialog('asset'));
 $('#quick-add-liability').addEventListener('click', () => openRecordDialog('liability'));
@@ -604,14 +654,16 @@ document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('
     document.querySelectorAll('.nav-item').forEach((nav) => { nav.classList.remove('active'); nav.removeAttribute('aria-current'); });
     item.classList.add('active');
     item.setAttribute('aria-current', 'page');
-    $('#page-breadcrumb').textContent = item.textContent.trim().replace(/^[◫▤]\s*/, '');
+    $('#page-breadcrumb').textContent = item.textContent.trim().replace(/^[◫▤◷◎]\s*/, '');
 }));
 
+resetGoal();
 showHostedPrivacyWarning();
 if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#fire-planner-hosted-notice').hidden = false;
     $('#fire-planner-form').querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
     $('#fire-comparison').querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
     $('#fire-results').querySelectorAll('button').forEach((control) => { control.disabled = true; });
+    $('#goal-tracker-form').querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
 }
 switchWorkspace('demo');

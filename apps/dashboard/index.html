@@ -21,6 +21,7 @@
                 <a class="nav-item active" href="#overview" aria-current="page"><span class="nav-icon">◫</span> Overview</a>
                 <a class="nav-item" href="#records"><span class="nav-icon">▤</span> Financial records</a>
                 <a class="nav-item" href="#fire-planner"><span class="nav-icon">◎</span> FIRE planner</a>
+                <a class="nav-item" href="#goal-tracker"><span class="nav-icon">◷</span> Goal tracker</a>
             </nav>
             <div class="sidebar-bottom">
                 <div class="privacy-card"><span class="privacy-dot"></span><div><strong>Private by design</strong><p>Your workspace stays in this browser.</p></div></div>
@@ -162,6 +163,31 @@
 <p id="fire-compare-validation" class="fire-validation" role="alert" hidden></p>
 <div id="fire-compare-results" class="fire-compare-results" aria-live="polite" hidden><div class="table-scroll"><table><caption>Scenario results in the same order as entered</caption><thead><tr><th scope="col">Scenario and assumptions</th><th scope="col">Projected portfolio</th><th scope="col">Target corpus</th><th scope="col">Surplus / shortfall</th><th scope="col">Status</th></tr></thead><tbody id="fire-compare-body"></tbody></table></div><p class="fire-comparison-note">Scenarios are not ranked or recommended. Results are deterministic illustrations, not forecasts or guarantees.</p><div class="fire-actions"><button class="button button-secondary" id="fire-download-comparison-report" type="button">Download comparison report</button></div></div>
 </section>
+            </section>
+            <section class="panel goal-tracker-panel" id="goal-tracker" aria-labelledby="goal-tracker-heading">
+                <div class="panel-header"><div><p class="eyebrow">FINANCIAL MILESTONES</p><h2 id="goal-tracker-heading">Goal tracker</h2></div><span class="panel-tag">Ephemeral · INR</span></div>
+                <p class="goal-tracker-intro">Track one financial target using your own figures. Inputs and results remain in memory only and are cleared on refresh. This tracker measures arithmetic progress; it does not project investment returns.</p>
+                <form id="goal-tracker-form">
+                    <div class="goal-input-grid">
+                        <label class="field-label" for="goal-name">Goal name<input id="goal-name" name="goalName" type="text" maxlength="80" required value="My financial goal"></label>
+                        <label class="field-label" for="goal-target">Target amount (₹)<input id="goal-target" name="targetAmount" type="number" min="0.01" step="any" required value="1000000"></label>
+                        <label class="field-label" for="goal-current">Amount accumulated (₹)<input id="goal-current" name="currentAmount" type="number" min="0" step="any" required value="0"></label>
+                        <label class="field-label" for="goal-date">Target date<input id="goal-date" name="targetDate" type="date" required></label>
+                    </div>
+                    <p id="goal-validation" class="fire-validation" role="alert" hidden></p>
+                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate goal progress</button><button class="button button-secondary" id="goal-reset-button" type="button">Reset goal</button></div>
+                </form>
+                <section id="goal-results" class="goal-results" aria-labelledby="goal-results-heading" aria-live="polite" hidden>
+                    <div class="fire-result-heading"><div><p class="eyebrow">GOAL STATUS</p><h3 id="goal-results-heading">Goal progress</h3></div><span id="goal-status" class="fire-status"></span></div>
+                    <div class="goal-progress-heading"><strong id="goal-progress-percent">0%</strong><span id="goal-progress-detail">₹0 accumulated</span></div>
+                    <progress id="goal-progress-bar" max="100" value="0" aria-label="Goal completion percentage">0%</progress>
+                    <div class="goal-result-grid">
+                        <article><span>Target amount</span><strong id="goal-target-result">—</strong></article>
+                        <article><span>Amount remaining</span><strong id="goal-remaining-result">—</strong></article>
+                        <article><span>Target date</span><strong id="goal-date-result">—</strong></article>
+                        <article><span>Time status</span><strong id="goal-time-result">—</strong></article>
+                    </div>
+                </section>
             </section>
             <section class="panel records-panel" id="records" aria-labelledby="records-heading">
                 <div class="panel-header records-header">
