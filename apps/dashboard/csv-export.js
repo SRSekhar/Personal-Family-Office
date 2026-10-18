@@ -1,4 +1,4 @@
-const FORMULA_PREFIX = /^[\u0000-\u0020]*[=+@-]/;
+const FORMULA_PREFIX = /^\s*[=+@-]/u;
 
 function escapeSpreadsheetText(value) {
     const text = String(value ?? '');
