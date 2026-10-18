@@ -673,12 +673,27 @@ $('#import-button').addEventListener('click', () => {
     $('#import-file').click();
 });
 $('#import-file').addEventListener('change', (event) => importData(event.target.files?.[0]));
-document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach((nav) => { nav.classList.remove('active'); nav.removeAttribute('aria-current'); });
-    item.classList.add('active');
-    item.setAttribute('aria-current', 'page');
-    $('#page-breadcrumb').textContent = item.textContent.trim().replace(/^[◫▤◷◎]\s*/, '');
-}));
+function syncActiveNavigation() {
+    const navItems = [...document.querySelectorAll('.nav-item')];
+    const currentHash = window.location.hash || '#overview';
+    const activeItem = navItems.find((item) => item.getAttribute('href') === currentHash)
+        || navItems.find((item) => item.getAttribute('href') === '#overview');
+
+    navItems.forEach((item) => {
+        const isActive = item === activeItem;
+        item.classList.toggle('active', isActive);
+        if (isActive) item.setAttribute('aria-current', 'page');
+        else item.removeAttribute('aria-current');
+    });
+
+    if (activeItem) {
+        $('#page-breadcrumb').textContent = activeItem.textContent.trim().replace(/^[◫▤◷◎]\s*/, '');
+    }
+}
+
+document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', syncActiveNavigation));
+window.addEventListener('hashchange', syncActiveNavigation);
+syncActiveNavigation();
 
 resetGoal();
 showHostedPrivacyWarning();
