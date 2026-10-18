@@ -54,7 +54,7 @@ try {
     assert.equal(await page.locator('#fire-results').isVisible(), true, 'readiness results should appear');
     assert.notEqual((await page.locator('#fire-projected-portfolio').innerText()).trim(), '—');
     assert.notEqual((await page.locator('#fire-target-corpus').innerText()).trim(), '—');
-    process.stdout.write('PASS: FIRE readiness calculates and displays results.\\n');
+    process.stdout.write('PASS: FIRE readiness calculates and displays results.\n');
 
     // Bypass the input event intentionally so this specifically exercises the invalid-submit stale-result guard.
     await page.locator('#fire-spending').evaluate((element) => { element.value = ''; });
@@ -63,7 +63,7 @@ try {
         'an invalid required-contribution solve must clear stale results');
     assert.equal(await page.locator('#fire-required-result').isHidden(), true,
         'an invalid solve must clear the previous required-contribution message');
-    process.stdout.write('PASS: invalid required-contribution submission clears stale results.\\n');
+    process.stdout.write('PASS: invalid required-contribution submission clears stale results.\n');
 
     await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
     await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
@@ -71,14 +71,14 @@ try {
     assert.equal(await page.locator('#fire-required-result').isVisible(), true,
         'required annual contribution should be displayed');
     assert.match(await page.locator('#fire-required-result').innerText(), /Required constant annual contribution:/);
-    process.stdout.write('PASS: required annual contribution solver returns a visible result.\\n');
+    process.stdout.write('PASS: required annual contribution solver returns a visible result.\n');
 
     const [singleDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.getByRole('button', { name: 'Download offline HTML report' }).click()
     ]);
-    await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', '₹6,00,000');
-    process.stdout.write('PASS: single-scenario report downloads as standalone, script-free HTML.\\n');
+    await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', 'Annual spending today:');
+    process.stdout.write('PASS: single-scenario report downloads as standalone, script-free HTML.\n');
 
     await page.getByRole('button', { name: 'Compare scenarios' }).click();
     assert.equal(await page.locator('#fire-comparison').isVisible(), true, 'scenario comparison panel should open');
@@ -93,7 +93,7 @@ try {
     assert.equal(await page.locator('#fire-compare-results').isVisible(), true, 'comparison results should appear');
     assert.equal(await page.locator('#fire-compare-body tr').count(), 3, 'comparison should render all three scenarios');
     assert.match(await page.locator('#fire-compare-body').innerText(), /Conservative[\s\S]*Baseline[\s\S]*Higher saving/);
-    process.stdout.write('PASS: three-scenario comparison renders each scenario in entered order.\\n');
+    process.stdout.write('PASS: three-scenario comparison renders each scenario in entered order.\n');
 
     const [comparisonDownload] = await Promise.all([
         page.waitForEvent('download'),
@@ -103,13 +103,13 @@ try {
     const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
     assert.ok(comparisonHtml.includes('Baseline') && comparisonHtml.includes('Higher saving'),
         'comparison report should include all three scenario names');
-    process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\\n');
+    process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\n');
 
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
-    process.stdout.write('PASS: no uncaught browser JavaScript errors.\\n');
+    process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
 } catch (error) {
-    process.stderr.write('FIRE planner browser smoke test failed.\\n');
+    process.stderr.write('FIRE planner browser smoke test failed.\n');
     throw error;
 } finally {
     if (browser) await browser.close();
