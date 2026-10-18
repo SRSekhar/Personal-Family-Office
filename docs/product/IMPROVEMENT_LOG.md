@@ -124,3 +124,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - CI installs Playwright into a temporary directory rather than adding a permanent workspace dependency, installs Chromium, prepares browser calculator modules from the current package build, and runs the browser smoke script.
 - This is automated Chromium coverage for key workflows, not a claim that keyboard-only navigation, screen-reader behavior, responsive breakpoints, or 400% zoom have been manually verified. Those remain follow-up validation items.
 - Validation: PR #156 CI passed on head `0e1c0e1ee967030dd70b61f30737e406b0fb286c`, including lint, typecheck, build, existing tests, Chromium installation, and the real-browser smoke suite; Secret Scan also passed. This confirms the automated paths listed above, not the separate manual accessibility checks.
+
+
+### Goal tracker and narrow-layout browser coverage — in progress
+- Extended the existing Chromium smoke suite to calculate a 25% goal-progress example, verify the progress bar's accessible value text, and verify reset hides stale results.
+- Added a keyboard Tab-order assertion that reaches the first FIRE planner field and a 320 CSS-pixel viewport check for page-level horizontal overflow.
+- These checks improve regression coverage but do not replace manual screen-reader testing, real browser zoom at 400%, or comprehensive responsive testing across browsers. Those remain open.
+- Validation: the Chromium browser smoke suite passed on PR #157 head `b09a0118bca15b523cdc63f755c92e0ec32e6e39`, including Goal Tracker, keyboard tab reachability, and 320px layout. The test exposed page-level overflow from the absolutely positioned screen-reader-only label inside the records table; adding a negative left offset keeps the visually hidden label off the right edge without removing it from the accessibility tree. CI and Secret Scan passed; the dashboard packaging workflow also passed. Manual screen-reader testing and an actual 400% zoom audit remain open.
