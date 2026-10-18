@@ -58,6 +58,20 @@ describe('dashboard static integrity', () => {
 });
 
 
+describe('FIRE planner interaction contracts', () => {
+    it('validates required form fields before solving for an annual contribution', async () => {
+        const app = await readDashboardFile('app.js');
+        const calculateFire = app.slice(
+            app.indexOf('function calculateFire('),
+            app.indexOf('function downloadFireReport(')
+        );
+
+        expect(calculateFire).toContain("if (solve && !$('#fire-planner-form').reportValidity()) return;");
+        expect(app).toContain("$('#fire-required-button').addEventListener('click', () => calculateFire(true));");
+    });
+});
+
+
 describe('dashboard accessibility contracts', () => {
     it('associates labels with FIRE and goal tracker form controls', async () => {
         const html = await readDashboardFile('index.html');
