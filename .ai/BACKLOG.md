@@ -149,9 +149,9 @@ Implemented
 - Local CSV export with spreadsheet-formula-like text neutralization (PR #127)
 - Record-type filtering (assets/liabilities) combined with search and a no-matches state (PR #128)
 
-In Progress
+Implemented
 
-- Record sorting by name or value, combined with current search and type filters
+- Stable record sorting by name A–Z or value ascending/descending, combined with current search and type filters (PR #130)
 
 Planned
 
