@@ -94,7 +94,25 @@ try {
     await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', 'Annual spending today:');
     process.stdout.write('PASS: single-scenario report downloads as standalone, script-free HTML.\n');
 
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.evaluate(() => {
+        globalThis.__scrollIntoViewBehavior = null;
+        globalThis.__originalScrollIntoView = globalThis.Element.prototype.scrollIntoView;
+        globalThis.Element.prototype.scrollIntoView = function (options) {
+            globalThis.__scrollIntoViewBehavior = options?.behavior;
+            return globalThis.__originalScrollIntoView.call(this, options);
+        };
+    });
     await page.getByRole('button', { name: 'Compare scenarios' }).click();
+    assert.equal(
+        await page.evaluate(() => globalThis.__scrollIntoViewBehavior),
+        'auto',
+        'scenario panel navigation should avoid smooth scrolling when reduced motion is requested'
+    );
+    await page.evaluate(() => { globalThis.Element.prototype.scrollIntoView = globalThis.__originalScrollIntoView; });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    assert.equal(await page.locator('#fire-comparison').isVisible(), true, 'scenario comparison panel should open');
+    process.stdout.write('PASS: scenario navigation respects the reduced-motion preference.\n');
     assert.equal(await page.locator('#fire-comparison').isVisible(), true, 'scenario comparison panel should open');
     await page.getByRole('button', { name: 'Copy current assumptions into all scenarios' }).click();
     await page.locator('#fire-compare-a-name').fill('Conservative');

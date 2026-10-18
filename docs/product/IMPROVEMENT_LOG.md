@@ -152,3 +152,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a malformed-schema import attempt and assertions that the existing record and totals remain unchanged after rejection.
 - This is end-to-end validation using synthetic test data in a temporary browser context; it does not touch real user records or change the backup schema.
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
+
+
+### Reduced-motion preference — in progress
+- Updated scenario-comparison navigation to use immediate scrolling when the prefers-reduced-motion: reduce media query is active, while retaining smooth scrolling for users who have not requested reduced motion.
+- Added a static contract and Chromium test that emulates the reduced-motion preference and observes the requested scroll behavior.
+- This addresses one specific motion preference; it does not claim a complete motion/accessibility audit.
+- Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
