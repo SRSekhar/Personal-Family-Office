@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { recordsToCsv } from '../csv-export.js';
 
 describe('recordsToCsv', () => {
-    it('exports a header and financial records as UTF-8-friendly CSV with CRLF lines', () => {
+    it('exports a header and financial records as CSV with CRLF lines', () => {
         expect(recordsToCsv([
             { name: 'Savings account', category: 'Cash & deposits', type: 'asset', value: 1250.5 },
             { name: 'Home loan', category: 'Home loan', type: 'liability', value: 500 }
@@ -24,7 +24,8 @@ describe('recordsToCsv', () => {
         'neutralizes spreadsheet formula-like text beginning with %s',
         (name) => {
             const csv = recordsToCsv([{ name, category: 'Other', type: 'asset', value: 1 }]);
-            expect(csv).toContain(`"'\${name.replaceAll('"', '""')}"`);
+            const safeName = `'${name}`.replaceAll('"', '""');
+            expect(csv).toContain(`"${safeName}"`);
         }
     );
 
