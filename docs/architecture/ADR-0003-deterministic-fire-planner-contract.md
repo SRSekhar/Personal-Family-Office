@@ -69,7 +69,7 @@ The interface must not rank scenarios, select a preferred scenario, or present a
 - **Navigation:** dedicated FIRE Planner section in the existing dashboard.
 - **Persistence:** assumptions and results remain ephemeral and are never automatically saved.
 - **Contributions:** annual only; monthly modeling is deferred and no silent conversion is allowed.
-- **Sequence:** single-scenario readiness and required annual contribution first; scenario comparison follows.
+- **Sequence:** single-scenario readiness and required annual contribution first, followed by scenario comparison.
 - **Product priority:** deliver core product features before autonomous engineering workflow enhancements.
 
 ## Browser integration
@@ -77,6 +77,7 @@ The interface must not rank scenarios, select a preferred scenario, or present a
 - `@pfo/calculators` remains the source of truth. `scripts/dashboard/prepare-calculators.mjs` copies its compiled runtime modules into a generated dashboard directory; generated files are not hand-maintained or committed.
 - `pnpm dashboard:serve` builds the calculator dependencies and prepares modules before starting the existing loopback-only server.
 - The Pages packaging workflow builds the same modules into the static artifact. Hosted non-loopback planner controls are disabled; personal assumptions belong in the local-only workspace.
+- Scenario comparison uses the existing tested comparison API, preserves user-entered order, displays scenario-specific assumptions, and does not rank or recommend scenarios.
 
 ## Guardrails
 

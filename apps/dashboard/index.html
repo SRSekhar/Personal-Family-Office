@@ -121,7 +121,7 @@
                     <label class="field-label" for="fire-contribution-timing">Contribution timing<select id="fire-contribution-timing" name="contributionTiming"><option value="end">End of year</option><option value="beginning">Beginning of year</option></select></label>
                   </div>
                   <p class="fire-assumptions-note">Annual contributions stay constant in nominal terms. Return, inflation and withdrawal rate are assumptions, not predictions or guarantees. Taxes, fees, volatility, sequence risk, benefits and changing contributions are excluded.</p>
-                  <div class="fire-actions"><button class="button button-primary" type="submit">Calculate readiness</button><button class="button button-secondary" id="fire-required-button" type="button">Solve required annual contribution</button><button class="button button-secondary" id="fire-reset-button" type="button">Reset assumptions</button></div>
+                  <div class="fire-actions"><button class="button button-primary" type="submit">Calculate readiness</button><button class="button button-secondary" id="fire-required-button" type="button">Solve required annual contribution</button><button class="button button-secondary" id="fire-compare-toggle" type="button" aria-expanded="false" aria-controls="fire-comparison">Compare scenarios</button><button class="button button-secondary" id="fire-reset-button" type="button">Reset assumptions</button></div>
                   <p id="fire-validation" role="alert" hidden></p>
                 </form>
                 <section id="fire-results" class="fire-results" aria-labelledby="fire-results-heading" aria-live="polite" hidden>
@@ -133,6 +133,35 @@
                     <article><span>Surplus / shortfall</span><strong id="fire-gap">—</strong><small>Against target corpus</small></article>
                   </div><p id="fire-required-result" class="fire-required-result" hidden></p>
                 </section>
+                <section id="fire-comparison" class="fire-comparison" aria-labelledby="fire-comparison-heading" hidden>
+<div class="fire-result-heading"><div><p class="eyebrow">SIDE-BY-SIDE ANALYSIS</p><h3 id="fire-comparison-heading">Compare three scenarios</h3></div></div>
+<p class="fire-comparison-note">Current portfolio, years to retirement, and retirement spending are shared from the main assumptions above. Each scenario has its own annual contribution, return, inflation, withdrawal rate, and contribution timing. Nothing is saved.</p>
+<div class="fire-actions"><button class="button button-secondary" id="fire-copy-assumptions" type="button">Copy current assumptions into all scenarios</button></div>
+<div class="fire-scenario-grid">
+<fieldset class="fire-scenario-card"><legend>Scenario A</legend>
+<label class="field-label" for="fire-compare-a-name">Scenario name<input id="fire-compare-a-name" type="text" maxlength="60" required value="Scenario A"></label>
+<label class="field-label" for="fire-compare-a-contribution">Annual contribution (₹)<input id="fire-compare-a-contribution" type="number" min="0" step="any" required></label>
+<label class="field-label" for="fire-compare-a-return">Expected return (%)<input id="fire-compare-a-return" type="number" min="-99.99" step="any" required></label>
+<label class="field-label" for="fire-compare-a-inflation">Inflation (%)<input id="fire-compare-a-inflation" type="number" min="0" step="any" required></label>
+<label class="field-label" for="fire-compare-a-withdrawal">Withdrawal rate (%)<input id="fire-compare-a-withdrawal" type="number" min="0.01" max="100" step="any" required></label>
+<label class="field-label" for="fire-compare-a-timing">Contribution timing<select id="fire-compare-a-timing"><option value="end">End of year</option><option value="beginning">Beginning of year</option></select></label></fieldset><fieldset class="fire-scenario-card"><legend>Scenario B</legend>
+<label class="field-label" for="fire-compare-b-name">Scenario name<input id="fire-compare-b-name" type="text" maxlength="60" required value="Scenario B"></label>
+<label class="field-label" for="fire-compare-b-contribution">Annual contribution (₹)<input id="fire-compare-b-contribution" type="number" min="0" step="any" required></label>
+<label class="field-label" for="fire-compare-b-return">Expected return (%)<input id="fire-compare-b-return" type="number" min="-99.99" step="any" required></label>
+<label class="field-label" for="fire-compare-b-inflation">Inflation (%)<input id="fire-compare-b-inflation" type="number" min="0" step="any" required></label>
+<label class="field-label" for="fire-compare-b-withdrawal">Withdrawal rate (%)<input id="fire-compare-b-withdrawal" type="number" min="0.01" max="100" step="any" required></label>
+<label class="field-label" for="fire-compare-b-timing">Contribution timing<select id="fire-compare-b-timing"><option value="end">End of year</option><option value="beginning">Beginning of year</option></select></label></fieldset><fieldset class="fire-scenario-card"><legend>Scenario C</legend>
+<label class="field-label" for="fire-compare-c-name">Scenario name<input id="fire-compare-c-name" type="text" maxlength="60" required value="Scenario C"></label>
+<label class="field-label" for="fire-compare-c-contribution">Annual contribution (₹)<input id="fire-compare-c-contribution" type="number" min="0" step="any" required></label>
+<label class="field-label" for="fire-compare-c-return">Expected return (%)<input id="fire-compare-c-return" type="number" min="-99.99" step="any" required></label>
+<label class="field-label" for="fire-compare-c-inflation">Inflation (%)<input id="fire-compare-c-inflation" type="number" min="0" step="any" required></label>
+<label class="field-label" for="fire-compare-c-withdrawal">Withdrawal rate (%)<input id="fire-compare-c-withdrawal" type="number" min="0.01" max="100" step="any" required></label>
+<label class="field-label" for="fire-compare-c-timing">Contribution timing<select id="fire-compare-c-timing"><option value="end">End of year</option><option value="beginning">Beginning of year</option></select></label></fieldset>
+</div>
+<div class="fire-actions"><button class="button button-primary" id="fire-compare-run" type="button">Compare scenarios</button></div>
+<p id="fire-compare-validation" class="fire-validation" role="alert" hidden></p>
+<div id="fire-compare-results" class="fire-compare-results" aria-live="polite" hidden><div class="table-scroll"><table><caption>Scenario results in the same order as entered</caption><thead><tr><th scope="col">Scenario and assumptions</th><th scope="col">Projected portfolio</th><th scope="col">Target corpus</th><th scope="col">Surplus / shortfall</th><th scope="col">Status</th></tr></thead><tbody id="fire-compare-body"></tbody></table></div><p class="fire-comparison-note">Scenarios are not ranked or recommended. Results are deterministic illustrations, not forecasts or guarantees.</p></div>
+</section>
             </section>
             <section class="panel records-panel" id="records" aria-labelledby="records-heading">
                 <div class="panel-header records-header">

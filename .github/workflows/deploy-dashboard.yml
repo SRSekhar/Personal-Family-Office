@@ -55,6 +55,7 @@ jobs:
           test -s apps/dashboard/app.js
           test -s apps/dashboard/workspace-security.js
           test -s apps/dashboard/calculators-runtime/FireReadiness.js
+          test -s apps/dashboard/calculators-runtime/FireScenarioComparison.js
           test -s apps/dashboard/calculators-runtime/RequiredFireContribution.js
           test -s apps/dashboard/calculators-runtime/CompoundGrowth.js
           node --check apps/dashboard/app.js

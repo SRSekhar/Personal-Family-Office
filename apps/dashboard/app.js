@@ -6,6 +6,7 @@ import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 import { calculateFireReadiness } from './calculators-runtime/FireReadiness.js';
+import { compareFireReadinessScenarios } from './calculators-runtime/FireScenarioComparison.js';
 import { calculateRequiredFireContribution } from './calculators-runtime/RequiredFireContribution.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
@@ -134,11 +135,82 @@ function calculateFire(solve = false) {
         fireError(error instanceof Error ? error.message : 'Check all assumptions and try again.');
     }
 }
+
+function readCompareScenarios() {
+    const base = fireInput();
+    return ['a', 'b', 'c'].map((key) => {
+        const read = (suffix) => $(`#fire-compare-${key}-${suffix}`);
+        const name = read('name').value.trim();
+        if (!name) throw new RangeError('Each scenario needs a name.');
+        for (const field of ['contribution', 'return', 'inflation', 'withdrawal']) {
+            if (read(field).value.trim() === '') throw new RangeError(`Enter a value for scenario ${name}: ${field}.`);
+        }
+        return { id: key, name, input: {
+            ...base,
+            annualContribution: Number(read('contribution').value),
+            expectedAnnualReturn: Number(read('return').value) / 100,
+            annualInflationRate: Number(read('inflation').value) / 100,
+            withdrawalRate: Number(read('withdrawal').value) / 100,
+            contributionTiming: read('timing').value
+        }};
+    });
+}
+function setCompareValidation(message = '') {
+    $('#fire-compare-validation').textContent = message;
+    $('#fire-compare-validation').hidden = message === '';
+}
+function compareFireScenarios() {
+    if (!$('#fire-planner-form').reportValidity()) return;
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        setCompareValidation('Use the loopback-only dashboard before entering retirement assumptions.');
+        return;
+    }
+    setCompareValidation();
+    try {
+        const results = compareFireReadinessScenarios(readCompareScenarios());
+        const body = $('#fire-compare-body'); body.replaceChildren();
+        for (const scenario of results) {
+            const row = document.createElement('tr');
+            const assumptions = document.createElement('td');
+            const name = document.createElement('strong'); name.textContent = scenario.name;
+            const detail = document.createElement('p'); detail.className = 'fire-scenario-assumptions';
+            detail.textContent = `Portfolio ${money(scenario.input.currentPortfolio)} · ${scenario.input.yearsToRetirement} years · Spending today ${money(scenario.input.annualRetirementSpendingToday)} / year · Contribution ${money(scenario.input.annualContribution)} / year · Return ${number(scenario.input.expectedAnnualReturn * 100)}% · Inflation ${number(scenario.input.annualInflationRate * 100)}% · Withdrawal ${number(scenario.input.withdrawalRate * 100)}% · Contributions at ${scenario.input.contributionTiming === 'beginning' ? 'year start' : 'year end'}`;
+            assumptions.append(name, detail);
+            const portfolio = document.createElement('td'); portfolio.textContent = money(scenario.result.projectedPortfolioAtRetirement);
+            const target = document.createElement('td'); target.textContent = money(scenario.result.targetCorpusAtRetirement);
+            const gap = document.createElement('td'); gap.textContent = `${scenario.result.surplusOrShortfall < 0 ? '−' : '+'}${money(Math.abs(scenario.result.surplusOrShortfall))}`;
+            const status = document.createElement('td'); status.textContent = scenario.result.isOnTrack ? 'On track under assumptions' : 'Shortfall under assumptions';
+            status.className = scenario.result.isOnTrack ? 'fire-status on-track' : 'fire-status shortfall';
+            row.append(assumptions, portfolio, target, gap, status); body.append(row);
+        }
+        $('#fire-compare-results').hidden = false;
+    } catch (error) {
+        $('#fire-compare-results').hidden = true;
+        setCompareValidation(error instanceof Error ? error.message : 'Check all scenario assumptions and try again.');
+    }
+}
+function copyFireAssumptionsToScenarios() {
+    if (!$('#fire-planner-form').reportValidity()) return;
+    const base = fireInput();
+    for (const key of ['a', 'b', 'c']) {
+        $(`#fire-compare-${key}-contribution`).value = String(base.annualContribution);
+        $(`#fire-compare-${key}-return`).value = String(base.expectedAnnualReturn * 100);
+        $(`#fire-compare-${key}-inflation`).value = String(base.annualInflationRate * 100);
+        $(`#fire-compare-${key}-withdrawal`).value = String(base.withdrawalRate * 100);
+        $(`#fire-compare-${key}-timing`).value = base.contributionTiming;
+    }
+    setCompareValidation(); $('#fire-compare-results').hidden = true;
+}
 function resetFire() {
     const form = $('#fire-planner-form');
     const defaults = {currentPortfolio:0,annualContribution:0,yearsToRetirement:10,expectedAnnualReturn:7,annualInflationRate:3,annualRetirementSpendingToday:0,withdrawalRate:4,contributionTiming:'end'};
     for (const [name,value] of Object.entries(defaults)) form.elements[name].value = String(value);
-    fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true;
+    fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true; $('#fire-compare-results').hidden = true; setCompareValidation();
+    for (const key of ['a', 'b', 'c']) {
+        $(`#fire-compare-${key}-name`).value = `Scenario ${key.toUpperCase()}`;
+        for (const field of ['contribution', 'return', 'inflation', 'withdrawal']) $(`#fire-compare-${key}-${field}`).value = '';
+        $(`#fire-compare-${key}-timing`).value = 'end';
+    }
 }
 function showHostedPrivacyWarning() {
     const isHosted = !isPrivateWorkspaceAllowed(window.location.hostname);
@@ -381,7 +453,11 @@ function importData(file) {
 $('#fire-planner-form').addEventListener('submit', (event) => { event.preventDefault(); calculateFire(); });
 $('#fire-required-button').addEventListener('click', () => calculateFire(true));
 $('#fire-reset-button').addEventListener('click', resetFire);
-$('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; });
+$('#fire-compare-toggle').addEventListener('click', () => { const panel = $('#fire-comparison'); panel.hidden = !panel.hidden; $('#fire-compare-toggle').setAttribute('aria-expanded', String(!panel.hidden)); if (!panel.hidden) panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#fire-copy-assumptions').addEventListener('click', copyFireAssumptionsToScenarios);
+$('#fire-compare-run').addEventListener('click', compareFireScenarios);
+$('#fire-comparison').addEventListener('input', () => { setCompareValidation(); $('#fire-compare-results').hidden = true; });
+$('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; $('#fire-compare-results').hidden = true; });
 $('#add-record-button').addEventListener('click', () => openRecordDialog());
 $('#quick-add-asset').addEventListener('click', () => openRecordDialog('asset'));
 $('#quick-add-liability').addEventListener('click', () => openRecordDialog('liability'));
@@ -493,5 +569,6 @@ showHostedPrivacyWarning();
 if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#fire-planner-hosted-notice').hidden = false;
     $('#fire-planner-form').querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
+    $('#fire-comparison').querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
 }
 switchWorkspace('demo');
