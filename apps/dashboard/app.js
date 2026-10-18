@@ -552,7 +552,15 @@ $('#fire-required-button').addEventListener('click', () => calculateFire(true));
 $('#fire-download-report').addEventListener('click', () => downloadFireReport(lastFireReportScenarios, 'pfo-fire-scenario-report.html'));
 $('#fire-download-comparison-report').addEventListener('click', () => downloadFireReport(lastComparisonReportScenarios, 'pfo-fire-comparison-report.html'));
 $('#fire-reset-button').addEventListener('click', resetFire);
-$('#fire-compare-toggle').addEventListener('click', () => { const panel = $('#fire-comparison'); panel.hidden = !panel.hidden; $('#fire-compare-toggle').setAttribute('aria-expanded', String(!panel.hidden)); if (!panel.hidden) panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#fire-compare-toggle').addEventListener('click', () => {
+    const panel = $('#fire-comparison');
+    panel.hidden = !panel.hidden;
+    $('#fire-compare-toggle').setAttribute('aria-expanded', String(!panel.hidden));
+    if (!panel.hidden) {
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        panel.scrollIntoView({ behavior, block: 'start' });
+    }
+});
 $('#fire-copy-assumptions').addEventListener('click', copyFireAssumptionsToScenarios);
 $('#fire-compare-run').addEventListener('click', compareFireScenarios);
 $('#fire-comparison').addEventListener('input', () => { setCompareValidation(); $('#fire-compare-results').hidden = true; });
