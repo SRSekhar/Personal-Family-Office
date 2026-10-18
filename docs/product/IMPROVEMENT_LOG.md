@@ -41,11 +41,11 @@ The calculator package already includes deterministic FIRE readiness, scenario c
 Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner-contract.md`.
 
 ### Follow-up sequence
-1. Implement and test the single-scenario FIRE planner UI using existing calculators.
-2. Add scenario comparison while preserving user-defined scenario order and assumptions.
-3. Add required annual contribution results.
-4. Validate keyboard operation, accessible status/error messaging, responsive layout, and 400% zoom.
-5. Validate the dashboard-to-offline-report workflow with prospective users before expanding scope.
+1. Complete interactive browser verification for single-scenario readiness, required contribution, scenario comparison, and explicit report downloads.
+2. Validate keyboard operation, accessible status/error messaging, responsive layout, and 400% zoom.
+3. Validate that downloaded FIRE reports open offline and disclose the complete assumptions and limitations.
+4. Run customer discovery (8–10 anonymized interviews) and seek two paid-pilot commitments before expanding scope.
+5. Define source-of-truth and recovery requirements before historical snapshot persistence.
 
 ### FIRE planner implementation outcome — PR #139
 - Merged the first local-only dashboard planner section after CI, dashboard packaging, and Secret Scan passed on the PR head.
@@ -53,9 +53,22 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - The initial UI supports one scenario and required annual contribution solving, with ephemeral assumptions/results and hosted-origin controls disabled.
 - Remaining validation: interactive browser behavior, keyboard/accessibility and 400% zoom, edge cases through the UI, and the dashboard-to-offline-report workflow.
 
+### FIRE scenario comparison — PR #141
+- Added a three-scenario comparison interface that reuses `compareFireReadinessScenarios` from the tested calculator package.
+- Users explicitly copy main assumptions into the comparison, then edit each scenario's name, annual contribution, expected return, inflation, withdrawal rate, and contribution timing.
+- The results preserve entered order and display assumptions; no scenario is ranked or recommended.
+- CI, dashboard packaging, and Secret Scan passed before merge. The implementation does not automatically save comparison inputs/results.
+
+### Offline FIRE report export — PR #142
+- Added a report renderer in `@pfo/reports` for one scenario or a comparison, with schema validation, date/currency checks, consistent result checks, unique IDs, and HTML escaping.
+- Added explicit download actions that produce self-contained, script-free HTML with no remote assets or network submission.
+- CI, tests, dashboard packaging, and Secret Scan passed before merge.
+- Reports contain assumptions and results; users are warned to keep downloaded files private. Automatic persistence remains out of scope.
+- Browser-level download verification, keyboard/accessibility testing, and 400% zoom validation remain open.
+
 ## Open product and release work (not yet completed)
-- Complete the FIRE planner UI and related workflows described above.
-- Validate the end-to-end dashboard-to-offline-report workflow.
+- Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
+- Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.
 - Define a source of truth and persistence requirements before implementing historical financial snapshots.
 - Run the planned 8–10 customer interviews and seek two paid-pilot commitments; do not treat implementation completion as proof of demand.
 - Complete repository credential-exposure review, software licensing/distribution review, and owner-side GitHub Pages configuration before release.
