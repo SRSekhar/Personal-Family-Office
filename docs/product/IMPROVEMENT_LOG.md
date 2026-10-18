@@ -66,6 +66,11 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - Reports contain assumptions and results; users are warned to keep downloaded files private. Automatic persistence remains out of scope.
 - Browser-level download verification, keyboard/accessibility testing, and 400% zoom validation remain open.
 
+### Goal tracker — PR #145
+- Adds a deterministic calculator and dashboard UI for a single financial target: accumulated amount, target amount, progress percentage, remaining amount, target date, and overdue/completion state.
+- The dashboard keeps values in memory only; refresh clears them. It does not infer progress from financial records, project returns, or recommend contributions.
+- Calculator tests cover normal progress, over-target completion, overdue goals, and invalid inputs. CI typecheck/lint and browser-level accessibility checks must pass before this increment is considered complete.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.
