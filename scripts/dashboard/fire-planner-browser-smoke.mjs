@@ -43,7 +43,7 @@ try {
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
-    await page.getByLabel('Annual contribution (₹)').fill('300000');
+    await page.locator('#fire-annual-contribution').fill('300000');
     await page.getByLabel('Years until retirement').fill('10');
     await page.getByLabel('Expected annual return (%)').fill('7');
     await page.getByLabel('Annual inflation (%)').fill('3');
