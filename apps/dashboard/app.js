@@ -171,6 +171,7 @@ function renderRecords() {
         ? `Showing ${visible.length} of ${filtered.length} matching records`
         : `Showing ${visible.length} of ${records.length} records`;
     $('#reset-record-view-button').hidden = !hasActiveViewOptions;
+    $('#export-view-csv-button').hidden = !hasActiveViewOptions;
     $('#view-all-button').hidden = filtered.length <= 5;
     $('#view-all-button').textContent = $('#view-all-button').dataset.all === 'true' ? 'Show less' : 'View all';
 }
@@ -254,6 +255,36 @@ function exportCsv() {
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('CSV exported to this device.');
+}
+
+function exportViewCsv() {
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
+        return;
+    }
+    let csv;
+    try {
+        const filteredRecords = sortFinancialRecords(
+            filterFinancialRecords(
+                records,
+                $('#record-search').value,
+                $('#records-type-filter').value,
+                $('#records-category-filter').value
+            ),
+            $('#records-sort-order').value
+        );
+        csv = recordsToCsv(filteredRecords, CURRENCY);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-financial-records-view.csv';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast(`Exported ${filteredRecords.length} matching records to CSV.`);
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create CSV export.');
+    }
 }
 
 function importData(file) {
@@ -367,6 +398,7 @@ $('#view-all-button').addEventListener('click', () => {
 });
 $('#export-button').addEventListener('click', exportData);
 $('#export-csv-button').addEventListener('click', exportCsv);
+$('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
