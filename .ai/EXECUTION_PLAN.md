@@ -1,6 +1,6 @@
 # PFO OS Execution Plan
 
-**Updated:** 2026-10-17  
+**Updated:** 2026-10-18  
 **Purpose:** Turn the current repository into a coherent, testable local-first product before expanding scope. This plan is an execution contract, not a claim that planned work is complete.
 
 ## Product outcome
@@ -25,11 +25,11 @@ Deliver a usable local-first workflow that lets a household enter or import its 
 3. If an agent run fails, capture the failed step and correct the root cause in a separate PR; never expose secret values.
 **Exit:** one successful end-to-end autonomous run with a valid focused PR and passing CI/security checks.
 
-### W1 — Calculator correctness (active)
-1. Close the zero-spending/extreme-inflation overflow edge case.
+### W1 — Calculator correctness (complete for current scoped increment)
+1. Preserve zero retirement spending exactly without evaluating an unnecessary inflation factor that can overflow.
 2. Retain immutable scenario assumptions and overflow boundary coverage.
 3. Run the complete root test/build/typecheck/lint gates.
-**Exit:** edge-case regressions merged and main CI/security checks green.
+**Exit:** zero-spending regression merged and main CI/security checks green. Further edge cases remain in scope if identified.
 
 ### W2 — FIRE planner requirements and UI (next product increment)
 1. Keep ADR-0003 as the contract source. Validate the unresolved choices with a small set of intended users before implementation:
@@ -74,16 +74,19 @@ Deliver a usable local-first workflow that lets a household enter or import its 
 ## Current verified status
 
 - Merged foundation includes deterministic FIRE readiness, ordered scenario comparison, and required annual contribution calculation.
+- PR #124 merged the zero-spending/extreme-inflation regression fix; PR CI and Secret Scan passed.
+- PR #125 merged the autonomous workflow efficiency update; its PR CI and Secret Scan passed. Main-branch Secret Scan passed, and main-branch CI was in progress at the time of this update.
 - Dashboard local preview and offline report CLI exist; the complete FIRE planner UI is not implemented.
+- The report CLI has end-to-end tests for both versioned portfolio input and dashboard-backup input using synthetic fixtures.
 - CI and full-history secret scanning are required merge gates.
 - Customer demand and paid-pilot commitments remain unvalidated.
 - License/distribution disposition and the one-time Pages setting remain owner/release gates.
-- The autonomous workflow must be verified end-to-end; credential preflight alone does not count.
+- Customer discovery and the autonomous workflow have not yet demonstrated end-to-end results in this turn.
 
 ## Next execution sequence
 
-1. Finish and merge calculator edge-case fixes after CI and Secret Scan pass.
-2. Reconcile remaining overlapping FIRE regression PRs and close superseded work.
-3. Verify autonomous workflow delivery end-to-end.
-4. Validate the FIRE planner choices from W2, then implement the smallest complete local-first UI.
-5. Validate dashboard-to-report flow, then run customer discovery before expanding scope.
+1. Verify the main-branch CI result for PR #125's merge.
+2. Verify the next scheduled autonomous run completes and publishes a valid focused PR; fix observed root causes if it fails.
+3. Validate the open FIRE planner choices in ADR-0003 before implementing the smallest complete local-first UI.
+4. Run/extend the synthetic dashboard-backup → CLI → offline report workflow only where a concrete gap is identified; avoid duplicating existing coverage.
+5. Use the report workflow and customer-discovery playbook to validate customer value before expanding scope.
