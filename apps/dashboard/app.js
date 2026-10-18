@@ -157,9 +157,11 @@ function renderRecords() {
     $('#no-matching-records').hidden = records.length === 0 || filtered.length !== 0;
     $('.table-wrap').hidden = records.length === 0 || filtered.length === 0;
     const hasFilter = query.trim() !== '' || typeFilter !== 'all';
+    const hasActiveViewOptions = hasFilter || $('#records-sort-order').value !== 'default';
     $('#records-summary').textContent = hasFilter
         ? `Showing ${visible.length} of ${filtered.length} matching records`
         : `Showing ${visible.length} of ${records.length} records`;
+    $('#reset-record-view-button').hidden = !hasActiveViewOptions;
     $('#view-all-button').hidden = filtered.length <= 5;
     $('#view-all-button').textContent = $('#view-all-button').dataset.all === 'true' ? 'Show less' : 'View all';
 }
@@ -340,6 +342,14 @@ $('#records-body').addEventListener('click', (event) => {
 $('#record-search').addEventListener('input', renderRecords);
 $('#records-type-filter').addEventListener('change', renderRecords);
 $('#records-sort-order').addEventListener('change', renderRecords);
+$('#reset-record-view-button').addEventListener('click', () => {
+    $('#record-search').value = '';
+    $('#records-type-filter').value = 'all';
+    $('#records-sort-order').value = 'default';
+    $('#view-all-button').dataset.all = 'false';
+    renderRecords();
+    $('#record-search').focus();
+});
 $('#view-all-button').addEventListener('click', () => {
     $('#view-all-button').dataset.all = $('#view-all-button').dataset.all !== 'true' ? 'true' : 'false';
     renderRecords();
