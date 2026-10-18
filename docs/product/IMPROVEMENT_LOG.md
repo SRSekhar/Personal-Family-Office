@@ -52,7 +52,7 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - Validate the end-to-end dashboard-to-offline-report workflow.
 - Define a source of truth and persistence requirements before implementing historical financial snapshots.
 - Run the planned 8–10 customer interviews and seek two paid-pilot commitments; do not treat implementation completion as proof of demand.
-- Complete historical secret review, licensing/distribution review, and the owner-side GitHub Pages configuration when release readiness requires them.
+- Complete repository credential-exposure review, software licensing/distribution review, and owner-side GitHub Pages configuration before release.
 - Autonomous delivery reliability is intentionally deprioritized until the core product features are substantially complete.
 
 ## Version-to-version learning template
