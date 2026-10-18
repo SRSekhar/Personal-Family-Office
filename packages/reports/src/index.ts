@@ -18,3 +18,6 @@ export type {
     PortfolioReportData,
     PortfolioReportInput
 } from './PortfolioReport.js';
+
+export { createFireScenarioReport, renderFireScenarioReportHtml } from './FireScenarioReport.js';
+export type { FireScenarioReportAssumptions, FireScenarioReportData, FireScenarioReportInput, FireScenarioReportResult, FireScenarioReportScenarioInput } from './FireScenarioReport.js';
