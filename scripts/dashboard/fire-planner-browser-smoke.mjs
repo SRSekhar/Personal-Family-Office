@@ -124,7 +124,7 @@ try {
     let reachedFireInput = false;
     for (let index = 0; index < 40; index += 1) {
         await page.keyboard.press('Tab');
-        if (await page.evaluate(() => document.activeElement?.id === 'fire-current-portfolio')) {
+        if (await page.evaluate(() => globalThis.document.activeElement?.id === 'fire-current-portfolio')) {
             reachedFireInput = true;
             break;
         }
@@ -132,8 +132,8 @@ try {
     assert.equal(reachedFireInput, true, 'keyboard tab order should reach the first FIRE planner input');
     await page.setViewportSize({ width: 320, height: 800 });
     const viewport = await page.evaluate(() => ({
-        width: window.innerWidth,
-        documentWidth: document.documentElement.scrollWidth
+        width: globalThis.window.innerWidth,
+        documentWidth: globalThis.document.documentElement.scrollWidth
     }));
     assert.ok(viewport.documentWidth <= viewport.width,
         `narrow viewport should not cause page-level horizontal overflow (viewport ${viewport.width}, document ${viewport.documentWidth})`);
