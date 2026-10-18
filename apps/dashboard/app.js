@@ -276,7 +276,7 @@ function calculateGoal(event) {
         $('#goal-progress-percent').textContent = number(result.progressPercent) + '%';
         $('#goal-progress-detail').textContent = money(result.currentAmount) + ' accumulated';
         $('#goal-progress-bar').value = Math.min(100, result.progressPercent);
-        $('#goal-progress-bar').setAttribute('aria-valuetext', number(result.progressPercent) + ' percent complete');
+        $('#goal-progress-bar').setAttribute('aria-valuetext', number(result.progressPercent) + ' percent of target');
         $('#goal-target-result').textContent = money(result.targetAmount);
         $('#goal-remaining-result').textContent = money(result.amountRemaining);
         $('#goal-date-result').textContent = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(form.elements.targetDate.value + 'T00:00:00Z'));
