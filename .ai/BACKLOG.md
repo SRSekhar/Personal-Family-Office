@@ -147,10 +147,10 @@ Implemented
 - Local-first dashboard for assets, liabilities, net worth, category allocation, record search, and CRUD
 - JSON backup import/export with validation and private-workspace safeguards
 - Local CSV export with spreadsheet-formula-like text neutralization (PR #127)
+- Record-type filtering (assets/liabilities) combined with search and a no-matches state (PR #128)
 
 Planned
 
-- Record-type filtering (assets/liabilities) combined with search
 - Charts and historical timeline after snapshot requirements are validated
 - Portfolio explorer and additional KPIs after customer discovery
 
