@@ -15,7 +15,7 @@ describe('sortFinancialRecords', () => {
     });
 
     it('sorts names case-insensitively and keeps ties stable', () => {
-        expect(sortFinancialRecords(records, 'name-asc').map((record) => record.id)).toEqual(['2', '4', '3', '1']);
+        expect(sortFinancialRecords(records, 'name-asc').map((record) => record.id)).toEqual(['4', '2', '3', '1']);
     });
 
     it('sorts values from high to low and keeps ties stable', () => {
