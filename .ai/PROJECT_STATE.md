@@ -67,6 +67,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #142 merged validated, self-contained FIRE scenario HTML reports and explicit download actions after CI, dashboard packaging, and Secret Scan passed. Manual browser/accessibility verification remains open.
 - PR #145 merged a deterministic goal-progress calculator and session-only Goal Tracker UI after CI, Secret Scan, and dashboard packaging passed. It does not persist goals or project returns.
 - PR #147 merged static accessibility-contract regression checks for FIRE and Goal Tracker after CI, Secret Scan, and dashboard packaging passed. These assertions do not constitute interactive browser, keyboard, screen-reader, responsive, or 400% zoom verification.
+- PR #149 clarified Goal Tracker progress-indicator accessible value text as a percentage of target, including above-target values. CI, Secret Scan, and dashboard packaging passed; actual screen-reader behavior remains unverified.
 - Product priority remains complete user workflows and customer validation; autonomous engineering workflow work is intentionally deferred.
 
 - PR #107 merged: hourly autonomous-development workflow committed; first end-to-end agent run is not yet verified.
