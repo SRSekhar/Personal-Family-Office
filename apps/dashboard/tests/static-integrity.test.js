@@ -35,16 +35,18 @@ describe('dashboard static integrity', () => {
         const app = await readDashboardFile('app.js');
         const imports = [...app.matchAll(/\bfrom\s+['"]([^'"]+)['"]/g)]
             .map((match) => match[1])
-            .filter((specifier) => specifier.startsWith('.') && !specifier.startsWith('./calculators-runtime/'));
+            .filter((specifier) => specifier.startsWith('.') && !specifier.startsWith('./calculators-runtime/') && !specifier.startsWith('./reports-runtime/'));
 
         expect(imports.length).toBeGreaterThan(0);
         expect(app).toContain("'./calculators-runtime/FireReadiness.js'");
         expect(app).toContain("'./calculators-runtime/RequiredFireContribution.js'");
         expect(app).toContain("'./calculators-runtime/FireScenarioComparison.js'");
+        expect(app).toContain("'./reports-runtime/FireScenarioReport.js'");
         const preparation = await readFile(new URL('../../../scripts/dashboard/prepare-calculators.mjs', import.meta.url), 'utf8');
         expect(preparation).toContain('FireReadiness.js');
         expect(preparation).toContain('RequiredFireContribution.js');
         expect(preparation).toContain('FireScenarioComparison.js');
+        expect(preparation).toContain('FireScenarioReport.js');
         await Promise.all(imports.map((specifier) =>
             readFile(new URL(specifier, new URL('app.js', dashboardRoot)), 'utf8')
         ));

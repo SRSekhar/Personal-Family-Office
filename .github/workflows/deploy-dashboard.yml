@@ -45,6 +45,7 @@ jobs:
         run: |
           pnpm --filter @pfo/models build
           pnpm --filter @pfo/calculators build
+          pnpm --filter @pfo/reports... build
           node scripts/dashboard/prepare-calculators.mjs
       - name: Validate dashboard files
         shell: bash
@@ -57,6 +58,7 @@ jobs:
           test -s apps/dashboard/calculators-runtime/FireReadiness.js
           test -s apps/dashboard/calculators-runtime/FireScenarioComparison.js
           test -s apps/dashboard/calculators-runtime/RequiredFireContribution.js
+          test -s apps/dashboard/reports-runtime/FireScenarioReport.js
           test -s apps/dashboard/calculators-runtime/CompoundGrowth.js
           node --check apps/dashboard/app.js
           node --check apps/dashboard/workspace-security.js

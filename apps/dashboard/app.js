@@ -7,6 +7,7 @@ import { persistJson, readJsonArray } from './storage.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 import { calculateFireReadiness } from './calculators-runtime/FireReadiness.js';
 import { compareFireReadinessScenarios } from './calculators-runtime/FireScenarioComparison.js';
+import { createFireScenarioReport, renderFireScenarioReportHtml } from './reports-runtime/FireScenarioReport.js';
 import { calculateRequiredFireContribution } from './calculators-runtime/RequiredFireContribution.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
@@ -27,6 +28,8 @@ let workspace = 'demo';
 let privateStorageHealthy = true;
 let editingId = null;
 let toastTimer;
+let lastFireReportScenarios = [];
+let lastComparisonReportScenarios = [];
 
 const $ = (selector) => document.querySelector(selector);
 const money = (value) => new Intl.NumberFormat('en-IN', {
@@ -101,7 +104,9 @@ function fireError(message = '') {
     $('#fire-validation').textContent = message;
     $('#fire-validation').hidden = !message;
 }
-function showFireResult(result, required = null) {
+function showFireResult(result, required = null, input = fireInput()) {
+    const reportInput = { ...input, annualContribution: required === null ? input.annualContribution : required };
+    lastFireReportScenarios = [{ id: 'current', name: required === null ? 'Current scenario' : 'Required contribution scenario', input: reportInput, result }];
     $('#fire-results').hidden = false;
     $('#fire-status').textContent = result.isOnTrack ? 'On track under assumptions' : 'Shortfall under assumptions';
     $('#fire-status').className = 'fire-status ' + (result.isOnTrack ? 'on-track' : 'shortfall');
@@ -128,14 +133,47 @@ function calculateFire(solve = false) {
                 annualRetirementSpendingToday: input.annualRetirementSpendingToday,
                 withdrawalRate: input.withdrawalRate, contributionTiming: input.contributionTiming
             });
-            showFireResult(result.readiness, result.requiredAnnualContribution);
-        } else showFireResult(calculateFireReadiness(input));
+            showFireResult(result.readiness, result.requiredAnnualContribution, input);
+        } else showFireResult(calculateFireReadiness(input), null, input);
     } catch (error) {
         $('#fire-results').hidden = true;
+        lastFireReportScenarios = [];
         fireError(error instanceof Error ? error.message : 'Check all assumptions and try again.');
     }
 }
 
+
+function downloadFireReport(scenarios, filename) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (!scenarios.length) {
+        showToast('Calculate a scenario before downloading its report.');
+        return;
+    }
+    try {
+        const report = createFireScenarioReport({
+            currency: CURRENCY,
+            generatedAt: new Date(),
+            scenarios: scenarios.map(({ id, name, input, result }) => ({
+                id, name, assumptions: { ...input, contributionTiming: input.contributionTiming ?? 'end' }, result
+            }))
+        });
+        const blob = new Blob([renderFireScenarioReportHtml(report)], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Downloaded an offline HTML report. Keep the file private; it contains your assumptions.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create the offline FIRE report.');
+    }
+}
 function readCompareScenarios() {
     const base = fireInput();
     return ['a', 'b', 'c'].map((key) => {
@@ -168,6 +206,7 @@ function compareFireScenarios() {
     setCompareValidation();
     try {
         const results = compareFireReadinessScenarios(readCompareScenarios());
+        lastComparisonReportScenarios = results;
         const body = $('#fire-compare-body'); body.replaceChildren();
         for (const scenario of results) {
             const row = document.createElement('tr');
@@ -186,6 +225,7 @@ function compareFireScenarios() {
         $('#fire-compare-results').hidden = false;
     } catch (error) {
         $('#fire-compare-results').hidden = true;
+        lastComparisonReportScenarios = [];
         setCompareValidation(error instanceof Error ? error.message : 'Check all scenario assumptions and try again.');
     }
 }
@@ -199,13 +239,13 @@ function copyFireAssumptionsToScenarios() {
         $(`#fire-compare-${key}-withdrawal`).value = String(base.withdrawalRate * 100);
         $(`#fire-compare-${key}-timing`).value = base.contributionTiming;
     }
-    setCompareValidation(); $('#fire-compare-results').hidden = true;
+    setCompareValidation(); $('#fire-compare-results').hidden = true; lastComparisonReportScenarios = [];
 }
 function resetFire() {
     const form = $('#fire-planner-form');
     const defaults = {currentPortfolio:0,annualContribution:0,yearsToRetirement:10,expectedAnnualReturn:7,annualInflationRate:3,annualRetirementSpendingToday:0,withdrawalRate:4,contributionTiming:'end'};
     for (const [name,value] of Object.entries(defaults)) form.elements[name].value = String(value);
-    fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true; $('#fire-compare-results').hidden = true; setCompareValidation();
+    fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true; $('#fire-compare-results').hidden = true; setCompareValidation(); lastFireReportScenarios = []; lastComparisonReportScenarios = [];
     for (const key of ['a', 'b', 'c']) {
         $(`#fire-compare-${key}-name`).value = `Scenario ${key.toUpperCase()}`;
         for (const field of ['contribution', 'return', 'inflation', 'withdrawal']) $(`#fire-compare-${key}-${field}`).value = '';
@@ -452,12 +492,14 @@ function importData(file) {
 
 $('#fire-planner-form').addEventListener('submit', (event) => { event.preventDefault(); calculateFire(); });
 $('#fire-required-button').addEventListener('click', () => calculateFire(true));
+$('#fire-download-report').addEventListener('click', () => downloadFireReport(lastFireReportScenarios, 'pfo-fire-scenario-report.html'));
+$('#fire-download-comparison-report').addEventListener('click', () => downloadFireReport(lastComparisonReportScenarios, 'pfo-fire-comparison-report.html'));
 $('#fire-reset-button').addEventListener('click', resetFire);
 $('#fire-compare-toggle').addEventListener('click', () => { const panel = $('#fire-comparison'); panel.hidden = !panel.hidden; $('#fire-compare-toggle').setAttribute('aria-expanded', String(!panel.hidden)); if (!panel.hidden) panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('#fire-copy-assumptions').addEventListener('click', copyFireAssumptionsToScenarios);
 $('#fire-compare-run').addEventListener('click', compareFireScenarios);
 $('#fire-comparison').addEventListener('input', () => { setCompareValidation(); $('#fire-compare-results').hidden = true; });
-$('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; $('#fire-compare-results').hidden = true; });
+$('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; $('#fire-compare-results').hidden = true; lastFireReportScenarios = []; lastComparisonReportScenarios = []; });
 $('#add-record-button').addEventListener('click', () => openRecordDialog());
 $('#quick-add-asset').addEventListener('click', () => openRecordDialog('asset'));
 $('#quick-add-liability').addEventListener('click', () => openRecordDialog('liability'));
@@ -570,5 +612,6 @@ if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#fire-planner-hosted-notice').hidden = false;
     $('#fire-planner-form').querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
     $('#fire-comparison').querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
+    $('#fire-results').querySelectorAll('button').forEach((control) => { control.disabled = true; });
 }
 switchWorkspace('demo');
