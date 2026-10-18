@@ -9,7 +9,7 @@ const assumptions = {
 };
 const result = calculateFireReadiness(assumptions);
 const scenario: FireScenarioReportScenarioInput = { id: 'base', name: 'Base case', assumptions, result };
-function createReport(scenarios: readonly FireScenarioReportScenarioInput[] = [scenario]) {
+function createReport(scenarios: readonly FireScenarioReportScenarioInput[] = [scenario]): ReturnType<typeof createFireScenarioReport> {
     return createFireScenarioReport({ currency: 'INR', generatedAt: new Date('2026-10-18T10:00:00.000Z'), scenarios });
 }
 

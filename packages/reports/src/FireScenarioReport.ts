@@ -72,7 +72,7 @@ export function renderFireScenarioReportHtml(report: FireScenarioReportData): st
         const assumptions = [
             `Current portfolio: ${formatMoney(input.currentPortfolio, report.currency)}`,
             `Annual contribution: ${formatMoney(input.annualContribution, report.currency)}`,
-            `Years to retirement: ${input.yearsToRetirement}`,
+            `Years to retirement: ${String(input.yearsToRetirement)}`,
             `Expected return: ${formatPercentage(input.expectedAnnualReturn)}`,
             `Inflation: ${formatPercentage(input.annualInflationRate)}`,
             `Annual spending today: ${formatMoney(input.annualRetirementSpendingToday, report.currency)}`,
@@ -113,7 +113,7 @@ footer{font-size:.9rem;color:#637268}footer p{margin:.25rem 0}
 </style>
 </head>
 <body><main>
-<header><p class="eyebrow">PFO OS · Retirement planning</p><h1>FIRE scenario report</h1><div class="metadata"><span>Generated <time datetime="${escapeHtml(report.generatedAt)}">${escapeHtml(formatTimestamp(report.generatedAt))} UTC</time></span><span>Currency: ${escapeHtml(report.currency)}</span><span>Scenarios: ${report.scenarios.length}</span></div></header>
+<header><p class="eyebrow">PFO OS · Retirement planning</p><h1>FIRE scenario report</h1><div class="metadata"><span>Generated <time datetime="${escapeHtml(report.generatedAt)}">${escapeHtml(formatTimestamp(report.generatedAt))} UTC</time></span><span>Currency: ${escapeHtml(report.currency)}</span><span>Scenarios: ${String(report.scenarios.length)}</span></div></header>
 <section aria-labelledby="results-heading"><h2 id="results-heading">Scenario comparison</h2><div class="table-wrap"><table><caption>Results are shown in the order entered, with each scenario's assumptions.</caption><thead><tr><th scope="col">Scenario and assumptions</th><th scope="col">Projected portfolio</th><th scope="col">Annual spending at retirement</th><th scope="col">Target corpus</th><th scope="col">Surplus / shortfall</th><th scope="col">Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>
 <footer><p>Deterministic illustrations based only on the assumptions shown. Not a forecast, investment recommendation, or guarantee.</p><p>Excludes taxes, fees, investment volatility, sequence-of-returns risk, changing contributions, pension or benefit income, and longevity adjustments.</p><p>This report is a downloaded local file. PFO OS does not upload or automatically save these assumptions.</p></footer>
 </main></body></html>`;
@@ -139,7 +139,9 @@ function validateFireScenarioReport(value: unknown): asserts value is FireScenar
             || typeof candidate['name'] !== 'string' || candidate['name'].trim() === '') {
             throw new RangeError('Each FIRE report scenario requires a non-empty ID and name.');
         }
-        if (ids.has(candidate['id'])) throw new RangeError('FIRE report scenario IDs must be unique.');
+        if (ids.has(candidate['id'])) {
+            throw new RangeError('FIRE report scenario IDs must be unique.');
+        }
         ids.add(candidate['id']);
         if (!isRecord(candidate['assumptions']) || !isRecord(candidate['result'])) {
             throw new RangeError('Each FIRE report scenario requires assumptions and a result.');
