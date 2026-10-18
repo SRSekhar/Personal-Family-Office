@@ -107,7 +107,7 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 - PR #127 merged: local CSV export with CSV quoting, spreadsheet-formula-like text neutralization, malformed-record rejection, and focused unit tests. PR CI, full-history Secret Scan, and dashboard workflow checks passed.
 - PR #128 merged: accessible asset/liability type filter combined with existing search, a distinct no-matches state, and focused filter tests. PR CI, full-history Secret Scan, and dashboard workflow checks passed.
 - The dashboard remains local-first: filtering is in-memory, and exports are generated in the browser. No financial formulas, storage model, hosted privacy rules, or FIRE planner UI changed.
-- Main-branch CI and Secret Scan are being checked after the merges. The main-branch dashboard deployment job still fails at **Configure GitHub Pages** because the one-time repository Pages setting remains unresolved; do not change repository settings without owner action.
+- Main-branch CI and full-history Secret Scan passed after PR #128 (runs `39103792075` and `39103792098`) and again after the documentation/sorting updates (runs `39104225320` and `39104225335`). The main-branch dashboard deployment job still fails at **Configure GitHub Pages** because the one-time repository Pages setting remains unresolved; do not change repository settings without owner action.
 
 
 ## Record Sorting Increment (2026-10-18)
