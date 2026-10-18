@@ -199,6 +199,57 @@ try {
         'a rejected backup must preserve the prior financial totals');
     process.stdout.write('PASS: invalid backup rejection preserves the current records and totals.\n');
 
+    const replacementBackup = {
+        schemaVersion: 1,
+        currency: 'INR',
+        exportedAt: new Date().toISOString(),
+        records: [{ name: 'Replacement browser asset', category: 'Investments', type: 'asset', value: 654321 }]
+    };
+    const dismissedConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.dismiss();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-file').setInputFiles({
+        name: 'replacement-cancelled.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(replacementBackup))
+    });
+    assert.match(await dismissedConfirmation, /replace all records in your private workspace/i);
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('Import cancelled.')
+    );
+    assert.ok((await page.locator('#records-body').innerText()).includes('Imported browser asset'),
+        'cancelling replacement must preserve existing records');
+    assert.ok(!(await page.locator('#records-body').innerText()).includes('Replacement browser asset'),
+        'cancelling replacement must not import the replacement records');
+    process.stdout.write('PASS: cancelling backup replacement preserves existing records.\n');
+
+    const acceptedConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-file').setInputFiles({
+        name: 'replacement-confirmed.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(replacementBackup))
+    });
+    assert.match(await acceptedConfirmation, /replace all records in your private workspace/i);
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#records-body')?.innerText.includes('Replacement browser asset')
+    );
+    const replacedRecords = await page.locator('#records-body').innerText();
+    assert.ok(!replacedRecords.includes('Imported browser asset'),
+        'confirmed replacement should replace rather than append existing records');
+    assert.match(await page.locator('#net-worth').innerText(), /6,54,321/,
+        'confirmed replacement should recalculate totals from the new backup');
+    process.stdout.write('PASS: confirming backup replacement imports the new records and recalculates totals.\n');
+
     await page.reload({ waitUntil: 'networkidle' });
     let reachedFireInput = false;
     for (let index = 0; index < 40; index += 1) {
