@@ -105,6 +105,40 @@ try {
         'comparison report should include all three scenario names');
     process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\n');
 
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
+    await page.locator('#goal-name').fill('Emergency fund');
+    await page.locator('#goal-target').fill('1000000');
+    await page.locator('#goal-current').fill('250000');
+    await page.locator('#goal-date').fill(futureDate.toISOString().slice(0, 10));
+    await page.getByRole('button', { name: 'Calculate goal progress' }).click();
+    assert.equal(await page.locator('#goal-results').isVisible(), true, 'goal progress results should appear');
+    assert.equal((await page.locator('#goal-progress-percent').innerText()).trim(), '25%',
+        'goal progress should reflect accumulated amount divided by target');
+    assert.equal(await page.locator('#goal-progress-bar').getAttribute('aria-valuetext'), '25 percent of target');
+    await page.getByRole('button', { name: 'Reset goal' }).click();
+    assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
+    process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\\n');
+
+    await page.reload({ waitUntil: 'networkidle' });
+    let reachedFireInput = false;
+    for (let index = 0; index < 40; index += 1) {
+        await page.keyboard.press('Tab');
+        if (await page.evaluate(() => document.activeElement?.id === 'fire-current-portfolio')) {
+            reachedFireInput = true;
+            break;
+        }
+    }
+    assert.equal(reachedFireInput, true, 'keyboard tab order should reach the first FIRE planner input');
+    await page.setViewportSize({ width: 320, height: 800 });
+    const viewport = await page.evaluate(() => ({
+        width: window.innerWidth,
+        documentWidth: document.documentElement.scrollWidth
+    }));
+    assert.ok(viewport.documentWidth <= viewport.width,
+        `narrow viewport should not cause page-level horizontal overflow (viewport ${viewport.width}, document ${viewport.documentWidth})`);
+    process.stdout.write('PASS: keyboard tab order reaches FIRE controls and 320px layout has no page-level horizontal overflow.\\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
