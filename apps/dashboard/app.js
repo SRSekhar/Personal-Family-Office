@@ -1,4 +1,5 @@
 import { validateBackupPayload } from './backup.js';
+import { recordsToCsv } from './csv-export.js';
 import { persistJson, readJsonArray } from './storage.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
@@ -204,6 +205,28 @@ function exportData() {
     showToast('Workspace exported to this device.');
 }
 
+function exportCsv() {
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
+        return;
+    }
+    let csv;
+    try {
+        csv = recordsToCsv(records, CURRENCY);
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create CSV export.');
+        return;
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'pfo-os-financial-records.csv';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('CSV exported to this device.');
+}
+
 function importData(file) {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
@@ -302,6 +325,7 @@ $('#view-all-button').addEventListener('click', () => {
     renderRecords();
 });
 $('#export-button').addEventListener('click', exportData);
+$('#export-csv-button').addEventListener('click', exportCsv);
 $('#import-button').addEventListener('click', () => {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
