@@ -103,3 +103,8 @@ Do not record personal financial values or claim customer demand without evidenc
 - CI, full-history Secret Scan, and dashboard packaging passed after a test assertion was corrected based on CI output.
 - Lesson: inspect the actual failure log and fix the test contract precisely; do not treat static markup assertions as proof of real assistive-technology behavior.
 - Outstanding: interactive browser coverage for calculations, reset, validation and downloads; keyboard-only operation; screen-reader behavior; responsive layouts and 400% zoom.
+
+
+### Goal progress accessibility wording — follow-up
+- Updated the progress indicator's accessible value text to say the percentage is 'of target', so a completed goal above 100% is not announced as an impossible percentage 'complete'. The visual percentage remains uncapped to show the amount above target, while the native progress bar remains capped at 100.
+- Added a static regression assertion for the accessible wording. Browser/screen-reader validation remains open.
