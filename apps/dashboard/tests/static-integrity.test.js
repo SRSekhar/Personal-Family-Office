@@ -55,6 +55,18 @@ describe('dashboard static integrity', () => {
             readFile(new URL(specifier, new URL('app.js', dashboardRoot)), 'utf8')
         ));
     });
+
+    it('provides a keyboard-visible skip link targeting the main content landmark', async () => {
+        const [html, css] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('styles.css')
+        ]);
+
+        expect(html).toMatch(/<a\b[^>]*class=["']skip-link["'][^>]*href=["']#main-content["'][^>]*>\s*Skip to main content\s*<\/a>/i);
+        expect(html).toMatch(/<main\b[^>]*id=["']main-content["'][^>]*tabindex=["']-1["']/i);
+        expect(css).toMatch(/\.skip-link:focus\s*\{[^}]*transform:\s*translateY\(0\)/);
+    });
+
 });
 
 
