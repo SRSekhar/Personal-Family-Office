@@ -32,7 +32,7 @@ describe('dashboard static integrity', () => {
     });
 
     it('resolves every relative module import from the controller', async () => {
-        const app = await readDashboardFile('app.js');
+        const [app, html] = await Promise.all([readDashboardFile('app.js'), readDashboardFile('index.html')]);
         const imports = [...app.matchAll(/\bfrom\s+['"]([^'"]+)['"]/g)]
             .map((match) => match[1])
             .filter((specifier) => specifier.startsWith('.') && !specifier.startsWith('./calculators-runtime/') && !specifier.startsWith('./reports-runtime/'));
