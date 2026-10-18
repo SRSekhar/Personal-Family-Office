@@ -124,6 +124,7 @@ function calculateFire(solve = false) {
         fireError('Use the loopback-only dashboard before entering retirement assumptions.');
         return;
     }
+    if (solve && !$('#fire-planner-form').reportValidity()) return;
     fireError();
     try {
         const input = fireInput();
