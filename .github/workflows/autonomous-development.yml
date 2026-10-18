@@ -89,7 +89,7 @@ jobs:
           prompt: |
             You are the autonomous engineering agent for PFO OS in this repository. Perform exactly one focused, production-quality engineering cycle, not a broad rewrite.
 
-            Start by reading .ai/START_HERE.md if present, then .ai/PROJECT_STATE.md, .ai/CURRENT_SPRINT.md, .ai/HANDOFF.md, relevant architecture/decision records, package.json, and the relevant source/tests. Check git status and open pull requests before changing anything. Treat repository files as the source of truth; do not assume undocumented APIs, data models, selectors, or configuration.
+            Read only the minimum context needed: .ai/START_HERE.md (if present), .ai/CURRENT_SPRINT.md, the relevant ADR, package.json scripts, and the exact source/tests for the selected task. Do not read every handoff/state document by default. Check git status and inspect only relevant open PRs when the task overlaps existing work. Treat repository files as the source of truth; do not assume undocumented APIs, data models, selectors, or configuration.
 
             PRIORITY ORDER:
             1. Fix an actionable, reproducible correctness, privacy, security, data-integrity, build, or test issue.
@@ -98,14 +98,15 @@ jobs:
             Do not invent product requirements or make speculative features just to create activity. If no safe, well-scoped task is ready, make no code changes and record the blocker/next step in the workflow summary.
 
             WORKFLOW:
-            - Inspect the current checkout and available GitHub read-only context. If a clearly relevant autonomous-development PR already exists, continue its agent/pfo-hourly-* branch; otherwise create a new branch named agent/pfo-hourly-<UTC timestamp>.
-            - Make one small coherent change with tests. Use the repository's existing package manager and scripts; do not update dependencies unless required by the task.
-            - Run the most relevant tests and, where practical, pnpm lint, pnpm typecheck, pnpm build, and pnpm test. Report exact commands and results. Never claim a check passed unless it actually ran successfully.
-            - Review the final diff for secrets, personal/real financial data, accidental broad changes, and unsafe behavior.
-            - Update the relevant project handoff/state documentation with only verified facts, blockers, and the next concrete step.
-            - Prepare a plain-text PR title at the path in PFO_PR_TITLE_FILE and a Markdown PR summary at the path in PFO_PR_BODY_FILE. These paths are in the runner temporary directory, outside the repository. Include the change summary, exact tests run/results, and any unresolved validation. Do not put credentials or personal financial data in either file.
-            - Commit the changes locally. Do not push, create/edit PRs, or attempt any GitHub write operation; a separate post-agent step publishes the branch and PR after the agent exits.
-            - If no meaningful change is safe, do not create an empty commit or empty PR.
+            - Inspect git status and the specific source/tests required for one task. Check only overlapping open PRs; avoid broad repository exploration.
+            - Create a branch named agent/pfo-hourly-<UTC timestamp>, unless continuing a directly relevant existing agent/pfo-hourly-* branch.
+            - Make one small coherent, production-quality change with focused tests. Use existing scripts and dependencies.
+            - Run focused tests first; run pnpm lint, pnpm typecheck, pnpm build, and pnpm test only when time and scope justify it. State exactly what ran and the results.
+            - Review the diff for secrets, real financial data, accidental broad changes, and unsafe behavior.
+            - Update only the one most relevant state/handoff document if verified status changed; do not perform broad documentation synchronization.
+            - Write a concise PR title and body to PFO_PR_TITLE_FILE and PFO_PR_BODY_FILE. Include summary, exact validation, and limitations. Never include credentials or real financial data.
+            - Commit locally; the separate publisher creates/updates the PR. Do not push or use GitHub write operations from the agent.
+            - If blocked by a genuine unresolved decision, do not invent requirements; write the blocker and next step in the workflow summary and exit without an empty commit.
 
             HARD GUARDRAILS:
             - Never merge a PR automatically. Keep changes in a PR for review.
@@ -120,7 +121,7 @@ jobs:
             - Keep scope narrow and preserve existing architecture. If a task requires an unresolved product/legal/architecture decision, stop that task and record the decision needed.
           claude_args: |
             ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'DeepSeek-V4-Pro') || '' }}
-            --max-turns 40
+            --max-turns 60
             --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
 
       - name: Publish committed change as a pull request
