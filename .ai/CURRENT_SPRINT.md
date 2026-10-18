@@ -19,6 +19,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #142 — validated, self-contained, script-free FIRE scenario HTML report for single scenarios and comparisons, with XSS-safe rendering and explicit download actions.
 - PR #145 — deterministic single-goal progress calculator and session-only dashboard Goal Tracker; reports progress, amount remaining, target date, and completion/overdue state without persistence or return projections.
 - CI, full-history Secret Scan, and dashboard packaging passed on each feature PR before merge.
+- PR #147 — CI static accessibility-contract regression checks for FIRE/Goal Tracker form labels, validation alerts, live regions, section naming, and progress indicator. These are structural checks, not interactive browser verification.
 - Product improvement log is maintained in `docs/product/IMPROVEMENT_LOG.md`.
 
 ## In Progress

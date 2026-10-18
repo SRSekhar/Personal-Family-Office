@@ -96,3 +96,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added static-integrity checks for explicit labels on FIRE/Goal Tracker form controls, accessible validation alerts, polite result announcements, semantic section naming, and the native progress indicator's accessible name.
 - These checks catch structural regressions in CI without adding a new dependency or changing the dashboard runtime.
 - They are **not** a substitute for real browser testing, keyboard-only verification, screen-reader checks, or 400% zoom validation. Those remain open and must not be reported as completed.
+
+
+### Accessibility contract regression checks — PR #147
+- Merged static regression checks for explicit form labels, validation alerts, polite result announcements, semantic section naming, and the Goal Tracker progress indicator's accessible name.
+- CI, full-history Secret Scan, and dashboard packaging passed after a test assertion was corrected based on CI output.
+- Lesson: inspect the actual failure log and fix the test contract precisely; do not treat static markup assertions as proof of real assistive-technology behavior.
+- Outstanding: interactive browser coverage for calculations, reset, validation and downloads; keyboard-only operation; screen-reader behavior; responsive layouts and 400% zoom.
