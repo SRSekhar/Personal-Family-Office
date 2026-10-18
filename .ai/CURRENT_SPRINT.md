@@ -37,8 +37,8 @@ Dashboard follow-up completed on 2026-10-14: PR #89 makes add/edit/delete/import
 
 ## In Progress
 
-- Verify the autonomous workflow end-to-end after PR #125: a scheduled run must complete and publish a valid focused PR; a successful preflight or a workflow run with no publishable branch does not count.
-- Confirm the main-branch CI run for PR #125's merge has completed successfully.
+- Autonomous workflow run `39104693039` passed credential preflight but failed after exhausting all 60 agent turns (`error_max_turns`) without a publishable branch. PR #125's previous prompt/context reduction was insufficient. This branch adds explicit turn milestones, a narrow diff budget, and a single test-correction cycle; the next scheduled run must verify whether it produces a valid PR.
+- Main-branch CI and full-history Secret Scan passed after the latest dashboard/documentation merges (CI `39104404521`, Secret Scan `39104404525`).
 - Define whether each flagged dependency is included in a distributable product or used only for development/build, then map the Blue Oak notice and MPL source-availability obligations to that boundary. Preserve manual-review status until qualified review supports a disposition.
 - Complete the one-time GitHub Pages repository setup and verify the dashboard deployment.
 - Keep project licensing and the public/private product boundary as explicit release gates; no license or visibility change is authorized.
