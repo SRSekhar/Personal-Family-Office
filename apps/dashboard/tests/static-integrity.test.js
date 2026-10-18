@@ -66,7 +66,9 @@ describe('FIRE planner interaction contracts', () => {
             app.indexOf('function downloadFireReport(')
         );
 
-        expect(calculateFire).toContain("if (solve && !$('#fire-planner-form').reportValidity()) return;");
+        expect(calculateFire).toContain("if (solve && !$('#fire-planner-form').reportValidity()) {");
+        expect(calculateFire).toContain("$('#fire-results').hidden = true;");
+        expect(calculateFire).toContain("lastFireReportScenarios = [];");
         expect(app).toContain("$('#fire-required-button').addEventListener('click', () => calculateFire(true));");
     });
 });
