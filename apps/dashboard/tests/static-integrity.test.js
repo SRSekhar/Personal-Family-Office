@@ -88,6 +88,6 @@ describe('dashboard accessibility contracts', () => {
         expect(goalSection).toMatch(/id=["']goal-validation["'][^>]*role=["']alert["']/);
         expect(goalSection).toMatch(/id=["']goal-results["'][^>]*aria-live=["']polite["']/);
         expect(goalSection).toMatch(/<progress\b[^>]*id=["']goal-progress-bar["'][^>]*aria-label=["']Goal completion percentage["']/);
-        expect(goalSection).toMatch(/<section\b[^>]*id=["']goal-tracker["'][^>]*aria-labelledby=["']goal-tracker-heading["']/);
+        expect(html).toMatch(/<section\b[^>]*id=["']goal-tracker["'][^>]*aria-labelledby=["']goal-tracker-heading["']/);
     });
 });
