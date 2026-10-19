@@ -69,12 +69,17 @@ describe('cash flow summaries', () => {
             .toEqual(['i-1']);
         expect(filterCashFlowEntries(entries, { type: 'income' }).map((entry) => entry.id))
             .toEqual(['i-1']);
+        expect(filterCashFlowEntries(entries, { recurring: 'recurring' }).map((entry) => entry.id))
+            .toEqual(['i-1']);
+        expect(filterCashFlowEntries(entries, { recurring: 'one-time' }).map((entry) => entry.id))
+            .toEqual(['e-1', 'e-2']);
         expect(filterCashFlowEntries(entries, { search: 'no match' })).toEqual([]);
     });
 
     it('rejects invalid transaction filter options', () => {
         expect(() => filterCashFlowEntries(entries, { period: '2026-13' })).toThrow('valid YYYY-MM');
         expect(() => filterCashFlowEntries(entries, { type: 'transfer' })).toThrow('Type must be');
+        expect(() => filterCashFlowEntries(entries, { recurring: 'sometimes' })).toThrow('Frequency must be');
         expect(() => filterCashFlowEntries(entries, { search: 12 })).toThrow('Search must be a string');
     });
 
