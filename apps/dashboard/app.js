@@ -5,7 +5,7 @@ import { calculateFinancialTotals } from './financial-totals.js';
 import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
-import { readSavedGoals, saveSavedGoals } from './goals-storage.js';
+import { GOALS_STORAGE_KEY, readSavedGoals, saveSavedGoals } from './goals-storage.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 import { calculateFireReadiness } from './calculators-runtime/FireReadiness.js';
 import { compareFireReadinessScenarios } from './calculators-runtime/FireScenarioComparison.js';
@@ -598,11 +598,18 @@ function showToast(message) {
 }
 
 function exportData() {
-    if (workspace === 'private' && !privateStorageHealthy) {
-        showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
+    const isPrivateExport = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname);
+    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy)) {
+        showToast('Export is paused because saved records or goals could not be read safely. Existing storage remains untouched; import a valid backup to recover.');
         return;
     }
-    const payload = { schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), records };
+    const payload = {
+        schemaVersion: isPrivateExport ? 2 : 1,
+        currency: CURRENCY,
+        exportedAt: new Date().toISOString(),
+        records
+    };
+    if (isPrivateExport) payload.goals = savedGoals;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -694,6 +701,16 @@ function exportViewCsv() {
     }
 }
 
+function restoreStorageValue(key, serializedValue) {
+    try {
+        if (serializedValue === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, serializedValue);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 function importData(file) {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
@@ -704,25 +721,63 @@ function importData(file) {
     reader.addEventListener('load', () => {
         try {
             const parsed = JSON.parse(String(reader.result));
-            const validated = validateBackupPayload(parsed, CURRENCY)
-                .map((item) => ({ id: crypto.randomUUID(), ...item }));
+            const backup = validateBackupPayload(parsed, CURRENCY);
+            const validatedRecords = backup.records.map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            const replacementConfirmed = records.length === 0 || window.confirm(
-                'Importing this backup will replace all records in your private workspace. Export a backup first if you want to keep the current records. Continue?'
+            const needsConfirmation = records.length > 0 || (backup.includesGoals && savedGoals.length > 0);
+            const replacementConfirmed = !needsConfirmation || window.confirm(
+                backup.includesGoals
+                    ? 'Importing this backup will replace all records and saved goals in your private workspace. Export a backup first if you want to keep them. Continue?'
+                    : 'Importing this legacy backup will replace all financial records. Saved goals are not included and will be preserved. Continue?'
             );
             if (!replacementConfirmed) {
-                showToast('Import cancelled. Your existing records were not changed.');
-            } else if (savePrivateRecords(validated, true)) {
-                records = validated;
-                render();
-                showToast(`Imported ${records.length} records into your private workspace.`);
+                showToast('Import cancelled. Your existing records and goals were not changed.');
+                return;
             }
+
+            let previousGoalsRaw = null;
+            if (backup.includesGoals) {
+                try {
+                    previousGoalsRaw = localStorage.getItem(GOALS_STORAGE_KEY);
+                } catch {
+                    showToast('Could not safely inspect saved goals. Nothing was imported.');
+                    return;
+                }
+                if (!saveSavedGoals(localStorage, backup.goals)) {
+                    showToast('Could not restore saved goals. Existing records and goals were left unchanged.');
+                    return;
+                }
+            }
+
+            if (!savePrivateRecords(validatedRecords, true)) {
+                if (backup.includesGoals && !restoreStorageValue(GOALS_STORAGE_KEY, previousGoalsRaw)) {
+                    goalsStorageHealthy = false;
+                    showGoalMessage('Restore could not complete and the previous goal storage could not be recovered. Stop editing goals and preserve this browser profile for recovery.');
+                }
+                return;
+            }
+
+            records = validatedRecords;
+            if (backup.includesGoals) {
+                savedGoals = backup.goals;
+                goalsStorageHealthy = true;
+                renderSavedGoals();
+                showGoalMessage();
+            }
+            render();
+            showToast(backup.includesGoals
+                ? `Imported ${records.length} records and ${savedGoals.length} saved goals into your private workspace.`
+                : `Imported ${records.length} records. This legacy backup did not contain goals; saved goals were preserved.`);
         } catch (error) {
             showToast(error instanceof Error ? error.message : 'Could not import this backup.');
+        } finally {
+            $('#import-file').value = '';
         }
+    });
+    reader.addEventListener('error', () => {
+        showToast('Could not read the selected file.');
         $('#import-file').value = '';
     });
-    reader.addEventListener('error', () => showToast('Could not read the selected file.'));
     reader.readAsText(file);
 }
 
