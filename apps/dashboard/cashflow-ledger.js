@@ -115,18 +115,22 @@ function csvCell(value) {
     return '"' + text.replaceAll('"', '""') + '"';
 }
 
-export function filterCashFlowEntries(entries, { period = 'all', type = 'all', search = '' } = {}) {
+export function filterCashFlowEntries(entries, { period = 'all', type = 'all', recurring = 'all', search = '' } = {}) {
     if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
         throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
     }
     if (!['all', 'income', 'expense'].includes(type)) {
         throw new RangeError('Type must be "all", "income", or "expense".');
     }
+    if (!['all', 'recurring', 'one-time'].includes(recurring)) {
+        throw new RangeError('Frequency must be "all", "recurring", or "one-time".');
+    }
     if (typeof search !== 'string') throw new TypeError('Search must be a string.');
     const query = search.trim().toLowerCase();
     return validateCashFlowEntries(entries)
         .filter((entry) => (period === 'all' || entry.date.startsWith(period))
             && (type === 'all' || entry.type === type)
+            && (recurring === 'all' || entry.recurring === (recurring === 'recurring'))
             && (!query || [entry.date, entry.category, entry.description]
                 .some((value) => value.toLowerCase().includes(query))))
         .sort((a, b) => b.date.localeCompare(a.date)
