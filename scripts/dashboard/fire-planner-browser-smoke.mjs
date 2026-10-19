@@ -56,6 +56,32 @@ try {
         'activating the skip link should move focus to the main content landmark'
     );
     process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
+    await page.goto(`${baseUrl}#fire-planner`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => globalThis.document.querySelector('.nav-item[href="#fire-planner"]')?.getAttribute('aria-current') === 'page');
+    assert.equal(await page.locator('#page-breadcrumb').innerText(), 'FIRE planner',
+        'initial URL fragment should synchronize the breadcrumb');
+    assert.equal(await page.locator('.nav-item[href="#fire-planner"]').getAttribute('aria-current'), 'page');
+    process.stdout.write('PASS: initial URL fragment synchronizes sidebar and breadcrumb.\n');
+
+    await page.locator('.nav-item[href="#records"]').click();
+    await page.waitForFunction(() => globalThis.location.hash === '#records'
+        && globalThis.document.querySelector('.nav-item[href="#records"]')?.getAttribute('aria-current') === 'page');
+    assert.equal(await page.locator('#page-breadcrumb').innerText(), 'Financial records');
+    assert.equal(await page.locator('.nav-item[href="#fire-planner"]').getAttribute('aria-current'), null,
+        'only the current navigation item should expose aria-current');
+    process.stdout.write('PASS: sidebar navigation updates active state and breadcrumb.\n');
+
+    await page.goBack();
+    await page.waitForFunction(() => globalThis.location.hash === '#fire-planner'
+        && globalThis.document.querySelector('.nav-item[href="#fire-planner"]')?.getAttribute('aria-current') === 'page');
+    assert.equal(await page.locator('#page-breadcrumb').innerText(), 'FIRE planner',
+        'browser Back should restore the matching breadcrumb');
+    await page.goForward();
+    await page.waitForFunction(() => globalThis.location.hash === '#records'
+        && globalThis.document.querySelector('.nav-item[href="#records"]')?.getAttribute('aria-current') === 'page');
+    assert.equal(await page.locator('#page-breadcrumb').innerText(), 'Financial records',
+        'browser Forward should restore the matching breadcrumb');
+    process.stdout.write('PASS: browser Back and Forward keep navigation state synchronized.\n');
     const fullCsvDownload = page.waitForEvent('download');
     await page.locator('#export-csv-button').click();
     const fullCsv = await fullCsvDownload;
