@@ -850,7 +850,7 @@ $('#fire-compare-toggle').addEventListener('click', () => {
 });
 $('#fire-copy-assumptions').addEventListener('click', copyFireAssumptionsToScenarios);
 $('#fire-compare-run').addEventListener('click', compareFireScenarios);
-$('#fire-comparison').addEventListener('input', () => { setCompareValidation(); $('#fire-compare-results').hidden = true; });
+$('#fire-comparison').addEventListener('input', () => { setCompareValidation(); $('#fire-compare-results').hidden = true; lastComparisonReportScenarios = []; });
 $('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true; $('#fire-compare-results').hidden = true; lastFireReportScenarios = []; lastComparisonReportScenarios = []; });
 $('#goal-tracker-form').addEventListener('submit', calculateGoal);
 $('#goal-save-button').addEventListener('click', saveGoal);
