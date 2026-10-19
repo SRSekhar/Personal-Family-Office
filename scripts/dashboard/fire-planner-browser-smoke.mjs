@@ -506,6 +506,37 @@ try {
         `narrow viewport should not cause page-level horizontal overflow (viewport ${viewport.width}, document ${viewport.documentWidth}, offenders ${JSON.stringify(viewport.offenders)})`);
     process.stdout.write('PASS: keyboard tab order reaches FIRE controls and 320px layout has no page-level horizontal overflow.\n');
 
+    await page.locator('#fire-reset-button').click();
+    assert.equal(await page.locator('#fire-current-portfolio').inputValue(), '0',
+        'reset should restore the current portfolio default');
+    assert.equal(await page.locator('#fire-annual-contribution').inputValue(), '0',
+        'reset should restore the annual contribution default');
+    assert.equal(await page.locator('#fire-years').inputValue(), '10',
+        'reset should restore the years-to-retirement default');
+    assert.equal(await page.locator('#fire-return').inputValue(), '7',
+        'reset should restore the expected return default');
+    assert.equal(await page.locator('#fire-inflation').inputValue(), '3',
+        'reset should restore the inflation default');
+    assert.equal(await page.locator('#fire-spending').inputValue(), '0',
+        'reset should restore the retirement spending default');
+    assert.equal(await page.locator('#fire-withdrawal').inputValue(), '4',
+        'reset should restore the withdrawal-rate default');
+    assert.equal(await page.locator('#fire-contribution-timing').inputValue(), 'end',
+        'reset should restore end-of-year contribution timing');
+    assert.equal(await page.locator('#fire-results').isHidden(), true,
+        'reset should clear the previous FIRE result');
+    assert.equal(await page.locator('#fire-required-result').isHidden(), true,
+        'reset should clear the required-contribution result');
+    assert.equal(await page.locator('#fire-compare-results').isHidden(), true,
+        'reset should clear scenario-comparison results');
+    assert.equal(await page.locator('#fire-download-report').isVisible(), false,
+        'reset should hide the single-scenario report action');
+    assert.equal(await page.locator('#fire-download-comparison-report').isVisible(), false,
+        'reset should hide the comparison report action');
+    assert.equal(await page.locator('#fire-validation').isHidden(), true,
+        'reset should clear validation messages');
+    process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
