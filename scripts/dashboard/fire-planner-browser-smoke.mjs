@@ -458,6 +458,31 @@ try {
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-count')?.textContent === '0 goals');
+
+    const customCategoryConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-csv-file').setInputFiles({
+        name: 'custom-category.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('Name,Category,Type,Value,Currency\r\n"Private equity holding","Private equity","asset",1000,"INR"\r\n')
+    });
+    assert.match(await customCategoryConfirmation, /replace all financial records in your private workspace/i);
+    await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Private equity holding'));
+    await page.locator('[data-edit]').first().click();
+    assert.equal(await page.locator('#record-category').inputValue(), 'Private equity',
+        'editing an imported record must preserve its non-standard category');
+    await page.locator('#record-name').fill('Private equity holding updated');
+    await page.locator('#record-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Private equity holding updated'));
+    assert.ok((await page.locator('#records-body').innerText()).includes('Private equity'),
+        'saving an edited imported record must not silently replace its category');
+    process.stdout.write('PASS: editing an imported record preserves its custom category.\\n');
+
     let reachedFireInput = false;
     for (let index = 0; index < 40; index += 1) {
         await page.keyboard.press('Tab');
