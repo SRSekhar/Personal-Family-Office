@@ -67,7 +67,7 @@ describe('cash flow summaries', () => {
         ])).toThrow('supported numeric range');
         expect(() => summarizeCashFlowByCategory([
             { ...entries[0], amount: Number.MAX_VALUE },
-            { ...entries[0], id: 'i-2', amount: Number.MAX_VALUE }
+            { ...entries[0], id: 'e-1', type: 'expense', amount: Number.MAX_VALUE }
         ])).toThrow('category totals');
     });
 });
