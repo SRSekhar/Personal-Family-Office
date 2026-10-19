@@ -3,6 +3,7 @@ import {
     cashFlowToCsv,
     isValidCashFlowEntry,
     summarizeCashFlow,
+    summarizeCashFlowByCategory,
     validateCashFlowEntries
 } from '../cashflow-ledger.js';
 
