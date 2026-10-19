@@ -107,6 +107,7 @@ Implemented
 Planned
 
 - Keyboard/accessibility and 400% zoom verification of the planner and comparison UI
+- Keyboard-only FIRE workflow regression: verify keyboard activation and focus continuity for readiness calculation, scenario comparison, and report downloads; keep 320 CSS-pixel checks explicitly labelled as a narrow-layout proxy, not actual browser-zoom certification.
 - End-to-end offline report workflow validation with prospective users
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
