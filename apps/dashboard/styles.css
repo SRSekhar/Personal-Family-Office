@@ -42,10 +42,11 @@
 /* Local-only cash flow ledger */
 .cash-flow-panel{margin-top:17px;padding:22px}
 .cash-flow-intro{font-size:12px;line-height:1.7;color:#78857e;margin:14px 0 18px}
-.cash-flow-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.cash-flow-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
 .cash-flow-summary article{display:grid;gap:8px;min-width:0;padding:15px;background:#f8faf8;border:1px solid #edf1ed;border-radius:8px}
 .cash-flow-summary article span{font-size:11px;color:#78857e}
 .cash-flow-summary article strong{font-size:clamp(17px,2vw,24px);overflow-wrap:anywhere;color:#344c3b}
+.cash-flow-summary article small{font-size:10px;line-height:1.4;color:#78857e}
 .cash-flow-form{border-top:1px solid #e8eee8;padding-top:15px}
 .cash-flow-input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 15px;margin-bottom:15px}
 .cash-flow-input-grid .field-label{min-width:0;line-height:1.5}

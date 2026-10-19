@@ -104,7 +104,8 @@ Implemented
 - Persistent multi-goal tracker with edit/delete confirmation, goal-aware version 2 backups, legacy version 1 compatibility, and an approximate no-returns monthly savings pace (PRs #169, #173, #175)
 - Local income/expense ledger with month summaries, recurring flags, edit/delete, dedicated JSON backup/restore, and formula-safe CSV export (PR #200).
 - Cash-flow category breakdown for the selected period with income, expenses, and net by category (PR #201).
-- In progress — cash-flow transaction search, type filtering, visible-result counts, and reset controls.
+- Cash-flow transaction search, type filtering, visible-result counts, and reset controls (PR #202).
+- In progress — selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero.
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
 Implemented

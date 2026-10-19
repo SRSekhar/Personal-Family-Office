@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    calculateCashFlowSavingsRate,
     cashFlowToCsv,
     filterCashFlowEntries,
     isValidCashFlowEntry,
@@ -88,6 +89,19 @@ describe('cash flow summaries', () => {
             { ...entries[0], amount: Number.MAX_VALUE },
             { ...entries[0], id: 'e-1', type: 'expense', amount: Number.MAX_VALUE }
         ])).toThrow('category totals');
+    });
+});
+
+describe('cash flow savings rate', () => {
+    it('calculates the net share of income and permits a negative rate', () => {
+        expect(calculateCashFlowSavingsRate(100000, 20000)).toBe(80);
+        expect(calculateCashFlowSavingsRate(100000, 125000)).toBe(-25);
+    });
+
+    it('returns null when income is zero and rejects invalid amounts', () => {
+        expect(calculateCashFlowSavingsRate(0, 100)).toBeNull();
+        expect(() => calculateCashFlowSavingsRate(-1, 0)).toThrow('finite, non-negative');
+        expect(() => calculateCashFlowSavingsRate(100, Number.POSITIVE_INFINITY)).toThrow('finite, non-negative');
     });
 });
 

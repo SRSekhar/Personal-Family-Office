@@ -376,6 +376,8 @@ try {
         'cash flow should total expenses separately');
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '80000',
         'cash flow should calculate net cash flow');
+    assert.equal(await page.locator('#cash-flow-savings-rate').innerText(), '80%',
+        'savings rate should be net cash flow divided by income');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'cash flow should list both transactions');
     await page.locator('#cash-flow-type-filter').selectOption('expense');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'type filter should limit visible transactions');
@@ -402,6 +404,8 @@ try {
     await page.locator('#cash-flow-save').click();
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '90000',
         'editing a transaction should recalculate net cash flow');
+    assert.equal(await page.locator('#cash-flow-savings-rate').innerText(), '81.8%',
+        'editing income should recalculate savings rate');
     const [cashFlowBackupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#cash-flow-export-json').click()
@@ -432,6 +436,8 @@ try {
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'deleting a transaction should remove it');
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '110000',
         'deleting an expense should recalculate net cash flow');
+    assert.equal(await page.locator('#cash-flow-savings-rate').innerText(), '100%',
+        'savings rate should update when expenses are deleted');
     process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\\n');
     const [cashFlowCsvDownload] = await Promise.all([
         page.waitForEvent('download'),

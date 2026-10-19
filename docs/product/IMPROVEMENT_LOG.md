@@ -303,8 +303,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Reuses the existing local ledger and reporting-period selector without changing stored data, net-worth calculations, or the backup format.
 - PR #201 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow transaction filters — feature branch in progress
-- Added the next functional increment to the backlog: search transaction date/category/description, filter by income or expense, and reset filters.
-- The selected reporting period's summary cards and category totals remain period-wide; filters only change the visible transaction rows, and the count explains how many rows are shown.
+### Cash-flow transaction filters — PR #202 merged
+- Added case-insensitive search across transaction date, category, and description, plus income/expense filtering and reset.
+- Visible-row counts distinguish filtered rows from the period-wide summary and category totals.
+- PR #202 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow savings rate — feature branch in progress
+- Added a selected-period savings-rate KPI defined as (income - expenses) / income, shown as a percentage.
+- Zero income produces an unavailable marker instead of division by zero; negative rates are allowed when expenses exceed income. The KPI is descriptive, not a recommendation.
 - Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
