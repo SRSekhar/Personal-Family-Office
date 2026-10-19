@@ -263,3 +263,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Extended the real Chromium smoke suite to edit a scenario after generating a comparison report, confirm the old results are hidden, programmatically attempt the now-hidden download action, and verify no stale report is produced; rerunning the comparison restores fresh results.
 - Validation: PR #186 passed CI, including the real Chromium FIRE planner smoke suite, full-history Secret Scan, and dashboard packaging on exact head `53f1babdd369c13548e1cdb9f0ce251c95a8256d`; merged to `main` as `64947b37d72505ea8c272b8c2714a9490338656c`. The publication step was skipped for the pull request; this does not establish a production deployment.
 - The change uses fictional browser data only and adds no persistence, network requests, or financial data.
+
+
+### Saved-goal deletion cancellation safety — PR #189
+- Extended the real Chromium smoke workflow to dismiss the saved-goal deletion confirmation, verify the goal and progress remain present, reload the dashboard, and verify the saved data is still intact before the existing confirmed-delete path runs.
+- Uses fictional goal values in the isolated browser profile. No production behavior, persistence format, or network behavior changed.
+- Validation: PR #189 passed CI, including the real Chromium dashboard smoke suite, and full-history Secret Scan on exact head `052f385ed1c65aa98cfebfacfcd16b35d318d77b`; merged to `main` as `bd0968a0c1867cbfa653dc2c6cf04facff6ee018`.

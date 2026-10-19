@@ -102,13 +102,13 @@ Implemented
 - Three-scenario comparison UI with explicit assumption copying, per-scenario inputs, ordered results, and no ranking/recommendation (PR #141)
 - Validated, self-contained offline HTML report export for a single scenario or comparison, with XSS escaping and no network submission (PR #142)
 - Persistent multi-goal tracker with edit/delete confirmation, goal-aware version 2 backups, legacy version 1 compatibility, and an approximate no-returns monthly savings pace (PRs #169, #173, #175)
+- Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
 Planned
 
 - Keyboard/accessibility and 400% zoom verification of the planner and comparison UI
 - End-to-end offline report workflow validation with prospective users
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
-- Goal tracker data-safety: add a real-browser regression proving that cancelling saved-goal deletion preserves the goal and its persisted data.
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
 
 ---
