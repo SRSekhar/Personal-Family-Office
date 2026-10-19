@@ -23,6 +23,7 @@
                 <a class="nav-item" href="#records"><span class="nav-icon">▤</span> Financial records</a>
                 <a class="nav-item" href="#fire-planner"><span class="nav-icon">◎</span> FIRE planner</a>
                 <a class="nav-item" href="#goal-tracker"><span class="nav-icon">◷</span> Goal tracker</a>
+                <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
             </nav>
             <div class="sidebar-bottom">
                 <div class="privacy-card"><span class="privacy-dot"></span><div><strong>Private by design</strong><p>Your workspace stays in this browser.</p></div></div>
@@ -200,6 +201,49 @@
                     </div>
                 </section>
             </section>
+            <section class="panel cash-flow-panel" id="cash-flow" aria-labelledby="cash-flow-heading">
+                <div class="panel-header">
+                    <div><p class="eyebrow">MONEY IN · MONEY OUT</p><h2 id="cash-flow-heading">Income &amp; expenses</h2></div>
+                    <span class="panel-tag">Saved locally · INR</span>
+                </div>
+                <p class="cash-flow-intro">Track dated income and expenses, recurring items, and monthly net cash flow. Transactions are stored separately in this browser and are not mixed into asset/liability net worth totals.</p>
+                <div class="cash-flow-summary" aria-label="Cash flow summary" aria-live="polite">
+                    <article><span>Income</span><strong id="cash-flow-income-total">₹0</strong></article>
+                    <article><span>Expenses</span><strong id="cash-flow-expense-total">₹0</strong></article>
+                    <article><span>Net cash flow</span><strong id="cash-flow-net-total">₹0</strong></article>
+                </div>
+                <form id="cash-flow-form" class="cash-flow-form">
+                    <div class="cash-flow-input-grid">
+                        <label class="field-label" for="cash-flow-date">Date<input id="cash-flow-date" type="date" required></label>
+                        <label class="field-label" for="cash-flow-type">Transaction type<select id="cash-flow-type"><option value="income">Income</option><option value="expense" selected>Expense</option></select></label>
+                        <label class="field-label" for="cash-flow-category">Category<input id="cash-flow-category" type="text" maxlength="60" required placeholder="Salary, housing, groceries…"></label>
+                        <label class="field-label" for="cash-flow-description">Description<input id="cash-flow-description" type="text" maxlength="120" required placeholder="What was this transaction?"></label>
+                        <label class="field-label" for="cash-flow-amount">Amount (₹)<input id="cash-flow-amount" type="number" min="0.01" step="any" required></label>
+                        <label class="cash-flow-recurring" for="cash-flow-recurring"><input id="cash-flow-recurring" type="checkbox"> Recurring transaction</label>
+                    </div>
+                    <div class="fire-actions"><button class="button button-primary" id="cash-flow-save" type="submit">Add transaction</button><button class="button button-secondary" id="cash-flow-cancel" type="button" hidden>Cancel edit</button></div>
+                </form>
+                <p id="cash-flow-message" class="cash-flow-message" role="status" aria-live="polite" hidden></p>
+                <div class="cash-flow-toolbar">
+                    <label class="field-label" for="cash-flow-period">Reporting period<select id="cash-flow-period"><option value="all">All transactions</option></select></label>
+                    <span id="cash-flow-count" class="panel-tag">0 transactions</span>
+                    <div class="fire-actions">
+                        <button class="button button-secondary button-small" id="cash-flow-export-csv" type="button">Export CSV</button>
+                        <button class="button button-secondary button-small" id="cash-flow-export-json" type="button">Export backup</button>
+                        <label class="button button-secondary button-small cash-flow-import-label" for="cash-flow-import-json">Import backup</label>
+                        <input id="cash-flow-import-json" type="file" accept="application/json,.json" hidden>
+                    </div>
+                </div>
+                <div class="table-wrap cash-flow-table-wrap">
+                    <table>
+                        <caption class="sr-only">Income and expense transactions for the selected period</caption>
+                        <thead><tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col">Category</th><th scope="col">Description</th><th scope="col">Amount</th><th scope="col">Frequency</th><th scope="col">Actions</th></tr></thead>
+                        <tbody id="cash-flow-rows"></tbody>
+                    </table>
+                </div>
+                <p id="cash-flow-empty" class="cash-flow-empty">No transactions for this period. Add income or an expense to begin.</p>
+            </section>
+
             <section class="panel records-panel" id="records" aria-labelledby="records-heading">
                 <div class="panel-header records-header">
                     <div><p class="eyebrow">YOUR BALANCE SHEET</p><h2 id="records-heading">Financial records</h2></div>

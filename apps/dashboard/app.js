@@ -13,6 +13,7 @@ import { compareFireReadinessScenarios } from './calculators-runtime/FireScenari
 import { createFireScenarioReport, renderFireScenarioReportHtml } from './reports-runtime/FireScenarioReport.js';
 import { calculateRequiredFireContribution } from './calculators-runtime/RequiredFireContribution.js';
 import { calculateGoalProgress } from './calculators-runtime/GoalProgress.js';
+import { initializeCashFlowTracker } from './cashflow.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -991,7 +992,7 @@ function syncActiveNavigation() {
     });
 
     if (activeItem) {
-        $('#page-breadcrumb').textContent = activeItem.textContent.trim().replace(/^[◫▤◷◎]\s*/, '');
+        $('#page-breadcrumb').textContent = activeItem.textContent.trim().replace(/^[◫▤◷◎₹]\s*/, '');
     }
 }
 
@@ -1009,4 +1010,5 @@ if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#fire-results').querySelectorAll('button').forEach((control) => { control.disabled = true; });
     $('#goal-tracker-form').querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
 }
+initializeCashFlowTracker();
 switchWorkspace('demo');

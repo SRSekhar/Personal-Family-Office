@@ -1,0 +1,251 @@
+import { cashFlowToCsv, summarizeCashFlow, validateCashFlowEntries } from './cashflow-ledger.js';
+
+const STORAGE_KEY = 'pfo-os.cash-flow.v1';
+const CURRENCY = 'INR';
+
+function localDateString() {
+    const now = new Date();
+    return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+}
+
+function localMonthString() {
+    return localDateString().slice(0, 7);
+}
+
+function isLoopback(hostname) {
+    const host = typeof hostname === 'string' ? hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '') : '';
+    return host === 'localhost' || host === '::1' || host === '127.0.0.1';
+}
+
+export function initializeCashFlowTracker(documentRef = document, windowRef = window) {
+    const root = documentRef.querySelector('#cash-flow');
+    if (!root) return;
+    const $ = (selector) => root.querySelector(selector);
+    const money = (value) => new Intl.NumberFormat('en-IN', {
+        style: 'currency', currency: CURRENCY, maximumFractionDigits: 0
+    }).format(value);
+    let entries = [];
+    let storageHealthy = true;
+    let editingId = null;
+
+    function message(text, isError = false) {
+        $('#cash-flow-message').textContent = text;
+        $('#cash-flow-message').hidden = !text;
+        $('#cash-flow-message').classList.toggle('fire-validation', isError);
+    }
+
+    function load() {
+        try {
+            const raw = windowRef.localStorage.getItem(STORAGE_KEY);
+            entries = raw === null ? [] : validateCashFlowEntries(JSON.parse(raw));
+            storageHealthy = true;
+        } catch {
+            entries = [];
+            storageHealthy = false;
+            message('Saved cash flow data could not be validated. It has been left untouched. Import a valid cash flow backup to recover.', true);
+        }
+    }
+
+    function save(nextEntries) {
+        if (!storageHealthy) {
+            message('Editing is paused because saved data could not be validated. Import a valid cash flow backup before editing.', true);
+            return false;
+        }
+        let validated;
+        try {
+            validated = validateCashFlowEntries(nextEntries);
+            windowRef.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not safely save cash flow data.', true);
+            return false;
+        }
+        entries = validated;
+        render();
+        return true;
+    }
+
+    function visibleEntries() {
+        const period = $('#cash-flow-period').value || 'all';
+        return entries.filter((entry) => period === 'all' || entry.date.startsWith(period))
+            .sort((a, b) => b.date.localeCompare(a.date) || a.description.localeCompare(b.description));
+    }
+
+    function refreshPeriodOptions() {
+        const select = $('#cash-flow-period');
+        const previous = select.value;
+        const periods = new Set([localMonthString(), ...entries.map((entry) => entry.date.slice(0, 7))]);
+        select.replaceChildren();
+        const all = documentRef.createElement('option');
+        all.value = 'all'; all.textContent = 'All transactions'; select.append(all);
+        [...periods].sort().reverse().forEach((period) => {
+            const option = documentRef.createElement('option');
+            option.value = period;
+            option.textContent = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(period + '-01T00:00:00Z'));
+            select.append(option);
+        });
+        select.value = select.dataset.initialized === 'true' && [...select.options].some((option) => option.value === previous)
+            ? previous : localMonthString();
+        select.dataset.initialized = 'true';
+    }
+
+    function render() {
+        refreshPeriodOptions();
+        const period = $('#cash-flow-period').value || 'all';
+        const summary = summarizeCashFlow(entries, period);
+        $('#cash-flow-income-total').textContent = money(summary.income);
+        $('#cash-flow-expense-total').textContent = money(summary.expenses);
+        $('#cash-flow-net-total').textContent = money(summary.net);
+        $('#cash-flow-count').textContent = summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's');
+        const body = $('#cash-flow-rows');
+        body.replaceChildren();
+        const shown = visibleEntries();
+        $('#cash-flow-empty').hidden = shown.length !== 0;
+        for (const entry of shown) {
+            const row = documentRef.createElement('tr');
+            for (const value of [entry.date, entry.type === 'income' ? 'Income' : 'Expense', entry.category, entry.description, money(entry.amount), entry.recurring ? 'Recurring' : 'One-time']) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            const actions = documentRef.createElement('td');
+            actions.className = 'cash-flow-row-actions';
+            const edit = documentRef.createElement('button');
+            edit.type = 'button'; edit.className = 'row-action'; edit.textContent = 'Edit';
+            edit.setAttribute('aria-label', 'Edit ' + entry.description);
+            edit.addEventListener('click', () => beginEdit(entry));
+            const remove = documentRef.createElement('button');
+            remove.type = 'button'; remove.className = 'row-action'; remove.textContent = 'Delete';
+            remove.setAttribute('aria-label', 'Delete ' + entry.description);
+            remove.addEventListener('click', () => {
+                if (windowRef.confirm('Delete transaction "' + entry.description + '"?')) {
+                    if (save(entries.filter((item) => item.id !== entry.id))) message('Transaction deleted.');
+                }
+            });
+            actions.append(edit, remove);
+            row.append(actions);
+            body.append(row);
+        }
+    }
+
+    function resetForm() {
+        $('#cash-flow-form').reset();
+        $('#cash-flow-date').value = localDateString();
+        $('#cash-flow-type').value = 'expense';
+        $('#cash-flow-recurring').checked = false;
+        editingId = null;
+        $('#cash-flow-save').textContent = 'Add transaction';
+        $('#cash-flow-cancel').hidden = true;
+    }
+
+    function beginEdit(entry) {
+        editingId = entry.id;
+        $('#cash-flow-date').value = entry.date;
+        $('#cash-flow-type').value = entry.type;
+        $('#cash-flow-category').value = entry.category;
+        $('#cash-flow-description').value = entry.description;
+        $('#cash-flow-amount').value = String(entry.amount);
+        $('#cash-flow-recurring').checked = entry.recurring;
+        $('#cash-flow-save').textContent = 'Save changes';
+        $('#cash-flow-cancel').hidden = false;
+        $('#cash-flow-date').focus();
+    }
+
+    function download(filename, text, type) {
+        const url = URL.createObjectURL(new Blob([text], { type }));
+        const link = documentRef.createElement('a');
+        link.href = url; link.download = filename;
+        documentRef.body.append(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    $('#cash-flow-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!isLoopback(windowRef.location.hostname)) {
+            message('Use the local-only dashboard to manage personal cash flow.', true);
+            return;
+        }
+        const entry = {
+            id: editingId ?? windowRef.crypto.randomUUID(),
+            date: $('#cash-flow-date').value,
+            type: $('#cash-flow-type').value,
+            category: $('#cash-flow-category').value.trim(),
+            description: $('#cash-flow-description').value.trim(),
+            amount: Number($('#cash-flow-amount').value),
+            recurring: $('#cash-flow-recurring').checked
+        };
+        if (!entry.date || !entry.category || !entry.description || !Number.isFinite(entry.amount) || entry.amount <= 0) {
+            message('Enter a valid date, category, description, and amount greater than zero.', true);
+            return;
+        }
+        const wasEditing = Boolean(editingId);
+        const next = editingId
+            ? entries.map((item) => item.id === editingId ? entry : item)
+            : [...entries, entry];
+        if (save(next)) {
+            resetForm();
+            message(wasEditing ? 'Transaction updated.' : 'Transaction saved locally.');
+        }
+    });
+
+    $('#cash-flow-cancel').addEventListener('click', resetForm);
+    $('#cash-flow-period').addEventListener('change', render);
+    $('#cash-flow-export-csv').addEventListener('click', () => {
+        try {
+            download('pfo-cash-flow.csv', cashFlowToCsv(entries), 'text/csv;charset=utf-8');
+            message('Cash flow CSV exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export cash flow CSV.', true);
+        }
+    });
+    $('#cash-flow-export-json').addEventListener('click', () => {
+        download('pfo-cash-flow-backup.json', JSON.stringify({
+            schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), entries
+        }, null, 2), 'application/json');
+        message('Cash flow backup exported to this device.');
+    });
+    $('#cash-flow-import-json').addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            try {
+                const payload = JSON.parse(String(reader.result));
+                if (!payload || payload.schemaVersion !== 1 || payload.currency !== CURRENCY || !Array.isArray(payload.entries)) {
+                    throw new Error('Unsupported cash flow backup. Expected schema version 1 and INR currency.');
+                }
+                const imported = validateCashFlowEntries(payload.entries);
+                if (entries.length && !windowRef.confirm('Importing this backup replaces all cash flow transactions. Continue?')) {
+                    message('Import cancelled. Existing transactions were not changed.');
+                    return;
+                }
+                const wasHealthy = storageHealthy;
+                storageHealthy = true;
+                if (!save(imported)) storageHealthy = wasHealthy;
+                else message('Imported ' + imported.length + ' cash flow transactions.');
+            } catch (error) {
+                message(error instanceof Error ? error.message : 'Could not import cash flow backup.', true);
+            } finally {
+                $('#cash-flow-import-json').value = '';
+            }
+        });
+        reader.addEventListener('error', () => {
+            message('Could not read the selected cash flow backup.', true);
+            $('#cash-flow-import-json').value = '';
+        });
+        reader.readAsText(file);
+    });
+
+    if (!isLoopback(windowRef.location.hostname)) {
+        root.querySelectorAll('input, select, button').forEach((control) => { control.disabled = true; });
+        message('Cash flow entry is available only in the local dashboard. Do not enter personal financial data on a hosted demo.', true);
+        $('#cash-flow-empty').hidden = false;
+        return;
+    }
+
+    load();
+    resetForm();
+    render();
+    if (!storageHealthy) root.querySelectorAll('#cash-flow-form input, #cash-flow-form select, #cash-flow-form button').forEach((control) => { control.disabled = true; });
+}
+
+export { STORAGE_KEY as CASH_FLOW_STORAGE_KEY };
