@@ -300,6 +300,11 @@ function calculateGoal(event) {
         $('#goal-remaining-result').textContent = money(goal.result.amountRemaining);
         $('#goal-date-result').textContent = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(goal.targetDate + 'T00:00:00Z'));
         $('#goal-time-result').textContent = goal.result.isComplete ? 'Target reached' : goal.result.daysRemaining < 0 ? Math.abs(goal.result.daysRemaining) + ' days overdue' : goal.result.daysRemaining + ' days remaining';
+        $('#goal-monthly-pace-result').textContent = goal.result.isComplete
+            ? 'Goal reached'
+            : goal.result.monthlyContributionNeeded === null
+                ? (goal.result.daysRemaining < 0 ? 'Target date passed' : 'Target date is today')
+                : money(goal.result.monthlyContributionNeeded) + ' per month';
         $('#goal-results').hidden = false;
     } catch (error) {
         $('#goal-results').hidden = true;
@@ -420,7 +425,12 @@ function renderSavedGoals() {
         card.className = 'saved-goal-card';
         const statusText = result.isComplete ? 'Goal reached' : result.isOverdue ? 'Past target date' : 'In progress';
         const statusClass = result.isComplete ? 'complete' : result.isOverdue ? 'overdue' : 'progress';
-        card.innerHTML = `<div class="saved-goal-heading"><div><h4>${escapeHtml(goal.name)}</h4><p class="saved-goal-meta">Target ${escapeHtml(money(goal.targetAmount))} · Due ${escapeHtml(formatter.format(new Date(goal.targetDate + 'T00:00:00Z')))}</p></div><span class="saved-goal-status ${statusClass}">${statusText}</span></div><div class="saved-goal-progress"><span>${escapeHtml(money(goal.currentAmount))} saved</span><strong>${escapeHtml(number(result.progressPercent))}%</strong></div><progress max="100" value="${Math.min(100, result.progressPercent)}" aria-label="${escapeHtml(goal.name)} progress">${Math.min(100, result.progressPercent)}%</progress><p class="saved-goal-meta">${result.isComplete ? 'Target reached' : result.isOverdue ? Math.abs(result.daysRemaining) + ' days overdue · ' + escapeHtml(money(result.amountRemaining)) + ' remaining' : result.daysRemaining + ' days remaining · ' + escapeHtml(money(result.amountRemaining)) + ' remaining'}</p><div class="saved-goal-actions"><button class="button button-secondary" type="button" data-goal-edit="${escapeHtml(goal.id)}">Edit / update progress</button><button class="button button-secondary" type="button" data-goal-delete="${escapeHtml(goal.id)}">Delete goal</button></div>`;
+        const monthlyPace = result.isComplete
+            ? 'Goal reached; no additional monthly saving needed.'
+            : result.monthlyContributionNeeded === null
+                ? (result.isOverdue ? 'Target date passed; shortfall remains.' : 'Target date is today; shortfall remains.')
+                : 'Approx. ' + money(result.monthlyContributionNeeded) + ' per month needed (no returns assumed).';
+        card.innerHTML = `<div class="saved-goal-heading"><div><h4>${escapeHtml(goal.name)}</h4><p class="saved-goal-meta">Target ${escapeHtml(money(goal.targetAmount))} · Due ${escapeHtml(formatter.format(new Date(goal.targetDate + 'T00:00:00Z')))}</p></div><span class="saved-goal-status ${statusClass}">${statusText}</span></div><div class="saved-goal-progress"><span>${escapeHtml(money(goal.currentAmount))} saved</span><strong>${escapeHtml(number(result.progressPercent))}%</strong></div><progress max="100" value="${Math.min(100, result.progressPercent)}" aria-label="${escapeHtml(goal.name)} progress">${Math.min(100, result.progressPercent)}%</progress><p class="saved-goal-meta">${result.isComplete ? 'Target reached' : result.isOverdue ? Math.abs(result.daysRemaining) + ' days overdue · ' + escapeHtml(money(result.amountRemaining)) + ' remaining' : result.daysRemaining + ' days remaining · ' + escapeHtml(money(result.amountRemaining)) + ' remaining'}</p><p class="saved-goal-meta">${escapeHtml(monthlyPace)}</p><div class="saved-goal-actions"><button class="button button-secondary" type="button" data-goal-edit="${escapeHtml(goal.id)}">Edit / update progress</button><button class="button button-secondary" type="button" data-goal-delete="${escapeHtml(goal.id)}">Delete goal</button></div>`;
         container.append(card);
     }
     const canManage = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname) && privateStorageHealthy && goalsStorageHealthy;
