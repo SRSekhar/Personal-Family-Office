@@ -237,6 +237,9 @@
                 <p id="cash-flow-message" class="cash-flow-message" role="status" aria-live="polite" hidden></p>
                 <div class="cash-flow-toolbar">
                     <label class="field-label" for="cash-flow-period">Reporting period<select id="cash-flow-period"><option value="all">All transactions</option></select></label>
+                    <label class="field-label" for="cash-flow-type-filter">Transaction type<select id="cash-flow-type-filter"><option value="all">All types</option><option value="income">Income</option><option value="expense">Expenses</option></select></label>
+                    <label class="field-label cash-flow-search-label" for="cash-flow-search">Search transactions<input id="cash-flow-search" type="search" placeholder="Category, description, or date" autocomplete="off"></label>
+                    <button class="button button-secondary button-small" id="cash-flow-reset-filters" type="button">Reset filters</button>
                     <span id="cash-flow-count" class="panel-tag">0 transactions</span>
                     <div class="fire-actions">
                         <button class="button button-secondary button-small" id="cash-flow-export-csv" type="button">Export CSV</button>
