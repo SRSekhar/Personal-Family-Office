@@ -419,8 +419,17 @@ try {
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '110000',
         'deleting an expense should recalculate net cash flow');
     process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\\n');
-    await page.locator('#cash-flow-export-csv').click();
-    process.stdout.write('PASS: cash flow CSV export action completes.\\n');
+    const [cashFlowCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cash-flow-export-csv').click()
+    ]);
+    assert.equal(cashFlowCsvDownload.suggestedFilename(), 'pfo-cash-flow.csv');
+    const cashFlowCsvPath = join(temporaryDirectory, 'pfo-cash-flow.csv');
+    await cashFlowCsvDownload.saveAs(cashFlowCsvPath);
+    const cashFlowCsv = await readFile(cashFlowCsvPath, 'utf8');
+    assert.match(cashFlowCsv, /"date","type","category","description","amount","recurring"/);
+    assert.ok(cashFlowCsv.includes('Browser test salary'));
+    process.stdout.write('PASS: cash flow CSV export downloads the current ledger.\\n');
 
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
