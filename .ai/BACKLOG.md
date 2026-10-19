@@ -112,7 +112,8 @@ Implemented
 - Category breakdown shows transaction counts alongside income, expenses, and net (PR #209).
 - Selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero (PR #203).
 - Transaction frequency filter for recurring vs one-time cash-flow entries (PR #204).
-- In progress — show an import preview with transaction count and totals before replacing the local cash-flow ledger.
+- Cash-flow backup import preview with transaction count and totals before replacement, including cancel-safe restore (PR #210).
+- In progress — add inclusive from/to date filters to the cash-flow transaction view; filtered CSV should follow the date range.
 - Filtered CSV and full-ledger CSV exports are separate and have browser regression coverage (PR #205).
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
