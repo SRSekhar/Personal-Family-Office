@@ -96,6 +96,19 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-expense-total').textContent = money(summary.expenses);
         $('#cash-flow-net-total').textContent = money(summary.net);
         $('#cash-flow-count').textContent = summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's');
+        const categoryBody = $('#cash-flow-category-rows');
+        categoryBody.replaceChildren();
+        const categories = summarizeCashFlowByCategory(entries, period);
+        $('#cash-flow-category-empty').hidden = categories.length !== 0;
+        for (const category of categories) {
+            const row = documentRef.createElement('tr');
+            for (const value of [category.category, money(category.income), money(category.expenses), money(category.net)]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            categoryBody.append(row);
+        }
         const body = $('#cash-flow-rows');
         body.replaceChildren();
         const shown = visibleEntries();
