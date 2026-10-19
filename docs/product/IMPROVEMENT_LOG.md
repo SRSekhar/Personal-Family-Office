@@ -180,12 +180,18 @@ Do not record personal financial values or claim customer demand without evidenc
 - Navigation state now derives from the URL fragment on initial load and on `hashchange`, keeping the active link, `aria-current="page"`, and breadcrumb aligned after direct links and browser Back/Forward navigation.
 - Extended the existing Chromium smoke suite to verify an initial deep link, sidebar navigation, and Back/Forward restoration of active state and breadcrumb.
 - The checks run against the real dashboard on loopback and use no private financial data. They complement static integrity assertions; a full assistive-technology audit remains separate.
-- Validation status: pending CI, full-history Secret Scan, dashboard packaging, and Chromium smoke checks on the exact PR head.
+- Validation: CI (including the real Chromium smoke suite), full-history Secret Scan, and dashboard packaging passed on PR #165 head `b652e0af6bbd213baf91d43f7df3bdf9908b2e7f`; merged as `ac88df9da651199e3333fd462f011c071559abe8`. The PR packaging run did not publish the Pages site.
 
 ### Narrow-layout FIRE comparison regression — PR #166
 - Extended the existing real-Chromium smoke test to keep the three-scenario comparison open at a 320 CSS-pixel viewport (a useful narrow-layout proxy, not a claim of testing browser zoom at 400%).
 - The first run exposed a real responsive-layout defect: the comparison table's wrapper lacked horizontal overflow containment, expanding the document width to 811px on a 320px viewport.
 - Added a scoped wrapper rule (`width`/`max-width: 100%`, `min-width: 0`, and `overflow-x: auto`) so the wide comparison table scrolls within its panel rather than widening the page.
 - The regression test asserts both no page-level overflow and contained table scrolling. Uses fictional dashboard sample state and loopback only; no dependencies, financial formulas, persistence, or network behavior changed.
-- Validation: initial CI correctly failed on the newly discovered overflow; rerun CI, full-history Secret Scan, and dashboard packaging must pass on the updated exact PR head before merge.
+- Validation: after the CSS fix, CI including the real Chromium smoke suite, full-history Secret Scan, and dashboard packaging passed on exact PR head `0d2e58ec9e2ea853ca77f53962a5e9014b668939`; merged as `11368dbee97dc2dde4c1801de209ac4bdaeaf45e`. The PR packaging run did not publish the Pages site.
 
+### Offline financial summary report — implementation in progress
+- Added a one-click dashboard download for a self-contained HTML summary containing total assets, total liabilities, net worth, category allocation, and the full record list.
+- The renderer validates records and duplicate IDs, rejects numeric overflow, escapes untrusted text, and creates no scripts, remote assets, or network requests. Export uses the current workspace's complete record set rather than silently applying the active table filter.
+- The report explicitly discloses that dashboard records do not track valuation dates: its timestamp is report-generation time, not a valuation date. It also warns users to keep downloaded financial reports private.
+- Added unit coverage for totals, allocation, empty data, malformed input, duplicate IDs, escaping, offline safety, and overflow, plus Chromium download coverage using fictional demo data.
+- Validation status: pending CI (including real Chromium smoke tests), full-history Secret Scan, and dashboard packaging on the exact feature PR head. No production deployment is claimed.

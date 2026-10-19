@@ -53,7 +53,7 @@ Open `http://127.0.0.1:4173/` in your browser. To choose a different port, set `
 
 This is a local development preview, not a production hosting service. Publishing the hosted GitHub Pages demo still requires the one-time repository setting **Settings → Pages → Source: GitHub Actions**. The hosted dashboard is sample-only on every non-loopback hostname: private-workspace entry and backup imports are blocked because a hosted origin is not the trusted local workspace. Personal records are available only from `localhost`/`127.0.0.1`/IPv6 loopback; use the loopback-only preview for household records.
 
-The dashboard supports local asset/liability records, case-insensitive search, filtering by record type, stable sorting by name or value, JSON backup import/export, and CSV export for spreadsheet analysis. CSV text fields are quoted and spreadsheet-formula-like text is neutralized; still review exported files before opening them in spreadsheet software. Exports are created in the browser and are not uploaded by the preview server.
+The dashboard supports local asset/liability records, case-insensitive search, filtering by record type, stable sorting by name or value, JSON backup import/export, and CSV export for spreadsheet analysis. It can also download a self-contained HTML financial summary with net worth, category allocation, and all records; the report clearly distinguishes generation time from an untracked valuation date. CSV text fields are quoted and spreadsheet-formula-like text is neutralized; still review exported files before opening them in spreadsheet software. Exports are created in the browser and are not uploaded by the preview server.
 
 ## Local report CLI
 

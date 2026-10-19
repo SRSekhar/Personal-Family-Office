@@ -1,5 +1,6 @@
 import { validateBackupPayload } from './backup.js';
 import { recordsToCsv } from './csv-export.js';
+import { renderFinancialReportHtml } from './financial-report.js';
 import { calculateFinancialTotals } from './financial-totals.js';
 import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
@@ -467,6 +468,28 @@ function exportData() {
     showToast('Workspace exported to this device.');
 }
 
+function exportFinancialReport() {
+    if (workspace === 'private' && (!isPrivateWorkspaceAllowed(window.location.hostname) || !privateStorageHealthy)) {
+        showToast('Financial report export is unavailable until the local private workspace can be read safely.');
+        return;
+    }
+    try {
+        const html = renderFinancialReportHtml({ records, currency: CURRENCY, generatedAt: new Date() });
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-financial-summary.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Downloaded a self-contained financial summary. Keep the file private; it may contain sensitive information.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create the financial summary report.');
+    }
+}
+
 function exportCsv() {
     if (workspace === 'private' && !privateStorageHealthy) {
         showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
@@ -660,6 +683,7 @@ $('#view-all-button').addEventListener('click', () => {
     renderRecords();
 });
 $('#export-button').addEventListener('click', exportData);
+$('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
