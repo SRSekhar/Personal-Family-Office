@@ -1,5 +1,6 @@
 import { validateBackupPayload } from './backup.js';
 import { recordsToCsv } from './csv-export.js';
+import { parseRecordsCsv } from './csv-import.js';
 import { renderFinancialReportHtml } from './financial-report.js';
 import { calculateFinancialTotals } from './financial-totals.js';
 import { filterFinancialRecords } from './record-filter.js';
@@ -623,6 +624,44 @@ function exportData() {
     showToast('Workspace exported to this device.');
 }
 
+function importCsvData(file) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (!file) return;
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+        try {
+            const parsedRecords = parseRecordsCsv(String(reader.result), CURRENCY)
+                .map((item) => ({ id: crypto.randomUUID(), ...item }));
+            if (workspace === 'demo') switchWorkspace('private');
+            const needsConfirmation = records.length > 0 || !privateStorageHealthy;
+            const replacementConfirmed = !needsConfirmation || window.confirm(
+                'Importing this CSV will replace all financial records in your private workspace. Saved goals are preserved. Continue?'
+            );
+            if (!replacementConfirmed) {
+                showToast('CSV import cancelled. Your existing records and goals were not changed.');
+                return;
+            }
+            if (savePrivateRecords(parsedRecords, true)) {
+                records = parsedRecords;
+                render();
+                showToast(`Imported ${records.length} financial records from CSV. Saved goals were preserved.`);
+            }
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'Could not import this CSV.');
+        } finally {
+            $('#import-csv-file').value = '';
+        }
+    });
+    reader.addEventListener('error', () => {
+        showToast('Could not read the selected CSV file.');
+        $('#import-csv-file').value = '';
+    });
+    reader.readAsText(file);
+}
+
 function exportFinancialReport() {
     if (workspace === 'private' && (!isPrivateWorkspaceAllowed(window.location.hostname) || !privateStorageHealthy)) {
         showToast('Financial report export is unavailable until the local private workspace can be read safely.');
@@ -912,6 +951,19 @@ $('#import-button').addEventListener('click', () => {
     $('#import-file').click();
 });
 $('#import-file').addEventListener('change', (event) => importData(event.target.files?.[0]));
+$('#import-csv-button').addEventListener('click', () => {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace === 'demo' && !window.confirm('Importing a CSV replaces the sample view with your private workspace. Continue?')) return;
+    if (workspace === 'private' && !privateStorageHealthy
+        && !window.confirm('Saved data could not be read. Importing a CSV will replace the unreadable financial records. Continue?')) return;
+    if (workspace === 'private' && privateStorageHealthy && records.length > 0
+        && !window.confirm('Importing a CSV replaces all financial records in your private workspace. Saved goals are preserved. Continue?')) return;
+    $('#import-csv-file').click();
+});
+$('#import-csv-file').addEventListener('change', (event) => importCsvData(event.target.files?.[0]));
 function syncActiveNavigation() {
     const navItems = [...document.querySelectorAll('.nav-item')];
     const currentHash = window.location.hash || '#overview';

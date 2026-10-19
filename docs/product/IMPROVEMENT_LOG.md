@@ -210,6 +210,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Version 2 validation rejects malformed goals and duplicate IDs before any writes, and strips unknown goal fields before persistence.
 - Version 2 restore writes validated goal data and financial records as a coordinated operation, attempts to restore the prior goal-storage value if the records write fails, and fails closed if the rollback itself cannot be completed.
 - Added unit coverage for legacy compatibility, valid/empty goal collections, invalid goal fields, duplicate IDs, and unknown-field stripping; expanded the real Chromium smoke workflow to cover goal backup export and restore.
-- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the feature branch. Do not report this increment as delivered until the browser round-trip passes.
+- Validation: PR #173 passed CI (40 test files plus Chromium goal-backup export/restore round trip), full-history Secret Scan, and dashboard packaging on exact head `fdd41f774741dc83ca967969335a60d54dbb7222`; merged to `main` as `955d405b1948d71d54ab53580ff09703ffe94a33`. The packaging workflow passed; this does not by itself establish live Pages publication.
 - Privacy impact: backups can contain sensitive household records and goal progress; they are generated locally and should be stored privately. No remote upload or telemetry was added.
 
+
+
+### CSV financial-record import — implementation in progress
+- Added a strict parser for the dashboard's own CSV schema, including escaped quotes, commas, embedded newlines, BOM, CRLF/LF, currency validation, and all-row validation before any writes.
+- The UI imports CSV only in the loopback-only private workspace, requires replacement confirmation when existing records are present, recalculates totals, and preserves saved goals because CSV contains records only.
+- Added parser unit coverage and Chromium smoke checks for successful import, recalculated totals, goal preservation, and malformed-file rejection.
+- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the CSV-import PR. Do not treat the feature as delivered until the exact-head browser smoke passes.
+- Privacy/safety: CSV is read locally in the browser; imported text is treated as data and never executed. No upload or telemetry was added.
