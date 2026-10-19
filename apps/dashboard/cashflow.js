@@ -1,5 +1,5 @@
 import {
-    calculateCashFlowSavingsRate, cashFlowToCsv, filterCashFlowEntries,
+    calculateCashFlowSavingsRate, cashFlowToCsv, filterCashFlowEntries, parseCashFlowCsv,
     sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
 } from './cashflow-ledger.js';
 
@@ -312,6 +312,27 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-export-all-csv').addEventListener('click', () => {
         exportCsv(entries, 'pfo-cash-flow.csv', 'All cash flow transactions exported to this device.');
     });
+    function confirmAndImport(imported, sourceLabel) {
+        const preview = summarizeCashFlow(imported);
+        const confirmMessage = [
+            'Import preview: ' + imported.length + ' transaction' + (imported.length === 1 ? '' : 's'),
+            'Source: ' + sourceLabel,
+            'Income: ' + money(preview.income),
+            'Expenses: ' + money(preview.expenses),
+            'Net cash flow: ' + money(preview.net),
+            '',
+            'Importing this file replaces all cash flow transactions stored in this browser. Continue?'
+        ].join('\n');
+        if (!windowRef.confirm(confirmMessage)) {
+            message('Import cancelled. Existing transactions were not changed.');
+            return;
+        }
+        const wasHealthy = storageHealthy;
+        storageHealthy = true;
+        if (!save(imported)) storageHealthy = wasHealthy;
+        else message('Imported ' + imported.length + ' cash flow transactions from ' + sourceLabel + '.');
+    }
+
     $('#cash-flow-export-json').addEventListener('click', () => {
         download('pfo-cash-flow-backup.json', JSON.stringify({
             schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), entries
@@ -329,23 +350,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                     throw new Error('Unsupported cash flow backup. Expected schema version 1 and INR currency.');
                 }
                 const imported = validateCashFlowEntries(payload.entries);
-                const preview = summarizeCashFlow(imported);
-                const confirmMessage = [
-                    'Import preview: ' + imported.length + ' transaction' + (imported.length === 1 ? '' : 's'),
-                    'Income: ' + money(preview.income),
-                    'Expenses: ' + money(preview.expenses),
-                    'Net cash flow: ' + money(preview.net),
-                    '',
-                    'Importing this backup replaces all cash flow transactions stored in this browser. Continue?'
-                ].join('\n');
-                if (!windowRef.confirm(confirmMessage)) {
-                    message('Import cancelled. Existing transactions were not changed.');
-                    return;
-                }
-                const wasHealthy = storageHealthy;
-                storageHealthy = true;
-                if (!save(imported)) storageHealthy = wasHealthy;
-                else message('Imported ' + imported.length + ' cash flow transactions.');
+                confirmAndImport(imported, 'JSON backup');
             } catch (error) {
                 message(error instanceof Error ? error.message : 'Could not import cash flow backup.', true);
             } finally {
@@ -355,6 +360,27 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         reader.addEventListener('error', () => {
             message('Could not read the selected cash flow backup.', true);
             $('#cash-flow-import-json').value = '';
+        });
+        reader.readAsText(file);
+    });
+
+    $('#cash-flow-import-csv').addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            try {
+                const imported = parseCashFlowCsv(String(reader.result));
+                confirmAndImport(imported, 'CSV');
+            } catch (error) {
+                message(error instanceof Error ? error.message : 'Could not import cash flow CSV.', true);
+            } finally {
+                $('#cash-flow-import-csv').value = '';
+            }
+        });
+        reader.addEventListener('error', () => {
+            message('Could not read the selected cash flow CSV.', true);
+            $('#cash-flow-import-csv').value = '';
         });
         reader.readAsText(file);
     });
