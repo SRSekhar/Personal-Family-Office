@@ -170,7 +170,7 @@ describe('cash flow CSV import', () => {
     });
 
     it.each([
-        ['wrong header', 'date,type,category,description,amount,recurring\n'],
+        ['wrong header', 'date,type,category,description,amount,is_recurring\n'],
         ['inconsistent column count', '"date","type","category","description","amount","recurring"\n"2026-10-01","income"\n'],
         ['invalid recurring value', '"date","type","category","description","amount","recurring"\n"2026-10-01","income","Salary","Pay","100","sometimes"\n'],
         ['unterminated quoted field', '"date","type","category","description","amount","recurring"\n"2026-10-01","income","Salary","Pay","100","true']
