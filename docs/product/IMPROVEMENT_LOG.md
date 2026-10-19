@@ -169,7 +169,15 @@ Do not record personal financial values or claim customer demand without evidenc
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
 
 
-### CSV download reliability — in progress
-- Updated both full-workspace and filtered-view CSV downloads to attach the anchor to the document before activation, then remove it after activation. This aligns both paths with the existing JSON/HTML export pattern and improves browser download reliability without changing CSV contents or data handling.
-- Extended the existing Chromium browser smoke suite with full and filtered CSV download checks using the dashboard's fictional sample records. The checks verify filenames, the CSV header, inclusion of expected rows, and exclusion of non-matching rows.
-- No new dependencies, network calls, or persistence were introduced. Validation status: pending CI, Secret Scan, dashboard packaging, and Chromium smoke checks on the PR head.
+### CSV download reliability — PR #164 merged
+- Updated both full-workspace and filtered-view CSV downloads to attach the anchor to the document before activation, then remove it after activation. CSV contents and filtering semantics are unchanged.
+- Added Chromium download checks for filenames, the CSV header, expected full-export rows, and exclusion of non-matching rows from filtered exports.
+- Validation passed on exact PR head `155f6d529e0aafed33ddd9bd10cdc7872bafc7e3`: CI (lint, typecheck, build, unit tests, and Chromium browser smoke suite), full-history Secret Scan, and dashboard packaging. The Pages publication step was skipped for this pull-request run; this validates packaging, not a new production deployment.
+- Merged by squash as commit `8e5152ec3217bfec62c4f574c760cfca78c4eb0e`.
+
+
+### Sidebar navigation history synchronization — browser regression coverage added
+- Navigation state now derives from the URL fragment on initial load and on `hashchange`, keeping the active link, `aria-current="page"`, and breadcrumb aligned after direct links and browser Back/Forward navigation.
+- Extended the existing Chromium smoke suite to verify an initial deep link, sidebar navigation, and Back/Forward restoration of active state and breadcrumb.
+- The checks run against the real dashboard on loopback and use no private financial data. They complement static integrity assertions; a full assistive-technology audit remains separate.
+- Validation status: pending CI, full-history Secret Scan, dashboard packaging, and Chromium smoke checks on the exact PR head.
