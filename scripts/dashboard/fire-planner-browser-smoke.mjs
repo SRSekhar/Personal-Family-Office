@@ -531,6 +531,30 @@ try {
     assert.ok(cashFlowCsv.includes('Browser test salary'));
     process.stdout.write('PASS: cash flow CSV export downloads the current ledger.\\n');
 
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Temporary');
+    await page.locator('#cash-flow-description').fill('Temporary CSV import marker');
+    await page.locator('#cash-flow-amount').fill('5000');
+    await page.locator('#cash-flow-save').click();
+    page.once('dialog', (dialog) => {
+        assert.match(dialog.message(), /Import preview: 2 transactions/);
+        assert.match(dialog.message(), /Source: CSV/);
+        assert.match(dialog.message(), /Income:/);
+        assert.match(dialog.message(), /Expenses:/);
+        dialog.accept();
+    });
+    await page.locator('#cash-flow-import-csv').setInputFiles({
+        name: 'cash-flow-export.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(cashFlowCsv)
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-count')?.innerText === '2 transactions');
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '220000',
+        'CSV import should restore the exported income transactions');
+    assert.equal((await page.locator('#cash-flow-expense-total').innerText()).replace(/[^0-9]/g, ''), '0',
+        'CSV import should replace the temporary expense with the exported ledger');
+    process.stdout.write('PASS: cash flow CSV import validates and restores the exported ledger.\\n');
+
     // Cash-flow tests do not depend on the asset/liability workspace; switch back explicitly for its backup assertions.
     await page.locator('#switch-private-button').click();
     const [backupDownload] = await Promise.all([
