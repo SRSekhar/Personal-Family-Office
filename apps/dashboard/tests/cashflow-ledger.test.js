@@ -97,6 +97,8 @@ describe('cash flow summaries', () => {
         expect(filterCashFlowEntries(entries, { category: 'Housing' }).map((entry) => entry.id))
             .toEqual(['e-1']);
         expect(filterCashFlowEntries(entries, { category: 'Housing', type: 'income' })).toEqual([]);
+        expect(filterCashFlowEntries([{ ...entries[0], category: 'all' }], { category: 'all' }).map((entry) => entry.id))
+            .toEqual(['i-1']);
         expect(filterCashFlowEntries(entries, { search: 'no match' })).toEqual([]);
     });
 
