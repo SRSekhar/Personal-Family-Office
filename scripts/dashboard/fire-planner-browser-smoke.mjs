@@ -368,7 +368,7 @@ try {
     });
     await page.locator('[data-goal-delete]').click();
     assert.match(await deleteGoalConfirmation, /Delete saved goal "Browser test emergency fund"/);
-    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Your saved goals will appear here'));
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-empty')?.hidden === false);
     assert.match(await page.locator('#saved-goals-count').innerText(), /0 goals/);
     process.stdout.write('PASS: saved goal can be deleted after confirmation.\\n');
 
