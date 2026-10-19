@@ -63,6 +63,38 @@ export function summarizeCashFlow(entries, period = 'all') {
     return { period, income, expenses, net, transactionCount: selected.length };
 }
 
+export function summarizeCashFlowByCategory(entries, period = 'all') {
+    if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
+        throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
+    }
+    const selected = validateCashFlowEntries(entries).filter((entry) =>
+        period === 'all' || entry.date.startsWith(period));
+    const categories = new Map();
+    for (const entry of selected) {
+        let summary = categories.get(entry.category);
+        if (!summary) {
+            summary = { category: entry.category, income: 0, expenses: 0, transactionCount: 0 };
+            categories.set(entry.category, summary);
+        }
+        if (entry.type === 'income') summary.income += entry.amount;
+        else summary.expenses += entry.amount;
+        summary.transactionCount += 1;
+        if (!Number.isFinite(summary.income) || !Number.isFinite(summary.expenses)) {
+            throw new RangeError('Cash flow category totals exceed the supported numeric range.');
+        }
+    }
+    const result = [...categories.values()].map((summary) => {
+        const net = summary.income - summary.expenses;
+        const activity = summary.income + summary.expenses;
+        if (!Number.isFinite(net) || !Number.isFinite(activity)) {
+            throw new RangeError('Cash flow category totals exceed the supported numeric range.');
+        }
+        return { ...summary, net, activity };
+    });
+    return result.sort((a, b) => b.activity - a.activity || a.category.localeCompare(b.category))
+        .map(({ activity, ...summary }) => summary);
+}
+
 function csvCell(value) {
     let text = String(value);
     // trimStart neutralizes leading spaces and control whitespace before formula detection.
