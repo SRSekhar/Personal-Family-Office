@@ -283,3 +283,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - A first attempt to trigger browser-chrome zoom shortcuts in headless Chromium did not change the CSS viewport. The test was corrected to use the documented 320 CSS-pixel reflow equivalent instead of claiming that headless browser shortcuts validated actual browser zoom.
 - Validation: PR #195 passed CI, including the Chromium smoke suite, and full-history Secret Scan on exact head `b03e71e837398c330b0441468a0bee00587a08b3`; merged to `main` as `a3c0e613c603328db90e953786c73119cca176fb`.
 - This is automated reflow coverage, not proof of actual browser-chrome zoom, manual screen-reader behavior, or a complete WCAG audit. Those remain open.
+
+
+### Narrow FIRE comparison keyboard regression — PR #197
+- Extended the real-Chromium smoke suite at a 320 CSS-pixel viewport to activate comparison recalculation with Enter, confirm focus continuity, tab to the comparison report action, and verify that action fits within the viewport.
+- The first run exposed an overly strict single-Tab assertion: focus did not land directly on the report action at narrow width. The test now searches a bounded number of Tab presses for the expected control, matching the suite's existing robust focus-navigation pattern.
+- Validation: PR #197 passed CI including the real Chromium smoke suite and full-history Secret Scan on final head `e4dfa1490ce8ec6ed032ffa68f7f1ec7054d4be3`; merged to `main` as `ab58002f820a7c87d112b4907fdef4d483707e98`.
+- This is automated narrow-viewport keyboard coverage using fictional browser data. Manual screen-reader and actual browser-zoom validation remain open.

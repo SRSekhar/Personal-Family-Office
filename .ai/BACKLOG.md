@@ -110,7 +110,7 @@ Implemented
 
 Planned
 
-- Manual assistive-technology and actual 400% browser-zoom verification of the planner and comparison UI (automated keyboard workflows and 320 CSS-pixel reflow regressions now exist; they do not replace manual validation)
+- Manual assistive-technology and actual 400% browser-zoom verification of the planner and comparison UI (automated keyboard workflows, narrow comparison keyboard operation, and 320 CSS-pixel reflow regressions now exist; they do not replace manual validation)
 - End-to-end offline report workflow validation with prospective users
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
