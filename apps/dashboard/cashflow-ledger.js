@@ -92,7 +92,10 @@ export function summarizeCashFlowByCategory(entries, period = 'all') {
         return { ...summary, net, activity };
     });
     return result.sort((a, b) => b.activity - a.activity || a.category.localeCompare(b.category))
-        .map(({ activity, ...summary }) => summary);
+        .map((summary) => ({
+            category: summary.category, income: summary.income, expenses: summary.expenses,
+            transactionCount: summary.transactionCount, net: summary.net
+        }));
 }
 
 function csvCell(value) {
