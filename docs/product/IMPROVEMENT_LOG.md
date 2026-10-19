@@ -256,3 +256,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a Chromium regression that produces a required-contribution result, edits inflation, and verifies both solver and readiness results are hidden.
 - Validation: PR #183 passed CI, including the full suite and real Chromium FIRE planner smoke test, and full-history Secret Scan on exact head `d4c7c08affd1c116be56ba2272b196579d1cef11`; dashboard packaging passed. Merged to `main` as `d23385358b112d0de1657adb05a55a7c53bd5f61`. The dashboard publication step was skipped for the pull request; this does not establish a production deployment.
 - No personal financial data is persisted or transmitted by this change.
+
+
+### FIRE comparison report snapshot invalidation — PR #186
+- Fixed a stale-state defense-in-depth gap: editing any comparison-specific assumption now clears the cached comparison report scenarios as well as hiding the previously calculated comparison results.
+- Extended the real Chromium smoke suite to edit a scenario after generating a comparison report, confirm the old results are hidden, programmatically attempt the now-hidden download action, and verify no stale report is produced; rerunning the comparison restores fresh results.
+- Validation: PR #186 passed CI, including the real Chromium FIRE planner smoke suite, full-history Secret Scan, and dashboard packaging on exact head `53f1babdd369c13548e1cdb9f0ce251c95a8256d`; merged to `main` as `64947b37d72505ea8c272b8c2714a9490338656c`. The publication step was skipped for the pull request; this does not establish a production deployment.
+- The change uses fictional browser data only and adds no persistence, network requests, or financial data.
