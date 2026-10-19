@@ -132,7 +132,7 @@ export function sortCashFlowEntries(entries, order = 'date-newest') {
         || a.id.localeCompare(b.id));
 }
 
-export function filterCashFlowEntries(entries, { period = 'all', type = 'all', recurring = 'all', category = 'all', search = '' } = {}) {
+export function filterCashFlowEntries(entries, { period = 'all', type = 'all', recurring = 'all', category = null, search = '' } = {}) {
     if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
         throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
     }
@@ -142,8 +142,8 @@ export function filterCashFlowEntries(entries, { period = 'all', type = 'all', r
     if (!['all', 'recurring', 'one-time'].includes(recurring)) {
         throw new RangeError('Frequency must be "all", "recurring", or "one-time".');
     }
-    if (typeof category !== 'string' || (category !== 'all' && category.trim() === '')) {
-        throw new TypeError('Category must be "all" or a non-empty category name.');
+    if (category !== null && (typeof category !== 'string' || category.trim() === '')) {
+        throw new TypeError('Category must be null or a non-empty category name.');
     }
     if (typeof search !== 'string') throw new TypeError('Search must be a string.');
     const query = search.trim().toLowerCase();
@@ -151,7 +151,7 @@ export function filterCashFlowEntries(entries, { period = 'all', type = 'all', r
         .filter((entry) => (period === 'all' || entry.date.startsWith(period))
             && (type === 'all' || entry.type === type)
             && (recurring === 'all' || entry.recurring === (recurring === 'recurring'))
-            && (category === 'all' || entry.category === category)
+            && (category === null || entry.category === category)
             && (!query || [entry.date, entry.category, entry.description]
                 .some((value) => value.toLowerCase().includes(query))))
         .sort((a, b) => b.date.localeCompare(a.date)
