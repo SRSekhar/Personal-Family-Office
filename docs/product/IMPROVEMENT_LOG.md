@@ -348,8 +348,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Cancelling leaves existing transactions unchanged; valid imports still pass full-ledger validation before any write.
 - PR #210 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow date-range filtering — feature branch in progress
+### Cash-flow date-range filtering — PR #211 merged
 - Added inclusive start/end date filters that compose with reporting period, type, recurring frequency, category, text search, and sort order.
 - Invalid calendar dates and reversed ranges are rejected by the ledger filter; reset clears the date bounds, and filtered CSV follows the visible rows.
-- Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
+- PR #211 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow delete confirmation — feature branch in progress
+- Expanded deletion confirmation to show description, date, transaction type, category, and amount so repeated descriptions can be distinguished.
+- No deletion occurs unless the user explicitly confirms; cancellation continues to preserve the transaction.
+- Validation status: Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 

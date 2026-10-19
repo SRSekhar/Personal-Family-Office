@@ -113,7 +113,8 @@ Implemented
 - Selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero (PR #203).
 - Transaction frequency filter for recurring vs one-time cash-flow entries (PR #204).
 - Cash-flow backup import preview with transaction count and totals before replacement, including cancel-safe restore (PR #210).
-- In progress — add inclusive from/to date filters to the cash-flow transaction view; filtered CSV should follow the date range.
+- Inclusive from/to date filters for cash-flow transactions; filtered CSV follows the date range (PR #211).
+- In progress — include date, type, category, and amount in transaction-delete confirmation to disambiguate repeated descriptions.
 - Filtered CSV and full-ledger CSV exports are separate and have browser regression coverage (PR #205).
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
