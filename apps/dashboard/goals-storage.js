@@ -15,6 +15,7 @@ export function isValidSavedGoal(goal) {
         && typeof goal.name === 'string' && goal.name.trim() && goal.name.length <= 80
         && Number.isFinite(goal.targetAmount) && goal.targetAmount > 0
         && Number.isFinite(goal.currentAmount) && goal.currentAmount >= 0
+        && Number.isFinite(goal.currentAmount / goal.targetAmount)
         && Number.isFinite(goal.targetAmount - Math.min(goal.currentAmount, goal.targetAmount))
         && isCalendarDate(goal.targetDate)
         && typeof goal.createdAt === 'string' && Number.isFinite(Date.parse(goal.createdAt))
