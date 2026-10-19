@@ -48,12 +48,26 @@ describe('cash flow summaries', () => {
         expect(summarizeCashFlow([])).toMatchObject({ income: 0, expenses: 0, net: 0, transactionCount: 0 });
     });
 
-    it('rejects invalid month filters and aggregate overflow', () => {
+    it('groups income and expenses by category for the selected period', () => {
+        expect(summarizeCashFlowByCategory(entries, '2026-10')).toEqual([
+            { category: 'Salary', income: 100000, expenses: 0, transactionCount: 1, net: 100000 },
+            { category: 'Housing', income: 0, expenses: 20000, transactionCount: 1, net: -20000 }
+        ]);
+        expect(summarizeCashFlowByCategory(entries, 'all')).toHaveLength(3);
+        expect(summarizeCashFlowByCategory([], 'all')).toEqual([]);
+    });
+
+    it('rejects invalid category-summary periods and aggregate overflow', () => {
         expect(() => summarizeCashFlow(entries, '2026-13')).toThrow('valid YYYY-MM');
+        expect(() => summarizeCashFlowByCategory(entries, '2026-13')).toThrow('valid YYYY-MM');
         expect(() => summarizeCashFlow([
             { ...entries[0], amount: Number.MAX_VALUE },
             { ...entries[1], type: 'income', amount: Number.MAX_VALUE, id: 'i-2' }
         ])).toThrow('supported numeric range');
+        expect(() => summarizeCashFlowByCategory([
+            { ...entries[0], amount: Number.MAX_VALUE },
+            { ...entries[0], id: 'i-2', amount: Number.MAX_VALUE }
+        ])).toThrow('category totals');
     });
 });
 
