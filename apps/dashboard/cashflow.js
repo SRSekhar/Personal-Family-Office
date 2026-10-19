@@ -224,6 +224,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-cancel').addEventListener('click', resetForm);
     $('#cash-flow-period').addEventListener('change', render);
     $('#cash-flow-type-filter').addEventListener('change', render);
+    $('#cash-flow-frequency-filter').addEventListener('change', render);
     $('#cash-flow-search').addEventListener('input', render);
     $('#cash-flow-reset-filters').addEventListener('click', () => {
         $('#cash-flow-search').value = '';
