@@ -223,6 +223,9 @@ try {
     assert.match(await page.locator('#toast').innerText(), /Calculate a scenario before downloading its report/,
         'attempting to use an invalidated comparison report should explain that a fresh comparison is required');
     process.stdout.write('PASS: editing comparison assumptions invalidates the old report snapshot.\n');
+    await page.locator('#fire-compare-run').click();
+    assert.equal(await page.locator('#fire-compare-results').isVisible(), true,
+        'running the comparison again should refresh results after assumptions change');
 
     await page.setViewportSize({ width: 320, height: 800 });
     const narrowComparison = await page.evaluate(() => {
