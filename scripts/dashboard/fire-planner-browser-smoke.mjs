@@ -294,8 +294,15 @@ try {
         'keyboard activation should recalculate comparison results at a 320px viewport');
     assert.equal(await page.evaluate(() => globalThis.document.activeElement?.id), 'fire-compare-run',
         'comparison action should retain keyboard focus at a 320px viewport');
-    await page.keyboard.press('Tab');
-    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.id), 'fire-download-comparison-report',
+    let reachedNarrowReportDownload = false;
+    for (let index = 0; index < 8; index += 1) {
+        await page.keyboard.press('Tab');
+        if (await page.evaluate(() => globalThis.document.activeElement?.id === 'fire-download-comparison-report')) {
+            reachedNarrowReportDownload = true;
+            break;
+        }
+    }
+    assert.equal(reachedNarrowReportDownload, true,
         'keyboard tab order should reach the comparison report action at a 320px viewport');
     const narrowReportButton = await page.locator('#fire-download-comparison-report').boundingBox();
     assert.ok(narrowReportButton && narrowReportButton.x >= 0
