@@ -148,7 +148,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-category-empty').hidden = categories.length !== 0;
         for (const category of categories) {
             const row = documentRef.createElement('tr');
-            for (const value of [category.category, money(category.income), money(category.expenses), money(category.net)]) {
+            for (const value of [category.category, money(category.income), money(category.expenses), money(category.net), String(category.transactionCount)]) {
                 const cell = documentRef.createElement('td');
                 cell.textContent = value;
                 row.append(cell);
