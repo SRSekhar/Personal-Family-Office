@@ -181,3 +181,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Extended the existing Chromium smoke suite to verify an initial deep link, sidebar navigation, and Back/Forward restoration of active state and breadcrumb.
 - The checks run against the real dashboard on loopback and use no private financial data. They complement static integrity assertions; a full assistive-technology audit remains separate.
 - Validation status: pending CI, full-history Secret Scan, dashboard packaging, and Chromium smoke checks on the exact PR head.
+
+### Narrow-layout FIRE comparison regression — validation pending
+- Extended the existing real-Chromium smoke test to keep the three-scenario comparison open at a 320 CSS-pixel viewport (a useful narrow-layout proxy, not a claim of testing browser zoom at 400%).
+- The test asserts the page itself does not overflow horizontally while the intentionally wide comparison table remains horizontally scrollable inside its own container.
+- Uses only the dashboard's fictional sample state and a loopback server; no dependencies, financial formulas, persistence, or network behavior changed.
+- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the feature PR.
+
