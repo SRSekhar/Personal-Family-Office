@@ -234,6 +234,8 @@ try {
     assert.equal((await page.locator('#goal-progress-percent').innerText()).trim(), '25%',
         'goal progress should reflect accumulated amount divided by target');
     assert.equal(await page.locator('#goal-progress-bar').getAttribute('aria-valuetext'), '25 percent of target');
+    assert.ok((await page.locator('#goal-monthly-pace-result').innerText()).includes('62,500'),
+        'goal results should show an approximate monthly savings pace');
     await page.getByRole('button', { name: 'Clear form' }).click();
     assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
@@ -346,7 +348,9 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
     assert.match(await page.locator('#saved-goals-count').innerText(), /1 goal/);
     assert.match(await page.locator('#saved-goals-list').innerText(), /3,75,000/);
-    process.stdout.write('PASS: a financial goal can be saved with calculated progress in the private workspace.\\n');
+    assert.ok((await page.locator('#saved-goals-list').innerText()).includes('25,000 per month'),
+        'saved goal should display its approximate monthly savings pace');
+    process.stdout.write('PASS: a financial goal can be saved with calculated progress and monthly pace in the private workspace.\\n');
 
     const csvImportConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
