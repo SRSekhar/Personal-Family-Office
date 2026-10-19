@@ -72,9 +72,29 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             period: $('#cash-flow-period').value || 'all',
             type: $('#cash-flow-type-filter').value || 'all',
             recurring: $('#cash-flow-frequency-filter').value || 'all',
+            category: $('#cash-flow-category-filter').value || 'all',
             search: $('#cash-flow-search').value
         });
         return sortCashFlowEntries(filtered, $('#cash-flow-sort-order').value || 'date-newest');
+    }
+
+    function refreshCategoryOptions() {
+        const select = $('#cash-flow-category-filter');
+        const previous = select.value || 'all';
+        const categories = [...new Set(entries.map((entry) => entry.category))]
+            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+        select.replaceChildren();
+        const all = documentRef.createElement('option');
+        all.value = 'all';
+        all.textContent = 'All categories';
+        select.append(all);
+        for (const category of categories) {
+            const option = documentRef.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            select.append(option);
+        }
+        select.value = previous === 'all' || categories.includes(previous) ? previous : 'all';
     }
 
     function refreshPeriodOptions() {
@@ -97,6 +117,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
 
     function render() {
         refreshPeriodOptions();
+        refreshCategoryOptions();
         const period = $('#cash-flow-period').value || 'all';
         const summary = summarizeCashFlow(entries, period);
         $('#cash-flow-income-total').textContent = money(summary.income);
@@ -112,6 +133,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const shown = visibleEntries();
         const filtersActive = $('#cash-flow-type-filter').value !== 'all'
             || $('#cash-flow-frequency-filter').value !== 'all'
+            || $('#cash-flow-category-filter').value !== 'all'
             || $('#cash-flow-search').value.trim() !== '';
         $('#cash-flow-count').textContent = filtersActive
             ? shown.length + ' shown of ' + summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's')
@@ -226,12 +248,14 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-period').addEventListener('change', render);
     $('#cash-flow-type-filter').addEventListener('change', render);
     $('#cash-flow-frequency-filter').addEventListener('change', render);
+    $('#cash-flow-category-filter').addEventListener('change', render);
     $('#cash-flow-sort-order').addEventListener('change', render);
     $('#cash-flow-search').addEventListener('input', render);
     $('#cash-flow-reset-filters').addEventListener('click', () => {
         $('#cash-flow-search').value = '';
         $('#cash-flow-type-filter').value = 'all';
         $('#cash-flow-frequency-filter').value = 'all';
+        $('#cash-flow-category-filter').value = 'all';
         $('#cash-flow-sort-order').value = 'date-newest';
         render();
         $('#cash-flow-search').focus();
