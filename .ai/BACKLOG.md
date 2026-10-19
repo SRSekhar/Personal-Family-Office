@@ -105,7 +105,8 @@ Implemented
 - Local income/expense ledger with month summaries, recurring flags, edit/delete, dedicated JSON backup/restore, and formula-safe CSV export (PR #200).
 - Cash-flow category breakdown for the selected period with income, expenses, and net by category (PR #201).
 - Cash-flow transaction search, type filtering, visible-result counts, and reset controls (PR #202).
-- In progress — selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero.
+- Selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero (PR #203).
+- In progress — transaction frequency filter for recurring vs one-time cash-flow entries.
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
 Implemented
