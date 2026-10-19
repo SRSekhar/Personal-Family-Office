@@ -63,10 +63,10 @@ try {
     const fullCsvPath = join(temporaryDirectory, fullCsv.suggestedFilename());
     await fullCsv.saveAs(fullCsvPath);
     const fullCsvText = await readFile(fullCsvPath, 'utf8');
-    assert.match(fullCsvText, /^Name,Category,Type,Value,Currency\\r\\n/);
+    assert.match(fullCsvText, /^Name,Category,Type,Value,Currency\r\n/);
     assert.ok(fullCsvText.includes('Savings account'), 'full CSV should include the matching demo record');
     assert.ok(fullCsvText.includes('Mutual fund portfolio'), 'full CSV should include records beyond the first row');
-    process.stdout.write('PASS: full CSV export downloads and contains the complete record set.\\n');
+    process.stdout.write('PASS: full CSV export downloads and contains the complete record set.\n');
 
     await page.locator('#record-search').fill('Savings account');
     const filteredCsvDownload = page.waitForEvent('download');
@@ -78,7 +78,7 @@ try {
     const filteredCsvText = await readFile(filteredCsvPath, 'utf8');
     assert.ok(filteredCsvText.includes('Savings account'), 'filtered CSV should include matching records');
     assert.ok(!filteredCsvText.includes('Mutual fund portfolio'), 'filtered CSV must exclude non-matching records');
-    process.stdout.write('PASS: filtered CSV export contains only matching records.\\n');
+    process.stdout.write('PASS: filtered CSV export contains only matching records.\n');
     await page.locator('#record-search').fill('');
 
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
