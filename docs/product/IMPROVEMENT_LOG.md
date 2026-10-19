@@ -269,3 +269,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Extended the real Chromium smoke workflow to dismiss the saved-goal deletion confirmation, verify the goal and progress remain present, reload the dashboard, and verify the saved data is still intact before the existing confirmed-delete path runs.
 - Uses fictional goal values in the isolated browser profile. No production behavior, persistence format, or network behavior changed.
 - Validation: PR #189 passed CI, including the real Chromium dashboard smoke suite, and full-history Secret Scan on exact head `052f385ed1c65aa98cfebfacfcd16b35d318d77b`; merged to `main` as `bd0968a0c1867cbfa653dc2c6cf04facff6ee018`.
+
+
+### Keyboard-only FIRE workflow regression — PR #192
+- Extended the real Chromium smoke suite to navigate from FIRE assumptions to readiness calculation with Tab and Enter, verify focus remains on the calculation action, reach the single-scenario report download by keyboard, and activate it with Enter.
+- Added keyboard navigation/activation for the three-scenario comparison and its report download, checking focus continuity after calculation.
+- Validation: PR #192 passed CI including the real Chromium smoke suite, and full-history Secret Scan on exact head `217ee8b6d0a07636e98aeaf7ca49880a6edbe60c`; merged to `main` as `c462c98c5c80ba6e9faa9e56c487da1d380056a8`.
+- The 320 CSS-pixel viewport test remains a narrow-layout proxy; this change does not claim actual 400% browser zoom, comprehensive keyboard coverage, or manual screen-reader validation.
