@@ -63,6 +63,16 @@ export function summarizeCashFlow(entries, period = 'all') {
     return { period, income, expenses, net, transactionCount: selected.length };
 }
 
+export function calculateCashFlowSavingsRate(income, expenses) {
+    if (!Number.isFinite(income) || income < 0 || !Number.isFinite(expenses) || expenses < 0) {
+        throw new RangeError('Income and expenses must be finite, non-negative amounts.');
+    }
+    if (income === 0) return null;
+    const rate = ((income - expenses) / income) * 100;
+    if (!Number.isFinite(rate)) throw new RangeError('Cash flow savings rate exceeds the supported numeric range.');
+    return rate;
+}
+
 export function summarizeCashFlowByCategory(entries, period = 'all') {
     if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
         throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
