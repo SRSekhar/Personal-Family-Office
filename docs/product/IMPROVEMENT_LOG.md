@@ -189,3 +189,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - The regression test asserts both no page-level overflow and contained table scrolling. Uses fictional dashboard sample state and loopback only; no dependencies, financial formulas, persistence, or network behavior changed.
 - Validation: initial CI correctly failed on the newly discovered overflow; rerun CI, full-history Secret Scan, and dashboard packaging must pass on the updated exact PR head before merge.
 
+### Offline financial summary report — implementation in progress
+- Added a one-click dashboard download for a self-contained HTML summary containing total assets, total liabilities, net worth, category allocation, and the full record list.
+- The renderer validates records and duplicate IDs, rejects numeric overflow, escapes untrusted text, and creates no scripts, remote assets, or network requests. Export uses the current workspace's complete record set rather than silently applying the active table filter.
+- The report explicitly discloses that dashboard records do not track valuation dates: its timestamp is report-generation time, not a valuation date. It also warns users to keep downloaded financial reports private.
+- Added unit coverage for totals, allocation, empty data, malformed input, duplicate IDs, escaping, offline safety, and overflow, plus Chromium download coverage using fictional demo data.
+- Validation status: pending CI (including real Chromium smoke tests), full-history Secret Scan, and dashboard packaging on the exact feature PR head. No production deployment is claimed.
