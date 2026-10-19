@@ -249,3 +249,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - The first browser run caught a locale-sensitive assertion: Indian currency formatting includes the rupee symbol and grouping commas. The test now normalizes the displayed amount before comparison rather than assuming western digit-grouping output.
 - Validation: corrected PR #180 head `044f3e6fb46eb5b57e02fe930b7b551e8ce90019` passed CI (including the Chromium FIRE planner smoke test) and full-history Secret Scan; merged to `main` as `e8ae08d555ba95b5494e5446b2199d80ea2cb2f9`.
 - Test-only change; no product behavior or household financial data changed.
+
+### Invalidate stale FIRE solver results when assumptions change — PR #183
+- Fixed a state-consistency bug: editing a shared FIRE assumption already hid the main readiness result, but the required-annual-contribution result could remain visible with values from the previous assumptions.
+- The main FIRE form's input handler now hides the required-contribution output as well as the readiness and comparison results and invalidates report snapshots.
+- Added a Chromium regression that produces a required-contribution result, edits inflation, and verifies both solver and readiness results are hidden.
+- Validation: PR #183 passed CI, including the full suite and real Chromium FIRE planner smoke test, and full-history Secret Scan on exact head `d4c7c08affd1c116be56ba2272b196579d1cef11`; dashboard packaging passed. Merged to `main` as `d23385358b112d0de1657adb05a55a7c53bd5f61`. The dashboard publication step was skipped for the pull request; this does not establish a production deployment.
+- No personal financial data is persisted or transmitted by this change.
