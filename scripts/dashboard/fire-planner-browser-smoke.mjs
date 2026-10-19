@@ -481,8 +481,8 @@ try {
     await page.locator('#cash-flow-save').click();
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
         'saving a duplicate should add a new transaction rather than edit the original');
-    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '200000',
-        'duplicating an income transaction should update totals');
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '220000',
+        'duplicating an income transaction should update totals using the edited source amount');
     assert.match(await page.locator('#cash-flow-message').innerText(), /duplicated locally/);
     process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\\n');
     const [cashFlowCsvDownload] = await Promise.all([
