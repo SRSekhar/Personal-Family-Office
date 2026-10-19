@@ -101,12 +101,12 @@ Implemented
 - Local-only dashboard FIRE planner with ephemeral assumptions/results and hosted-origin controls disabled (PR #139)
 - Three-scenario comparison UI with explicit assumption copying, per-scenario inputs, ordered results, and no ranking/recommendation (PR #141)
 - Validated, self-contained offline HTML report export for a single scenario or comparison, with XSS escaping and no network submission (PR #142)
+- Persistent multi-goal tracker with edit/delete confirmation, goal-aware version 2 backups, legacy version 1 compatibility, and an approximate no-returns monthly savings pace (PRs #169, #173, #175)
 
 Planned
 
 - Keyboard/accessibility and 400% zoom verification of the planner and comparison UI
 - End-to-end offline report workflow validation with prospective users
-- Multi-goal session management and persistence requirements, after validating the initial session-only tracker (PR #145)
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
 
@@ -149,9 +149,10 @@ In Progress
 Implemented
 
 - Local-first dashboard for assets, liabilities, net worth, category allocation, record search, and CRUD
-- JSON backup import/export with validation and private-workspace safeguards
-- Local CSV export with spreadsheet-formula-like text neutralization (PR #127)
+- Versioned JSON backup import/export with validation and private-workspace safeguards; private schema v2 includes saved goals while schema v1 remains compatible (PR #173)
+- Local CSV import/export with strict row/currency validation, spreadsheet-formula-like text neutralization, and custom-category preservation (PRs #127, #174, #176)
 - Record-type filtering (assets/liabilities) combined with search and a no-matches state (PR #128)
+- Persistent multi-goal tracker with edit/delete confirmation and approximate monthly savings pace without assumed returns (PRs #169, #175)
 
 Implemented
 
