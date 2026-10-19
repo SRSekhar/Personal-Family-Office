@@ -1,4 +1,6 @@
-import { cashFlowToCsv, summarizeCashFlow, validateCashFlowEntries } from './cashflow-ledger.js';
+import {
+    cashFlowToCsv, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
+} from './cashflow-ledger.js';
 
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
 const CURRENCY = 'INR';
