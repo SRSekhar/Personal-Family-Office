@@ -104,10 +104,13 @@ Implemented
 - Persistent multi-goal tracker with edit/delete confirmation, goal-aware version 2 backups, legacy version 1 compatibility, and an approximate no-returns monthly savings pace (PRs #169, #173, #175)
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
+Implemented
+
+- Keyboard-only FIRE workflow regression for readiness calculation, scenario comparison, and single/comparison report downloads, including focus continuity checks (PR #192). This covers the tested actions only; actual 400% browser zoom and broader assistive-technology validation remain open.
+
 Planned
 
 - Keyboard/accessibility and 400% zoom verification of the planner and comparison UI
-- Keyboard-only FIRE workflow regression: verify keyboard activation and focus continuity for readiness calculation, scenario comparison, and report downloads; keep 320 CSS-pixel checks explicitly labelled as a narrow-layout proxy, not actual browser-zoom certification.
 - End-to-end offline report workflow validation with prospective users
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
