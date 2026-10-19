@@ -94,6 +94,11 @@ describe('cash flow summaries', () => {
             .toEqual(['e-1', 'i-1']);
         expect(filterCashFlowEntries(entries, { recurring: 'one-time' }).map((entry) => entry.id))
             .toEqual(['e-2']);
+        expect(filterCashFlowEntries(entries, { category: 'Housing' }).map((entry) => entry.id))
+            .toEqual(['e-1']);
+        expect(filterCashFlowEntries(entries, { category: 'Housing', type: 'income' })).toEqual([]);
+        expect(filterCashFlowEntries([{ ...entries[0], category: 'all' }], { category: 'all' }).map((entry) => entry.id))
+            .toEqual(['i-1']);
         expect(filterCashFlowEntries(entries, { search: 'no match' })).toEqual([]);
     });
 
@@ -101,6 +106,8 @@ describe('cash flow summaries', () => {
         expect(() => filterCashFlowEntries(entries, { period: '2026-13' })).toThrow('valid YYYY-MM');
         expect(() => filterCashFlowEntries(entries, { type: 'transfer' })).toThrow('Type must be');
         expect(() => filterCashFlowEntries(entries, { recurring: 'sometimes' })).toThrow('Frequency must be');
+        expect(() => filterCashFlowEntries(entries, { category: '' })).toThrow('Category must be');
+        expect(() => filterCashFlowEntries(entries, { category: 12 })).toThrow('Category must be');
         expect(() => filterCashFlowEntries(entries, { search: 12 })).toThrow('Search must be a string');
     });
 

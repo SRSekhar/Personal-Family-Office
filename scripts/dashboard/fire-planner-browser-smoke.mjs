@@ -390,6 +390,11 @@ try {
     assert.match(await page.locator('#cash-flow-empty').innerText(), /No transactions match/);
     await page.locator('#cash-flow-reset-filters').click();
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should restore visible transactions');
+    await page.locator('#cash-flow-category-filter').selectOption({ label: 'Housing' });
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'category filter should show only matching transactions');
+    assert.match(await page.locator('#cash-flow-rows tr').first().innerText(), /Browser test rent/,
+        'category filter should select the matching expense');
+    await page.locator('#cash-flow-reset-filters').click();
     await page.locator('#cash-flow-sort-order').selectOption('amount-high');
     assert.match(await page.locator('#cash-flow-rows tr').first().innerText(), /Browser test salary/,
         'highest-amount sort should put income first');
