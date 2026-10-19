@@ -288,7 +288,28 @@ try {
         `wide comparison table should remain inside a horizontally scrollable wrapper: ${JSON.stringify(narrowComparison)}`);
     assert.ok(narrowComparison.wrapperScrollWidth > narrowComparison.wrapperClientWidth,
         `comparison table should scroll within its own container at narrow widths: ${JSON.stringify(narrowComparison)}`);
+    await page.locator('#fire-compare-run').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#fire-compare-results').isVisible(), true,
+        'keyboard activation should recalculate comparison results at a 320px viewport');
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.id), 'fire-compare-run',
+        'comparison action should retain keyboard focus at a 320px viewport');
+    let reachedNarrowReportDownload = false;
+    for (let index = 0; index < 8; index += 1) {
+        await page.keyboard.press('Tab');
+        if (await page.evaluate(() => globalThis.document.activeElement?.id === 'fire-download-comparison-report')) {
+            reachedNarrowReportDownload = true;
+            break;
+        }
+    }
+    assert.equal(reachedNarrowReportDownload, true,
+        'keyboard tab order should reach the comparison report action at a 320px viewport');
+    const narrowReportButton = await page.locator('#fire-download-comparison-report').boundingBox();
+    assert.ok(narrowReportButton && narrowReportButton.x >= 0
+        && narrowReportButton.x + narrowReportButton.width <= narrowComparison.viewportWidth,
+    `comparison report action should fit within the narrow viewport: ${JSON.stringify(narrowReportButton)}`);
     process.stdout.write('PASS: narrow comparison layout contains table overflow without widening the page.\\n');
+    process.stdout.write('PASS: comparison recalculation and report-action keyboard focus work at 320px.\\n');
     await page.setViewportSize({ width: 1280, height: 800 });
 
     // A 320 CSS-pixel viewport is the automated reflow proxy for 400% zoom from a 1280px baseline.
