@@ -114,7 +114,8 @@ Implemented
 - Transaction frequency filter for recurring vs one-time cash-flow entries (PR #204).
 - Cash-flow backup import preview with transaction count and totals before replacement, including cancel-safe restore (PR #210).
 - Inclusive from/to date filters for cash-flow transactions; filtered CSV follows the date range (PR #211).
-- In progress — include date, type, category, and amount in transaction-delete confirmation to disambiguate repeated descriptions.
+- Transaction-delete confirmation identifies description, date, type, category, and amount (PR #212).
+- In progress — import a validated cash-flow CSV using the same schema as the CSV export, with a totals preview and safe replacement confirmation.
 - Filtered CSV and full-ledger CSV exports are separate and have browser regression coverage (PR #205).
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
