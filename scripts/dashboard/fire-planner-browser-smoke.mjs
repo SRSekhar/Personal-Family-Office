@@ -247,9 +247,10 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-financial-records.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 1, 'JSON backup should declare its schema version');
+    assert.equal(backup.schemaVersion, 2, 'private JSON backup should use the goal-aware schema version');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
+    assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
@@ -303,7 +304,7 @@ try {
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(replacementBackup))
     });
-    assert.match(await dismissedConfirmation, /replace all records in your private workspace/i);
+    assert.match(await dismissedConfirmation, /replace all financial records/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#toast')?.textContent.includes('Import cancelled.')
     );
@@ -325,7 +326,7 @@ try {
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(replacementBackup))
     });
-    assert.match(await acceptedConfirmation, /replace all records in your private workspace/i);
+    assert.match(await acceptedConfirmation, /replace all financial records/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#records-body')?.innerText.includes('Replacement browser asset')
     );
@@ -346,6 +347,19 @@ try {
     assert.match(await page.locator('#saved-goals-count').innerText(), /1 goal/);
     assert.match(await page.locator('#saved-goals-list').innerText(), /3,75,000/);
     process.stdout.write('PASS: a financial goal can be saved with calculated progress in the private workspace.\\n');
+
+    const [goalBackupDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-button').click()
+    ]);
+    const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
+    await goalBackupDownload.saveAs(goalBackupPath);
+    const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
+    assert.equal(goalBackup.schemaVersion, 2, 'private backup should include saved goals');
+    assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
+    assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
+    assert.equal(goalBackup.goals[0].currentAmount, 125000);
+    process.stdout.write('PASS: private backup includes saved goals and their current progress.\\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
@@ -371,6 +385,36 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-empty')?.hidden === false);
     assert.match(await page.locator('#saved-goals-count').innerText(), /0 goals/);
     process.stdout.write('PASS: saved goal can be deleted after confirmation.\\n');
+
+    const restoreGoalConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-file').setInputFiles({
+        name: 'goal-aware-backup.json',
+        mimeType: 'application/json',
+        buffer: await readFile(goalBackupPath)
+    });
+    assert.match(await restoreGoalConfirmation, /replace all records and saved goals in your private workspace/i);
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
+    );
+    assert.match(await page.locator('#saved-goals-list').innerText(), /1,25,000 saved/,
+        'restoring a backup should recover saved-goal progress');
+    process.stdout.write('PASS: importing a goal-aware backup restores saved goals and progress.\\n');
+
+    const finalDeleteConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            await dialog.accept();
+            resolve();
+        });
+    });
+    await page.locator('[data-goal-delete]').click();
+    await finalDeleteConfirmation;
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-empty')?.hidden === false);
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
