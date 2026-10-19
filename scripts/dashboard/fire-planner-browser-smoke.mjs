@@ -438,16 +438,16 @@ try {
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '90000',
         'restoring the cash flow backup should replace all transactions with the validated backup');
     await page.locator('#cash-flow-type-filter').selectOption('expense');
-    const [filteredCsvDownload] = await Promise.all([
+    const [cashFlowFilteredCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#cash-flow-export-filtered-csv').click()
     ]);
-    assert.equal(filteredCsvDownload.suggestedFilename(), 'pfo-cash-flow-filtered.csv');
-    const filteredCsvPath = join(temporaryDirectory, 'pfo-cash-flow-filtered.csv');
-    await filteredCsvDownload.saveAs(filteredCsvPath);
-    const filteredCsv = await readFile(filteredCsvPath, 'utf8');
-    assert.ok(filteredCsv.includes('Browser test rent'), 'filtered CSV should include visible expense rows');
-    assert.ok(!filteredCsv.includes('Browser test salary'), 'filtered CSV should exclude rows outside the active filter');
+    assert.equal(cashFlowFilteredCsvDownload.suggestedFilename(), 'pfo-cash-flow-filtered.csv');
+    const cashFlowFilteredCsvPath = join(temporaryDirectory, 'pfo-cash-flow-filtered.csv');
+    await cashFlowFilteredCsvDownload.saveAs(cashFlowFilteredCsvPath);
+    const cashFlowFilteredCsv = await readFile(cashFlowFilteredCsvPath, 'utf8');
+    assert.ok(cashFlowFilteredCsv.includes('Browser test rent'), 'filtered CSV should include visible expense rows');
+    assert.ok(!cashFlowFilteredCsv.includes('Browser test salary'), 'filtered CSV should exclude rows outside the active filter');
     await page.locator('#cash-flow-reset-filters').click();
 
     const rentRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test rent' });
