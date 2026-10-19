@@ -109,10 +109,11 @@ Implemented
 - Deterministic transaction sorting by date, amount, and category; filtered CSV follows the selected sort (PR #206).
 - Dynamic category filtering combined with period, type, frequency, search, and sort controls (PR #207).
 - Duplicate a cash-flow transaction into a new unsaved form, requiring explicit confirmation via the normal Save action (PR #208).
-- In progress — show transaction counts alongside income, expenses, and net in the category breakdown.
+- Category breakdown shows transaction counts alongside income, expenses, and net (PR #209).
 - Selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero (PR #203).
 - Transaction frequency filter for recurring vs one-time cash-flow entries (PR #204).
-- In progress — distinguish CSV export of the currently filtered transaction rows from a full-ledger CSV export.
+- In progress — show an import preview with transaction count and totals before replacing the local cash-flow ledger.
+- Filtered CSV and full-ledger CSV exports are separate and have browser regression coverage (PR #205).
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
 Implemented
