@@ -106,7 +106,8 @@ Implemented
 - Cash-flow category breakdown for the selected period with income, expenses, and net by category (PR #201).
 - Cash-flow transaction search, type filtering, visible-result counts, and reset controls (PR #202).
 - Selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero (PR #203).
-- In progress — transaction frequency filter for recurring vs one-time cash-flow entries.
+- Transaction frequency filter for recurring vs one-time cash-flow entries (PR #204).
+- In progress — distinguish CSV export of the currently filtered transaction rows from a full-ledger CSV export.
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 
 Implemented
