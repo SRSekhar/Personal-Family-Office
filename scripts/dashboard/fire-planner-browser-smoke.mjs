@@ -437,6 +437,19 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-count')?.innerText === '2 transactions');
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '90000',
         'restoring the cash flow backup should replace all transactions with the validated backup');
+    await page.locator('#cash-flow-type-filter').selectOption('expense');
+    const [cashFlowFilteredCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cash-flow-export-filtered-csv').click()
+    ]);
+    assert.equal(cashFlowFilteredCsvDownload.suggestedFilename(), 'pfo-cash-flow-filtered.csv');
+    const cashFlowFilteredCsvPath = join(temporaryDirectory, 'pfo-cash-flow-filtered.csv');
+    await cashFlowFilteredCsvDownload.saveAs(cashFlowFilteredCsvPath);
+    const cashFlowFilteredCsv = await readFile(cashFlowFilteredCsvPath, 'utf8');
+    assert.ok(cashFlowFilteredCsv.includes('Browser test rent'), 'filtered CSV should include visible expense rows');
+    assert.ok(!cashFlowFilteredCsv.includes('Browser test salary'), 'filtered CSV should exclude rows outside the active filter');
+    await page.locator('#cash-flow-reset-filters').click();
+
     const rentRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test rent' });
     page.once('dialog', (dialog) => dialog.accept());
     await rentRow.getByRole('button', { name: 'Delete Browser test rent' }).click();
@@ -448,7 +461,7 @@ try {
     process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\\n');
     const [cashFlowCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
-        page.locator('#cash-flow-export-csv').click()
+        page.locator('#cash-flow-export-all-csv').click()
     ]);
     assert.equal(cashFlowCsvDownload.suggestedFilename(), 'pfo-cash-flow.csv');
     const cashFlowCsvPath = join(temporaryDirectory, 'pfo-cash-flow.csv');
