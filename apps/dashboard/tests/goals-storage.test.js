@@ -24,6 +24,7 @@ describe('saved financial goal validation', () => {
         ['negative target', { targetAmount: -1 }],
         ['negative progress', { currentAmount: -1 }],
         ['non-finite target', { targetAmount: Number.POSITIVE_INFINITY }],
+        ['unrenderable progress ratio', { targetAmount: 0.01, currentAmount: Number.MAX_VALUE }],
         ['impossible calendar date', { targetDate: '2027-02-29' }],
         ['malformed calendar date', { targetDate: '31-12-2027' }],
         ['invalid creation timestamp', { createdAt: 'not-a-date' }],
