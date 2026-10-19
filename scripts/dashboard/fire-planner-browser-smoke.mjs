@@ -429,6 +429,8 @@ try {
     assert.ok(cashFlowCsv.includes('Browser test salary'));
     process.stdout.write('PASS: cash flow CSV export downloads the current ledger.\\n');
 
+    // Cash-flow tests do not depend on the asset/liability workspace; switch back explicitly for its backup assertions.
+    await page.locator('#switch-private-button').click();
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
