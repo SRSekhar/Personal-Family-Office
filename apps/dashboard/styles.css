@@ -75,3 +75,7 @@
 .cash-flow-category-table-wrap table{width:100%;min-width:430px}
 .cash-flow-category-table-wrap th:not(:first-child),.cash-flow-category-table-wrap td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
 .cash-flow-category-table-wrap td:first-child{font-weight:600}
+
+.cash-flow-toolbar .cash-flow-search-label{flex:1;min-width:210px}
+.cash-flow-toolbar #cash-flow-search{width:100%;min-width:0;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:white;color:#2b3f32;font-size:12px}
+.cash-flow-toolbar #cash-flow-reset-filters{white-space:nowrap}

@@ -105,6 +105,25 @@ function csvCell(value) {
     return '"' + text.replaceAll('"', '""') + '"';
 }
 
+export function filterCashFlowEntries(entries, { period = 'all', type = 'all', search = '' } = {}) {
+    if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
+        throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
+    }
+    if (!['all', 'income', 'expense'].includes(type)) {
+        throw new RangeError('Type must be "all", "income", or "expense".');
+    }
+    if (typeof search !== 'string') throw new TypeError('Search must be a string.');
+    const query = search.trim().toLowerCase();
+    return validateCashFlowEntries(entries)
+        .filter((entry) => (period === 'all' || entry.date.startsWith(period))
+            && (type === 'all' || entry.type === type)
+            && (!query || [entry.date, entry.category, entry.description]
+                .some((value) => value.toLowerCase().includes(query))))
+        .sort((a, b) => b.date.localeCompare(a.date)
+            || a.description.localeCompare(b.description)
+            || a.id.localeCompare(b.id));
+}
+
 export function cashFlowToCsv(entries) {
     const rows = validateCashFlowEntries(entries).map((entry) => [
         entry.date, entry.type, entry.category, entry.description, entry.amount, entry.recurring ? 'true' : 'false'

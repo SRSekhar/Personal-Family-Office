@@ -377,6 +377,17 @@ try {
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '80000',
         'cash flow should calculate net cash flow');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'cash flow should list both transactions');
+    await page.locator('#cash-flow-type-filter').selectOption('expense');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'type filter should limit visible transactions');
+    assert.match(await page.locator('#cash-flow-count').innerText(), /1 shown of 2 transactions/,
+        'filtered count should distinguish visible rows from period totals');
+    await page.locator('#cash-flow-search').fill('Browser test rent');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'search should match descriptions');
+    await page.locator('#cash-flow-search').fill('no matching transaction');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 0, 'empty search results should be handled');
+    assert.match(await page.locator('#cash-flow-empty').innerText(), /No transactions match/);
+    await page.locator('#cash-flow-reset-filters').click();
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should restore visible transactions');
     assert.equal(await page.locator('#cash-flow-category-rows tr').count(), 2,
         'cash flow should summarize each category for the selected period');
     const housingCategory = page.locator('#cash-flow-category-rows tr').filter({ hasText: 'Housing' });

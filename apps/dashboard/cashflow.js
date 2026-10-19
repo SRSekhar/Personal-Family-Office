@@ -1,5 +1,5 @@
 import {
-    cashFlowToCsv, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
+    cashFlowToCsv, filterCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
 } from './cashflow-ledger.js';
 
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
@@ -67,9 +67,11 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     }
 
     function visibleEntries() {
-        const period = $('#cash-flow-period').value || 'all';
-        return entries.filter((entry) => period === 'all' || entry.date.startsWith(period))
-            .sort((a, b) => b.date.localeCompare(a.date) || a.description.localeCompare(b.description));
+        return filterCashFlowEntries(entries, {
+            period: $('#cash-flow-period').value || 'all',
+            type: $('#cash-flow-type-filter').value || 'all',
+            search: $('#cash-flow-search').value
+        });
     }
 
     function refreshPeriodOptions() {
@@ -97,7 +99,14 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-income-total').textContent = money(summary.income);
         $('#cash-flow-expense-total').textContent = money(summary.expenses);
         $('#cash-flow-net-total').textContent = money(summary.net);
-        $('#cash-flow-count').textContent = summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's');
+        const shown = visibleEntries();
+        const filtersActive = $('#cash-flow-type-filter').value !== 'all' || $('#cash-flow-search').value.trim() !== '';
+        $('#cash-flow-count').textContent = filtersActive
+            ? shown.length + ' shown of ' + summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's')
+            : summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's');
+        $('#cash-flow-empty').textContent = filtersActive
+            ? 'No transactions match the current filters.'
+            : 'No transactions for this period. Add income or an expense to begin.';
         const categoryBody = $('#cash-flow-category-rows');
         categoryBody.replaceChildren();
         const categories = summarizeCashFlowByCategory(entries, period);
@@ -113,7 +122,6 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
         const body = $('#cash-flow-rows');
         body.replaceChildren();
-        const shown = visibleEntries();
         $('#cash-flow-empty').hidden = shown.length !== 0;
         for (const entry of shown) {
             const row = documentRef.createElement('tr');
@@ -204,6 +212,14 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
 
     $('#cash-flow-cancel').addEventListener('click', resetForm);
     $('#cash-flow-period').addEventListener('change', render);
+    $('#cash-flow-type-filter').addEventListener('change', render);
+    $('#cash-flow-search').addEventListener('input', render);
+    $('#cash-flow-reset-filters').addEventListener('click', () => {
+        $('#cash-flow-search').value = '';
+        $('#cash-flow-type-filter').value = 'all';
+        render();
+        $('#cash-flow-search').focus();
+    });
     $('#cash-flow-export-csv').addEventListener('click', () => {
         try {
             download('pfo-cash-flow.csv', cashFlowToCsv(entries), 'text/csv;charset=utf-8');
