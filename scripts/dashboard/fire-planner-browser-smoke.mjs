@@ -354,6 +354,74 @@ try {
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
 
     await page.locator('#switch-private-button').click();
+
+    const cashFlowDate = await page.evaluate(() => {
+        const now = new Date();
+        return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    });
+    await page.locator('#cash-flow-date').fill(cashFlowDate);
+    await page.locator('#cash-flow-type').selectOption('income');
+    await page.locator('#cash-flow-category').fill('Salary');
+    await page.locator('#cash-flow-description').fill('Browser test salary');
+    await page.locator('#cash-flow-amount').fill('100000');
+    await page.locator('#cash-flow-recurring').check();
+    await page.locator('#cash-flow-save').click();
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Housing');
+    await page.locator('#cash-flow-description').fill('Browser test rent');
+    await page.locator('#cash-flow-amount').fill('20000');
+    await page.locator('#cash-flow-recurring').uncheck();
+    await page.locator('#cash-flow-save').click();
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
+        'cash flow should total income separately');
+    assert.equal((await page.locator('#cash-flow-expense-total').innerText()).replace(/[^0-9]/g, ''), '20000',
+        'cash flow should total expenses separately');
+    assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '80000',
+        'cash flow should calculate net cash flow');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'cash flow should list both transactions');
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
+        'cash flow transactions should persist across reloads');
+    const salaryRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test salary' });
+    await salaryRow.getByRole('button', { name: 'Edit Browser test salary' }).click();
+    await page.locator('#cash-flow-amount').fill('110000');
+    await page.locator('#cash-flow-save').click();
+    assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '90000',
+        'editing a transaction should recalculate net cash flow');
+    const [cashFlowBackupDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cash-flow-export-json').click()
+    ]);
+    assert.equal(cashFlowBackupDownload.suggestedFilename(), 'pfo-cash-flow-backup.json');
+    const cashFlowBackupPath = join(temporaryDirectory, 'pfo-cash-flow-backup.json');
+    await cashFlowBackupDownload.saveAs(cashFlowBackupPath);
+    const cashFlowBackup = JSON.parse(await readFile(cashFlowBackupPath, 'utf8'));
+    assert.equal(cashFlowBackup.schemaVersion, 1);
+    assert.equal(cashFlowBackup.entries.length, 2);
+    await page.locator('#cash-flow-type').selectOption('income');
+    await page.locator('#cash-flow-category').fill('Other');
+    await page.locator('#cash-flow-description').fill('Temporary extra income');
+    await page.locator('#cash-flow-amount').fill('1000');
+    await page.locator('#cash-flow-save').click();
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.locator('#cash-flow-import-json').setInputFiles({
+        name: 'cash-flow-backup.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(cashFlowBackup))
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-count')?.innerText === '2 transactions');
+    assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '90000',
+        'restoring the cash flow backup should replace all transactions with the validated backup');
+    const rentRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test rent' });
+    page.once('dialog', (dialog) => dialog.accept());
+    await rentRow.getByRole('button', { name: 'Delete Browser test rent' }).click();
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'deleting a transaction should remove it');
+    assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '110000',
+        'deleting an expense should recalculate net cash flow');
+    process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\\n');
+    await page.locator('#cash-flow-export-csv').click();
+    process.stdout.write('PASS: cash flow CSV export action completes.\\n');
+
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
