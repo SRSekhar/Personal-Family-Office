@@ -37,3 +37,33 @@
 .saved-goal-status.overdue{background:#fff0e7;color:#995426}
 .saved-goal-status.progress{background:#edf3fb;color:#426b9b}
 @media(max-width:680px){.saved-goal-heading{align-items:flex-start}.saved-goal-actions .button{flex:1 1 auto}}
+
+
+/* Local-only cash flow ledger */
+.cash-flow-panel{margin-top:17px;padding:22px}
+.cash-flow-intro{font-size:12px;line-height:1.7;color:#78857e;margin:14px 0 18px}
+.cash-flow-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.cash-flow-summary article{display:grid;gap:8px;min-width:0;padding:15px;background:#f8faf8;border:1px solid #edf1ed;border-radius:8px}
+.cash-flow-summary article span{font-size:11px;color:#78857e}
+.cash-flow-summary article strong{font-size:clamp(17px,2vw,24px);overflow-wrap:anywhere;color:#344c3b}
+.cash-flow-form{border-top:1px solid #e8eee8;padding-top:15px}
+.cash-flow-input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 15px;margin-bottom:15px}
+.cash-flow-input-grid .field-label{min-width:0;line-height:1.5}
+.cash-flow-input-grid input,.cash-flow-input-grid select,.cash-flow-toolbar select{width:100%;min-width:0;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:white;color:#2b3f32;font-size:12px}
+.cash-flow-recurring{display:flex;align-items:center;gap:8px;align-self:end;min-height:40px;font-size:11px;color:#4d5d51}
+.cash-flow-recurring input{width:16px;height:16px}
+.cash-flow-message{font-size:11px;line-height:1.6;color:#236d49;background:#edf6ef;padding:10px 12px;border-radius:7px}
+.cash-flow-message[hidden]{display:none}
+.cash-flow-toolbar{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:20px 0 12px}
+.cash-flow-toolbar .field-label{min-width:180px;margin:0}
+.cash-flow-toolbar .panel-tag{margin-bottom:4px}
+.cash-flow-toolbar .fire-actions{margin-left:auto}
+.cash-flow-import-label{display:inline-flex;align-items:center;cursor:pointer}
+.cash-flow-table-wrap{width:100%;max-width:100%;overflow-x:auto;border-top:1px solid #edf0ed}
+.cash-flow-table-wrap table{min-width:790px}
+.cash-flow-table-wrap td{white-space:normal}
+.cash-flow-row-actions{display:flex;gap:5px;align-items:center;height:57px}
+.cash-flow-empty{font-size:11px;color:#78857e;text-align:center;padding:22px}
+.cash-flow-empty[hidden]{display:none}
+@media(max-width:900px){.cash-flow-input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.cash-flow-panel{padding:16px}.cash-flow-summary{grid-template-columns:1fr}.cash-flow-input-grid{grid-template-columns:minmax(0,1fr)}.cash-flow-toolbar{align-items:stretch;flex-direction:column}.cash-flow-toolbar .field-label{min-width:0}.cash-flow-toolbar .fire-actions{margin-left:0}.cash-flow-toolbar .button{flex:1}}
