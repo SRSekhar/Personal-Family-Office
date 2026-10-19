@@ -203,3 +203,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Storage validation rejects malformed dates, invalid amounts, duplicate IDs, and invalid timestamps. If saved data cannot be read or written safely, changes fail closed and existing data is not overwritten.
 - Added unit tests for goal validation and storage failures, plus Chromium lifecycle coverage for save, reload persistence, update, and confirmed deletion using fictional values.
 - Validation pending CI, real Chromium smoke tests, full-history Secret Scan, and dashboard packaging on the exact PR head. No production deployment is claimed.
+
+### Saved-goal backup and recovery — implementation in progress
+- Private workspace exports use backup schema version 2 and include saved goals alongside financial records; sample/demo exports remain record-only version 1.
+- The importer remains compatible with version 1 backups. Since those backups never contained goal data, restoring one replaces financial records but preserves the current saved-goal storage.
+- Version 2 validation rejects malformed goals and duplicate IDs before any writes, and strips unknown goal fields before persistence.
+- Version 2 restore writes validated goal data and financial records as a coordinated operation, attempts to restore the prior goal-storage value if the records write fails, and fails closed if the rollback itself cannot be completed.
+- Added unit coverage for legacy compatibility, valid/empty goal collections, invalid goal fields, duplicate IDs, and unknown-field stripping; expanded the real Chromium smoke workflow to cover goal backup export and restore.
+- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the feature branch. Do not report this increment as delivered until the browser round-trip passes.
+- Privacy impact: backups can contain sensitive household records and goal progress; they are generated locally and should be stored privately. No remote upload or telemetry was added.
+
