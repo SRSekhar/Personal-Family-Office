@@ -4,6 +4,7 @@ import {
     cashFlowToCsv,
     filterCashFlowEntries,
     isValidCashFlowEntry,
+    parseCashFlowCsv,
     sortCashFlowEntries,
     summarizeCashFlow,
     summarizeCashFlowByCategory,
@@ -144,6 +145,37 @@ describe('cash flow savings rate', () => {
         expect(calculateCashFlowSavingsRate(0, 100)).toBeNull();
         expect(() => calculateCashFlowSavingsRate(-1, 0)).toThrow('finite, non-negative');
         expect(() => calculateCashFlowSavingsRate(100, Number.POSITIVE_INFINITY)).toThrow('finite, non-negative');
+    });
+});
+
+describe('cash flow CSV import', () => {
+    it('round-trips quoted commas, quotes, and embedded newlines with fresh IDs', () => {
+        let nextId = 0;
+        const source = [{
+            id: 'source',
+            date: '2026-10-01',
+            type: 'expense',
+            category: 'Housing, repairs',
+            description: 'Painter said "done", then left\nwithout a receipt',
+            amount: 1234.5,
+            recurring: false
+        }];
+        const parsed = parseCashFlowCsv(cashFlowToCsv(source), () => 'import-' + (++nextId));
+        expect(parsed).toEqual([{ ...source[0], id: 'import-1' }]);
+    });
+
+    it('accepts a header-only file as an empty import', () => {
+        expect(parseCashFlowCsv('"date","type","category","description","amount","recurring"\r\n', () => 'unused'))
+            .toEqual([]);
+    });
+
+    it.each([
+        ['wrong header', 'date,type,category,description,amount,recurring\n'],
+        ['inconsistent column count', '"date","type","category","description","amount","recurring"\n"2026-10-01","income"\n'],
+        ['invalid recurring value', '"date","type","category","description","amount","recurring"\n"2026-10-01","income","Salary","Pay","100","sometimes"\n'],
+        ['unterminated quoted field', '"date","type","category","description","amount","recurring"\n"2026-10-01","income","Salary","Pay","100","true']
+    ])('rejects CSV with %s', (_label, csv) => {
+        expect(() => parseCashFlowCsv(csv, () => 'import-id')).toThrow();
     });
 });
 
