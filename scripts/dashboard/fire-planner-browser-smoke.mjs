@@ -491,7 +491,15 @@ try {
     await page.locator('#cash-flow-reset-filters').click();
 
     const rentRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test rent' });
-    page.once('dialog', (dialog) => dialog.accept());
+    page.once('dialog', (dialog) => {
+        assert.match(dialog.message(), /Delete this cash-flow transaction/);
+        assert.match(dialog.message(), /Description: Browser test rent/);
+        assert.match(dialog.message(), /Date: \d{4}-\d{2}-\d{2}/);
+        assert.match(dialog.message(), /Type: Expense/);
+        assert.match(dialog.message(), /Category: Housing/);
+        assert.match(dialog.message(), /20,000/);
+        dialog.accept();
+    });
     await rentRow.getByRole('button', { name: 'Delete Browser test rent' }).click();
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'deleting a transaction should remove it');
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '110000',
