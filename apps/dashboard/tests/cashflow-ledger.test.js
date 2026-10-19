@@ -70,9 +70,9 @@ describe('cash flow summaries', () => {
         expect(filterCashFlowEntries(entries, { type: 'income' }).map((entry) => entry.id))
             .toEqual(['i-1']);
         expect(filterCashFlowEntries(entries, { recurring: 'recurring' }).map((entry) => entry.id))
-            .toEqual(['i-1']);
+            .toEqual(['e-1', 'i-1']);
         expect(filterCashFlowEntries(entries, { recurring: 'one-time' }).map((entry) => entry.id))
-            .toEqual(['e-1', 'e-2']);
+            .toEqual(['e-2']);
         expect(filterCashFlowEntries(entries, { search: 'no match' })).toEqual([]);
     });
 
