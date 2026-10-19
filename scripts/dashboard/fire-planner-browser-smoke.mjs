@@ -409,6 +409,8 @@ try {
     const housingCategory = page.locator('#cash-flow-category-rows tr').filter({ hasText: 'Housing' });
     assert.equal((await housingCategory.locator('td').nth(2).innerText()).replace(/[^0-9]/g, ''), '20000',
         'category summary should show expenses in the correct category');
+    assert.equal(await housingCategory.locator('td').nth(4).innerText(), '1',
+        'category summary should show the number of transactions in each category');
     await page.locator('#cash-flow-frequency-filter').selectOption('recurring');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'recurring filter should show recurring transactions only');
     assert.equal((await page.locator('#cash-flow-rows tr').innerText()).includes('Browser test salary'), true);
