@@ -1,5 +1,6 @@
 import {
-    cashFlowToCsv, filterCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
+    calculateCashFlowSavingsRate, cashFlowToCsv, filterCashFlowEntries,
+    summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
 } from './cashflow-ledger.js';
 
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
@@ -99,6 +100,13 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-income-total').textContent = money(summary.income);
         $('#cash-flow-expense-total').textContent = money(summary.expenses);
         $('#cash-flow-net-total').textContent = money(summary.net);
+        const savingsRate = calculateCashFlowSavingsRate(summary.income, summary.expenses);
+        $('#cash-flow-savings-rate').textContent = savingsRate === null
+            ? '—'
+            : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(savingsRate) + '%';
+        $('#cash-flow-savings-rate-caption').textContent = savingsRate === null
+            ? 'Unavailable when income is zero'
+            : 'Net cash flow ÷ income';
         const shown = visibleEntries();
         const filtersActive = $('#cash-flow-type-filter').value !== 'all' || $('#cash-flow-search').value.trim() !== '';
         $('#cash-flow-count').textContent = filtersActive
