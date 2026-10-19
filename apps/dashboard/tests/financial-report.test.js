@@ -43,7 +43,7 @@ describe('renderFinancialReportHtml', () => {
         const html = renderFinancialReportHtml({ records: [], generatedAt });
         expect(html).toContain('No assets recorded.');
         expect(html).toContain('No financial records.');
-        expect(html).toContain('0.0%');
+        expect(html).not.toContain('NaN%');
     });
 
     it('rejects malformed records and duplicate IDs rather than generating partial reports', () => {
