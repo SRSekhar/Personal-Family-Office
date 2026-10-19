@@ -163,6 +163,7 @@ Planned
 
 - Charts and historical timeline after snapshot requirements are validated
 - Portfolio explorer and additional KPIs after customer discovery
+- FIRE planner correctness: clear stale required-contribution output when shared assumptions change, with a real-browser regression test.
 
 ---
 
