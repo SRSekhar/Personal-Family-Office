@@ -390,6 +390,15 @@ try {
     assert.match(await page.locator('#cash-flow-empty').innerText(), /No transactions match/);
     await page.locator('#cash-flow-reset-filters').click();
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should restore visible transactions');
+    await page.locator('#cash-flow-sort-order').selectOption('amount-high');
+    assert.match(await page.locator('#cash-flow-rows tr').first().innerText(), /Browser test salary/,
+        'highest-amount sort should put income first');
+    await page.locator('#cash-flow-sort-order').selectOption('amount-low');
+    assert.match(await page.locator('#cash-flow-rows tr').first().innerText(), /Browser test rent/,
+        'lowest-amount sort should put the expense first');
+    await page.locator('#cash-flow-reset-filters').click();
+    assert.equal(await page.locator('#cash-flow-sort-order').inputValue(), 'date-newest',
+        'reset view should restore the default sort');
     assert.equal(await page.locator('#cash-flow-category-rows tr').count(), 2,
         'cash flow should summarize each category for the selected period');
     const housingCategory = page.locator('#cash-flow-category-rows tr').filter({ hasText: 'Housing' });
