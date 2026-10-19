@@ -472,8 +472,8 @@ try {
         'deleting an expense should recalculate net cash flow');
     assert.equal(await page.locator('#cash-flow-savings-rate').innerText(), '100%',
         'savings rate should update when expenses are deleted');
-    const salaryRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test salary' });
-    await salaryRow.getByRole('button', { name: 'Duplicate Browser test salary' }).click();
+    const duplicateSalaryRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test salary' });
+    await duplicateSalaryRow.getByRole('button', { name: 'Duplicate Browser test salary' }).click();
     assert.equal(await page.locator('#cash-flow-save').innerText(), 'Save as new transaction',
         'duplicate action should clearly indicate that a new entry will be created');
     assert.equal(await page.locator('#cash-flow-description').inputValue(), 'Browser test salary',
