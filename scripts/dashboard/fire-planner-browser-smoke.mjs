@@ -121,6 +121,16 @@ try {
     assert.ok(financialReportHtml.includes('Net worth'), 'financial report should include a net-worth summary');
     process.stdout.write('PASS: financial summary report downloads with totals, records, and valuation-date limitation.\\n');
 
+    await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
+    assert.equal(await page.locator('#fire-required-result').isVisible(), true,
+        'required-contribution result should be visible before editing assumptions');
+    await page.locator('#fire-inflation').fill('3.5');
+    assert.equal(await page.locator('#fire-required-result').isHidden(), true,
+        'editing a shared assumption must hide the stale required-contribution result');
+    assert.equal(await page.locator('#fire-results').isHidden(), true,
+        'editing a shared assumption must hide stale readiness results');
+    process.stdout.write('PASS: editing FIRE assumptions invalidates stale required-contribution and readiness results.\\n');
+
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
     await page.locator('#fire-annual-contribution').fill('300000');
     await page.getByLabel('Years until retirement').fill('10');
