@@ -219,5 +219,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a strict parser for the dashboard's own CSV schema, including escaped quotes, commas, embedded newlines, BOM, CRLF/LF, currency validation, and all-row validation before any writes.
 - The UI imports CSV only in the loopback-only private workspace, requires replacement confirmation when existing records are present, recalculates totals, and preserves saved goals because CSV contains records only.
 - Added parser unit coverage and Chromium smoke checks for successful import, recalculated totals, goal preservation, and malformed-file rejection.
-- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the CSV-import PR. Do not treat the feature as delivered until the exact-head browser smoke passes.
+- Validation: PR #174 passed CI (41 test files plus Chromium CSV import, totals recalculation, saved-goal preservation, and malformed-file rejection), full-history Secret Scan, and dashboard packaging on exact head `65e134fe67ebea1fc26743c3d2155f29ad6bcc43`; merged to `main` as `9a86032e031bdad8732c499d08f1727cae55932b`. The post-merge CI, Secret Scan, and packaging workflows also passed. This does not by itself establish live Pages publication.
 - Privacy/safety: CSV is read locally in the browser; imported text is treated as data and never executed. No upload or telemetry was added.
+
+
+### Goal monthly savings pace — implementation in progress
+- Added a deterministic estimate of the approximate monthly amount needed to close the remaining goal gap, dividing the remaining amount by the approximate number of months until the target date.
+- The estimate explicitly assumes no interest or investment returns. Completed goals show no further pace required; goals due today or overdue do not show a misleading achievable monthly amount.
+- Added calculator tests and Chromium assertions for the single-goal result and saved-goal cards.
+- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the goal-savings-pace PR.
+- No new financial data is inferred or persisted; the estimate is derived from the user-entered target, accumulated amount, and target date.
