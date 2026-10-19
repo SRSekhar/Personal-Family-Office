@@ -167,3 +167,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added Chromium coverage for both cancel-preserves-data and confirm-replaces-data paths using synthetic records and verifying recalculated totals.
 - The prompt is skipped for an empty workspace, preserving the normal first-import flow. Existing local-only privacy boundaries and backup schema are unchanged.
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
+
+
+### CSV download reliability — in progress
+- Updated both full-workspace and filtered-view CSV downloads to attach the anchor to the document before activation, then remove it after activation. This aligns both paths with the existing JSON/HTML export pattern and improves browser download reliability without changing CSV contents or data handling.
+- Extended the existing Chromium browser smoke suite with full and filtered CSV download checks using the dashboard's fictional sample records. The checks verify filenames, the CSV header, inclusion of expected rows, and exclusion of non-matching rows.
+- No new dependencies, network calls, or persistence were introduced. Validation status: pending CI, Secret Scan, dashboard packaging, and Chromium smoke checks on the PR head.
