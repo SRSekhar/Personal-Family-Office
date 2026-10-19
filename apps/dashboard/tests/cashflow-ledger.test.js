@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     cashFlowToCsv,
+    filterCashFlowEntries,
     isValidCashFlowEntry,
     summarizeCashFlow,
     summarizeCashFlowByCategory,
@@ -56,6 +57,24 @@ describe('cash flow summaries', () => {
         ]);
         expect(summarizeCashFlowByCategory(entries, 'all')).toHaveLength(3);
         expect(summarizeCashFlowByCategory([], 'all')).toEqual([]);
+    });
+
+    it('filters transactions by period, type, and case-insensitive text, then sorts deterministically', () => {
+        expect(filterCashFlowEntries(entries, { period: '2026-10', type: 'expense' }).map((entry) => entry.id))
+            .toEqual(['e-1']);
+        expect(filterCashFlowEntries(entries, { search: 'GROCERIES' }).map((entry) => entry.id))
+            .toEqual(['e-2']);
+        expect(filterCashFlowEntries(entries, { search: '2026-10-01' }).map((entry) => entry.id))
+            .toEqual(['i-1']);
+        expect(filterCashFlowEntries(entries, { type: 'income' }).map((entry) => entry.id))
+            .toEqual(['i-1']);
+        expect(filterCashFlowEntries(entries, { search: 'no match' })).toEqual([]);
+    });
+
+    it('rejects invalid transaction filter options', () => {
+        expect(() => filterCashFlowEntries(entries, { period: '2026-13' })).toThrow('valid YYYY-MM');
+        expect(() => filterCashFlowEntries(entries, { type: 'transfer' })).toThrow('Type must be');
+        expect(() => filterCashFlowEntries(entries, { search: 12 })).toThrow('Search must be a string');
     });
 
     it('rejects invalid category-summary periods and aggregate overflow', () => {
