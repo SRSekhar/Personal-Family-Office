@@ -291,6 +291,34 @@ try {
     process.stdout.write('PASS: narrow comparison layout contains table overflow without widening the page.\\n');
     await page.setViewportSize({ width: 1280, height: 800 });
 
+    // Exercise browser-level zoom shortcuts rather than treating a narrow viewport as equivalent to 400% zoom.
+    await page.goto(`${baseUrl}#fire-planner`, { waitUntil: 'networkidle' });
+    const initialCssViewportWidth = await page.evaluate(() => globalThis.window.innerWidth);
+    let zoomSteps = 0;
+    while (await page.evaluate(() => globalThis.window.innerWidth) > 340 && zoomSteps < 12) {
+        await page.keyboard.press('Control+Shift+Equal');
+        zoomSteps += 1;
+    }
+    const zoomedViewport = await page.evaluate(() => ({
+        width: globalThis.window.innerWidth,
+        documentWidth: globalThis.document.documentElement.scrollWidth
+    }));
+    assert.ok(zoomedViewport.width <= 340 && zoomedViewport.width >= 250,
+        `browser zoom should reduce the CSS viewport to approximately 400% zoom (start ${initialCssViewportWidth}px, end ${zoomedViewport.width}px after ${zoomSteps} steps)`);
+    assert.ok(zoomedViewport.documentWidth <= zoomedViewport.width,
+        `FIRE planner should not create page-level horizontal overflow at approximately 400% browser zoom: ${JSON.stringify(zoomedViewport)}`);
+    await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
+    await page.getByLabel('Annual spending in today\'s money (₹)').fill('600000');
+    await page.getByRole('button', { name: 'Calculate readiness' }).click();
+    assert.equal(await page.locator('#fire-results').isVisible(), true,
+        'FIRE readiness should remain operable at approximately 400% browser zoom');
+    assert.equal(await page.locator('#fire-projected-portfolio').isVisible(), true,
+        'FIRE results should remain available at approximately 400% browser zoom');
+    await page.keyboard.press('Control+Digit0');
+    assert.ok(await page.evaluate(() => globalThis.window.innerWidth) >= initialCssViewportWidth - 5,
+        'browser zoom should be restored before the remaining smoke workflow');
+    process.stdout.write('PASS: actual Chromium browser zoom reaches approximately 400%, preserves FIRE operation, and avoids page-level horizontal overflow.\\n');
+
     const futureDate = new Date();
     futureDate.setFullYear(futureDate.getFullYear() + 1);
     await page.locator('#goal-name').fill('Emergency fund');
