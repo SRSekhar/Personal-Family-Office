@@ -233,13 +233,19 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         render();
         $('#cash-flow-search').focus();
     });
-    $('#cash-flow-export-csv').addEventListener('click', () => {
+    function exportCsv(exportEntries, filename, successMessage) {
         try {
-            download('pfo-cash-flow.csv', cashFlowToCsv(entries), 'text/csv;charset=utf-8');
-            message('Cash flow CSV exported to this device.');
+            download(filename, cashFlowToCsv(exportEntries), 'text/csv;charset=utf-8');
+            message(successMessage);
         } catch (error) {
             message(error instanceof Error ? error.message : 'Could not export cash flow CSV.', true);
         }
+    }
+    $('#cash-flow-export-filtered-csv').addEventListener('click', () => {
+        exportCsv(visibleEntries(), 'pfo-cash-flow-filtered.csv', 'Filtered cash flow CSV exported to this device.');
+    });
+    $('#cash-flow-export-all-csv').addEventListener('click', () => {
+        exportCsv(entries, 'pfo-cash-flow.csv', 'All cash flow transactions exported to this device.');
     });
     $('#cash-flow-export-json').addEventListener('click', () => {
         download('pfo-cash-flow-backup.json', JSON.stringify({
