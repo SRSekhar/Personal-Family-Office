@@ -169,8 +169,8 @@ Do not record personal financial values or claim customer demand without evidenc
 - Validation status: pending CI, Secret Scan, and dashboard packaging on the follow-up PR.
 
 
-### Navigation state follows browser history — implementation in progress
+### Navigation state follows browser history — PR validation passed
 - The sidebar previously updated its active item and breadcrumb only on link clicks. Browser Back/Forward or loading a deep-linked section could change the URL fragment without updating those visual and assistive-technology cues.
 - Centralized navigation synchronization around the current URL fragment, retained click responsiveness, and added a `hashchange` listener plus initial synchronization. Unknown fragments fall back to Overview.
 - Added a static regression contract for initial sync, fragment-history handling, active styling, and `aria-current`.
-- Validation status: implementation committed to a focused PR branch; CI and browser verification are pending. This does not claim a complete accessibility audit.
+- Validation: CI build/typecheck/lint/test passed, Secret Scan passed, and dashboard packaging passed on PR head `4fcdd01a43b81e3ef26a69ea7c419da4cdabc6cc`. The navigation regression contract is kept inside the static-integrity suite. Full manual screen-reader and assistive-technology audits remain outstanding.
