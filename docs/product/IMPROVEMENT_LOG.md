@@ -202,7 +202,7 @@ Do not record personal financial values or claim customer demand without evidenc
 - Goal data uses a dedicated versioned local-storage key, separate from financial records. It is only read or changed in the loopback-only private workspace; hosted demo remains sample-only.
 - Storage validation rejects malformed dates, invalid amounts, duplicate IDs, and invalid timestamps. If saved data cannot be read or written safely, changes fail closed and existing data is not overwritten.
 - Added unit tests for goal validation and storage failures, plus Chromium lifecycle coverage for save, reload persistence, update, and confirmed deletion using fictional values.
-- Validation pending CI, real Chromium smoke tests, full-history Secret Scan, and dashboard packaging on the exact PR head. No production deployment is claimed.
+- Validation: PR #169 passed CI, Secret Scan, and dashboard packaging on exact head `3a6e7156e7e33c0bc53bcb7e24d55f1a9ff71df9`; merged to `main` as `df4c5084abdb3e6d5a4273a066107fc254c887f7`. The Chromium suite verified create, reload persistence, edit, and confirmed deletion using fictional data. No production deployment is claimed.
 
 ### Saved-goal backup and recovery — implementation in progress
 - Private workspace exports use backup schema version 2 and include saved goals alongside financial records; sample/demo exports remain record-only version 1.
@@ -235,4 +235,4 @@ Do not record personal financial values or claim customer demand without evidenc
 - CSV and JSON imports accept user-defined category strings, while the record editor offers the built-in categories. Previously, opening and saving an imported record with a custom category could silently change it to the first built-in category.
 - The record editor now includes the current non-standard category as an option while editing, preserving imported data unless the user deliberately changes the category.
 - Added Chromium coverage that imports a fictional custom category, edits the record name, and verifies the category remains unchanged.
-- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the custom-category fix PR.
+- Validation: PR #176 passed CI (41 test files plus the Chromium custom-category edit regression), full-history Secret Scan, and dashboard packaging on exact head `5cf9e8d110336fcc9cf82b6d600c8c5a93dafa41`; merged to `main` as `ab0b6a20670255affc0d947e3ec5be2ae543e2e3`. Post-merge main-branch checks were running at the time this entry was prepared.

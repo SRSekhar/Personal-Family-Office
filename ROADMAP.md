@@ -82,10 +82,12 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 
 **Status:** In Progress — core local-first dashboard and FIRE planner are implemented
 
-- Dashboard for assets, liabilities, net worth, category allocation, record CRUD, search, filtering, sorting, reset, and CSV/JSON export
+- Dashboard for assets, liabilities, net worth, category allocation, record CRUD, search, filtering, sorting, reset, validated CSV import/export, and versioned JSON backup/restore
+- Imported custom categories are preserved when editing records (PR #176)
 - Local-only FIRE planner with readiness calculation, required annual contribution, and ordered three-scenario comparison
 - Explicit download of self-contained offline FIRE scenario HTML reports
-- Session-only Goal Tracker for one target, with validated progress and completion/overdue state (PR #145)
+- Persistent multi-goal tracker with create/edit/confirmed-delete, deadline and progress status, and an approximate monthly savings pace that assumes no investment returns (PRs #169, #175)
+- Goal-aware private backup/restore with schema v2 and backward compatibility for legacy record-only schema v1 backups (PR #173)
 - Remaining: interactive browser verification, accessibility/400% zoom validation, and customer feedback
 - Charts, historical timelines, portfolio explorer, and additional KPIs remain deferred until snapshot requirements and customer needs are validated
 
