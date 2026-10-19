@@ -173,6 +173,103 @@ export function filterCashFlowEntries(entries, {
             || a.id.localeCompare(b.id));
 }
 
+function parseCsvRows(csvText) {
+    const text = csvText.startsWith('\uFEFF') ? csvText.slice(1) : csvText;
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    let afterQuote = false;
+
+    for (let index = 0; index < text.length; index += 1) {
+        const character = text[index];
+        if (inQuotes) {
+            if (character === '"') {
+                if (text[index + 1] === '"') {
+                    field += '"';
+                    index += 1;
+                } else {
+                    inQuotes = false;
+                    afterQuote = true;
+                }
+            } else {
+                field += character;
+            }
+            continue;
+        }
+        if (afterQuote) {
+            if (character === ',') {
+                row.push(field);
+                field = '';
+                afterQuote = false;
+            } else if (character === '\r' || character === '\n') {
+                row.push(field);
+                rows.push(row);
+                row = [];
+                field = '';
+                afterQuote = false;
+                if (character === '\r' && text[index + 1] === '\n') index += 1;
+            } else {
+                throw new Error('CSV contains unexpected characters after a quoted field.');
+            }
+            continue;
+        }
+        if (character === '"' && field === '') {
+            inQuotes = true;
+        } else if (character === '"') {
+            throw new Error('CSV contains a quote inside an unquoted field.');
+        } else if (character === ',') {
+            row.push(field);
+            field = '';
+        } else if (character === '\r' || character === '\n') {
+            row.push(field);
+            rows.push(row);
+            row = [];
+            field = '';
+            if (character === '\r' && text[index + 1] === '\n') index += 1;
+        } else {
+            field += character;
+        }
+    }
+
+    if (inQuotes) throw new Error('CSV contains an unterminated quoted field.');
+    if (field.length > 0 || row.length > 0 || afterQuote) {
+        row.push(field);
+        rows.push(row);
+    }
+    return rows;
+}
+
+export function parseCashFlowCsv(csvText, createId = () => globalThis.crypto.randomUUID()) {
+    if (typeof csvText !== 'string') throw new TypeError('Cash flow CSV must be text.');
+    if (typeof createId !== 'function') throw new TypeError('Transaction ID factory must be a function.');
+    const rows = parseCsvRows(csvText);
+    const header = ['date', 'type', 'category', 'description', 'amount', 'recurring'];
+    if (!rows.length || rows[0].length !== header.length
+        || rows[0].some((value, index) => value.trim() !== header[index])) {
+        throw new Error('Cash flow CSV header must be date,type,category,description,amount,recurring.');
+    }
+    const entries = rows.slice(1).map((cells, index) => {
+        if (cells.length !== header.length) {
+            throw new Error('Cash flow CSV row ' + (index + 2) + ' must contain exactly six columns.');
+        }
+        const recurringValue = cells[5].trim().toLowerCase();
+        if (!['true', 'false'].includes(recurringValue)) {
+            throw new Error('Cash flow CSV row ' + (index + 2) + ' recurring value must be true or false.');
+        }
+        return {
+            id: createId(),
+            date: cells[0].trim(),
+            type: cells[1].trim(),
+            category: cells[2].trim(),
+            description: cells[3].trim(),
+            amount: Number(cells[4].trim()),
+            recurring: recurringValue === 'true'
+        };
+    });
+    return validateCashFlowEntries(entries);
+}
+
 export function cashFlowToCsv(entries) {
     const rows = validateCashFlowEntries(entries).map((entry) => [
         entry.date, entry.type, entry.category, entry.description, entry.amount, entry.recurring ? 'true' : 'false'
