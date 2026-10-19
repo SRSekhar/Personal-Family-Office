@@ -469,7 +469,7 @@ try {
     await page.locator('#import-csv-file').setInputFiles({
         name: 'custom-category.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('Name,Category,Type,Value,Currency\\r\\n"Private equity holding","Private equity","asset",1000,"INR"\\r\\n')
+        buffer: Buffer.from('Name,Category,Type,Value,Currency\r\n"Private equity holding","Private equity","asset",1000,"INR"\r\n')
     });
     assert.match(await customCategoryConfirmation, /replace all financial records in your private workspace/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Private equity holding'));
