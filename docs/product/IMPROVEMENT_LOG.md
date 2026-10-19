@@ -313,7 +313,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Zero income produces an unavailable marker instead of division by zero; negative rates are allowed when expenses exceed income. The KPI is descriptive, not a recommendation.
 - PR #203 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow frequency filter — feature branch in progress
-- Added recurring vs one-time transaction filtering, building on the existing frequency flag without assuming an actual schedule or projecting future amounts.
+### Cash-flow frequency filter — PR #204 merged
+- Added recurring vs one-time transaction filtering, composing with period, type, and text search filters.
+- The existing boolean flag is treated as a label only; no schedule cadence or future amount is inferred.
+- PR #204 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow CSV export scope — feature branch in progress
+- Added explicit filtered-row and full-ledger CSV export actions so the downloaded scope is clear.
+- Browser regression coverage verifies that filtered export includes visible matching transactions and excludes rows outside the active filter.
 - Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
