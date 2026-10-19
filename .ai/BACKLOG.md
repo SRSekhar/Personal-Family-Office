@@ -167,9 +167,9 @@ Implemented
 
 - FIRE planner correctness: clear stale required-contribution output when shared assumptions change, with a real-browser regression test (PR #183).
 
-Planned
+Implemented
 
-- FIRE planner correctness: invalidate stale comparison-report snapshots when comparison-specific assumptions change, with a real-browser regression test.
+- FIRE planner correctness: invalidate stale comparison-report snapshots when comparison-specific assumptions change, with a real-browser regression test (PR #186).
 
 ---
 
