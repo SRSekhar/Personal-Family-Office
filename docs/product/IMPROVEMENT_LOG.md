@@ -194,4 +194,12 @@ Do not record personal financial values or claim customer demand without evidenc
 - The renderer validates records and duplicate IDs, rejects numeric overflow, escapes untrusted text, and creates no scripts, remote assets, or network requests. Export uses the current workspace's complete record set rather than silently applying the active table filter.
 - The report explicitly discloses that dashboard records do not track valuation dates: its timestamp is report-generation time, not a valuation date. It also warns users to keep downloaded financial reports private.
 - Added unit coverage for totals, allocation, empty data, malformed input, duplicate IDs, escaping, offline safety, and overflow, plus Chromium download coverage using fictional demo data.
-- Validation status: pending CI (including real Chromium smoke tests), full-history Secret Scan, and dashboard packaging on the exact feature PR head. No production deployment is claimed.
+- Validation passed on exact PR head `a875bfb3aef1e2a1223821632a07ed98cd8df57b`: CI including the real Chromium smoke suite, full-history Secret Scan, and dashboard packaging. The Pages publication step was skipped for the pull-request run. Merged as `585a0da3c9690b841d98be25171333471d04121a`.
+
+
+### Saved multi-goal financial tracker — implementation in progress
+- Expanded the single-goal calculator with a separate saved-goal list. Users can create multiple goals, edit targets/dates/progress, and delete goals after confirmation.
+- Goal data uses a dedicated versioned local-storage key, separate from financial records. It is only read or changed in the loopback-only private workspace; hosted demo remains sample-only.
+- Storage validation rejects malformed dates, invalid amounts, duplicate IDs, and invalid timestamps. If saved data cannot be read or written safely, changes fail closed and existing data is not overwritten.
+- Added unit tests for goal validation and storage failures, plus Chromium lifecycle coverage for save, reload persistence, update, and confirmed deletion using fictional values.
+- Validation pending CI, real Chromium smoke tests, full-history Secret Scan, and dashboard packaging on the exact PR head. No production deployment is claimed.
