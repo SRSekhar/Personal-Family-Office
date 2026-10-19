@@ -3,6 +3,15 @@ import { cashFlowToCsv, summarizeCashFlow, validateCashFlowEntries } from './cas
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
 const CURRENCY = 'INR';
 
+function localDateString() {
+    const now = new Date();
+    return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+}
+
+function localMonthString() {
+    return localDateString().slice(0, 7);
+}
+
 function isLoopback(hostname) {
     const host = typeof hostname === 'string' ? hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '') : '';
     return host === 'localhost' || host === '::1' || host === '127.0.0.1';
@@ -61,7 +70,26 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             .sort((a, b) => b.date.localeCompare(a.date) || a.description.localeCompare(b.description));
     }
 
+    function refreshPeriodOptions() {
+        const select = $('#cash-flow-period');
+        const previous = select.value;
+        const periods = new Set([localMonthString(), ...entries.map((entry) => entry.date.slice(0, 7))]);
+        select.replaceChildren();
+        const all = documentRef.createElement('option');
+        all.value = 'all'; all.textContent = 'All transactions'; select.append(all);
+        [...periods].sort().reverse().forEach((period) => {
+            const option = documentRef.createElement('option');
+            option.value = period;
+            option.textContent = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(period + '-01T00:00:00Z'));
+            select.append(option);
+        });
+        select.value = select.dataset.initialized === 'true' && [...select.options].some((option) => option.value === previous)
+            ? previous : localMonthString();
+        select.dataset.initialized = 'true';
+    }
+
     function render() {
+        refreshPeriodOptions();
         const period = $('#cash-flow-period').value || 'all';
         const summary = summarizeCashFlow(entries, period);
         $('#cash-flow-income-total').textContent = money(summary.income);
@@ -101,7 +129,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
 
     function resetForm() {
         $('#cash-flow-form').reset();
-        $('#cash-flow-date').value = new Date().toISOString().slice(0, 10);
+        $('#cash-flow-date').value = localDateString();
         $('#cash-flow-type').value = 'expense';
         $('#cash-flow-recurring').checked = false;
         editingId = null;
@@ -215,7 +243,6 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     }
 
     load();
-    if (!$('#cash-flow-period').value) $('#cash-flow-period').value = new Date().toISOString().slice(0, 7);
     resetForm();
     render();
     if (!storageHealthy) root.querySelectorAll('#cash-flow-form input, #cash-flow-form select, #cash-flow-form button').forEach((control) => { control.disabled = true; });
