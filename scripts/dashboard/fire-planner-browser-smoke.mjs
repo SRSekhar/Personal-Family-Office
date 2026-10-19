@@ -344,13 +344,13 @@ try {
     await page.locator('#goal-save-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
     assert.match(await page.locator('#saved-goals-count').innerText(), /1 goal/);
-    assert.match(await page.locator('#saved-goals-list').innerText(), /375,000/);
+    assert.match(await page.locator('#saved-goals-list').innerText(), /3,75,000/);
     process.stdout.write('PASS: a financial goal can be saved with calculated progress in the private workspace.\\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
-    assert.match(await page.locator('#saved-goals-list').innerText(), /125,000 saved/,
+    assert.match(await page.locator('#saved-goals-list').innerText(), /1,25,000 saved/,
         'saved goal progress should persist across reloads');
     await page.locator('[data-goal-edit]').click();
     assert.equal(await page.locator('#goal-save-button').innerText(), 'Update saved goal');
