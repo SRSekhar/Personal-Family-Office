@@ -7,7 +7,8 @@ describe('calculateGoalProgress', () => {
     it('calculates amount remaining, percentage, and days using calendar dates', () => {
         expect(calculateGoalProgress({ targetAmount: 1_000_000, currentAmount: 250_000, targetDate: '2027-10-18', asOfDate })).toEqual({
             targetAmount: 1_000_000, currentAmount: 250_000, amountRemaining: 750_000,
-            progressPercent: 25, daysRemaining: 365, isComplete: false, isOverdue: false
+            progressPercent: 25, daysRemaining: 365, isComplete: false, isOverdue: false,
+            monthsRemaining: 12, monthlyContributionNeeded: 62_500
         });
     });
 
@@ -17,12 +18,33 @@ describe('calculateGoalProgress', () => {
         expect(result.progressPercent).toBe(120);
         expect(result.isComplete).toBe(true);
         expect(result.isOverdue).toBe(false);
+        expect(result.monthlyContributionNeeded).toBe(0);
+        expect(result.monthsRemaining).toBe(0);
     });
 
     it('flags an incomplete goal past its target date', () => {
         const result = calculateGoalProgress({ targetAmount: 100, currentAmount: 25, targetDate: '2026-10-17', asOfDate });
         expect(result.daysRemaining).toBe(-1);
         expect(result.isOverdue).toBe(true);
+        expect(result.monthlyContributionNeeded).toBeNull();
+        expect(result.monthsRemaining).toBe(0);
+    });
+
+
+    it('does not present an achievable monthly pace when the deadline is today', () => {
+        const result = calculateGoalProgress({
+            targetAmount: 100, currentAmount: 25, targetDate: '2026-10-18', asOfDate
+        });
+        expect(result.daysRemaining).toBe(0);
+        expect(result.monthlyContributionNeeded).toBeNull();
+        expect(result.monthsRemaining).toBe(0);
+    });
+
+    it('uses a zero monthly pace for a goal that already reached its target', () => {
+        const result = calculateGoalProgress({
+            targetAmount: 100, currentAmount: 100, targetDate: '2027-10-18', asOfDate
+        });
+        expect(result.monthlyContributionNeeded).toBe(0);
     });
 
     it.each([
