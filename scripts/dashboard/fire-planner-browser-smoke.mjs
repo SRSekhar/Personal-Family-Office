@@ -234,7 +234,7 @@ try {
     assert.equal((await page.locator('#goal-progress-percent').innerText()).trim(), '25%',
         'goal progress should reflect accumulated amount divided by target');
     assert.equal(await page.locator('#goal-progress-bar').getAttribute('aria-valuetext'), '25 percent of target');
-    await page.getByRole('button', { name: 'Reset goal' }).click();
+    await page.getByRole('button', { name: 'Clear form' }).click();
     assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
 
@@ -336,7 +336,45 @@ try {
         'confirmed replacement should recalculate totals from the new backup');
     process.stdout.write('PASS: confirming backup replacement imports the new records and recalculates totals.\n');
 
+    // Saved financial goals are private, persist across reloads, and support update/delete.
+    await page.locator('#goal-name').fill('Browser test emergency fund');
+    await page.locator('#goal-target').fill('500000');
+    await page.locator('#goal-current').fill('125000');
+    await page.locator('#goal-date').fill('2027-12-31');
+    await page.locator('#goal-save-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
+    assert.match(await page.locator('#saved-goals-count').innerText(), /1 goal/);
+    assert.match(await page.locator('#saved-goals-list').innerText(), /3,75,000/);
+    process.stdout.write('PASS: a financial goal can be saved with calculated progress in the private workspace.\\n');
+
     await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#switch-private-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
+    assert.match(await page.locator('#saved-goals-list').innerText(), /1,25,000 saved/,
+        'saved goal progress should persist across reloads');
+    await page.locator('[data-goal-edit]').click();
+    assert.equal(await page.locator('#goal-save-button').innerText(), 'Update saved goal');
+    await page.locator('#goal-current').fill('250000');
+    await page.locator('#goal-save-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('2,50,000 saved'));
+    process.stdout.write('PASS: saved goal can be edited and progress updates persist.\\n');
+
+    const deleteGoalConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('[data-goal-delete]').click();
+    assert.match(await deleteGoalConfirmation, /Delete saved goal "Browser test emergency fund"/);
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-empty')?.hidden === false);
+    assert.match(await page.locator('#saved-goals-count').innerText(), /0 goals/);
+    process.stdout.write('PASS: saved goal can be deleted after confirmation.\\n');
+
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#switch-private-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-count')?.textContent === '0 goals');
     let reachedFireInput = false;
     for (let index = 0; index < 40; index += 1) {
         await page.keyboard.press('Tab');

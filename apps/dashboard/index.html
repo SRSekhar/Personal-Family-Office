@@ -168,7 +168,7 @@
             </section>
             <section class="panel goal-tracker-panel" id="goal-tracker" aria-labelledby="goal-tracker-heading">
                 <div class="panel-header"><div><p class="eyebrow">FINANCIAL MILESTONES</p><h2 id="goal-tracker-heading">Goal tracker</h2></div><span class="panel-tag">Ephemeral · INR</span></div>
-                <p class="goal-tracker-intro">Track one financial target using your own figures. Inputs and results remain in memory only and are cleared on refresh. This tracker measures arithmetic progress; it does not project investment returns.</p>
+                <p class="goal-tracker-intro">Track multiple financial targets using your own figures. Saved goals stay in this browser’s private workspace and are never uploaded. Progress is arithmetic only; it does not project investment returns.</p>
                 <form id="goal-tracker-form">
                     <div class="goal-input-grid">
                         <label class="field-label" for="goal-name">Goal name<input id="goal-name" name="goalName" type="text" maxlength="80" required value="My financial goal"></label>
@@ -177,8 +177,14 @@
                         <label class="field-label" for="goal-date">Target date<input id="goal-date" name="targetDate" type="date" required></label>
                     </div>
                     <p id="goal-validation" class="fire-validation" role="alert" hidden></p>
-                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate goal progress</button><button class="button button-secondary" id="goal-reset-button" type="button">Reset goal</button></div>
+                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate goal progress</button><button class="button button-secondary" id="goal-save-button" type="button">Save goal</button><button class="button button-secondary" id="goal-cancel-edit-button" type="button" hidden>Cancel edit</button><button class="button button-secondary" id="goal-reset-button" type="button">Clear form</button></div>
                 </form>
+                <section id="saved-goals" class="saved-goals" aria-labelledby="saved-goals-heading">
+                    <div class="panel-header"><div><h3 id="saved-goals-heading">Saved goals</h3></div><span id="saved-goals-count" class="panel-tag">0 goals</span></div>
+                    <p id="saved-goals-empty" class="saved-goals-empty">Your saved goals will appear here. Save a goal to track it across visits.</p>
+                    <div id="saved-goals-list" class="saved-goals-list"></div>
+                    <p id="saved-goals-message" class="fire-validation" role="alert" hidden></p>
+                </section>
                 <section id="goal-results" class="goal-results" aria-labelledby="goal-results-heading" aria-live="polite" hidden>
                     <div class="fire-result-heading"><div><p class="eyebrow">GOAL STATUS</p><h3 id="goal-results-heading">Goal progress</h3></div><span id="goal-status" class="fire-status"></span></div>
                     <div class="goal-progress-heading"><strong id="goal-progress-percent">0%</strong><span id="goal-progress-detail">₹0 accumulated</span></div>

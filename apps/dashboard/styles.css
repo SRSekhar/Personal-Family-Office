@@ -16,3 +16,24 @@
 
 /* Keep wide FIRE comparison tables scrollable inside their panel on narrow screens. */
 .fire-compare-results .table-scroll{width:100%;max-width:100%;min-width:0;overflow-x:auto}
+
+
+/* Saved financial goals are stored only in the local private workspace. */
+.saved-goals{border-top:1px solid #e8eee8;margin-top:22px;padding-top:20px}
+.saved-goals h3{margin:0;font-size:14px}
+.saved-goals-empty{font-size:11px;line-height:1.6;color:#78857e;padding:12px 0}
+.saved-goals-list{display:grid;gap:10px;margin-top:12px}
+.saved-goal-card{border:1px solid #e3eae3;border-radius:9px;padding:14px;min-width:0}
+.saved-goal-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.saved-goal-heading h4{margin:0;font-size:13px;overflow-wrap:anywhere}
+.saved-goal-meta{font-size:10px;line-height:1.6;color:#78857e;margin:5px 0 10px}
+.saved-goal-progress{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:10px;color:#65766a}
+.saved-goal-progress strong{font-size:12px;color:#344c3b}
+.saved-goal-card progress{display:block;width:100%;height:9px;margin:7px 0 12px;accent-color:#176b4d}
+.saved-goal-actions{display:flex;flex-wrap:wrap;gap:7px}
+.saved-goal-actions .button{padding:7px 10px;font-size:10px}
+.saved-goal-status{display:inline-flex;align-items:center;border-radius:5px;padding:5px 7px;font-size:9px;font-weight:750;white-space:nowrap}
+.saved-goal-status.complete{background:#eaf5ed;color:#236d49}
+.saved-goal-status.overdue{background:#fff0e7;color:#995426}
+.saved-goal-status.progress{background:#edf3fb;color:#426b9b}
+@media(max-width:680px){.saved-goal-heading{align-items:flex-start}.saved-goal-actions .button{flex:1 1 auto}}
