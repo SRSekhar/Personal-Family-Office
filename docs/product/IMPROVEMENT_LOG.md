@@ -298,8 +298,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - The feature is disabled on non-loopback hosted origins. Transactions use a dedicated local-storage key and are not included in the existing asset/liability JSON backup; the dedicated cash-flow backup is separate by design for this increment.
 - PR #200 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow category breakdown — feature branch in progress
-- Added the next functional increment to the product backlog: group selected-period transactions by category and show income, expenses, and net cash flow side by side.
-- This reuses the existing transaction ledger and reporting-period selector; it does not change stored data, net-worth calculations, or the backup format.
+### Cash-flow category breakdown — PR #201 merged
+- Added a selected-period category table with income, expenses, and net cash flow, sorted deterministically by total category activity.
+- Reuses the existing local ledger and reporting-period selector without changing stored data, net-worth calculations, or the backup format.
+- PR #201 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow transaction filters — feature branch in progress
+- Added the next functional increment to the backlog: search transaction date/category/description, filter by income or expense, and reset filters.
+- The selected reporting period's summary cards and category totals remain period-wide; filters only change the visible transaction rows, and the count explains how many rows are shown.
 - Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
