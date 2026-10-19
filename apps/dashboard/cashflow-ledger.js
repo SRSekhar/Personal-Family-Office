@@ -132,7 +132,10 @@ export function sortCashFlowEntries(entries, order = 'date-newest') {
         || a.id.localeCompare(b.id));
 }
 
-export function filterCashFlowEntries(entries, { period = 'all', type = 'all', recurring = 'all', category = null, search = '' } = {}) {
+export function filterCashFlowEntries(entries, {
+    period = 'all', type = 'all', recurring = 'all', category = null,
+    fromDate = '', toDate = '', search = ''
+} = {}) {
     if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
         throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
     }
@@ -145,6 +148,15 @@ export function filterCashFlowEntries(entries, { period = 'all', type = 'all', r
     if (category !== null && (typeof category !== 'string' || category.trim() === '')) {
         throw new TypeError('Category must be null or a non-empty category name.');
     }
+    if (typeof fromDate !== 'string' || (fromDate !== '' && !isCalendarDate(fromDate))) {
+        throw new RangeError('Start date must be empty or a valid YYYY-MM-DD date.');
+    }
+    if (typeof toDate !== 'string' || (toDate !== '' && !isCalendarDate(toDate))) {
+        throw new RangeError('End date must be empty or a valid YYYY-MM-DD date.');
+    }
+    if (fromDate && toDate && fromDate > toDate) {
+        throw new RangeError('Start date must be on or before end date.');
+    }
     if (typeof search !== 'string') throw new TypeError('Search must be a string.');
     const query = search.trim().toLowerCase();
     return validateCashFlowEntries(entries)
@@ -152,6 +164,8 @@ export function filterCashFlowEntries(entries, { period = 'all', type = 'all', r
             && (type === 'all' || entry.type === type)
             && (recurring === 'all' || entry.recurring === (recurring === 'recurring'))
             && (category === null || entry.category === category)
+            && (!fromDate || entry.date >= fromDate)
+            && (!toDate || entry.date <= toDate)
             && (!query || [entry.date, entry.category, entry.description]
                 .some((value) => value.toLowerCase().includes(query))))
         .sort((a, b) => b.date.localeCompare(a.date)
