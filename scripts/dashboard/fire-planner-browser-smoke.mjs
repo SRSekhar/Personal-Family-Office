@@ -106,6 +106,20 @@ try {
     assert.ok(!filteredCsvText.includes('Mutual fund portfolio'), 'filtered CSV must exclude non-matching records');
     process.stdout.write('PASS: filtered CSV export contains only matching records.\n');
     await page.locator('#record-search').fill('');
+    const financialReportDownload = page.waitForEvent('download');
+    await page.locator('#export-report-button').click();
+    const financialReport = await financialReportDownload;
+    const financialReportHtml = await assertOfflineReport(
+        financialReport,
+        'pfo-os-financial-summary.html',
+        'Financial overview'
+    );
+    assert.ok(financialReportHtml.includes('Savings account'), 'financial report should include demo assets');
+    assert.ok(financialReportHtml.includes('Home loan'), 'financial report should include liabilities');
+    assert.ok(financialReportHtml.includes('does not track valuation dates'),
+        'financial report must disclose that records have no valuation dates');
+    assert.ok(financialReportHtml.includes('Net worth'), 'financial report should include a net-worth summary');
+    process.stdout.write('PASS: financial summary report downloads with totals, records, and valuation-date limitation.\\n');
 
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
     await page.locator('#fire-annual-contribution').fill('300000');
