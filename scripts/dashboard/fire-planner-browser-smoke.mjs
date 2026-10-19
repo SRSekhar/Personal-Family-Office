@@ -188,6 +188,27 @@ try {
         'comparison report should include all three scenario names');
     process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\n');
 
+    await page.setViewportSize({ width: 320, height: 800 });
+    const narrowComparison = await page.evaluate(() => {
+        const table = globalThis.document.querySelector('#fire-compare-results table');
+        const wrapper = table?.parentElement;
+        return {
+            viewportWidth: globalThis.window.innerWidth,
+            documentWidth: globalThis.document.documentElement.scrollWidth,
+            wrapperClientWidth: wrapper?.clientWidth ?? 0,
+            wrapperScrollWidth: wrapper?.scrollWidth ?? 0,
+            wrapperOverflowX: wrapper ? globalThis.getComputedStyle(wrapper).overflowX : 'missing'
+        };
+    });
+    assert.ok(narrowComparison.documentWidth <= narrowComparison.viewportWidth,
+        `320px comparison view should not create page-level horizontal overflow: ${JSON.stringify(narrowComparison)}`);
+    assert.ok(['auto', 'scroll'].includes(narrowComparison.wrapperOverflowX),
+        `wide comparison table should remain inside a horizontally scrollable wrapper: ${JSON.stringify(narrowComparison)}`);
+    assert.ok(narrowComparison.wrapperScrollWidth > narrowComparison.wrapperClientWidth,
+        `comparison table should scroll within its own container at narrow widths: ${JSON.stringify(narrowComparison)}`);
+    process.stdout.write('PASS: narrow comparison layout contains table overflow without widening the page.\\n');
+    await page.setViewportSize({ width: 1280, height: 800 });
+
     const futureDate = new Date();
     futureDate.setFullYear(futureDate.getFullYear() + 1);
     await page.locator('#goal-name').fill('Emergency fund');
