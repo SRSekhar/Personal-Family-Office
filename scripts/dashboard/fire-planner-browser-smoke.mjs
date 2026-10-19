@@ -348,6 +348,7 @@ try {
     process.stdout.write('PASS: a financial goal can be saved with calculated progress in the private workspace.\\n');
 
     await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#switch-private-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
     assert.match(await page.locator('#saved-goals-list').innerText(), /125,000 saved/,
         'saved goal progress should persist across reloads');
@@ -372,6 +373,8 @@ try {
     process.stdout.write('PASS: saved goal can be deleted after confirmation.\\n');
 
     await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#switch-private-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-count')?.textContent === '0 goals');
     let reachedFireInput = false;
     for (let index = 0; index < 40; index += 1) {
         await page.keyboard.press('Tab');
