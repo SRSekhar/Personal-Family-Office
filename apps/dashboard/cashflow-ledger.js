@@ -115,6 +115,23 @@ function csvCell(value) {
     return '"' + text.replaceAll('"', '""') + '"';
 }
 
+export function sortCashFlowEntries(entries, order = 'date-newest') {
+    const comparators = {
+        'date-newest': (a, b) => b.date.localeCompare(a.date),
+        'date-oldest': (a, b) => a.date.localeCompare(b.date),
+        'amount-high': (a, b) => b.amount - a.amount,
+        'amount-low': (a, b) => a.amount - b.amount,
+        'category-az': (a, b) => a.category.localeCompare(b.category, undefined, { sensitivity: 'base' })
+    };
+    if (!Object.hasOwn(comparators, order)) {
+        throw new RangeError('Order must be date-newest, date-oldest, amount-high, amount-low, or category-az.');
+    }
+    return validateCashFlowEntries(entries).sort((a, b) => comparators[order](a, b)
+        || b.date.localeCompare(a.date)
+        || a.description.localeCompare(b.description)
+        || a.id.localeCompare(b.id));
+}
+
 export function filterCashFlowEntries(entries, { period = 'all', type = 'all', recurring = 'all', search = '' } = {}) {
     if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
         throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
