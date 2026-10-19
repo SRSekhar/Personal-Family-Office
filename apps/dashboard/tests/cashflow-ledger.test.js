@@ -4,6 +4,7 @@ import {
     cashFlowToCsv,
     filterCashFlowEntries,
     isValidCashFlowEntry,
+    sortCashFlowEntries,
     summarizeCashFlow,
     summarizeCashFlowByCategory,
     validateCashFlowEntries
@@ -36,6 +37,26 @@ describe('cash flow ledger validation', () => {
     it('rejects duplicate IDs and non-array imports', () => {
         expect(() => validateCashFlowEntries([entries[0], entries[0]])).toThrow('invalid or duplicate');
         expect(() => validateCashFlowEntries({})).toThrow('must be an array');
+    });
+});
+
+describe('cash flow transaction sorting', () => {
+    it('sorts by date, amount, and category with deterministic tie-breaking', () => {
+        expect(sortCashFlowEntries(entries, 'date-newest').map((entry) => entry.id))
+            .toEqual(['e-1', 'i-1', 'e-2']);
+        expect(sortCashFlowEntries(entries, 'date-oldest').map((entry) => entry.id))
+            .toEqual(['e-2', 'i-1', 'e-1']);
+        expect(sortCashFlowEntries(entries, 'amount-high').map((entry) => entry.id))
+            .toEqual(['i-1', 'e-1', 'e-2']);
+        expect(sortCashFlowEntries(entries, 'amount-low').map((entry) => entry.id))
+            .toEqual(['e-2', 'e-1', 'i-1']);
+        expect(sortCashFlowEntries(entries, 'category-az').map((entry) => entry.id))
+            .toEqual(['e-2', 'e-1', 'i-1']);
+    });
+
+    it('rejects unsupported sort orders and invalid transaction lists', () => {
+        expect(() => sortCashFlowEntries(entries, 'random')).toThrow('Order must be');
+        expect(() => sortCashFlowEntries([{}])).toThrow('invalid or duplicate');
     });
 });
 
