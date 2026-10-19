@@ -65,7 +65,8 @@ export function summarizeCashFlow(entries, period = 'all') {
 
 function csvCell(value) {
     let text = String(value);
-    if (/^[\s\u0000-\u001f]*[=+@-]/.test(text)) text = "'" + text;
+    // trimStart neutralizes leading spaces and control whitespace before formula detection.
+    if (/^[=+@-]/.test(text.trimStart())) text = "'" + text;
     return '"' + text.replaceAll('"', '""') + '"';
 }
 
