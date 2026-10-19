@@ -353,8 +353,6 @@ try {
     assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
 
-    await page.locator('#switch-private-button').click();
-
     const cashFlowDate = await page.evaluate(() => {
         const now = new Date();
         return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
