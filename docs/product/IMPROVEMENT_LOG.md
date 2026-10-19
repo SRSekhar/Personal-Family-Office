@@ -308,8 +308,12 @@ Do not record personal financial values or claim customer demand without evidenc
 - Visible-row counts distinguish filtered rows from the period-wide summary and category totals.
 - PR #202 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow savings rate — feature branch in progress
+### Cash-flow savings rate — PR #203 merged
 - Added a selected-period savings-rate KPI defined as (income - expenses) / income, shown as a percentage.
 - Zero income produces an unavailable marker instead of division by zero; negative rates are allowed when expenses exceed income. The KPI is descriptive, not a recommendation.
+- PR #203 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow frequency filter — feature branch in progress
+- Added recurring vs one-time transaction filtering, building on the existing frequency flag without assuming an actual schedule or projecting future amounts.
 - Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 

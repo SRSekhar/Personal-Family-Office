@@ -71,6 +71,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         return filterCashFlowEntries(entries, {
             period: $('#cash-flow-period').value || 'all',
             type: $('#cash-flow-type-filter').value || 'all',
+            recurring: $('#cash-flow-frequency-filter').value || 'all',
             search: $('#cash-flow-search').value
         });
     }
@@ -108,7 +109,9 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             ? 'Unavailable when income is zero'
             : 'Net cash flow ÷ income';
         const shown = visibleEntries();
-        const filtersActive = $('#cash-flow-type-filter').value !== 'all' || $('#cash-flow-search').value.trim() !== '';
+        const filtersActive = $('#cash-flow-type-filter').value !== 'all'
+            || $('#cash-flow-frequency-filter').value !== 'all'
+            || $('#cash-flow-search').value.trim() !== '';
         $('#cash-flow-count').textContent = filtersActive
             ? shown.length + ' shown of ' + summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's')
             : summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's');
@@ -221,10 +224,12 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-cancel').addEventListener('click', resetForm);
     $('#cash-flow-period').addEventListener('change', render);
     $('#cash-flow-type-filter').addEventListener('change', render);
+    $('#cash-flow-frequency-filter').addEventListener('change', render);
     $('#cash-flow-search').addEventListener('input', render);
     $('#cash-flow-reset-filters').addEventListener('click', () => {
         $('#cash-flow-search').value = '';
         $('#cash-flow-type-filter').value = 'all';
+        $('#cash-flow-frequency-filter').value = 'all';
         render();
         $('#cash-flow-search').focus();
     });
