@@ -437,6 +437,31 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('2,50,000 saved'));
     process.stdout.write('PASS: saved goal can be edited and progress updates persist.\\n');
 
+    const cancelledDeleteConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.dismiss();
+            resolve(message);
+        });
+    });
+    await page.locator('[data-goal-delete]').click();
+    assert.match(await cancelledDeleteConfirmation, /Delete saved goal "Browser test emergency fund"/);
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
+    );
+    assert.match(await page.locator('#saved-goals-count').innerText(), /1 goal/,
+        'cancelling deletion should leave the saved goal in the list');
+    assert.match(await page.locator('#saved-goals-list').innerText(), /2,50,000 saved/,
+        'cancelling deletion should preserve the saved goal progress');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#switch-private-button').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
+    );
+    assert.match(await page.locator('#saved-goals-list').innerText(), /2,50,000 saved/,
+        'a cancelled deletion must preserve the persisted goal across reload');
+    process.stdout.write('PASS: cancelling saved-goal deletion preserves the goal and persisted progress.\\n');
+
     const deleteGoalConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
             const message = dialog.message();
