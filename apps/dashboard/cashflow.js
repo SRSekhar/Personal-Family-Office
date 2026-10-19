@@ -1,6 +1,6 @@
 import {
     calculateCashFlowSavingsRate, cashFlowToCsv, filterCashFlowEntries,
-    summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
+    sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
 } from './cashflow-ledger.js';
 
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
@@ -68,12 +68,13 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     }
 
     function visibleEntries() {
-        return filterCashFlowEntries(entries, {
+        const filtered = filterCashFlowEntries(entries, {
             period: $('#cash-flow-period').value || 'all',
             type: $('#cash-flow-type-filter').value || 'all',
             recurring: $('#cash-flow-frequency-filter').value || 'all',
             search: $('#cash-flow-search').value
         });
+        return sortCashFlowEntries(filtered, $('#cash-flow-sort-order').value || 'date-newest');
     }
 
     function refreshPeriodOptions() {
@@ -225,11 +226,13 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-period').addEventListener('change', render);
     $('#cash-flow-type-filter').addEventListener('change', render);
     $('#cash-flow-frequency-filter').addEventListener('change', render);
+    $('#cash-flow-sort-order').addEventListener('change', render);
     $('#cash-flow-search').addEventListener('input', render);
     $('#cash-flow-reset-filters').addEventListener('click', () => {
         $('#cash-flow-search').value = '';
         $('#cash-flow-type-filter').value = 'all';
         $('#cash-flow-frequency-filter').value = 'all';
+        $('#cash-flow-sort-order').value = 'date-newest';
         render();
         $('#cash-flow-search').focus();
     });
