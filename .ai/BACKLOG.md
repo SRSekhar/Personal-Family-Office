@@ -107,7 +107,8 @@ Implemented
 - Cash-flow transaction search, type filtering, visible-result counts, and reset controls (PR #202).
 - Cash-flow filtered CSV and full-ledger CSV export actions (PR #205).
 - Deterministic transaction sorting by date, amount, and category; filtered CSV follows the selected sort (PR #206).
-- In progress — dynamic category filtering combined with period, type, frequency, search, and sort controls.
+- Dynamic category filtering combined with period, type, frequency, search, and sort controls (PR #207).
+- In progress — duplicate a cash-flow transaction into a new unsaved form, requiring explicit confirmation via the normal Save action.
 - Selected-period savings-rate KPI calculated as net cash flow divided by income; unavailable when income is zero (PR #203).
 - Transaction frequency filter for recurring vs one-time cash-flow entries (PR #204).
 - In progress — distinguish CSV export of the currently filtered transaction rows from a full-ledger CSV export.

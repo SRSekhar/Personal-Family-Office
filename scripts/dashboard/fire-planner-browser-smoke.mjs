@@ -472,6 +472,18 @@ try {
         'deleting an expense should recalculate net cash flow');
     assert.equal(await page.locator('#cash-flow-savings-rate').innerText(), '100%',
         'savings rate should update when expenses are deleted');
+    const duplicateSalaryRow = page.locator('#cash-flow-rows tr').filter({ hasText: 'Browser test salary' });
+    await duplicateSalaryRow.getByRole('button', { name: 'Duplicate Browser test salary' }).click();
+    assert.equal(await page.locator('#cash-flow-save').innerText(), 'Save as new transaction',
+        'duplicate action should clearly indicate that a new entry will be created');
+    assert.equal(await page.locator('#cash-flow-description').inputValue(), 'Browser test salary',
+        'duplicate action should prefill the selected transaction');
+    await page.locator('#cash-flow-save').click();
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
+        'saving a duplicate should add a new transaction rather than edit the original');
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '220000',
+        'duplicating an income transaction should update totals using the edited source amount');
+    assert.match(await page.locator('#cash-flow-message').innerText(), /duplicated locally/);
     process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\\n');
     const [cashFlowCsvDownload] = await Promise.all([
         page.waitForEvent('download'),

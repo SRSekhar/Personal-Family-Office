@@ -328,8 +328,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Filtered CSV export follows the visible ordering; full-ledger CSV remains an unfiltered export.
 - PR #206 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow category filter — feature branch in progress
+### Cash-flow category filter — PR #207 merged
 - Added a dynamic category selector that composes with reporting period, transaction type, frequency, text search, and sort order.
-- Categories are derived from validated local entries; removed categories fall back to All categories rather than leaving a stale selection.
-- Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
+- Categories are derived from validated local entries; removed categories fall back to All categories rather than leaving a stale selection. A category literally named "all" remains filterable.
+- PR #207 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow transaction duplication — feature branch in progress
+- Added a Duplicate row action that pre-fills the transaction form as a new entry, leaving the original untouched.
+- Saving a duplicate creates a new ID through the existing add path; the action does not infer a recurrence schedule or automatically persist anything before Save.
+- Validation status: Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 

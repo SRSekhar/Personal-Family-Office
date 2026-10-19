@@ -30,6 +30,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     let entries = [];
     let storageHealthy = true;
     let editingId = null;
+    let duplicatingEntry = false;
 
     function message(text, isError = false) {
         $('#cash-flow-message').textContent = text;
@@ -170,6 +171,10 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             edit.type = 'button'; edit.className = 'row-action'; edit.textContent = 'Edit';
             edit.setAttribute('aria-label', 'Edit ' + entry.description);
             edit.addEventListener('click', () => beginEdit(entry));
+            const duplicate = documentRef.createElement('button');
+            duplicate.type = 'button'; duplicate.className = 'row-action'; duplicate.textContent = 'Duplicate';
+            duplicate.setAttribute('aria-label', 'Duplicate ' + entry.description);
+            duplicate.addEventListener('click', () => beginDuplicate(entry));
             const remove = documentRef.createElement('button');
             remove.type = 'button'; remove.className = 'row-action'; remove.textContent = 'Delete';
             remove.setAttribute('aria-label', 'Delete ' + entry.description);
@@ -178,7 +183,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                     if (save(entries.filter((item) => item.id !== entry.id))) message('Transaction deleted.');
                 }
             });
-            actions.append(edit, remove);
+            actions.append(edit, duplicate, remove);
             row.append(actions);
             body.append(row);
         }
@@ -190,12 +195,14 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-type').value = 'expense';
         $('#cash-flow-recurring').checked = false;
         editingId = null;
+        duplicatingEntry = false;
         $('#cash-flow-save').textContent = 'Add transaction';
         $('#cash-flow-cancel').hidden = true;
     }
 
     function beginEdit(entry) {
         editingId = entry.id;
+        duplicatingEntry = false;
         $('#cash-flow-date').value = entry.date;
         $('#cash-flow-type').value = entry.type;
         $('#cash-flow-category').value = entry.category;
@@ -203,6 +210,20 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-amount').value = String(entry.amount);
         $('#cash-flow-recurring').checked = entry.recurring;
         $('#cash-flow-save').textContent = 'Save changes';
+        $('#cash-flow-cancel').hidden = false;
+        $('#cash-flow-date').focus();
+    }
+
+    function beginDuplicate(entry) {
+        editingId = null;
+        duplicatingEntry = true;
+        $('#cash-flow-date').value = entry.date;
+        $('#cash-flow-type').value = entry.type;
+        $('#cash-flow-category').value = entry.category;
+        $('#cash-flow-description').value = entry.description;
+        $('#cash-flow-amount').value = String(entry.amount);
+        $('#cash-flow-recurring').checked = entry.recurring;
+        $('#cash-flow-save').textContent = 'Save as new transaction';
         $('#cash-flow-cancel').hidden = false;
         $('#cash-flow-date').focus();
     }
@@ -235,12 +256,13 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             return;
         }
         const wasEditing = Boolean(editingId);
+        const wasDuplicating = duplicatingEntry;
         const next = editingId
             ? entries.map((item) => item.id === editingId ? entry : item)
             : [...entries, entry];
         if (save(next)) {
             resetForm();
-            message(wasEditing ? 'Transaction updated.' : 'Transaction saved locally.');
+            message(wasEditing ? 'Transaction updated.' : wasDuplicating ? 'Transaction duplicated locally.' : 'Transaction saved locally.');
         }
     });
 
