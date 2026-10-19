@@ -291,10 +291,15 @@ Do not record personal financial values or claim customer demand without evidenc
 - Validation: PR #197 passed CI including the real Chromium smoke suite and full-history Secret Scan on final head `e4dfa1490ce8ec6ed032ffa68f7f1ec7054d4be3`; merged to `main` as `ab58002f820a7c87d112b4907fdef4d483707e98`.
 - This is automated narrow-viewport keyboard coverage using fictional browser data. Manual screen-reader and actual browser-zoom validation remain open.
 
-### Income and expense tracking — feature branch in progress
+### Income and expense tracking — PR #200 merged
 - Added a local-only transaction ledger for dated income and expenses, category/description, recurring flag, and positive monetary amounts.
 - Added month-scoped and all-time summaries for income, expenses, and net cash flow; this ledger remains separate from asset/liability records and does not alter net-worth calculations.
 - Added edit/delete flows, local JSON backup/restore, and CSV export with spreadsheet-formula neutralization. Imports validate the full payload before replacement; malformed saved data is left untouched and editing fails closed until recovery.
-- The feature is disabled on non-loopback hosted origins. Transactions use a dedicated local-storage key and are not currently included in the existing asset/liability JSON backup; the dedicated cash-flow backup is separate by design for this increment.
-- Validation status: automated tests and CI are pending on the feature pull request. Do not mark the feature complete until CI and security checks pass.
+- The feature is disabled on non-loopback hosted origins. Transactions use a dedicated local-storage key and are not included in the existing asset/liability JSON backup; the dedicated cash-flow backup is separate by design for this increment.
+- PR #200 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow category breakdown — feature branch in progress
+- Added the next functional increment to the product backlog: group selected-period transactions by category and show income, expenses, and net cash flow side by side.
+- This reuses the existing transaction ledger and reporting-period selector; it does not change stored data, net-worth calculations, or the backup format.
+- Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
