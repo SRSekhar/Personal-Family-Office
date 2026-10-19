@@ -343,8 +343,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - This is descriptive only and does not change category totals, transaction storage, or filtering.
 - PR #209 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow import preview — feature branch in progress
+### Cash-flow import preview — PR #210 merged
 - Before replacing the local cash-flow ledger, show the import's transaction count, total income, total expenses, and net cash flow in the confirmation dialog.
 - Cancelling leaves existing transactions unchanged; valid imports still pass full-ledger validation before any write.
-- Validation status: Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
+- PR #210 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow date-range filtering — feature branch in progress
+- Added inclusive start/end date filters that compose with reporting period, type, recurring frequency, category, text search, and sort order.
+- Invalid calendar dates and reversed ranges are rejected by the ledger filter; reset clears the date bounds, and filtered CSV follows the visible rows.
+- Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
