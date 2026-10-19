@@ -212,6 +212,17 @@
                     <article><span>Expenses</span><strong id="cash-flow-expense-total">₹0</strong></article>
                     <article><span>Net cash flow</span><strong id="cash-flow-net-total">₹0</strong></article>
                 </div>
+                <section class="cash-flow-category-panel" aria-labelledby="cash-flow-category-heading">
+                    <div class="panel-header"><div><p class="eyebrow">SPENDING &amp; EARNINGS</p><h3 id="cash-flow-category-heading">Cash flow by category</h3></div><span class="panel-tag">Selected period</span></div>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Income, expenses, and net cash flow grouped by category for the selected period</caption>
+                            <thead><tr><th scope="col">Category</th><th scope="col">Income</th><th scope="col">Expenses</th><th scope="col">Net</th></tr></thead>
+                            <tbody id="cash-flow-category-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-category-empty" class="cash-flow-empty">No category totals for this period.</p>
+                </section>
                 <form id="cash-flow-form" class="cash-flow-form">
                     <div class="cash-flow-input-grid">
                         <label class="field-label" for="cash-flow-date">Date<input id="cash-flow-date" type="date" required></label>
