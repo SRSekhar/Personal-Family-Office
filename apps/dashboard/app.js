@@ -5,6 +5,7 @@ import { calculateFinancialTotals } from './financial-totals.js';
 import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
+import { readSavedGoals, saveSavedGoals } from './goals-storage.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 import { calculateFireReadiness } from './calculators-runtime/FireReadiness.js';
 import { compareFireReadinessScenarios } from './calculators-runtime/FireScenarioComparison.js';
@@ -29,6 +30,9 @@ let records = [];
 let workspace = 'demo';
 let privateStorageHealthy = true;
 let editingId = null;
+let savedGoals = [];
+let goalsStorageHealthy = true;
+let editingGoalId = null;
 let toastTimer;
 let lastFireReportScenarios = [];
 let lastComparisonReportScenarios = [];
@@ -261,6 +265,19 @@ function resetFire() {
         $(`#fire-compare-${key}-timing`).value = 'end';
     }
 }
+function goalFormInput() {
+    const form = $('#goal-tracker-form');
+    const name = form.elements.goalName.value.trim();
+    if (!name) throw new RangeError('Enter a name for this goal.');
+    const input = {
+        targetAmount: Number(form.elements.targetAmount.value),
+        currentAmount: Number(form.elements.currentAmount.value),
+        targetDate: form.elements.targetDate.value
+    };
+    const result = calculateGoalProgress(input);
+    return { name, ...input, result };
+}
+
 function calculateGoal(event) {
     event?.preventDefault();
     const form = $('#goal-tracker-form');
@@ -271,24 +288,18 @@ function calculateGoal(event) {
         return;
     }
     try {
-        const name = form.elements.goalName.value.trim();
-        if (!name) throw new RangeError('Enter a name for this goal.');
-        const result = calculateGoalProgress({
-            targetAmount: Number(form.elements.targetAmount.value),
-            currentAmount: Number(form.elements.currentAmount.value),
-            targetDate: form.elements.targetDate.value
-        });
-        $('#goal-results-heading').textContent = name;
-        $('#goal-status').textContent = result.isComplete ? 'Goal reached' : result.isOverdue ? 'Past target date' : 'In progress';
-        $('#goal-status').className = 'fire-status ' + (result.isComplete ? 'on-track' : result.isOverdue ? 'shortfall' : 'on-track');
-        $('#goal-progress-percent').textContent = number(result.progressPercent) + '%';
-        $('#goal-progress-detail').textContent = money(result.currentAmount) + ' accumulated';
-        $('#goal-progress-bar').value = Math.min(100, result.progressPercent);
-        $('#goal-progress-bar').setAttribute('aria-valuetext', number(result.progressPercent) + ' percent of target');
-        $('#goal-target-result').textContent = money(result.targetAmount);
-        $('#goal-remaining-result').textContent = money(result.amountRemaining);
-        $('#goal-date-result').textContent = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(form.elements.targetDate.value + 'T00:00:00Z'));
-        $('#goal-time-result').textContent = result.isComplete ? 'Target reached' : result.daysRemaining < 0 ? Math.abs(result.daysRemaining) + ' days overdue' : result.daysRemaining + ' days remaining';
+        const goal = goalFormInput();
+        $('#goal-results-heading').textContent = goal.name;
+        $('#goal-status').textContent = goal.result.isComplete ? 'Goal reached' : goal.result.isOverdue ? 'Past target date' : 'In progress';
+        $('#goal-status').className = 'fire-status ' + (goal.result.isComplete ? 'on-track' : goal.result.isOverdue ? 'shortfall' : 'on-track');
+        $('#goal-progress-percent').textContent = number(goal.result.progressPercent) + '%';
+        $('#goal-progress-detail').textContent = money(goal.result.currentAmount) + ' accumulated';
+        $('#goal-progress-bar').value = Math.min(100, goal.result.progressPercent);
+        $('#goal-progress-bar').setAttribute('aria-valuetext', number(goal.result.progressPercent) + ' percent of target');
+        $('#goal-target-result').textContent = money(goal.result.targetAmount);
+        $('#goal-remaining-result').textContent = money(goal.result.amountRemaining);
+        $('#goal-date-result').textContent = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(goal.targetDate + 'T00:00:00Z'));
+        $('#goal-time-result').textContent = goal.result.isComplete ? 'Target reached' : goal.result.daysRemaining < 0 ? Math.abs(goal.result.daysRemaining) + ' days overdue' : goal.result.daysRemaining + ' days remaining';
         $('#goal-results').hidden = false;
     } catch (error) {
         $('#goal-results').hidden = true;
@@ -296,6 +307,140 @@ function calculateGoal(event) {
         $('#goal-validation').hidden = false;
     }
 }
+
+function showGoalMessage(message = '') {
+    $('#saved-goals-message').textContent = message;
+    $('#saved-goals-message').hidden = message === '';
+}
+
+function persistGoals(nextGoals) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname) || workspace !== 'private') {
+        showGoalMessage('Saved goals can only be managed in the loopback-only private workspace.');
+        return false;
+    }
+    if (!privateStorageHealthy || !goalsStorageHealthy) {
+        showGoalMessage('Goal changes are paused because saved workspace data could not be read safely. Existing data was left untouched.');
+        return false;
+    }
+    if (!saveSavedGoals(localStorage, nextGoals)) {
+        showGoalMessage('Could not save goals in this browser. Check storage availability; your previous saved goals are unchanged.');
+        return false;
+    }
+    savedGoals = nextGoals;
+    renderSavedGoals();
+    showGoalMessage();
+    return true;
+}
+
+function saveGoal() {
+    showGoalMessage();
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showGoalMessage('Use the loopback-only dashboard before saving personal financial goals.');
+        return;
+    }
+    if (workspace !== 'private') {
+        showGoalMessage('Switch to your private workspace before saving goals.');
+        return;
+    }
+    if (!$('#goal-tracker-form').reportValidity()) return;
+    try {
+        const input = goalFormInput();
+        const now = new Date().toISOString();
+        const existing = editingGoalId ? savedGoals.find((goal) => goal.id === editingGoalId) : null;
+        const goal = {
+            id: existing?.id ?? crypto.randomUUID(),
+            name: input.name,
+            targetAmount: input.targetAmount,
+            currentAmount: input.currentAmount,
+            targetDate: input.targetDate,
+            createdAt: existing?.createdAt ?? now,
+            updatedAt: now
+        };
+        const nextGoals = existing
+            ? savedGoals.map((item) => item.id === existing.id ? goal : item)
+            : [...savedGoals, goal];
+        if (persistGoals(nextGoals)) {
+            showToast(existing ? 'Saved goal updated.' : 'Goal saved in this browser.');
+            resetGoal();
+        }
+    } catch (error) {
+        showGoalMessage(error instanceof Error ? error.message : 'Check the goal details and try again.');
+    }
+}
+
+function editSavedGoal(id) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname) || workspace !== 'private') {
+        showGoalMessage('Switch to your local private workspace to edit saved goals.');
+        return;
+    }
+    const goal = savedGoals.find((item) => item.id === id);
+    if (!goal) return;
+    editingGoalId = goal.id;
+    const form = $('#goal-tracker-form');
+    form.elements.goalName.value = goal.name;
+    form.elements.targetAmount.value = String(goal.targetAmount);
+    form.elements.currentAmount.value = String(goal.currentAmount);
+    form.elements.targetDate.value = goal.targetDate;
+    $('#goal-save-button').textContent = 'Update saved goal';
+    $('#goal-cancel-edit-button').hidden = false;
+    $('#goal-validation').hidden = true;
+    $('#goal-results').hidden = true;
+    $('#goal-tracker-heading').scrollIntoView({ behavior: 'auto', block: 'start' });
+    form.elements.goalName.focus();
+}
+
+function deleteSavedGoal(id) {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname) || workspace !== 'private') {
+        showGoalMessage('Switch to your local private workspace to delete saved goals.');
+        return;
+    }
+    const goal = savedGoals.find((item) => item.id === id);
+    if (!goal || !window.confirm('Delete saved goal "' + goal.name + '"? This cannot be undone.')) return;
+    if (persistGoals(savedGoals.filter((item) => item.id !== id))) {
+        if (editingGoalId === id) resetGoal();
+        showToast('Saved goal deleted.');
+    }
+}
+
+function renderSavedGoals() {
+    const container = $('#saved-goals-list');
+    $('#saved-goals-count').textContent = savedGoals.length + (savedGoals.length === 1 ? ' goal' : ' goals');
+    $('#saved-goals-empty').hidden = savedGoals.length !== 0;
+    container.replaceChildren();
+    const formatter = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' });
+    for (const goal of savedGoals) {
+        let result;
+        try {
+            result = calculateGoalProgress({ targetAmount: goal.targetAmount, currentAmount: goal.currentAmount, targetDate: goal.targetDate });
+        } catch {
+            showGoalMessage('One or more saved goals are invalid. Existing saved data was left untouched.');
+            continue;
+        }
+        const card = document.createElement('article');
+        card.className = 'saved-goal-card';
+        const statusText = result.isComplete ? 'Goal reached' : result.isOverdue ? 'Past target date' : 'In progress';
+        const statusClass = result.isComplete ? 'complete' : result.isOverdue ? 'overdue' : 'progress';
+        card.innerHTML = `<div class="saved-goal-heading"><div><h4>${escapeHtml(goal.name)}</h4><p class="saved-goal-meta">Target ${escapeHtml(money(goal.targetAmount))} · Due ${escapeHtml(formatter.format(new Date(goal.targetDate + 'T00:00:00Z')))}</p></div><span class="saved-goal-status ${statusClass}">${statusText}</span></div><div class="saved-goal-progress"><span>${escapeHtml(money(goal.currentAmount))} saved</span><strong>${escapeHtml(number(result.progressPercent))}%</strong></div><progress max="100" value="${Math.min(100, result.progressPercent)}" aria-label="${escapeHtml(goal.name)} progress">${Math.min(100, result.progressPercent)}%</progress><p class="saved-goal-meta">${result.isComplete ? 'Target reached' : result.isOverdue ? Math.abs(result.daysRemaining) + ' days overdue · ' + escapeHtml(money(result.amountRemaining)) + ' remaining' : result.daysRemaining + ' days remaining · ' + escapeHtml(money(result.amountRemaining)) + ' remaining'}</p><div class="saved-goal-actions"><button class="button button-secondary" type="button" data-goal-edit="${escapeHtml(goal.id)}">Edit / update progress</button><button class="button button-secondary" type="button" data-goal-delete="${escapeHtml(goal.id)}">Delete goal</button></div>`;
+        container.append(card);
+    }
+    const canManage = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname) && privateStorageHealthy && goalsStorageHealthy;
+    container.querySelectorAll('[data-goal-edit], [data-goal-delete]').forEach((button) => { button.disabled = !canManage; });
+}
+
+function loadSavedGoals() {
+    if (workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) {
+        savedGoals = [];
+        goalsStorageHealthy = true;
+        renderSavedGoals();
+        return;
+    }
+    const result = readSavedGoals(localStorage);
+    goalsStorageHealthy = result.ok;
+    savedGoals = result.records;
+    renderSavedGoals();
+    if (!result.ok) showToast('Saved goals could not be safely read. They have been left untouched and goal edits are paused.');
+}
+
 function resetGoal() {
     const form = $('#goal-tracker-form');
     form.reset();
@@ -303,6 +448,9 @@ function resetGoal() {
     form.elements.targetAmount.value = '1000000';
     form.elements.currentAmount.value = '0';
     form.elements.targetDate.value = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
+    editingGoalId = null;
+    $('#goal-save-button').textContent = 'Save goal';
+    $('#goal-cancel-edit-button').hidden = true;
     $('#goal-validation').hidden = true;
     $('#goal-results').hidden = true;
 }
@@ -323,6 +471,7 @@ function showLocalWorkspaceRequired() {
 function switchWorkspace(nextWorkspace) {
     workspace = nextWorkspace;
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
+    loadSavedGoals();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
     $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
@@ -598,6 +747,14 @@ $('#fire-compare-run').addEventListener('click', compareFireScenarios);
 $('#fire-comparison').addEventListener('input', () => { setCompareValidation(); $('#fire-compare-results').hidden = true; });
 $('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-results').hidden = true; $('#fire-compare-results').hidden = true; lastFireReportScenarios = []; lastComparisonReportScenarios = []; });
 $('#goal-tracker-form').addEventListener('submit', calculateGoal);
+$('#goal-save-button').addEventListener('click', saveGoal);
+$('#goal-cancel-edit-button').addEventListener('click', resetGoal);
+$('#saved-goals-list').addEventListener('click', (event) => {
+    const button = event.target.closest('button');
+    if (!button) return;
+    if (button.dataset.goalEdit) editSavedGoal(button.dataset.goalEdit);
+    if (button.dataset.goalDelete) deleteSavedGoal(button.dataset.goalDelete);
+});
 $('#goal-reset-button').addEventListener('click', resetGoal);
 $('#goal-tracker-form').addEventListener('input', () => { $('#goal-results').hidden = true; $('#goal-validation').hidden = true; });
 $('#add-record-button').addEventListener('click', () => openRecordDialog());
@@ -724,6 +881,7 @@ window.addEventListener('hashchange', syncActiveNavigation);
 syncActiveNavigation();
 
 resetGoal();
+renderSavedGoals();
 showHostedPrivacyWarning();
 if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#fire-planner-hosted-notice').hidden = false;
