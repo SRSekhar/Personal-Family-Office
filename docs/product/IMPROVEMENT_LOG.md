@@ -290,3 +290,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - The first run exposed an overly strict single-Tab assertion: focus did not land directly on the report action at narrow width. The test now searches a bounded number of Tab presses for the expected control, matching the suite's existing robust focus-navigation pattern.
 - Validation: PR #197 passed CI including the real Chromium smoke suite and full-history Secret Scan on final head `e4dfa1490ce8ec6ed032ffa68f7f1ec7054d4be3`; merged to `main` as `ab58002f820a7c87d112b4907fdef4d483707e98`.
 - This is automated narrow-viewport keyboard coverage using fictional browser data. Manual screen-reader and actual browser-zoom validation remain open.
+
+### Income and expense tracking — feature branch in progress
+- Added a local-only transaction ledger for dated income and expenses, category/description, recurring flag, and positive monetary amounts.
+- Added month-scoped and all-time summaries for income, expenses, and net cash flow; this ledger remains separate from asset/liability records and does not alter net-worth calculations.
+- Added edit/delete flows, local JSON backup/restore, and CSV export with spreadsheet-formula neutralization. Imports validate the full payload before replacement; malformed saved data is left untouched and editing fails closed until recovery.
+- The feature is disabled on non-loopback hosted origins. Transactions use a dedicated local-storage key and are not currently included in the existing asset/liability JSON backup; the dedicated cash-flow backup is separate by design for this increment.
+- Validation status: automated tests and CI are pending on the feature pull request. Do not mark the feature complete until CI and security checks pass.
+
