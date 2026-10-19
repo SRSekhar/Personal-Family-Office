@@ -236,3 +236,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - The record editor now includes the current non-standard category as an option while editing, preserving imported data unless the user deliberately changes the category.
 - Added Chromium coverage that imports a fictional custom category, edits the record name, and verifies the category remains unchanged.
 - Validation: PR #176 passed CI (41 test files plus the Chromium custom-category edit regression), full-history Secret Scan, and dashboard packaging on exact head `5cf9e8d110336fcc9cf82b6d600c8c5a93dafa41`; merged to `main` as `ab0b6a20670255affc0d947e3ec5be2ae543e2e3`. Post-merge main-branch checks were running at the time this entry was prepared.
+
+### FIRE planner reset regression coverage — PR #178
+- Extended the real Chromium smoke workflow to exercise the Reset assumptions action after single-scenario and three-scenario report generation.
+- Verified the main assumptions return to their documented defaults, and reset clears readiness/contribution/comparison results, both report-download actions, and validation messaging so stale calculations cannot be mistaken for current results.
+- Validation: PR #178 passed CI, including the real-browser FIRE planner smoke test, and full-history Secret Scan on exact head `fa08ac5688333953c0a8674b71d3fae3a6e71a4f`; merged to `main` as `a97b0d66b13ba0668bbbc49f8d2a9ae035e6c1e9`.
+- Scope stayed test-only; no product behavior or household financial data changed.
