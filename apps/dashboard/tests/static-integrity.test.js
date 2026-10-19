@@ -67,10 +67,6 @@ describe('dashboard static integrity', () => {
         expect(css).toMatch(/\.skip-link:focus\s*\{[^}]*transform:\s*translateY\(0\)/);
     });
 
-});
-
-
-
     it('keeps navigation state synchronized with direct links and browser history', async () => {
         const app = await readDashboardFile('app.js');
         expect(app).toContain('function syncActiveNavigation()');
@@ -81,6 +77,10 @@ describe('dashboard static integrity', () => {
         expect(app).toContain("item.setAttribute('aria-current', 'page')");
         expect(app).toContain("$('#page-breadcrumb').textContent = activeItem.textContent.trim()");
     });
+
+});
+
+
 
 describe('FIRE planner interaction contracts', () => {
     it('validates required form fields before solving for an annual contribution', async () => {
