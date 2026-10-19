@@ -13,6 +13,8 @@ export interface GoalProgressResult {
     daysRemaining: number;
     isComplete: boolean;
     isOverdue: boolean;
+    monthsRemaining: number;
+    monthlyContributionNeeded: number | null;
 }
 
 /** Calculates arithmetic progress toward a financial target without projecting returns. */
@@ -44,7 +46,12 @@ export function calculateGoalProgress(input: GoalProgressInput): GoalProgressRes
     const amountRemaining = Math.max(0, input.targetAmount - input.currentAmount);
     const progressPercent = input.currentAmount / input.targetAmount * 100;
     const daysRemaining = Math.trunc((targetTimestamp - asOfTimestamp) / 86_400_000);
-    if (![amountRemaining, progressPercent, daysRemaining].every(Number.isFinite)) {
+    const monthsRemaining = daysRemaining > 0 ? Math.max(1, Math.ceil(daysRemaining / (365.2425 / 12))) : 0;
+    const monthlyContributionNeeded = amountRemaining === 0
+        ? 0
+        : monthsRemaining > 0 ? amountRemaining / monthsRemaining : null;
+    if (![amountRemaining, progressPercent, daysRemaining, monthsRemaining].every(Number.isFinite)
+        || (monthlyContributionNeeded !== null && !Number.isFinite(monthlyContributionNeeded))) {
         throw new RangeError('Goal progress is outside the supported numeric range.');
     }
 
@@ -55,6 +62,8 @@ export function calculateGoalProgress(input: GoalProgressInput): GoalProgressRes
         progressPercent,
         daysRemaining,
         isComplete: input.currentAmount >= input.targetAmount,
-        isOverdue: daysRemaining < 0 && input.currentAmount < input.targetAmount
+        isOverdue: daysRemaining < 0 && input.currentAmount < input.targetAmount,
+        monthsRemaining,
+        monthlyContributionNeeded
     };
 }
