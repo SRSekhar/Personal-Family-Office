@@ -280,7 +280,6 @@ function goalFormInput() {
 
 function calculateGoal(event) {
     event?.preventDefault();
-    const form = $('#goal-tracker-form');
     $('#goal-validation').hidden = true;
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         $('#goal-validation').textContent = 'Use the loopback-only dashboard before entering personal financial goals.';
