@@ -506,6 +506,22 @@ try {
         `narrow viewport should not cause page-level horizontal overflow (viewport ${viewport.width}, document ${viewport.documentWidth}, offenders ${JSON.stringify(viewport.offenders)})`);
     process.stdout.write('PASS: keyboard tab order reaches FIRE controls and 320px layout has no page-level horizontal overflow.\n');
 
+    await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
+    await page.locator('#fire-annual-contribution').fill('500000');
+    await page.getByLabel('Years until retirement').fill('0');
+    await page.getByLabel('Expected annual return (%)').fill('7');
+    await page.getByLabel('Annual inflation (%)').fill('3');
+    await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
+    await page.getByLabel('Initial withdrawal rate (%)').fill('4');
+    await page.getByRole('button', { name: 'Calculate readiness' }).click();
+    assert.equal(await page.locator('#fire-results').isVisible(), true,
+        'zero years until retirement should be a valid boundary scenario');
+    assert.equal((await page.locator('#fire-projected-portfolio').innerText()).replaceAll('₹', '').replaceAll(',', '').trim(), '10000000',
+        'with zero years, projected portfolio should equal the current portfolio regardless of annual contribution');
+    assert.equal((await page.locator('#fire-target-corpus').innerText()).replaceAll('₹', '').replaceAll(',', '').trim(), '15000000',
+        'with zero years, target corpus should use current annual spending without future inflation');
+    process.stdout.write('PASS: zero-year FIRE boundary preserves current portfolio and applies no future inflation.\\n');
+
     await page.locator('#fire-reset-button').click();
     assert.equal(await page.locator('#fire-current-portfolio').inputValue(), '0',
         'reset should restore the current portfolio default');
