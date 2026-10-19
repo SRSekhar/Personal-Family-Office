@@ -567,7 +567,10 @@ function renderRecords() {
 
 function updateCategoryOptions(selectedCategory) {
     const type = $('#record-type').value;
-    const categories = type === 'asset' ? ASSET_CATEGORIES : LIABILITY_CATEGORIES;
+    const standardCategories = type === 'asset' ? ASSET_CATEGORIES : LIABILITY_CATEGORIES;
+    const categories = selectedCategory && !standardCategories.includes(selectedCategory)
+        ? [...standardCategories, selectedCategory]
+        : standardCategories;
     $('#record-category').innerHTML = categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('');
     if (categories.includes(selectedCategory)) $('#record-category').value = selectedCategory;
 }
