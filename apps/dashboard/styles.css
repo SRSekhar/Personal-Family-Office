@@ -67,3 +67,11 @@
 .cash-flow-empty[hidden]{display:none}
 @media(max-width:900px){.cash-flow-input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:680px){.cash-flow-panel{padding:16px}.cash-flow-summary{grid-template-columns:1fr}.cash-flow-input-grid{grid-template-columns:minmax(0,1fr)}.cash-flow-toolbar{align-items:stretch;flex-direction:column}.cash-flow-toolbar .field-label{min-width:0}.cash-flow-toolbar .fire-actions{margin-left:0}.cash-flow-toolbar .button{flex:1}}
+
+.cash-flow-category-panel{margin:18px 0 22px;padding:14px;border:1px solid #e8eee8;border-radius:10px;background:#fcfdfc}
+.cash-flow-category-panel .panel-header{margin-bottom:10px}
+.cash-flow-category-panel h3{margin:0;font-size:15px;color:#263b2d}
+.cash-flow-category-table-wrap{width:100%;max-width:100%;overflow-x:auto}
+.cash-flow-category-table-wrap table{width:100%;min-width:430px}
+.cash-flow-category-table-wrap th:not(:first-child),.cash-flow-category-table-wrap td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.cash-flow-category-table-wrap td:first-child{font-weight:600}
