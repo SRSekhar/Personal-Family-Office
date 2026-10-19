@@ -377,6 +377,11 @@ try {
     assert.equal((await page.locator('#cash-flow-net-total').innerText()).replace(/[^0-9]/g, ''), '80000',
         'cash flow should calculate net cash flow');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'cash flow should list both transactions');
+    assert.equal(await page.locator('#cash-flow-category-rows tr').count(), 2,
+        'cash flow should summarize each category for the selected period');
+    const housingCategory = page.locator('#cash-flow-category-rows tr').filter({ hasText: 'Housing' });
+    assert.equal((await housingCategory.locator('td').nth(2).innerText()).replace(/[^0-9]/g, ''), '20000',
+        'category summary should show expenses in the correct category');
     await page.reload({ waitUntil: 'networkidle' });
     assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
         'cash flow transactions should persist across reloads');

@@ -169,7 +169,7 @@ Implemented
 
 Planned
 
-- Charts and historical timeline after snapshot requirements are validated
+- Cash-flow charts and historical timeline after snapshot requirements are validated
 - Portfolio explorer and additional KPIs after customer discovery
 
 ---
