@@ -359,8 +359,10 @@ try {
     assert.match(await csvImportConfirmation, /replace all financial records in your private workspace/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#records-body')?.innerText.includes('Savings account')
-        && globalThis.document.querySelector('#records-body')?.innerText.includes('Home loan')
     );
+    await page.locator('#view-all-button').click();
+    assert.ok((await page.locator('#records-body').innerText()).includes('Home loan'),
+        'view all should reveal the sixth imported record');
     assert.match(await page.locator('#net-worth').innerText(), /63,30,000/,
         'CSV import should recalculate totals from all imported rows');
     assert.ok((await page.locator('#saved-goals-list').innerText()).includes('Browser test emergency fund'),
