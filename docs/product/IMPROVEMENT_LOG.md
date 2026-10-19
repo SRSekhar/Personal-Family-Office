@@ -227,5 +227,12 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a deterministic estimate of the approximate monthly amount needed to close the remaining goal gap, dividing the remaining amount by the approximate number of months until the target date.
 - The estimate explicitly assumes no interest or investment returns. Completed goals show no further pace required; goals due today or overdue do not show a misleading achievable monthly amount.
 - Added calculator tests and Chromium assertions for the single-goal result and saved-goal cards.
-- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the goal-savings-pace PR.
+- Validation: PR #175 passed CI (41 test files plus Chromium goal progress assertions), full-history Secret Scan, and dashboard packaging on exact head `a1091588c4ef28adb04fc264da60c9ce6e810e5c`; merged to `main` as `6a8685fb2f61cdf15a4fb0b4796a1f2c258c4443`. The estimate is an arithmetic illustration, not a forecast or investment recommendation.
 - No new financial data is inferred or persisted; the estimate is derived from the user-entered target, accumulated amount, and target date.
+
+
+### Preserve custom categories on imported-record edits — implementation in progress
+- CSV and JSON imports accept user-defined category strings, while the record editor offers the built-in categories. Previously, opening and saving an imported record with a custom category could silently change it to the first built-in category.
+- The record editor now includes the current non-standard category as an option while editing, preserving imported data unless the user deliberately changes the category.
+- Added Chromium coverage that imports a fictional custom category, edits the record name, and verifies the category remains unchanged.
+- Validation status: pending CI, full-history Secret Scan, and dashboard packaging on the custom-category fix PR.
