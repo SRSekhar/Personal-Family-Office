@@ -99,6 +99,12 @@ describe('cash flow summaries', () => {
         expect(filterCashFlowEntries(entries, { category: 'Housing', type: 'income' })).toEqual([]);
         expect(filterCashFlowEntries([{ ...entries[0], category: 'all' }], { category: 'all' }).map((entry) => entry.id))
             .toEqual(['i-1']);
+        expect(filterCashFlowEntries(entries, { fromDate: '2026-10-01' }).map((entry) => entry.id))
+            .toEqual(['e-1', 'i-1']);
+        expect(filterCashFlowEntries(entries, { toDate: '2026-10-01' }).map((entry) => entry.id))
+            .toEqual(['i-1', 'e-2']);
+        expect(filterCashFlowEntries(entries, { fromDate: '2026-10-01', toDate: '2026-10-01' }).map((entry) => entry.id))
+            .toEqual(['i-1']);
         expect(filterCashFlowEntries(entries, { search: 'no match' })).toEqual([]);
     });
 
@@ -108,6 +114,9 @@ describe('cash flow summaries', () => {
         expect(() => filterCashFlowEntries(entries, { recurring: 'sometimes' })).toThrow('Frequency must be');
         expect(() => filterCashFlowEntries(entries, { category: '' })).toThrow('Category must be');
         expect(() => filterCashFlowEntries(entries, { category: 12 })).toThrow('Category must be');
+        expect(() => filterCashFlowEntries(entries, { fromDate: '2026-02-29' })).toThrow('Start date must be');
+        expect(() => filterCashFlowEntries(entries, { toDate: '2026-13-01' })).toThrow('End date must be');
+        expect(() => filterCashFlowEntries(entries, { fromDate: '2026-10-03', toDate: '2026-10-01' })).toThrow('on or before');
         expect(() => filterCashFlowEntries(entries, { search: 12 })).toThrow('Search must be a string');
     });
 

@@ -74,6 +74,8 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             type: $('#cash-flow-type-filter').value || 'all',
             recurring: $('#cash-flow-frequency-filter').value || 'all',
             category: $('#cash-flow-category-filter').value || null,
+            fromDate: $('#cash-flow-date-from').value,
+            toDate: $('#cash-flow-date-to').value,
             search: $('#cash-flow-search').value
         });
         return sortCashFlowEntries(filtered, $('#cash-flow-sort-order').value || 'date-newest');
@@ -135,6 +137,8 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const filtersActive = $('#cash-flow-type-filter').value !== 'all'
             || $('#cash-flow-frequency-filter').value !== 'all'
             || $('#cash-flow-category-filter').value !== ''
+            || $('#cash-flow-date-from').value !== ''
+            || $('#cash-flow-date-to').value !== ''
             || $('#cash-flow-search').value.trim() !== '';
         $('#cash-flow-count').textContent = filtersActive
             ? shown.length + ' shown of ' + summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's')
@@ -271,6 +275,8 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-type-filter').addEventListener('change', render);
     $('#cash-flow-frequency-filter').addEventListener('change', render);
     $('#cash-flow-category-filter').addEventListener('change', render);
+    $('#cash-flow-date-from').addEventListener('change', render);
+    $('#cash-flow-date-to').addEventListener('change', render);
     $('#cash-flow-sort-order').addEventListener('change', render);
     $('#cash-flow-search').addEventListener('input', render);
     $('#cash-flow-reset-filters').addEventListener('click', () => {
@@ -278,6 +284,8 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-type-filter').value = 'all';
         $('#cash-flow-frequency-filter').value = 'all';
         $('#cash-flow-category-filter').value = '';
+        $('#cash-flow-date-from').value = '';
+        $('#cash-flow-date-to').value = '';
         $('#cash-flow-sort-order').value = 'date-newest';
         render();
         $('#cash-flow-search').focus();

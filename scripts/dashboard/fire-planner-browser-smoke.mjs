@@ -390,6 +390,14 @@ try {
     assert.match(await page.locator('#cash-flow-empty').innerText(), /No transactions match/);
     await page.locator('#cash-flow-reset-filters').click();
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should restore visible transactions');
+    const cashFlowRangeTomorrow = new Date();
+    cashFlowRangeTomorrow.setDate(cashFlowRangeTomorrow.getDate() + 1);
+    const cashFlowRangeTomorrowString = [cashFlowRangeTomorrow.getFullYear(), String(cashFlowRangeTomorrow.getMonth() + 1).padStart(2, '0'), String(cashFlowRangeTomorrow.getDate()).padStart(2, '0')].join('-');
+    await page.locator('#cash-flow-date-from').fill(cashFlowRangeTomorrowString);
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 0, 'date range should exclude earlier transactions');
+    assert.match(await page.locator('#cash-flow-empty').innerText(), /No transactions match/);
+    await page.locator('#cash-flow-reset-filters').click();
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should clear date range filters');
     await page.locator('#cash-flow-category-filter').selectOption({ label: 'Housing' });
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'category filter should show only matching transactions');
     assert.match(await page.locator('#cash-flow-rows tr').first().innerText(), /Browser test rent/,
