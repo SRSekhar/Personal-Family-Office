@@ -516,9 +516,9 @@ try {
     await page.getByRole('button', { name: 'Calculate readiness' }).click();
     assert.equal(await page.locator('#fire-results').isVisible(), true,
         'zero years until retirement should be a valid boundary scenario');
-    assert.equal((await page.locator('#fire-projected-portfolio').innerText()).replace(/\\D/g, ''), '10000000',
+    assert.equal((await page.locator('#fire-projected-portfolio').innerText()).replaceAll('₹', '').replaceAll(',', '').trim(), '10000000',
         'with zero years, projected portfolio should equal the current portfolio regardless of annual contribution');
-    assert.equal((await page.locator('#fire-target-corpus').innerText()).replace(/\\D/g, ''), '15000000',
+    assert.equal((await page.locator('#fire-target-corpus').innerText()).replaceAll('₹', '').replaceAll(',', '').trim(), '15000000',
         'with zero years, target corpus should use current annual spending without future inflation');
     process.stdout.write('PASS: zero-year FIRE boundary preserves current portfolio and applies no future inflation.\\n');
 
