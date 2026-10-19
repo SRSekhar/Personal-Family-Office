@@ -333,8 +333,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Categories are derived from validated local entries; removed categories fall back to All categories rather than leaving a stale selection. A category literally named "all" remains filterable.
 - PR #207 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow transaction duplication — feature branch in progress
+### Cash-flow transaction duplication — PR #208 merged
 - Added a Duplicate row action that pre-fills the transaction form as a new entry, leaving the original untouched.
 - Saving a duplicate creates a new ID through the existing add path; the action does not infer a recurrence schedule or automatically persist anything before Save.
+- PR #208 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow category transaction counts — feature branch in progress
+- Exposed the existing per-category transaction count in the category breakdown table.
+- This is descriptive only and does not change category totals, transaction storage, or filtering.
 - Validation status: Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
