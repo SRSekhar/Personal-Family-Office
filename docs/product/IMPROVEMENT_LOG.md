@@ -318,8 +318,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - The existing boolean flag is treated as a label only; no schedule cadence or future amount is inferred.
 - PR #204 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow CSV export scope — feature branch in progress
+### Cash-flow CSV export scope — PR #205 merged
 - Added explicit filtered-row and full-ledger CSV export actions so the downloaded scope is clear.
 - Browser regression coverage verifies that filtered export includes visible matching transactions and excludes rows outside the active filter.
+- PR #205 passed unit tests, CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow transaction sorting — feature branch in progress
+- Added deterministic date, amount, and category sort options to the filtered transaction view.
+- Filtered CSV export follows the visible ordering; full-ledger CSV remains an unfiltered export.
 - Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
