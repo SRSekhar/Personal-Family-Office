@@ -348,6 +348,39 @@ try {
     assert.match(await page.locator('#saved-goals-list').innerText(), /3,75,000/);
     process.stdout.write('PASS: a financial goal can be saved with calculated progress in the private workspace.\\n');
 
+    const csvImportConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-csv-file').setInputFiles(fullCsvPath);
+    assert.match(await csvImportConfirmation, /replace all financial records in your private workspace/i);
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#records-body')?.innerText.includes('Savings account')
+        && globalThis.document.querySelector('#records-body')?.innerText.includes('Home loan')
+    );
+    assert.match(await page.locator('#net-worth').innerText(), /63,30,000/,
+        'CSV import should recalculate totals from all imported rows');
+    assert.ok((await page.locator('#saved-goals-list').innerText()).includes('Browser test emergency fund'),
+        'CSV import must preserve saved goals');
+    process.stdout.write('PASS: CSV import replaces financial records, recalculates totals, and preserves saved goals.\\n');
+
+    await page.locator('#import-csv-file').setInputFiles({
+        name: 'invalid-records.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('Name,Value\\nCash,1')
+    });
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('Unsupported CSV format')
+    );
+    assert.ok((await page.locator('#records-body').innerText()).includes('Savings account'),
+        'invalid CSV must not overwrite imported records');
+    assert.ok((await page.locator('#saved-goals-list').innerText()).includes('Browser test emergency fund'),
+        'invalid CSV must not alter saved goals');
+    process.stdout.write('PASS: malformed CSV is rejected without changing records or saved goals.\\n');
+
     const [goalBackupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
