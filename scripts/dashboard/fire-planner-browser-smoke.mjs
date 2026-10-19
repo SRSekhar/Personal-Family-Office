@@ -356,7 +356,7 @@ try {
     assert.equal(await page.locator('#goal-save-button').innerText(), 'Update saved goal');
     await page.locator('#goal-current').fill('250000');
     await page.locator('#goal-save-button').click();
-    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('250,000 saved'));
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('2,50,000 saved'));
     process.stdout.write('PASS: saved goal can be edited and progress updates persist.\\n');
 
     const deleteGoalConfirmation = new Promise((resolve) => {
