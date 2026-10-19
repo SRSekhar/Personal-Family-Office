@@ -139,7 +139,19 @@ try {
     await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
     await page.getByLabel('Initial withdrawal rate (%)').fill('4');
 
-    await page.getByRole('button', { name: 'Calculate readiness' }).click();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    assert.equal(
+        await page.evaluate(() => globalThis.document.activeElement?.textContent?.trim()),
+        'Calculate readiness',
+        'keyboard navigation from the final assumption should reach the readiness action in tab order'
+    );
+    await page.keyboard.press('Enter');
+    assert.equal(
+        await page.evaluate(() => globalThis.document.activeElement?.textContent?.trim()),
+        'Calculate readiness',
+        'activating readiness should preserve focus on its action button'
+    );
     assert.equal(await page.locator('#fire-results').isVisible(), true, 'readiness results should appear');
     assert.notEqual((await page.locator('#fire-projected-portfolio').innerText()).trim(), '—');
     assert.notEqual((await page.locator('#fire-target-corpus').innerText()).trim(), '—');
@@ -162,9 +174,19 @@ try {
     assert.match(await page.locator('#fire-required-result').innerText(), /Required constant annual contribution:/);
     process.stdout.write('PASS: required annual contribution solver returns a visible result.\n');
 
+    let reachedSingleReportDownload = false;
+    for (let index = 0; index < 6; index += 1) {
+        await page.keyboard.press('Tab');
+        if (await page.evaluate(() => globalThis.document.activeElement?.id === 'fire-download-report')) {
+            reachedSingleReportDownload = true;
+            break;
+        }
+    }
+    assert.equal(reachedSingleReportDownload, true,
+        'keyboard tab order should reach the single-scenario report download action');
     const [singleDownload] = await Promise.all([
         page.waitForEvent('download'),
-        page.getByRole('button', { name: 'Download offline HTML report' }).click()
+        page.keyboard.press('Enter')
     ]);
     await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', 'Annual spending today:');
     process.stdout.write('PASS: single-scenario report downloads as standalone, script-free HTML.\n');
@@ -196,15 +218,36 @@ try {
     await page.locator('#fire-compare-b-contribution').fill('300000');
     await page.locator('#fire-compare-c-name').fill('Higher saving');
     await page.locator('#fire-compare-c-contribution').fill('500000');
-    await page.locator('#fire-compare-run').click();
+    let reachedCompareRun = false;
+    for (let index = 0; index < 6; index += 1) {
+        await page.keyboard.press('Tab');
+        if (await page.evaluate(() => globalThis.document.activeElement?.id === 'fire-compare-run')) {
+            reachedCompareRun = true;
+            break;
+        }
+    }
+    assert.equal(reachedCompareRun, true,
+        'keyboard tab order should reach the scenario comparison action after scenario inputs');
+    await page.keyboard.press('Enter');
+    assert.equal(
+        await page.evaluate(() => globalThis.document.activeElement?.id),
+        'fire-compare-run',
+        'activating comparison should preserve focus on its action button'
+    );
     assert.equal(await page.locator('#fire-compare-results').isVisible(), true, 'comparison results should appear');
     assert.equal(await page.locator('#fire-compare-body tr').count(), 3, 'comparison should render all three scenarios');
     assert.match(await page.locator('#fire-compare-body').innerText(), /Conservative[\s\S]*Baseline[\s\S]*Higher saving/);
     process.stdout.write('PASS: three-scenario comparison renders each scenario in entered order.\n');
 
+    await page.keyboard.press('Tab');
+    assert.equal(
+        await page.evaluate(() => globalThis.document.activeElement?.id),
+        'fire-download-comparison-report',
+        'keyboard tab order should reach the comparison report action after results appear'
+    );
     const [comparisonDownload] = await Promise.all([
         page.waitForEvent('download'),
-        page.getByRole('button', { name: 'Download comparison report' }).click()
+        page.keyboard.press('Enter')
     ]);
     await assertOfflineReport(comparisonDownload, 'pfo-fire-comparison-report.html', 'Conservative');
     const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
