@@ -183,7 +183,15 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             remove.type = 'button'; remove.className = 'row-action'; remove.textContent = 'Delete';
             remove.setAttribute('aria-label', 'Delete ' + entry.description);
             remove.addEventListener('click', () => {
-                if (windowRef.confirm('Delete transaction "' + entry.description + '"?')) {
+                const confirmation = [
+                    'Delete this cash-flow transaction?',
+                    'Description: ' + entry.description,
+                    'Date: ' + entry.date,
+                    'Type: ' + (entry.type === 'income' ? 'Income' : 'Expense'),
+                    'Category: ' + entry.category,
+                    'Amount: ' + money(entry.amount)
+                ].join('\n');
+                if (windowRef.confirm(confirmation)) {
                     if (save(entries.filter((item) => item.id !== entry.id))) message('Transaction deleted.');
                 }
             });
