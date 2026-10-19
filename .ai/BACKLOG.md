@@ -108,6 +108,7 @@ Planned
 - Keyboard/accessibility and 400% zoom verification of the planner and comparison UI
 - End-to-end offline report workflow validation with prospective users
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
+- Goal tracker data-safety: add a real-browser regression proving that cancelling saved-goal deletion preserves the goal and its persisted data.
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan
 
 ---
