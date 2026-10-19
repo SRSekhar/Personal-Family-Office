@@ -444,6 +444,22 @@ try {
     await page.locator('#cash-flow-description').fill('Temporary extra income');
     await page.locator('#cash-flow-amount').fill('1000');
     await page.locator('#cash-flow-save').click();
+    page.once('dialog', (dialog) => {
+        assert.match(dialog.message(), /Import preview: 2 transactions/);
+        assert.match(dialog.message(), /Income:/);
+        assert.match(dialog.message(), /Expenses:/);
+        assert.match(dialog.message(), /Net cash flow:/);
+        dialog.dismiss();
+    });
+    await page.locator('#cash-flow-import-json').setInputFiles({
+        name: 'cash-flow-backup.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(cashFlowBackup))
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('Import cancelled'));
+    assert.equal(await page.locator('#cash-flow-count').innerText(), '3 transactions',
+        'cancelling import preview should leave the existing ledger unchanged');
+
     page.once('dialog', (dialog) => dialog.accept());
     await page.locator('#cash-flow-import-json').setInputFiles({
         name: 'cash-flow-backup.json',

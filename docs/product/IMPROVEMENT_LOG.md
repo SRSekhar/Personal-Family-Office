@@ -338,8 +338,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Saving a duplicate creates a new ID through the existing add path; the action does not infer a recurrence schedule or automatically persist anything before Save.
 - PR #208 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow category transaction counts — feature branch in progress
+### Cash-flow category transaction counts — PR #209 merged
 - Exposed the existing per-category transaction count in the category breakdown table.
 - This is descriptive only and does not change category totals, transaction storage, or filtering.
+- PR #209 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow import preview — feature branch in progress
+- Before replacing the local cash-flow ledger, show the import's transaction count, total income, total expenses, and net cash flow in the confirmation dialog.
+- Cancelling leaves existing transactions unchanged; valid imports still pass full-ledger validation before any write.
 - Validation status: Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 

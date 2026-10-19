@@ -313,7 +313,16 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                     throw new Error('Unsupported cash flow backup. Expected schema version 1 and INR currency.');
                 }
                 const imported = validateCashFlowEntries(payload.entries);
-                if (entries.length && !windowRef.confirm('Importing this backup replaces all cash flow transactions. Continue?')) {
+                const preview = summarizeCashFlow(imported);
+                const confirmMessage = [
+                    'Import preview: ' + imported.length + ' transaction' + (imported.length === 1 ? '' : 's'),
+                    'Income: ' + money(preview.income),
+                    'Expenses: ' + money(preview.expenses),
+                    'Net cash flow: ' + money(preview.net),
+                    '',
+                    'Importing this backup replaces all cash flow transactions stored in this browser. Continue?'
+                ].join('\n');
+                if (!windowRef.confirm(confirmMessage)) {
                     message('Import cancelled. Existing transactions were not changed.');
                     return;
                 }
