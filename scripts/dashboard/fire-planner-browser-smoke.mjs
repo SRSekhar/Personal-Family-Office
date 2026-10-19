@@ -212,6 +212,18 @@ try {
         'comparison report should include all three scenario names');
     process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\n');
 
+    await page.locator('#fire-compare-a-contribution').fill('250000');
+    assert.equal(await page.locator('#fire-compare-results').isHidden(), true,
+        'editing comparison assumptions should hide results calculated from the previous assumptions');
+    const staleComparisonDownload = page.waitForEvent('download', { timeout: 1000 })
+        .then(() => true, () => false);
+    await page.locator('#fire-download-comparison-report').evaluate((button) => button.click());
+    assert.equal(await staleComparisonDownload, false,
+        'an invalidated comparison must not retain a downloadable report snapshot');
+    assert.match(await page.locator('#toast').innerText(), /Calculate a scenario before downloading its report/,
+        'attempting to use an invalidated comparison report should explain that a fresh comparison is required');
+    process.stdout.write('PASS: editing comparison assumptions invalidates the old report snapshot.\n');
+
     await page.setViewportSize({ width: 320, height: 800 });
     const narrowComparison = await page.evaluate(() => {
         const table = globalThis.document.querySelector('#fire-compare-results table');
