@@ -353,8 +353,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Invalid calendar dates and reversed ranges are rejected by the ledger filter; reset clears the date bounds, and filtered CSV follows the visible rows.
 - PR #211 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow delete confirmation — feature branch in progress
+### Cash-flow delete confirmation — PR #212 merged
 - Expanded deletion confirmation to show description, date, transaction type, category, and amount so repeated descriptions can be distinguished.
 - No deletion occurs unless the user explicitly confirms; cancellation continues to preserve the transaction.
-- Validation status: Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
+- PR #212 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
+
+### Cash-flow CSV import — feature branch in progress
+- Added strict parsing for the exported six-column cash-flow CSV schema, including quoted fields, escaped quotes, commas, and embedded newlines.
+- Validate every imported row and create fresh transaction IDs before showing the replacement preview; invalid files are rejected without storage writes.
+- Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending on the feature pull request.
 
