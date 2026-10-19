@@ -234,7 +234,7 @@ try {
     assert.equal((await page.locator('#goal-progress-percent').innerText()).trim(), '25%',
         'goal progress should reflect accumulated amount divided by target');
     assert.equal(await page.locator('#goal-progress-bar').getAttribute('aria-valuetext'), '25 percent of target');
-    await page.getByRole('button', { name: 'Reset goal' }).click();
+    await page.getByRole('button', { name: 'Clear form' }).click();
     assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
 
