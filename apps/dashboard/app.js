@@ -992,7 +992,7 @@ function syncActiveNavigation() {
     });
 
     if (activeItem) {
-        $('#page-breadcrumb').textContent = activeItem.textContent.trim().replace(/^[◫▤◷◎]\s*/, '');
+        $('#page-breadcrumb').textContent = activeItem.textContent.trim().replace(/^[◫▤◷◎₹]\s*/, '');
     }
 }
 
