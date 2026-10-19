@@ -291,6 +291,30 @@ try {
     process.stdout.write('PASS: narrow comparison layout contains table overflow without widening the page.\\n');
     await page.setViewportSize({ width: 1280, height: 800 });
 
+    // A 320 CSS-pixel viewport is the automated reflow proxy for 400% zoom from a 1280px baseline.
+    // Headless Chromium does not expose browser-chrome zoom shortcuts, so do not claim to test browser UI zoom itself.
+    await page.goto(`${baseUrl}#fire-planner`, { waitUntil: 'networkidle' });
+    const initialCssViewportWidth = await page.evaluate(() => globalThis.window.innerWidth);
+    const zoomEquivalentWidth = Math.floor(initialCssViewportWidth / 4);
+    await page.setViewportSize({ width: zoomEquivalentWidth, height: 800 });
+    const zoomEquivalentViewport = await page.evaluate(() => ({
+        width: globalThis.window.innerWidth,
+        documentWidth: globalThis.document.documentElement.scrollWidth
+    }));
+    assert.equal(zoomEquivalentViewport.width, zoomEquivalentWidth,
+        '400%-zoom-equivalent test should use one quarter of the baseline CSS viewport width');
+    assert.ok(zoomEquivalentViewport.documentWidth <= zoomEquivalentViewport.width,
+        `FIRE planner should not create page-level horizontal overflow at a 400%-zoom-equivalent viewport: ${JSON.stringify(zoomEquivalentViewport)}`);
+    await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
+    await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
+    await page.getByRole('button', { name: 'Calculate readiness' }).click();
+    assert.equal(await page.locator('#fire-results').isVisible(), true,
+        'FIRE readiness should remain operable at a 400%-zoom-equivalent viewport');
+    assert.equal(await page.locator('#fire-projected-portfolio').isVisible(), true,
+        'FIRE results should remain available at a 400%-zoom-equivalent viewport');
+    await page.setViewportSize({ width: initialCssViewportWidth, height: 800 });
+    process.stdout.write('PASS: FIRE planner reflows and remains operable at a 320 CSS-pixel viewport (400% zoom equivalent from 1280px); this is not a browser-chrome zoom test.\\n');
+
     const futureDate = new Date();
     futureDate.setFullYear(futureDate.getFullYear() + 1);
     await page.locator('#goal-name').fill('Emergency fund');
