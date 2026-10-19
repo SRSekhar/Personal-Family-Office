@@ -276,3 +276,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added keyboard navigation/activation for the three-scenario comparison and its report download, checking focus continuity after calculation.
 - Validation: PR #192 passed CI including the real Chromium smoke suite, and full-history Secret Scan on exact head `217ee8b6d0a07636e98aeaf7ca49880a6edbe60c`; merged to `main` as `c462c98c5c80ba6e9faa9e56c487da1d380056a8`.
 - The 320 CSS-pixel viewport test remains a narrow-layout proxy; this change does not claim actual 400% browser zoom, comprehensive keyboard coverage, or manual screen-reader validation.
+
+
+### FIRE planner 400%-zoom-equivalent reflow regression — PR #195
+- Extended the real Chromium smoke workflow to resize the CSS viewport to one quarter of its 1280px baseline (320 CSS pixels), then verify the FIRE planner has no page-level horizontal overflow and readiness calculation/results remain operable.
+- A first attempt to trigger browser-chrome zoom shortcuts in headless Chromium did not change the CSS viewport. The test was corrected to use the documented 320 CSS-pixel reflow equivalent instead of claiming that headless browser shortcuts validated actual browser zoom.
+- Validation: PR #195 passed CI, including the Chromium smoke suite, and full-history Secret Scan on exact head `b03e71e837398c330b0441468a0bee00587a08b3`; merged to `main` as `a3c0e613c603328db90e953786c73119cca176fb`.
+- This is automated reflow coverage, not proof of actual browser-chrome zoom, manual screen-reader behavior, or a complete WCAG audit. Those remain open.
