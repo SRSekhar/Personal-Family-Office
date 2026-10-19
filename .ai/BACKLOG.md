@@ -163,18 +163,13 @@ Implemented
 
 - Stable record sorting by name A–Z or value ascending/descending, combined with current search and type filters (PR #130)
 - CI static accessibility-contract checks for FIRE/Goal Tracker labels, validation alerts, live regions, semantic naming, and progress indicator (PR #147), plus accurate percentage-of-target accessible wording (PR #149); interactive accessibility validation remains open
+- FIRE planner correctness: clear stale required-contribution output when shared assumptions change, with a real-browser regression test (PR #183)
+- FIRE planner correctness: invalidate stale comparison-report snapshots when comparison-specific assumptions change, with a real-browser regression test (PR #186)
 
 Planned
 
 - Charts and historical timeline after snapshot requirements are validated
 - Portfolio explorer and additional KPIs after customer discovery
-Implemented
-
-- FIRE planner correctness: clear stale required-contribution output when shared assumptions change, with a real-browser regression test (PR #183).
-
-Implemented
-
-- FIRE planner correctness: invalidate stale comparison-report snapshots when comparison-specific assumptions change, with a real-browser regression test (PR #186).
 
 ---
 
