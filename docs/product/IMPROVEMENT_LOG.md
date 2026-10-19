@@ -242,3 +242,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Verified the main assumptions return to their documented defaults, and reset clears readiness/contribution/comparison results, both report-download actions, and validation messaging so stale calculations cannot be mistaken for current results.
 - Validation: PR #178 passed CI, including the real-browser FIRE planner smoke test, and full-history Secret Scan on exact head `fa08ac5688333953c0a8674b71d3fae3a6e71a4f`; merged to `main` as `a97b0d66b13ba0668bbbc49f8d2a9ae035e6c1e9`.
 - Scope stayed test-only; no product behavior or household financial data changed.
+
+### FIRE planner zero-year boundary regression — PR #180
+- Added Chromium coverage for the valid zero-years-until-retirement boundary.
+- Verified the projected portfolio remains equal to the current portfolio even when annual contributions are non-zero, and the target corpus uses today's spending without applying future inflation at a zero-year horizon.
+- The first browser run caught a locale-sensitive assertion: Indian currency formatting includes the rupee symbol and grouping commas. The test now normalizes the displayed amount before comparison rather than assuming western digit-grouping output.
+- Validation: corrected PR #180 head `044f3e6fb46eb5b57e02fe930b7b551e8ce90019` passed CI (including the Chromium FIRE planner smoke test) and full-history Secret Scan; merged to `main` as `e8ae08d555ba95b5494e5446b2199d80ea2cb2f9`.
+- Test-only change; no product behavior or household financial data changed.
