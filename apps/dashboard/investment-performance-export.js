@@ -40,6 +40,8 @@ export function investmentPerformanceToCsv({ cashFlows, result }) {
         throw new RangeError('Investment-performance summary does not match the supplied cash flows.');
     }
 
+    const annualizedPercentage = result.annualizedMoneyWeightedReturn * 100;
+    assertFinite('Annualized money-weighted return percentage', annualizedPercentage);
     const dates = normalizedFlows.map((flow) => flow.date).sort();
     const lines = [
         'Metric,Value',
@@ -48,7 +50,7 @@ export function investmentPerformanceToCsv({ cashFlows, result }) {
         `Gross proceeds,${result.grossProceeds}`,
         `Net gain/loss,${result.netGain}`,
         `Simple net return (%),${result.netReturnOnContributionsPercentage}`,
-        `Annualized money-weighted return (XIRR %),${result.annualizedMoneyWeightedReturn * 100}`,
+        `Annualized money-weighted return (XIRR %),${annualizedPercentage}`,
         `Cash-flow count,${result.cashFlowCount}`,
         `Start date,${dates[0]}`,
         `End date,${dates[dates.length - 1]}`,
