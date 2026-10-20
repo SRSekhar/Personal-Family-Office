@@ -397,10 +397,15 @@ Do not record personal financial values or claim customer demand without evidenc
 - Validates target/current amounts, matching currencies, and valid dates. No contribution schedule, investment return, success probability, or recommendation is inferred.
 - PR #221 passed CI, lint, typecheck, tests, and Secret Scan.
 
-### Investment performance analytics — feature branch in progress
+### Investment performance analytics — PR #222 merged
 - Added a public API for explicit investor-perspective dated cash flows that composes the existing XIRR calculator and reports annualized money-weighted return, gross contributions/proceeds, net gain, simple return on contributions, and date range.
 - The caller must supply any terminal valuation. Mixed currencies, invalid dates/amounts, overflow, and ambiguous XIRR sign patterns are rejected.
-- Validation status: unit tests, typecheck, lint, and Secret Scan are pending on the feature pull request.
+- PR #222 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Financial snapshot invariants — feature branch in progress
+- Hardened the existing FinancialSnapshot model so capture dates must be valid, asset/liability/net-worth totals use one currency, asset and liability totals are non-negative, and net worth reconciles to assets minus liabilities.
+- Negative net worth remains valid when liabilities exceed assets. This does not introduce snapshot persistence, history, or charting.
+- Validation status: model tests, typecheck, lint, and Secret Scan are pending on the feature pull request.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
