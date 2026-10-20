@@ -843,7 +843,7 @@ try {
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
     await page.locator('#fire-annual-contribution').fill('500000');
     await page.getByLabel('Years until retirement').fill('0');
-    await page.getByLabel('Expected annual return (%)').fill('7');
+    await page.locator('#fire-return').fill('7');
     await page.getByLabel('Annual inflation (%)').fill('3');
     await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
     await page.getByLabel('Initial withdrawal rate (%)').fill('4');
