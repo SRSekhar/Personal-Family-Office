@@ -472,10 +472,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Export is available only in the loopback-only private workspace with healthy saved-goal storage. Goal names are CSV-quoted and spreadsheet-formula-neutralized.
 - PR #236 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Financial summary Print / Save as PDF — feature branch in progress
-- Add a dedicated dashboard action that opens the existing self-contained financial summary in a print-ready window and invokes the browser print dialog, where users can choose Save as PDF.
-- Keep the offline HTML download, avoid adding a PDF runtime dependency, and improve print layout for tables and page breaks. The app will not claim to generate a PDF file directly.
-- Validation status: renderer unit tests, Chromium popup/print regression, CI, dashboard packaging, and Secret Scan are pending.
+### Financial summary Print / Save as PDF — PR #237 merged
+- Added a dashboard action that opens the existing self-contained financial summary in a print-ready window and invokes the browser print dialog, where users can choose Save as PDF.
+- Kept the offline HTML download, avoided a PDF runtime dependency, and improved print layout for tables and page breaks. The app does not claim to generate a PDF file directly.
+- PR #237 passed renderer unit tests, CI, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Print invocation regression hardening — feature branch in progress
+- Strengthen the Chromium smoke test by stubbing the popup's print method and asserting that the print workflow actually invokes it, beyond merely opening the report popup.
+- Validation status: CI, browser smoke, dashboard packaging, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
