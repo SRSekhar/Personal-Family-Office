@@ -87,6 +87,7 @@ Implemented
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
+- Dashboard overview surfaces those three balance-sheet ratios using shared analytics, explicit ratio denominators, and unavailable states for zero denominators; no benchmarks or recommendations.
 In Progress
 
 - Category concentration metrics using HHI, effective category count, and largest-category share, without inferring correlations or risk (PR #215); dashboard summary implemented in PR #243.
