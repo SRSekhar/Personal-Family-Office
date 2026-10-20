@@ -73,7 +73,8 @@ Implemented
 - Local compound-growth projection calculator using explicit annual return, contribution amount, contribution timing, and period assumptions; no forecasts or guarantees (PR #230).
 - Year-by-year compound-growth schedule with explicit annual contribution timing and full CSV export, limited to 100 annual periods (PR #232).
 - Local CSV export of caller-defined tax estimates and exact supplied bracket assumptions, with stale-result invalidation (PR #233).
-- In progress — export investment-performance summary and dated cash-flow inputs to CSV so results remain auditable.
+- Local CSV export of investment-performance summary and exact dated cash-flow inputs, with stale-result invalidation (PR #234).
+- In progress — export the local CAGR inputs and calculated annualized rate to CSV, without storing calculator inputs.
 - Local CAGR calculator using explicit beginning/ending values and period, distinct from dated cash-flow XIRR (PR #231)
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
