@@ -49,6 +49,13 @@ try {
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#ratio-liabilities-to-assets').innerText(), '18.6%',
+        'dashboard should show liabilities as a share of sample assets');
+    assert.equal(await page.locator('#ratio-net-worth-to-assets').innerText(), '81.4%',
+        'dashboard should show reconciled net worth as a share of sample assets');
+    assert.equal(await page.locator('#ratio-assets-to-liabilities').innerText(), '5.37×',
+        'dashboard should show assets per unit of sample liabilities');
+    assert.match(await page.locator('#financial-ratios').innerText(), /no benchmarks, forecasts, or recommendations/);
     assert.equal(await page.locator('#allocation-concentration').isVisible(), true,
         'overview should show category concentration metrics for sample assets');
     assert.equal(await page.locator('#allocation-concentration .concentration-metrics article').count(), 3,
@@ -683,6 +690,8 @@ try {
     );
     assert.match(await page.locator('#net-worth').innerText(), /1,23,456/,
         'imported financial records should update the dashboard totals');
+    assert.equal(await page.locator('#ratio-assets-to-liabilities').innerText(), '—',
+        'zero liabilities should produce an unavailable assets-to-liabilities ratio rather than infinity');
     process.stdout.write('PASS: importing a valid backup updates the private workspace and totals.\n');
 
     await page.locator('#import-file').setInputFiles({
