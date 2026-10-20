@@ -92,6 +92,21 @@ describe('FIRE planner interaction contracts', () => {
 
 });
 
+describe('recurring-tagged cash-flow export contract', () => {
+    it('exports only recurring-tagged entries in the selected reporting period using the standard safe CSV schema', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-export-recurring-csv"');
+        expect(cashFlow).toContain("$('#cash-flow-export-recurring-csv').addEventListener('click'");
+        expect(cashFlow).toContain('const recurringEntries = entries.filter((entry) => entry.recurring');
+        expect(cashFlow).toContain("cashFlowToCsv(recurringEntries)");
+        expect(cashFlow).toContain("const periodLabel = period === 'all' ? 'all-periods' : period;");
+        expect(cashFlow).toContain('No recurring-tagged transactions exist in the selected reporting period.');
+    });
+});
+
 describe('recurring-tagged cash-flow summary contract', () => {
     it('summarizes explicitly recurring-tagged recorded transactions without forecasting', async () => {
         const [html, cashFlow] = await Promise.all([
