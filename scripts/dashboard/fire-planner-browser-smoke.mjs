@@ -887,6 +887,37 @@ try {
         'reset should clear validation messages');
     process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\\n');
 
+    const investmentFlow0 = page.locator('#investment-cash-flows .investment-flow-row').nth(0);
+    await investmentFlow0.locator('.investment-flow-date').fill('2025-01-01');
+    await investmentFlow0.locator('.investment-flow-amount').fill('-1000');
+    await page.locator('#investment-add-flow').click();
+    const investmentFlow1 = page.locator('#investment-cash-flows .investment-flow-row').nth(1);
+    await investmentFlow1.locator('.investment-flow-date').fill('2026-01-01');
+    await investmentFlow1.locator('.investment-flow-amount').fill('1100');
+    await page.locator('#investment-performance-form button[type="submit"]').click();
+    assert.equal((await page.locator('#investment-gross-contributions').innerText()).replace(/[^0-9]/g, ''), '1000',
+        'investment performance should total negative cash flows as contributions');
+    assert.equal((await page.locator('#investment-gross-proceeds').innerText()).replace(/[^0-9]/g, ''), '1100',
+        'investment performance should total positive cash flows as proceeds');
+    assert.equal((await page.locator('#investment-net-gain').innerText()).replace(/[^0-9]/g, ''), '100',
+        'investment performance should reconcile net gain');
+    assert.equal(await page.locator('#investment-simple-return').innerText(), '10%',
+        'investment performance should calculate simple return on contributions');
+    assert.equal(await page.locator('#investment-xirr').innerText(), '10%',
+        'investment performance should calculate annualized money-weighted return');
+    await page.locator('#investment-add-flow').click();
+    const investmentFlow2 = page.locator('#investment-cash-flows .investment-flow-row').nth(2);
+    await investmentFlow2.locator('.investment-flow-date').fill('2026-06-01');
+    await investmentFlow2.locator('.investment-flow-amount').fill('-100');
+    await page.locator('#investment-performance-form button[type="submit"]').click();
+    assert.equal(await page.locator('#investment-performance-validation').isVisible(), true,
+        'investment performance should reject ambiguous multiple sign changes');
+    await page.locator('#investment-performance-reset').click();
+    assert.equal(await page.locator('#investment-performance-results').isHidden(), true,
+        'investment performance reset should clear previous results');
+    assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 1,
+        'investment performance reset should restore one empty cash-flow row');
+
     await page.locator('#loan-outstanding-principal').fill('1200');
     await page.locator('#loan-annual-rate').fill('0');
     await page.locator('#loan-monthly-payment').fill('500');
