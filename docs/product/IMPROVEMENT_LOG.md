@@ -447,6 +447,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - The UI distinguishes CAGR from dated-cash-flow XIRR and discloses that interim contributions/withdrawals, fees, taxes, and inflation are excluded. Results are not saved.
 - PR #231 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
+### Compound-growth annual schedule — feature branch in progress
+- Extend the existing local projection summary with a year-by-year schedule showing projected value, cumulative contributed capital, and estimated growth, reusing the shared projection engine for every row.
+- Provide CSV export of the generated schedule. The UI will cap the schedule at 100 annual periods to keep browser rendering bounded; assumptions remain explicit and no values are saved.
+- Validation status: calculator unit tests, Chromium browser smoke, CI, dashboard packaging, and Secret Scan are pending.
+
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
 - The backlog item remains planned until the product defines which metrics belong in a health view and how users should interpret them. No arbitrary score, thresholds, or investment recommendations will be introduced.
