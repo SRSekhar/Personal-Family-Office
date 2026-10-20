@@ -367,6 +367,18 @@
                     </div>
                     <p id="cash-flow-category-empty" class="cash-flow-empty">No category totals for this period.</p>
                 </section>
+                <section class="cash-flow-category-panel cash-flow-monthly-panel" aria-labelledby="cash-flow-monthly-heading">
+                    <div class="panel-header"><div><p class="eyebrow">RECORDED TRANSACTIONS</p><h3 id="cash-flow-monthly-heading">Monthly cash-flow trend</h3></div><span class="panel-tag">All recorded months</span></div>
+                    <p class="cash-flow-intro">Totals are grouped from the dates on your entered transactions. This is a historical summary of recorded cash flow, not a forecast or a separately saved financial snapshot.</p>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Income, expenses, net cash flow, and transaction count grouped by month across all recorded cash-flow transactions</caption>
+                            <thead><tr><th scope="col">Month</th><th scope="col">Income</th><th scope="col">Expenses</th><th scope="col">Net</th><th scope="col">Transactions</th></tr></thead>
+                            <tbody id="cash-flow-monthly-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-monthly-empty" class="cash-flow-empty">No recorded months yet.</p>
+                </section>
                 <form id="cash-flow-form" class="cash-flow-form">
                     <div class="cash-flow-input-grid">
                         <label class="field-label" for="cash-flow-date">Date<input id="cash-flow-date" type="date" required></label>
