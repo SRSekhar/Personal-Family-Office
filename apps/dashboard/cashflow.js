@@ -465,7 +465,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             return;
         }
         const month = $('#cash-flow-budget-month').value;
-        if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
             budgetMessage('Select a valid target month before copying budgets.', true);
             return;
         }
@@ -490,7 +490,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             ...toCopy.map((budget) => budget.category + ': ' + money(budget.amount)),
             '',
             'Existing budgets for ' + month + ' will not be overwritten. Transactions will not be changed.'
-        ].join('\\n');
+        ].join('\n');
         if (!windowRef.confirm(preview)) {
             budgetMessage('Budget copy cancelled. Existing budgets and transactions were not changed.');
             return;
