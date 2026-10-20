@@ -119,6 +119,10 @@ describe('analyzePortfolio', () => {
         expect(result.financialRatios.liabilitiesToAssets).toBe(0.05);
         expect(result.financialRatios.netWorthToAssets).toBe(0.95);
         expect(result.financialRatios.assetsToLiabilities).toBe(20);
+        expect(result.diversification.categoryCount).toBe(3);
+        expect(result.diversification.concentrationIndex).toBeCloseTo(0.46);
+        expect(result.diversification.effectiveCategoryCount).toBeCloseTo(1 / 0.46);
+        expect(result.diversification.largestCategoryShare).toBe(0.6);
     });
 
     it('rejects selected positions with different currencies', () => {
