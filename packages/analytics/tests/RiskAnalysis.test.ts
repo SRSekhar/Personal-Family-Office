@@ -17,6 +17,7 @@ describe('analyzeReturnSeries', () => {
         const sampleVariance = returns.reduce((sum, value) => sum + (value - mean) ** 2, 0) / 2;
 
         expect(result.observationCount).toBe(3);
+        expect(result.cumulativeReturn).toBeCloseTo((1.1 * 0.8 * 1.05) - 1);
         expect(result.annualizedVolatility).toBeCloseTo(Math.sqrt(sampleVariance) * Math.sqrt(12));
         expect(result.maximumDrawdown).toBeCloseTo(0.2);
         expect(result.worstPeriodReturn).toBe(-0.2);
@@ -28,6 +29,7 @@ describe('analyzeReturnSeries', () => {
     it('returns null metrics for empty input and volatility for one observation', () => {
         expect(analyzeReturnSeries({ periodsPerYear: 12, observations: [] })).toEqual({
             observationCount: 0,
+            cumulativeReturn: null,
             annualizedVolatility: null,
             maximumDrawdown: null,
             worstPeriodReturn: null,
@@ -40,6 +42,7 @@ describe('analyzeReturnSeries', () => {
             observations: [{ date: '2026-01-02', returnRate: -1 }]
         })).toEqual({
             observationCount: 1,
+            cumulativeReturn: -1,
             annualizedVolatility: null,
             maximumDrawdown: 1,
             worstPeriodReturn: -1,
@@ -49,6 +52,17 @@ describe('analyzeReturnSeries', () => {
         });
     });
 
+    it('calculates cumulative return by compounding the supplied period returns', () => {
+        const result = analyzeReturnSeries({
+            periodsPerYear: 4,
+            observations: [
+                { date: '2026-01-01', returnRate: 0.1 },
+                { date: '2026-04-01', returnRate: -0.05 },
+                { date: '2026-07-01', returnRate: 0.2 }
+            ]
+        });
+        expect(result.cumulativeReturn).toBeCloseTo((1.1 * 0.95 * 1.2) - 1);
+    });
     it('returns zero drawdown for a non-negative rising series', () => {
         const result = analyzeReturnSeries({
             periodsPerYear: 2,

@@ -154,6 +154,15 @@ describe('all-period budget history export contract', () => {
     });
 });
 
+describe('return risk cumulative return contract', () => {
+    it('shows the compounded return metric and includes it in the metrics CSV', async () => {
+        const [html, risk] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('return-risk.js')]);
+        expect(html).toContain('id="return-risk-cumulative-return"');
+        expect(html).toContain('Compounded return across supplied observations');
+        expect(risk).toContain("$('#return-risk-cumulative-return').textContent = percent(result.cumulativeReturn)");
+        expect(risk).toContain("['cumulative_return', result.cumulativeReturn ?? '']");
+    });
+});
 describe('return risk observation CSV export contract', () => {
     it('exports the validated dated return observations in a re-importable CSV and invalidates stale exports', async () => {
         const [html, risk] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('return-risk.js')]);

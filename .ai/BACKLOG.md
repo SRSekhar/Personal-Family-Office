@@ -59,6 +59,7 @@ In Progress
 
 Implemented
 
+- Return-series analysis now reports the compounded cumulative return across supplied observations, with null for empty series and a dedicated UI/CSV metric.
 - CAGR calculation with input validation and edge-case tests
 - Annual compound-growth projection with explicit contribution timing and tests
 - XIRR calculation for dated cash flows using ACT/365 and bisection; ambiguous multi-sign-change streams are rejected
@@ -102,7 +103,7 @@ In Progress
 - Return-series risk analysis with explicit annualization frequency, sample volatility, maximum drawdown, worst-period return, negative-period count, and input validation (PR #216).
 - Optional annualized Sharpe ratio using a caller-supplied risk-free return per period; no implicit risk-free-rate assumption (PR #217).
 - Optional annualized Sortino ratio using a caller-supplied minimum acceptable return per period; no implicit target assumption (PR #218).
-- Local return-series risk analysis UI using explicit dated period returns and annualization frequency; optional Sharpe/Sortino inputs, stale-result invalidation, metrics CSV export, and a separate re-importable observations CSV export; no market-data fetching or recommendation.
+- Local return-series risk analysis UI using explicit dated period returns and annualization frequency; optional Sharpe/Sortino inputs, stale-result invalidation, metrics CSV export, and a separate re-importable observations CSV export; no market-data fetching or recommendation. Compounded cumulative return is included in the results and metrics CSV.
 
 Planned
 - Portfolio Health — define required metrics and intended interpretation before implementation; do not invent a composite score or thresholds.
