@@ -1,17 +1,18 @@
 import { analyzeInvestmentPerformanceMath } from './calculators-runtime/InvestmentPerformanceMath.js';
+import { investmentPerformanceToCsv } from './investment-performance-export.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
 const money = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 const percent = (value) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(value) + '%';
 
-function createCashFlowRow({ amount = '', date = '' } = {}) {
+function createCashFlowRow({ amount = '', date = '', onRemove = () => {} } = {}) {
     const row = document.createElement('div'); row.className = 'investment-flow-row';
     const dateLabel = document.createElement('label'); dateLabel.className = 'field-label'; dateLabel.textContent = 'Cash-flow date';
     const dateInput = document.createElement('input'); dateInput.type = 'date'; dateInput.className = 'investment-flow-date'; dateInput.required = true; dateInput.value = date; dateInput.setAttribute('aria-label', 'Investment cash-flow date'); dateLabel.append(dateInput);
     const amountLabel = document.createElement('label'); amountLabel.className = 'field-label'; amountLabel.textContent = 'Amount (₹)';
     const amountInput = document.createElement('input'); amountInput.type = 'number'; amountInput.step = 'any'; amountInput.required = true; amountInput.className = 'investment-flow-amount'; amountInput.value = String(amount); amountInput.setAttribute('aria-label', 'Investment cash-flow amount in rupees'); amountLabel.append(amountInput);
-    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'button button-secondary button-small'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', 'Remove investment cash flow'); remove.addEventListener('click', () => row.remove());
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'button button-secondary button-small'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', 'Remove investment cash flow'); remove.addEventListener('click', () => { row.remove(); onRemove(); });
     row.append(dateLabel, amountLabel, remove);
     return row;
 }
@@ -30,10 +31,26 @@ function renderPerformance(result) {
 export function initializeInvestmentPerformanceCalculator() {
     const form = $('#investment-performance-form'); if (!form) return;
     const rows = $('#investment-cash-flows');
-    rows.append(createCashFlowRow());
-    $('#investment-add-flow').addEventListener('click', () => { const row = createCashFlowRow(); rows.append(row); row.querySelector('.investment-flow-date').focus(); });
+    let latestPerformance = null;
+    const invalidatePerformance = () => {
+        latestPerformance = null;
+        $('#investment-performance-export-csv').disabled = true;
+        $('#investment-performance-results').hidden = true;
+    };
+    rows.append(createCashFlowRow({ onRemove: invalidatePerformance }));
+    $('#investment-add-flow').addEventListener('click', () => {
+        const row = createCashFlowRow({ onRemove: invalidatePerformance });
+        rows.append(row);
+        invalidatePerformance();
+        row.querySelector('.investment-flow-date').focus();
+    });
+    form.addEventListener('input', invalidatePerformance);
+    form.addEventListener('change', invalidatePerformance);
     form.addEventListener('submit', (event) => {
-        event.preventDefault(); $('#investment-performance-validation').hidden = true;
+        event.preventDefault();
+        latestPerformance = null;
+        $('#investment-performance-export-csv').disabled = true;
+        $('#investment-performance-validation').hidden = true;
         try {
             const cashFlows = [...rows.querySelectorAll('.investment-flow-row')].map((row) => {
                 const date = row.querySelector('.investment-flow-date').value;
@@ -42,16 +59,36 @@ export function initializeInvestmentPerformanceCalculator() {
                 if (amount.trim() === '') throw new RangeError('Enter an amount for every cash flow.');
                 return { date: new Date(date + 'T00:00:00.000Z'), amount: Number(amount) };
             });
-            renderPerformance(analyzeInvestmentPerformanceMath({ cashFlows }));
+            const result = analyzeInvestmentPerformanceMath({ cashFlows });
+            renderPerformance(result);
+            latestPerformance = { cashFlows, result };
+            $('#investment-performance-export-csv').disabled = false;
         } catch (error) {
+            latestPerformance = null;
+            $('#investment-performance-export-csv').disabled = true;
             $('#investment-performance-results').hidden = true;
             $('#investment-performance-validation').textContent = error instanceof Error ? error.message : 'Could not calculate investment performance.';
             $('#investment-performance-validation').hidden = false;
         }
     });
+    $('#investment-performance-export-csv').addEventListener('click', () => {
+        if (!latestPerformance) return;
+        const blob = new Blob([investmentPerformanceToCsv(latestPerformance)], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-investment-performance.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
     $('#investment-performance-reset').addEventListener('click', () => {
-        form.reset(); rows.replaceChildren(createCashFlowRow()); $('#investment-performance-results').hidden = true;
-        $('#investment-performance-validation').hidden = true; $('#investment-performance-validation').textContent = '';
+        form.reset();
+        rows.replaceChildren(createCashFlowRow({ onRemove: invalidatePerformance }));
+        invalidatePerformance();
+        $('#investment-performance-validation').hidden = true;
+        $('#investment-performance-validation').textContent = '';
     });
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         $('#investment-performance-hosted-notice').hidden = false;
