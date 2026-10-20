@@ -51,6 +51,7 @@ export function analyzeDiversification(
     let weightTotal = 0;
     let concentrationIndex = 0;
     let largestCategoryShare = 0;
+    const weightTolerance = Number.EPSILON * Math.max(8, allocations.length * 4);
 
     for (const rawItem of allocations as readonly unknown[]) {
         if (typeof rawItem !== 'object' || rawItem === null) {
@@ -76,6 +77,11 @@ export function analyzeDiversification(
             throw new RangeError('Allocation category values and weights must be finite, non-negative, and use one currency.');
         }
 
+        const expectedWeight = item.value.amount / totalValue.amount;
+        if (Math.abs(item.weight - expectedWeight) > weightTolerance) {
+            throw new RangeError('Allocation category values and weights must reconcile to the total.');
+        }
+
         valueTotal += item.value.amount;
         weightTotal += item.weight;
         concentrationIndex += item.weight * item.weight;
@@ -84,7 +90,6 @@ export function analyzeDiversification(
 
     const amountTolerance = Number.EPSILON * Math.max(1, Math.abs(totalValue.amount), Math.abs(valueTotal))
         * Math.max(4, allocations.length * 2);
-    const weightTolerance = Number.EPSILON * Math.max(8, allocations.length * 4);
     if (Math.abs(valueTotal - totalValue.amount) > amountTolerance
         || Math.abs(weightTotal - 1) > weightTolerance) {
         throw new RangeError('Allocation category values and weights must reconcile to the total.');
