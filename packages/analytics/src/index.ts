@@ -18,6 +18,9 @@ export type { FinancialRatiosResult } from './FinancialRatios.js';
 export { analyzeDiversification } from './DiversificationAnalysis.js';
 export type { DiversificationAnalysisResult } from './DiversificationAnalysis.js';
 
+export { analyzeReturnSeries } from './RiskAnalysis.js';
+export type { PeriodReturn, RiskAnalysisInput, RiskAnalysisResult } from './RiskAnalysis.js';
+
 export { mapPortfolioPositions } from './PortfolioPositionMapper.js';
 export type {
     PortfolioPositionSelection,
