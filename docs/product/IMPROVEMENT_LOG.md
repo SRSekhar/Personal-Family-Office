@@ -462,9 +462,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Preserves contribution/receipt signs and explicit cash-flow dates; does not infer terminal valuation or adjust for fees/taxes. Editing, adding, or removing a cash flow invalidates the prior result and disables export.
 - PR #234 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Local CAGR CSV export — feature branch in progress
-- Add a local CSV export containing the beginning value, ending value, elapsed years, and calculated annualized CAGR.
-- Editing calculator inputs will invalidate the previous result and disable export; no inputs or results are persisted.
+### Local CAGR CSV export — PR #235 merged
+- Added a local CSV export containing the beginning value, ending value, elapsed years, and calculated annualized CAGR.
+- Editing calculator inputs invalidates the previous result and disables export; no inputs or results are persisted.
+- PR #235 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Saved-goal progress CSV export — feature branch in progress
+- Add an export of saved goals with target/current amounts, remaining amount, progress percentage, due date, days remaining, status, and the explicitly defined no-returns monthly pace.
+- Export is available only in the loopback-only private workspace with healthy saved-goal storage. Goal names are CSV-quoted and spreadsheet-formula-neutralized.
 - Validation status: export unit tests, Chromium browser smoke, CI, dashboard packaging, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open

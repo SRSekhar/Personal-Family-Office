@@ -7,6 +7,7 @@ import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
 import { GOALS_STORAGE_KEY, readSavedGoals, saveSavedGoals } from './goals-storage.js';
+import { goalProgressToCsv } from './goal-progress-export.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 import { calculateFireReadiness } from './calculators-runtime/FireReadiness.js';
 import { compareFireReadinessScenarios } from './calculators-runtime/FireScenarioComparison.js';
@@ -441,6 +442,10 @@ function renderSavedGoals() {
     }
     const canManage = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname) && privateStorageHealthy && goalsStorageHealthy;
     container.querySelectorAll('[data-goal-edit], [data-goal-delete]').forEach((button) => { button.disabled = !canManage; });
+    $('#saved-goals-export-csv').disabled = !(workspace === 'private'
+        && isPrivateWorkspaceAllowed(window.location.hostname)
+        && goalsStorageHealthy
+        && savedGoals.length > 0);
 }
 
 function loadSavedGoals() {
@@ -455,6 +460,48 @@ function loadSavedGoals() {
     savedGoals = result.records;
     renderSavedGoals();
     if (!result.ok) showToast('Saved goals could not be safely read. They have been left untouched and goal edits are paused.');
+}
+
+function exportSavedGoalsCsv() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname) || workspace !== 'private'
+        || !goalsStorageHealthy || savedGoals.length === 0) {
+        showGoalMessage('Export requires saved goals in the loopback-only private workspace.');
+        return;
+    }
+    try {
+        const asOfDate = new Date();
+        const rows = savedGoals.map((goal) => {
+            const result = calculateGoalProgress({
+                targetAmount: goal.targetAmount,
+                currentAmount: goal.currentAmount,
+                targetDate: goal.targetDate,
+                asOfDate
+            });
+            return {
+                name: goal.name,
+                targetAmount: goal.targetAmount,
+                currentAmount: goal.currentAmount,
+                amountRemaining: result.amountRemaining,
+                progressPercent: result.progressPercent,
+                targetDate: goal.targetDate,
+                daysRemaining: result.daysRemaining,
+                status: result.isComplete ? 'Goal reached' : result.isOverdue ? 'Past target date' : 'In progress',
+                monthlyContributionNeeded: result.monthlyContributionNeeded
+            };
+        });
+        const blob = new Blob([goalProgressToCsv(rows)], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-saved-goal-progress.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        showToast('Saved goal progress exported to this device.');
+    } catch (error) {
+        showGoalMessage(error instanceof Error ? error.message : 'Could not export saved goal progress.');
+    }
 }
 
 function resetGoal() {
@@ -861,6 +908,7 @@ $('#fire-planner-form').addEventListener('input', () => { fireError(); $('#fire-
 $('#goal-tracker-form').addEventListener('submit', calculateGoal);
 $('#goal-save-button').addEventListener('click', saveGoal);
 $('#goal-cancel-edit-button').addEventListener('click', resetGoal);
+$('#saved-goals-export-csv').addEventListener('click', exportSavedGoalsCsv);
 $('#saved-goals-list').addEventListener('click', (event) => {
     const button = event.target.closest('button');
     if (!button) return;

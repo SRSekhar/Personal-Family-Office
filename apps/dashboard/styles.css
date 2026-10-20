@@ -168,3 +168,6 @@
 .cagr-result-grid article strong{overflow-wrap:anywhere}
 @media(max-width:900px){.cagr-input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.cagr-input-grid,.cagr-result-grid{grid-template-columns:minmax(0,1fr)}}
+
+.saved-goals-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:600px){.saved-goals-header-actions{justify-content:flex-end}.saved-goals-header-actions .button{white-space:nowrap}}
