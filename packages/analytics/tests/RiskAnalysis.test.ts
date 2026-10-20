@@ -21,6 +21,7 @@ describe('analyzeReturnSeries', () => {
         expect(result.maximumDrawdown).toBeCloseTo(0.2);
         expect(result.worstPeriodReturn).toBe(-0.2);
         expect(result.annualizedSharpeRatio).toBeNull();
+        expect(result.annualizedSortinoRatio).toBeNull();
         expect(result.negativePeriodCount).toBe(1);
     });
 
@@ -31,6 +32,7 @@ describe('analyzeReturnSeries', () => {
             maximumDrawdown: null,
             worstPeriodReturn: null,
             annualizedSharpeRatio: null,
+            annualizedSortinoRatio: null,
             negativePeriodCount: 0
         });
         expect(analyzeReturnSeries({
@@ -42,6 +44,7 @@ describe('analyzeReturnSeries', () => {
             maximumDrawdown: 1,
             worstPeriodReturn: -1,
             annualizedSharpeRatio: null,
+            annualizedSortinoRatio: null,
             negativePeriodCount: 1
         });
     });
@@ -96,6 +99,42 @@ describe('analyzeReturnSeries', () => {
             riskFreeRatePerPeriod: Number.POSITIVE_INFINITY,
             observations: []
         })).toThrow('Risk-free return per period must be finite');
+    });
+
+    it('calculates Sortino ratio only with an explicit minimum acceptable return', () => {
+        const observations = [
+            { date: '2026-01-31', returnRate: 0.1 },
+            { date: '2026-02-28', returnRate: -0.2 },
+            { date: '2026-03-31', returnRate: 0.05 }
+        ];
+        const result = analyzeReturnSeries({
+            periodsPerYear: 12,
+            minimumAcceptableReturnPerPeriod: 0,
+            observations
+        });
+        expect(result.annualizedSortinoRatio).toBeCloseTo(-0.5);
+        expect(analyzeReturnSeries({ periodsPerYear: 12, observations }).annualizedSortinoRatio).toBeNull();
+    });
+
+    it('returns null Sortino ratio when there are no returns below the target and validates targets', () => {
+        expect(analyzeReturnSeries({
+            periodsPerYear: 12,
+            minimumAcceptableReturnPerPeriod: 0,
+            observations: [
+                { date: '2026-01-31', returnRate: 0.05 },
+                { date: '2026-02-28', returnRate: 0.1 }
+            ]
+        }).annualizedSortinoRatio).toBeNull();
+        expect(() => analyzeReturnSeries({
+            periodsPerYear: 12,
+            minimumAcceptableReturnPerPeriod: -1.01,
+            observations: []
+        })).toThrow('Minimum acceptable return per period must be finite');
+        expect(() => analyzeReturnSeries({
+            periodsPerYear: 12,
+            minimumAcceptableReturnPerPeriod: Number.POSITIVE_INFINITY,
+            observations: []
+        })).toThrow('Minimum acceptable return per period must be finite');
     });
 
     it('requires a positive integer annualization frequency', () => {
