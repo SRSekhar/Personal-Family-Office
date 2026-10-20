@@ -266,7 +266,7 @@ Features
 Future enhancements are added here and prioritized during sprint planning.
 
 No work should begin unless it has been added to the backlog.
-- Add a selected-month budget overview with total explicit limits, actual spending within budgeted categories, remaining amount, and aggregate utilization; clearly exclude unbudgeted categories from the aggregate.
+- Add a versioned local JSON backup and validated, confirmation-based restore for category budgets, kept separate from cash-flow transaction backups.
 
 
 
