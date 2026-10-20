@@ -37,7 +37,7 @@ export function estimateProgressiveTax({
         || taxableIncome.amount < 0) {
         throw new RangeError('Taxable income must be a non-negative finite Money value.');
     }
-    if (!Array.isArray(brackets) || brackets.length === 0) {
+    if (!isBracketArray(brackets) || brackets.length === 0) {
         throw new RangeError('At least one tax bracket is required.');
     }
 
@@ -109,4 +109,8 @@ export function estimateProgressiveTax({
         effectiveTaxRate,
         marginalRate
     };
+}
+
+function isBracketArray(value: unknown): value is readonly ProgressiveTaxBracket[] {
+    return Array.isArray(value);
 }
