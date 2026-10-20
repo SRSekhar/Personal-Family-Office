@@ -296,7 +296,7 @@
             </section>
             <section class="panel return-risk-panel" id="return-risk-analysis" aria-labelledby="return-risk-heading">
                 <div class="panel-header"><div><p class="eyebrow">HISTORICAL RETURN SERIES</p><h2 id="return-risk-heading">Return risk analysis</h2></div><span class="panel-tag">Local calculation · no forecasts</span></div>
-                <p class="return-risk-intro">Paste one observation per line as <code>YYYY-MM-DD,return-percent</code>, oldest first. Returns are simple period returns, not currency amounts. Use consistent observation intervals and choose the annualization frequency that matches them.</p>
+                <p class="return-risk-intro">Paste one observation per line as <code>YYYY-MM-DD,return-percent</code>, oldest first. A <code>date,return_percent</code> header is also accepted. Returns are simple period returns, not currency amounts. Use consistent observation intervals and choose the annualization frequency that matches them.</p>
                 <div class="notice" id="return-risk-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for return analysis</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal investment data.</p></div></div>
                 <form id="return-risk-form">
                     <div class="return-risk-input-grid">
@@ -310,7 +310,7 @@
                     <div class="fire-actions"><button class="button button-primary" type="submit">Calculate risk metrics</button><button class="button button-secondary" id="return-risk-reset" type="button">Reset calculator</button></div>
                 </form>
                 <section id="return-risk-results" class="fire-results" aria-labelledby="return-risk-results-heading" aria-live="polite" hidden>
-                    <div class="fire-result-heading"><div><p class="eyebrow">HISTORICAL METRICS</p><h3 id="return-risk-results-heading">Return-series summary</h3></div><button class="button button-secondary button-small" id="return-risk-export-csv" type="button" disabled>Export metrics CSV</button></div>
+                    <div class="fire-result-heading"><div><p class="eyebrow">HISTORICAL METRICS</p><h3 id="return-risk-results-heading">Return-series summary</h3></div><button class="button button-secondary button-small" id="return-risk-export-csv" type="button" disabled>Export metrics CSV</button><button class="button button-secondary button-small" id="return-risk-export-observations-csv" type="button" disabled>Export observations CSV</button></div>
                     <div class="fire-result-grid return-risk-result-grid">
                         <article><span>Observations</span><strong id="return-risk-observation-count">—</strong><small>Validated dated returns</small></article>
                         <article><span>Annualized volatility</span><strong id="return-risk-volatility">—</strong><small>Sample standard deviation</small></article>

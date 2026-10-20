@@ -154,6 +154,19 @@ describe('all-period budget history export contract', () => {
     });
 });
 
+describe('return risk observation CSV export contract', () => {
+    it('exports the validated dated return observations in a re-importable CSV and invalidates stale exports', async () => {
+        const [html, risk] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('return-risk.js')]);
+        expect(html).toContain('id="return-risk-export-observations-csv"');
+        expect(html).toContain('date,return_percent');
+        expect(risk).toContain("const observationsExportButton = $('#return-risk-export-observations-csv')");
+        expect(risk).toContain("observationsExportButton.disabled = true");
+        expect(risk).toContain("observationsExportButton.disabled = false");
+        expect(risk).toContain("downloadCsv('pfo-return-risk-observations.csv'");
+        expect(risk).toContain("['date', 'return_percent']");
+        expect(risk).toContain("rawLines[0]?.toLocaleLowerCase('en-US') === 'date,return_percent'");
+    });
+});
 describe('copy previous-month budgets contract', () => {
     it('offers an explicit copy action and preserves existing target-month limits', async () => {
         const [html, cashFlow] = await Promise.all([
