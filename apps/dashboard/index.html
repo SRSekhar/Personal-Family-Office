@@ -416,6 +416,30 @@
                     </div>
                     <p id="cash-flow-monthly-empty" class="cash-flow-empty">No recorded months yet.</p>
                 </section>
+                <section class="cash-flow-category-panel cash-flow-budget-panel" aria-labelledby="cash-flow-budget-heading">
+                    <div class="panel-header">
+                        <div><p class="eyebrow">PLAN · TRACK · ADJUST</p><h3 id="cash-flow-budget-heading">Monthly category budgets</h3></div>
+                        <span class="panel-tag">Explicit limits · INR</span>
+                    </div>
+                    <p class="cash-flow-intro">Set your own monthly spending limits by category and compare them with recorded expenses. Actuals come only from saved transactions for the selected month; no budget is inferred. Budgets are stored separately in this browser and are not included in cash-flow ledger backups.</p>
+                    <form id="cash-flow-budget-form" class="cash-flow-budget-form" aria-label="Monthly category budget">
+                    <div class="cash-flow-input-grid cash-flow-budget-controls">
+                        <label class="field-label" for="cash-flow-budget-month">Budget month<input id="cash-flow-budget-month" type="month" required></label>
+                        <label class="field-label" for="cash-flow-budget-category">Expense category<input id="cash-flow-budget-category" type="text" maxlength="60" required placeholder="Groceries, utilities…"></label>
+                        <label class="field-label" for="cash-flow-budget-amount">Monthly limit (₹)<input id="cash-flow-budget-amount" type="number" min="0.01" step="any" required></label>
+                    </div>
+                    <div class="fire-actions"><button class="button button-primary" id="cash-flow-budget-save" type="submit">Save budget</button><button class="button button-secondary" id="cash-flow-budget-cancel" type="button" hidden>Cancel edit</button></div>
+                    </form>
+                    <p id="cash-flow-budget-message" class="cash-flow-empty" role="status" aria-live="polite" hidden></p>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Monthly category budget compared with recorded expenses for the selected month</caption>
+                            <thead><tr><th scope="col">Category</th><th scope="col">Budget</th><th scope="col">Actual expenses</th><th scope="col">Remaining</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+                            <tbody id="cash-flow-budget-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-budget-empty" class="cash-flow-empty">Set a budget or record an expense to see the comparison.</p>
+                </section>
                 <form id="cash-flow-form" class="cash-flow-form">
                     <div class="cash-flow-input-grid">
                         <label class="field-label" for="cash-flow-date">Date<input id="cash-flow-date" type="date" required></label>
