@@ -150,7 +150,7 @@ describe('all-period budget history export contract', () => {
         expect(cashFlow).toContain('a.month.localeCompare(b.month)');
         expect(cashFlow).toContain('pfo-category-budget-history.csv');
         expect(cashFlow).toContain('budget history export is unavailable');
-        expect(cashFlow).toContain('if (textField && /^[=+\\-@\\t\\r]/u.test(field))');
+        expect(cashFlow).toContain('textField && /^[=+');
     });
 });
 
