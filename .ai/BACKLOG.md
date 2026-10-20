@@ -47,7 +47,8 @@ Features
 - Loan Model
 - Goal Model
 - Financial snapshot invariants: valid capture date, same-currency non-negative asset/liability totals, and reconciled net worth (PR #223; no history/persistence changes)
-- In progress — Loan domain model as a specialized Liability, with principal, interest rate, monthly payment, origination/maturity dates, optional lender, and validated terms; no amortization schedule
+- Loan domain model as a specialized Liability, with principal, interest rate, monthly payment, origination/maturity dates, optional lender, and validated terms (PR #224; no amortization schedule)
+- In progress — fixed-payment monthly loan amortization calculator with explicit monthly-rate/payment timing, end-of-term cap, UTC month-end date handling, and remaining-balance reporting; no fees, taxes, rate changes, or currency-specific rounding
 
 ---
 
