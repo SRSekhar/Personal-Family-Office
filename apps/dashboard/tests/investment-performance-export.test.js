@@ -19,17 +19,17 @@ const result = {
 describe('investmentCashFlowsToCsv', () => {
     it('exports signed dated cash flows in the importer's exact schema', () => {
         expect(investmentCashFlowsToCsv(cashFlows)).toBe(
-            '"date","amount"\\r\\n'
-            + '"2025-01-01","-1000"\\r\\n'
-            + '"2026-01-01","1100"\\r\\n'
+            '"date","amount"\r\n'
+            + '"2025-01-01","-1000"\r\n'
+            + '"2026-01-01","1100"\r\n'
         );
     });
 
     it.each([
         ['too few cash flows', [cashFlows[0]]],
         ['invalid date', [{ date: new Date('invalid'), amount: -1 }, cashFlows[1]]],
-        ['zero amount', [{ ...cashFlows[0], amount: 0 }, cashFlows[1]],
-        ['infinite amount', [{ ...cashFlows[0], amount: Number.POSITIVE_INFINITY }, cashFlows[1]]
+        ['zero amount', [{ ...cashFlows[0], amount: 0 }, cashFlows[1]]],
+        ['infinite amount', [{ ...cashFlows[0], amount: Number.POSITIVE_INFINITY }, cashFlows[1]]]
     ])('rejects invalid cash-flow export data: %s', (_description, flows) => {
         expect(() => investmentCashFlowsToCsv(flows)).toThrow();
     });
