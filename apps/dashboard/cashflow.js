@@ -198,6 +198,17 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             ? 'Unavailable when income is zero'
             : 'Net cash flow ÷ income';
         const shown = visibleEntries();
+        const filteredSummary = summarizeCashFlow(shown);
+        $('#cash-flow-filtered-income').textContent = money(filteredSummary.income);
+        $('#cash-flow-filtered-expenses').textContent = money(filteredSummary.expenses);
+        $('#cash-flow-filtered-net').textContent = money(filteredSummary.net);
+        const filteredSavingsRate = calculateCashFlowSavingsRate(filteredSummary.income, filteredSummary.expenses);
+        $('#cash-flow-filtered-savings-rate').textContent = filteredSavingsRate === null
+            ? '—'
+            : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(filteredSavingsRate) + '%';
+        $('#cash-flow-filtered-savings-rate-caption').textContent = filteredSavingsRate === null
+            ? 'Unavailable when filtered income is zero'
+            : 'Filtered net cash flow ÷ filtered income';
         const filtersActive = $('#cash-flow-type-filter').value !== 'all'
             || $('#cash-flow-frequency-filter').value !== 'all'
             || $('#cash-flow-category-filter').value !== ''
