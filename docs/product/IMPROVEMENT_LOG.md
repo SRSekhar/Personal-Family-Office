@@ -108,6 +108,20 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - Keep expense mix distinct from income share, and do not interpret the metric as a budget, target, or recommendation.
 - Zero-denominator behavior must be explicit rather than silently reported as zero percent.
 
+## 2026-10-20 — Dashboard balance-sheet ratios
+
+### Delivered
+- Surfaced the existing shared analytics ratios on the dashboard overview: liabilities/assets, net worth/assets, and assets/liabilities.
+- Reused the existing validated ratio analyzer rather than duplicating financial formulas in the UI.
+- Packaged the analyzer into the static dashboard runtime and added deployment validation for the module and app import.
+- Added browser smoke assertions for the sample portfolio's ratios and for the unavailable assets/liabilities result when imported data has zero liabilities.
+
+### Product and engineering lessons
+- Existing deterministic analytics should be made visible in the product before introducing a second formula implementation.
+- Ratios must be labeled by their numerator and denominator; percentages and multiples are different presentations.
+- A zero denominator is unavailable, not zero or infinity.
+- The dashboard reports descriptive ratios only and does not invent benchmarks, thresholds, or recommendations.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.
