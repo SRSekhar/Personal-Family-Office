@@ -45,7 +45,7 @@ export function analyzeInvestmentPerformance({
         throw new TypeError('Investment cash flows must be an array.');
     }
 
-    const numericCashFlows: { amount: number; date: Date }[] = [];
+    const numericCashFlows: Array<{ amount: number; date: Date }> = [];
     for (const raw of cashFlows as readonly unknown[]) {
         if (typeof raw !== 'object' || raw === null) {
             throw new TypeError('Every investment cash flow must be an object.');
