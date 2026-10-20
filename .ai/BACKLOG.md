@@ -83,6 +83,7 @@ Implemented
 - Local CSV export of monthly cash-flow trend totals and transaction counts (PR #240).
 - Local CSV export of the selected-period cash-flow category breakdown, including income, expenses, net, and transaction counts; formula-like category text is neutralized.
 - Selected-period cash-flow category table shows each category's share of total recorded expenses, with an explicit unavailable state when the period has no expenses.
+- Selected-period cash-flow category CSV export includes the same expense-share metric as the dashboard table, using an empty field when total expenses are zero.
 - Local cash-flow CSV import using the exact exported transaction schema, strict row/date/type/amount validation, a replacement preview, and explicit confirmation; quoted commas and escaped quotes are supported.
 - Local CAGR calculator using explicit beginning/ending values and period, distinct from dated cash-flow XIRR (PR #231)
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules

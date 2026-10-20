@@ -223,10 +223,16 @@ export function cashFlowToCsv(entries) {
 
 export function cashFlowCategorySummaryToCsv(entries, period = 'all') {
     const summaries = summarizeCashFlowByCategory(entries, period);
+    const totalExpenses = summaries.reduce((total, summary) => total + summary.expenses, 0);
     return [
-        ['category', 'income', 'expenses', 'net', 'transaction_count'],
+        ['category', 'income', 'expenses', 'expense_share_percent', 'net', 'transaction_count'],
         ...summaries.map((summary) => [
-            summary.category, summary.income, summary.expenses, summary.net, summary.transactionCount
+            summary.category,
+            summary.income,
+            summary.expenses,
+            totalExpenses === 0 ? '' : (summary.expenses / totalExpenses) * 100,
+            summary.net,
+            summary.transactionCount
         ])
     ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
