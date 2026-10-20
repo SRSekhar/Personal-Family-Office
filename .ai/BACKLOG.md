@@ -268,3 +268,5 @@ No work should begin unless it has been added to the backlog.
 - Export a one-row CSV summary of the exact filtered cash-flow view, including income, expenses, net, savings rate, and transaction count; disabled for invalid date ranges.
 
 - Export a category breakdown for the exact filtered transaction view, including expense share computed within that view; disabled when the date range is invalid.
+
+- Warn before manually saving an exact duplicate cash-flow transaction; allow explicit confirmation because legitimate same-day repeated transactions can exist.
