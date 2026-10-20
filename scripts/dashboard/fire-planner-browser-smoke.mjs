@@ -456,7 +456,7 @@ try {
     const monthlyCsvPath = join(temporaryDirectory, 'pfo-cash-flow-monthly-summary.csv');
     await monthlyCsvDownload.saveAs(monthlyCsvPath);
     const monthlyCsv = await readFile(monthlyCsvPath, 'utf8');
-    assert.ok(monthlyCsv.includes('"2026-'), 'monthly CSV should include a recorded month key');
+    assert.ok(monthlyCsv.includes('"' + cashFlowDate.slice(0, 7) + '"'), 'monthly CSV should include the current recorded month key');
     assert.ok(monthlyCsv.includes('"100000","20000","80000","2"'),
         'monthly CSV should include the income, expenses, net, and count shown in the trend');
     await page.locator('#cash-flow-frequency-filter').selectOption('recurring');
