@@ -452,9 +452,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added CSV export of the generated schedule. The UI caps the schedule at 100 annual periods to keep browser rendering bounded; assumptions remain explicit and no values are saved.
 - PR #232 passed calculator unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Caller-defined tax estimate CSV export — feature branch in progress
-- Add a local export of the tax estimate summary and the exact caller-supplied marginal brackets so saved output remains interpretable without assuming a jurisdiction or official tax rules.
-- The export contains only numeric inputs/results and fixed headings; no user-entered free text, persistence, network calls, or telemetry.
+### Caller-defined tax estimate CSV export — PR #233 merged
+- Added a local export of the tax estimate summary and the exact caller-supplied marginal brackets so saved output remains interpretable without assuming a jurisdiction or official tax rules.
+- The export contains only numeric inputs/results and fixed headings; no user-entered free text. Editing any input invalidates the displayed result and disables export.
+- PR #233 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Investment-performance CSV export — feature branch in progress
+- Add a local export of the investment-performance summary together with the exact dated cash-flow inputs used for the XIRR result.
+- Preserve contribution/receipt signs and explicit cash-flow dates; do not infer terminal valuation or adjust for fees/taxes.
 - Validation status: export unit tests, Chromium browser smoke, CI, dashboard packaging, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open

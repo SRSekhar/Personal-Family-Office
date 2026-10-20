@@ -962,7 +962,21 @@ try {
         'investment performance should calculate simple return on contributions');
     assert.equal(await page.locator('#investment-xirr').innerText(), '10%',
         'investment performance should calculate annualized money-weighted return');
+    const [investmentCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-performance-export-csv').click()
+    ]);
+    assert.equal(investmentCsvDownload.suggestedFilename(), 'pfo-investment-performance.csv');
+    const investmentCsvPath = join(temporaryDirectory, 'pfo-investment-performance.csv');
+    await investmentCsvDownload.saveAs(investmentCsvPath);
+    const investmentCsv = await readFile(investmentCsvPath, 'utf8');
+    assert.ok(investmentCsv.includes('Gross contributions,1000'), 'investment CSV should include gross contributions');
+    assert.ok(investmentCsv.includes('Annualized money-weighted return (XIRR %),10'), 'investment CSV should include annualized return');
+    assert.ok(investmentCsv.includes('2025-01-01,-1000'), 'investment CSV should preserve dated contribution signs');
+    assert.ok(investmentCsv.includes('2026-01-01,1100'), 'investment CSV should preserve dated receipt signs');
     await page.locator('#investment-add-flow').click();
+    assert.equal(await page.locator('#investment-performance-export-csv').isDisabled(), true,
+        'adding a cash flow should invalidate the prior result and disable export');
     const investmentFlow2 = page.locator('#investment-cash-flows .investment-flow-row').nth(2);
     await investmentFlow2.locator('.investment-flow-date').fill('2026-06-01');
     await investmentFlow2.locator('.investment-flow-amount').fill('-100');
@@ -972,6 +986,8 @@ try {
     await page.locator('#investment-performance-reset').click();
     assert.equal(await page.locator('#investment-performance-results').isHidden(), true,
         'investment performance reset should clear previous results');
+    assert.equal(await page.locator('#investment-performance-export-csv').isDisabled(), true,
+        'investment performance reset should disable CSV export');
     assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 1,
         'investment performance reset should restore one empty cash-flow row');
 
