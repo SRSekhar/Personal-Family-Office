@@ -102,6 +102,7 @@ export function initializeReturnRiskCalculator() {
             };
             const result = latest.result;
             $('#return-risk-observation-count').textContent = String(result.observationCount);
+            $('#return-risk-cumulative-return').textContent = percent(result.cumulativeReturn);
             $('#return-risk-volatility').textContent = percent(result.annualizedVolatility);
             $('#return-risk-drawdown').textContent = percent(result.maximumDrawdown);
             $('#return-risk-worst-period').textContent = percent(result.worstPeriodReturn);
@@ -132,6 +133,7 @@ export function initializeReturnRiskCalculator() {
         downloadCsv('pfo-return-risk-analysis.csv', [
             ['metric', 'value'],
             ['observation_count', result.observationCount],
+            ['cumulative_return', result.cumulativeReturn ?? ''],
             ['periods_per_year', input.periodsPerYear],
             ['annualized_volatility', result.annualizedVolatility ?? ''],
             ['maximum_drawdown', result.maximumDrawdown ?? ''],
