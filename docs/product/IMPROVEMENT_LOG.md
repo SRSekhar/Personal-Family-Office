@@ -137,6 +137,19 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - Signed cash flows are domain-significant; do not normalize all amounts to positive values.
 - Keep the imported data ephemeral and local-only, consistent with the calculator's existing privacy model.
 
+## 2026-10-20 — Cash-flow category export metric parity
+
+### Delivered
+- Added `expense_share_percent` to the selected-period category CSV export so exported summaries include the same expense-mix metric as the dashboard table.
+- Calculates each category's share against the sum of category expenses in the selected period.
+- Exports a blank share when total expenses are zero instead of reporting a misleading 0%.
+- Added browser regression assertions for a category with 100% of expenses and an income-only category with 0%.
+
+### Product and engineering lessons
+- Downloaded summaries should preserve the key metrics users see on screen.
+- Document the percentage denominator in the field name and keep it scoped to the selected period.
+- A zero denominator is unavailable; do not conflate unavailable with zero percent.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.
