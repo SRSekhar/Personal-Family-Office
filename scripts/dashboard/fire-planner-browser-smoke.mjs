@@ -895,6 +895,23 @@ try {
         'CAGR calculator should annualize value growth over the stated period');
     assert.equal((await page.locator('#cagr-beginning-result').innerText()).replace(/[^0-9]/g, ''), '1000');
     assert.equal((await page.locator('#cagr-ending-result').innerText()).replace(/[^0-9]/g, ''), '1331');
+    const [cagrCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cagr-export-csv').click()
+    ]);
+    assert.equal(cagrCsvDownload.suggestedFilename(), 'pfo-cagr-result.csv');
+    const cagrCsvPath = join(temporaryDirectory, 'pfo-cagr-result.csv');
+    await cagrCsvDownload.saveAs(cagrCsvPath);
+    const cagrCsv = await readFile(cagrCsvPath, 'utf8');
+    assert.ok(cagrCsv.includes('Beginning value,1000'), 'CAGR CSV should include beginning value');
+    assert.ok(cagrCsv.includes('Ending value,1331'), 'CAGR CSV should include ending value');
+    assert.ok(cagrCsv.includes('Elapsed years,3'), 'CAGR CSV should include elapsed years');
+    assert.ok(cagrCsv.includes('Compound annual growth rate (%),10'), 'CAGR CSV should include annualized rate');
+    await page.locator('#cagr-ending-value').fill('1400');
+    assert.equal(await page.locator('#cagr-results').isHidden(), true,
+        'editing CAGR inputs should invalidate the previous result');
+    assert.equal(await page.locator('#cagr-export-csv').isDisabled(), true,
+        'editing CAGR inputs should disable stale CSV export');
     await page.locator('#cagr-reset').click();
     assert.equal(await page.locator('#cagr-results').isHidden(), true,
         'CAGR reset should clear previous results');
