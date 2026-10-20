@@ -167,9 +167,14 @@ const allocation = calculateAssetAllocation({
 
 Asset allocation groups asset positions by their supplied category and returns each category's value and weight as a fraction from 0 to 1. Liability positions are validated but excluded from allocation. Category names are trimmed and output is sorted deterministically. No asset positions returns an empty allocation; asset positions with a zero total are rejected because weights would be undefined.
 
+## Implemented: loan amortization
+
+`calculateLoanAmortization` builds a fixed-payment monthly schedule from a validated `Loan` and an explicit first payment date. It uses the nominal annual rate divided by 12, calculates interest from each period's opening balance, applies payment at period end, caps the final payment at the amount due, and returns period-level opening balance, interest, payment, principal paid, and closing balance. It also reports total interest/payments/principal paid, remaining balance, and whether the loan is fully paid off.
+
+The schedule preserves the first payment's UTC day-of-month where possible (for example, January 31 → February 28 → March 31). There is no currency-specific rounding, fees, taxes, rate changes, or daily-interest accrual. A payment that does not exceed initial period interest is rejected; reaching the maximum schedule length returns the remaining balance with `paidOff=false`. These are explicit calculation assumptions, not lender quotes.
+
 ## Planned capabilities
 
-- Loan amortization
 - Tax estimation
 - Portfolio performance analytics
 
@@ -188,6 +193,7 @@ src/
     FireReadiness.ts
     FireScenarioComparison.ts
     RequiredFireContribution.ts
+    LoanAmortization.ts
     index.ts
 tests/
     Cagr.test.ts
@@ -198,6 +204,7 @@ tests/
     FireReadiness.test.ts
     FireScenarioComparison.test.ts
     RequiredFireContribution.test.ts
+    LoanAmortization.test.ts
 ```
 
 ## Development

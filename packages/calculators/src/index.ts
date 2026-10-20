@@ -49,3 +49,10 @@ export type {
 
 export { calculateGoalProgress } from './GoalProgress.js';
 export type { GoalProgressInput, GoalProgressResult } from './GoalProgress.js';
+
+export { calculateLoanAmortization } from './LoanAmortization.js';
+export type {
+    LoanAmortizationInput,
+    LoanAmortizationPayment,
+    LoanAmortizationResult
+} from './LoanAmortization.js';

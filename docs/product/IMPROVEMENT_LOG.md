@@ -407,10 +407,15 @@ Do not record personal financial values or claim customer demand without evidenc
 - Negative net worth remains valid when liabilities exceed assets. This does not introduce snapshot persistence, history, or charting.
 - PR #223 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Loan domain model — feature branch in progress
+### Loan domain model — PR #224 merged
 - Added Loan as a specialized Liability so it can be held in the existing Portfolio liability collection.
 - The model records original/outstanding principal, annual interest rate, monthly payment, start/maturity dates, loan type, and optional lender. It validates principal bounds, same-currency amounts, date ordering, and immutable outstanding-balance updates.
-- No amortization schedule, interest accrual, payoff projection, or payment recommendation is inferred. Validation is pending on the feature pull request.
+- PR #224 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Loan amortization calculator — feature branch in progress
+- Added a fixed-payment monthly amortization schedule based on the Loan's current outstanding principal and annual nominal interest rate divided by 12.
+- Payment timing, month-end date anchoring, maximum schedule length, final-payment cap, and no-rounding/no-fees assumptions are explicit. Non-amortizing payments are rejected and an unfinished schedule returns the remaining balance rather than implying payoff.
+- Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
