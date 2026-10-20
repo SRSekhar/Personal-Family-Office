@@ -820,6 +820,61 @@ function printFinancialReport() {
     }
 }
 
+function exportAllocationCsv() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Allocation export is paused because saved financial data could not be read safely. Existing storage remains untouched.');
+        return;
+    }
+    try {
+        const grouped = new Map();
+        records.filter((item) => item.type === 'asset').forEach((item) => {
+            grouped.set(item.category, (grouped.get(item.category) || 0) + item.value);
+        });
+        const entries = [...grouped.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'en'));
+        const totalAssets = entries.reduce((sum, [, value]) => sum + value, 0);
+        if (entries.length === 0 || !Number.isFinite(totalAssets) || totalAssets <= 0) {
+            showToast('Add a positive-value asset before exporting allocation.');
+            return;
+        }
+        const concentration = analyzeDiversification({
+            currency: CURRENCY,
+            totalValue: { amount: totalAssets, currency: CURRENCY },
+            allocations: entries.map(([category, value]) => ({
+                category, value: { amount: value, currency: CURRENCY }, weight: value / totalAssets
+            }))
+        });
+        const cell = (value) => {
+            let text = String(value ?? '');
+            if (typeof value !== 'number' && /^[=+@\\-\\t\\r]/u.test(text.trimStart())) text = "'" + text;
+            return '"' + text.replaceAll('"', '""') + '"';
+        };
+        const header = ['record_type', 'category', 'value_inr', 'share_percent', 'concentration_index_hhi', 'effective_category_count', 'largest_category_share_percent', 'total_assets_inr'];
+        const rows = [[
+            'summary', '', '', '', concentration.concentrationIndex, concentration.effectiveCategoryCount,
+            concentration.largestCategoryShare * 100, totalAssets
+        ]];
+        for (const [category, value] of entries) {
+            rows.push(['category', category, value, value / totalAssets * 100, '', '', '', totalAssets]);
+        }
+        const csv = [header, ...rows].map((row) => row.map(cell).join(',')).join('\\r\\n') + '\\r\\n';
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-asset-allocation.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Asset allocation and category concentration exported to this device.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create allocation CSV export.');
+    }
+}
 function exportCsv() {
     if (workspace === 'private' && !privateStorageHealthy) {
         showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
@@ -1073,6 +1128,7 @@ $('#export-button').addEventListener('click', exportData);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
+$('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
