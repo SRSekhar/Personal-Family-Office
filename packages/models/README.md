@@ -29,6 +29,12 @@ src/
 
 ---
 
+## Loan domain model
+
+`Loan` is a specialized `Liability`, so it can be included in the existing portfolio liability collection without changing the portfolio shape. It stores the loan type, original and outstanding principal, annual interest rate, monthly payment, start and maturity dates, and optional lender. Principal/payment amounts must use one currency; outstanding principal must be between zero and original principal; dates must be valid and maturity cannot precede origination. Updating the outstanding amount returns a new Loan and preserves the other terms.
+
+The model deliberately does not calculate amortization schedules, infer interest accrual, or determine payoff dates. Those require a separate calculation contract.
+
 ## Development
 
 Build
