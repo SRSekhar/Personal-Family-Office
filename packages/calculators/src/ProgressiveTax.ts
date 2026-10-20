@@ -1,5 +1,7 @@
 import { Money, type Currency, Percentage } from '@pfo/models';
 
+import { estimateProgressiveTaxMath } from './ProgressiveTaxMath.js';
+
 export interface ProgressiveTaxBracket {
     /** Inclusive upper bound of this bracket; null means no upper limit and is required on the final bracket. */
     readonly upperBound: Money | null;
@@ -73,44 +75,21 @@ export function estimateProgressiveTax({
         previousRate = bracket.marginalRate.value;
     }
 
-    let estimatedTax = 0;
-    let lowerBound = 0;
-    let marginalRate = brackets[0]?.marginalRate;
-    for (const bracket of brackets) {
-        const upperBound = bracket.upperBound === null
-            ? taxableIncome.amount
-            : Math.min(taxableIncome.amount, bracket.upperBound.amount);
-        const incomeInBracket = Math.max(0, upperBound - lowerBound);
-        estimatedTax += incomeInBracket * bracket.marginalRate.toDecimal();
-        if (!Number.isFinite(estimatedTax)) {
-            throw new RangeError('Estimated tax exceeds the supported numeric range.');
-        }
-        marginalRate = bracket.marginalRate;
-        if (bracket.upperBound === null || taxableIncome.amount <= bracket.upperBound.amount) {
-            break;
-        }
-        lowerBound = bracket.upperBound.amount;
-    }
+    const estimate = estimateProgressiveTaxMath(
+        taxableIncome.amount,
+        brackets.map((bracket) => ({
+            upperBound: bracket.upperBound?.amount ?? null,
+            marginalRatePercent: bracket.marginalRate.value
+        }))
+    );
 
-    const afterTaxIncome = taxableIncome.amount - estimatedTax;
-    const effectiveTaxRate = taxableIncome.amount === 0
-        ? null
-        : (estimatedTax / taxableIncome.amount) * 100;
-    if (!Number.isFinite(afterTaxIncome) || afterTaxIncome < 0
-        || (effectiveTaxRate !== null && !Number.isFinite(effectiveTaxRate))) {
-        throw new RangeError('Tax estimate exceeds the supported numeric range.');
-    }
-
-    if (marginalRate === undefined) {
-        throw new RangeError('At least one valid tax bracket is required.');
-    }
     return {
         currency,
         taxableIncome,
-        estimatedTax: new Money(estimatedTax, currency),
-        afterTaxIncome: new Money(afterTaxIncome, currency),
-        effectiveTaxRate,
-        marginalRate
+        estimatedTax: new Money(estimate.estimatedTax, currency),
+        afterTaxIncome: new Money(estimate.afterTaxIncome, currency),
+        effectiveTaxRate: estimate.effectiveTaxRate,
+        marginalRate: new Percentage(estimate.marginalRatePercent)
     };
 }
 
