@@ -19,6 +19,21 @@ export function isValidCashFlowEntry(entry) {
         && typeof entry.recurring === 'boolean');
 }
 
+/** Find an exact same-day transaction match for an explicit duplicate warning. */
+export function findPotentialDuplicateCashFlowEntry(entries, candidate, excludeId = null) {
+    if (!Array.isArray(entries)) throw new TypeError('Cash flow entries must be an array.');
+    if (!isValidCashFlowEntry(candidate)) throw new TypeError('Candidate must be a valid cash flow transaction.');
+    const validated = validateCashFlowEntries(entries);
+    const normalizedText = (value) => value.trim().toLocaleLowerCase('en-US');
+    return validated.find((entry) => entry.id !== excludeId
+        && entry.date === candidate.date
+        && entry.type === candidate.type
+        && normalizedText(entry.category) === normalizedText(candidate.category)
+        && normalizedText(entry.description) === normalizedText(candidate.description)
+        && entry.amount === candidate.amount
+        && entry.recurring === candidate.recurring) ?? null;
+}
+
 export function validateCashFlowEntries(entries) {
     if (!Array.isArray(entries)) throw new Error('Cash flow ledger must be an array.');
     const seen = new Set();
