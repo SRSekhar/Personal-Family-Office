@@ -116,6 +116,9 @@ describe('analyzePortfolio', () => {
         expect(result.assetAllocation.totalValue.amount).toBe(1000);
         expect(result.assetAllocation.allocations.map((item) => item.category))
             .toEqual(['Cash', 'Equity', 'Real Estate']);
+        expect(result.financialRatios.liabilitiesToAssets).toBe(0.05);
+        expect(result.financialRatios.netWorthToAssets).toBe(0.95);
+        expect(result.financialRatios.assetsToLiabilities).toBe(20);
     });
 
     it('rejects selected positions with different currencies', () => {
