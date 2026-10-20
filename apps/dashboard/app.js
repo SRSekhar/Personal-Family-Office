@@ -562,6 +562,7 @@ function render() {
 
 function renderAllocation(totalAssets) {
     const container = $('#allocation-content');
+    $('#allocation-concentration').hidden = true;
     const grouped = new Map();
     records.filter((item) => item.type === 'asset').forEach((item) => {
         grouped.set(item.category, (grouped.get(item.category) || 0) + item.value);
