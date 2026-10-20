@@ -1352,7 +1352,7 @@ try {
     await page.locator('#cash-flow-budget-amount').fill('10000');
     await page.locator('#cash-flow-budget-save').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-budget-message')?.innerText.includes('Monthly category budget saved'));
-    assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\\s\\S]*₹10,000[\\s\\S]*Not spent/,
+    assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\s\S]*₹10,000[\s\S]*Not spent/,
         'saved budget should appear with zero actual spending');
     await page.locator('#cash-flow-date').fill('2026-10-20');
     await page.locator('#cash-flow-type').selectOption('expense');
@@ -1360,12 +1360,12 @@ try {
     await page.locator('#cash-flow-description').fill('Budget smoke expense');
     await page.locator('#cash-flow-amount').fill('12000');
     await page.locator('#cash-flow-save').click();
-    assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\\s\\S]*₹10,000[\\s\\S]*₹12,000[\\s\\S]*-₹2,000[\\s\\S]*Over budget/,
+    assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\s\S]*₹10,000[\s\S]*₹12,000[\s\S]*-₹2,000[\s\S]*Over budget/,
         'budget comparison should aggregate category actuals case-insensitively and flag overspending');
     await page.reload({ waitUntil: 'networkidle' });
-    assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\\s\\S]*Over budget/,
+    assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\s\S]*Over budget/,
         'budget and ledger values should remain available after reload');
-    process.stdout.write('PASS: monthly category budgets persist, aggregate recorded expenses, and flag overspending.\\n');
+    process.stdout.write('PASS: monthly category budgets persist, aggregate recorded expenses, and flag overspending.\n');
 
 
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
