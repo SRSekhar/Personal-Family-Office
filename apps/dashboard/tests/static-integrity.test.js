@@ -126,6 +126,22 @@ describe('copy previous-month budgets contract', () => {
     });
 });
 
+describe('monthly budget utilization contract', () => {
+    it('shows budget-used percentage and exports the same metric without inventing a budget', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('<th scope="col">Budget used</th>');
+        expect(cashFlow).toContain('function budgetUtilizationPercent(budget, actual)');
+        expect(cashFlow).toContain("utilization === null ? '—' : utilization.toFixed(1) + '%'");
+        expect(cashFlow).toContain("'budget_used_percent'");
+        expect(cashFlow).toContain('budgetUtilizationPercent(item.budget, item.actual) ??');
+        expect(cashFlow).toContain('if (budget === null) return null;');
+        expect(cashFlow).toContain('Number.isFinite(percentage)');
+    });
+});
+
 describe('dashboard export reliability', () => {
     it('keeps the JSON backup object URL alive briefly after initiating download', async () => {
         const app = await readDashboardFile('app.js');
