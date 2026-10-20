@@ -364,8 +364,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - The metrics are descriptive only: no thresholds, forecasts, or investment recommendations are inferred.
 - PR #214 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Category concentration metrics — feature branch in progress
+### Category concentration metrics — PR #215 merged
 - Added deterministic concentration metrics based only on caller-supplied asset-allocation categories: HHI, effective category count, and largest-category share.
 - Validates allocation weights and values reconcile; empty allocation returns null metrics instead of misleading zeros.
 - This is category concentration, not a correlation-aware risk or diversification recommendation.
+- PR #215 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Return-series risk analysis — feature branch in progress
+- Added deterministic annualized sample volatility, maximum drawdown, worst period return, and negative-period count for caller-supplied dated simple returns.
+- Annualization frequency is explicit; dates must be valid and ordered; returns below -100% and numeric overflow are rejected.
+- No market data, forecasts, risk ratings, or investment recommendations are inferred.
 - Validation status: unit tests, package build/typecheck, CI, and Secret Scan are pending on the feature pull request.
