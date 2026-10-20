@@ -692,6 +692,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         } catch (error) { budgetMessage(error instanceof Error ? error.message : 'Could not export budget history.', true); }
     });
 
+    function download(filename, text, type) {
         const url = URL.createObjectURL(new Blob([text], { type }));
         const link = documentRef.createElement('a');
         link.href = url; link.download = filename;
