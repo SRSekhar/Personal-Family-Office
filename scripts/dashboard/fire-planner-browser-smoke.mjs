@@ -1022,6 +1022,18 @@ try {
         'tax estimator should apply marginal rates only within each supplied bracket');
     assert.equal(await page.locator('#tax-effective-rate').innerText(), '12.5%',
         'tax estimator should show the effective tax rate');
+    const [taxCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#tax-export-csv').click()
+    ]);
+    assert.equal(taxCsvDownload.suggestedFilename(), 'pfo-tax-estimate.csv');
+    const taxCsvPath = join(temporaryDirectory, 'pfo-tax-estimate.csv');
+    await taxCsvDownload.saveAs(taxCsvPath);
+    const taxCsv = await readFile(taxCsvPath, 'utf8');
+    assert.ok(taxCsv.includes('Taxable income,100000'), 'tax CSV should include taxable income');
+    assert.ok(taxCsv.includes('Estimated tax,12500'), 'tax CSV should include the estimate');
+    assert.ok(taxCsv.includes('25000,0'), 'tax CSV should include supplied bracket assumptions');
+    assert.ok(taxCsv.includes('No upper limit,20'), 'tax CSV should identify the final open-ended bracket');
     await secondTaxBracket.locator('.tax-bracket-bound').fill('10000');
     await page.locator('#tax-estimator-form button[type="submit"]').click();
     assert.equal(await page.locator('#tax-validation').isVisible(), true,
@@ -1029,6 +1041,8 @@ try {
     await page.locator('#tax-reset').click();
     assert.equal(await page.locator('#tax-estimate-results').isHidden(), true,
         'tax reset should clear previous results');
+    assert.equal(await page.locator('#tax-export-csv').isDisabled(), true,
+        'tax reset should disable export until another valid estimate');
     assert.equal(await page.locator('#tax-brackets .tax-bracket-row').count(), 1,
         'tax reset should restore a single final bracket');
     process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\\n');
