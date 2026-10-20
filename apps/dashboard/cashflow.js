@@ -21,6 +21,69 @@ function isLoopback(hostname) {
     return host === 'localhost' || host === '::1' || host === '127.0.0.1';
 }
 
+
+function parseCashFlowCsv(source, cryptoRef) {
+    if (typeof source !== 'string' || source.trim() === '') throw new Error('The CSV file is empty.');
+    const rows = [];
+    let row = [];
+    let field = '';
+    let quoted = false;
+    let quoteClosed = false;
+    const input = source.replace(/^\uFEFF/u, '');
+    for (let i = 0; i < input.length; i += 1) {
+        const ch = input[i];
+        if (quoted) {
+            if (ch === '"') {
+                if (input[i + 1] === '"') { field += '"'; i += 1; }
+                else { quoted = false; quoteClosed = true; }
+            } else field += ch;
+            continue;
+        }
+        if (quoteClosed) {
+            if (ch === ',') { row.push(field); field = ''; quoteClosed = false; }
+            else if (ch === '\\r' || ch === '\\n') {
+                row.push(field); rows.push(row); row = []; field = ''; quoteClosed = false;
+                if (ch === '\\r' && input[i + 1] === '\\n') i += 1;
+            } else throw new Error('The CSV contains characters after a closing quote.');
+            continue;
+        }
+        if (ch === '"') {
+            if (field.length !== 0) throw new Error('The CSV contains a quote inside an unquoted field.');
+            quoted = true;
+        } else if (ch === ',') { row.push(field); field = ''; }
+        else if (ch === '\\r' || ch === '\\n') {
+            row.push(field); rows.push(row); row = []; field = '';
+            if (ch === '\\r' && input[i + 1] === '\\n') i += 1;
+        } else field += ch;
+    }
+    if (quoted) throw new Error('The CSV contains an unterminated quoted field.');
+    if (field.length > 0 || row.length > 0 || quoteClosed) { row.push(field); rows.push(row); }
+    const header = ['date', 'type', 'category', 'description', 'amount', 'recurring'];
+    if (!rows.length || rows[0].length !== header.length || !header.every((value, index) => rows[0][index] === value)) {
+        throw new Error('Unsupported CSV format. Expected columns: date, type, category, description, amount, recurring.');
+    }
+    if (rows.length === 1) throw new Error('The CSV contains no transactions.');
+    return rows.slice(1).map((columns) => {
+        if (columns.length !== header.length || columns.some((value) => value.trim() === '')) {
+            throw new Error('The CSV contains an incomplete transaction.');
+        }
+        const [date, type, category, description, rawAmount, recurring] = columns;
+        const amount = Number(rawAmount);
+        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)
+            || !['income', 'expense'].includes(type)
+            || !Number.isFinite(amount) || amount <= 0
+            || !['true', 'false'].includes(recurring)) {
+            throw new Error('The CSV contains an invalid transaction.');
+        }
+        const [year, month, day] = date.split('-').map(Number);
+        const calendarDate = new Date(Date.UTC(year, month - 1, day));
+        if (calendarDate.getUTCFullYear() !== year || calendarDate.getUTCMonth() !== month - 1 || calendarDate.getUTCDate() !== day) {
+            throw new Error('The CSV contains an invalid calendar date.');
+        }
+        return { id: cryptoRef.randomUUID(), date, type, category: category.trim(), description: description.trim(), amount, recurring: recurring === 'true' };
+    });
+}
+
 export function initializeCashFlowTracker(documentRef = document, windowRef = window) {
     const root = documentRef.querySelector('#cash-flow');
     if (!root) return;
@@ -267,7 +330,45 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
 
     $('#cash-flow-form').addEventListener('submit', (event) => {
         event.preventDefault();
-        if (!isLoopback(windowRef.location.hostname)) {
+    
+    $('#cash-flow-import-csv').addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            try {
+                const imported = parseCashFlowCsv(String(reader.result), windowRef.crypto);
+                const preview = summarizeCashFlow(imported);
+                const confirmMessage = [
+                    'CSV import preview: ' + imported.length + ' transaction' + (imported.length === 1 ? '' : 's'),
+                    'Income: ' + money(preview.income),
+                    'Expenses: ' + money(preview.expenses),
+                    'Net cash flow: ' + money(preview.net),
+                    '',
+                    'Importing this CSV replaces all cash flow transactions stored in this browser. Continue?'
+                ].join('\\n');
+                if (!windowRef.confirm(confirmMessage)) {
+                    message('CSV import cancelled. Existing transactions were not changed.');
+                    return;
+                }
+                const wasHealthy = storageHealthy;
+                storageHealthy = true;
+                if (!save(imported)) storageHealthy = wasHealthy;
+                else message('Imported ' + imported.length + ' cash flow transactions from CSV.');
+            } catch (error) {
+                message(error instanceof Error ? error.message : 'Could not import cash flow CSV.', true);
+            } finally {
+                $('#cash-flow-import-csv').value = '';
+            }
+        });
+        reader.addEventListener('error', () => {
+            message('Could not read the selected cash flow CSV.', true);
+            $('#cash-flow-import-csv').value = '';
+        });
+        reader.readAsText(file);
+    });
+
+    if (!isLoopback(windowRef.location.hostname)) {
             message('Use the local-only dashboard to manage personal cash flow.', true);
             return;
         }
