@@ -37,9 +37,9 @@ export interface PortfolioAnalysis {
 }
 
 /**
- * Produces deterministic net-worth, asset-allocation, and balance-sheet ratio
- * results for an explicitly selected set of portfolio records. No market data,
- * FX rates, persistence, or AI-generated interpretation is involved.
+ * Produces deterministic net-worth, allocation, balance-sheet ratio, and
+ * category-concentration results for explicitly selected portfolio records.
+ * No market data, FX rates, persistence, or AI interpretation is involved.
  */
 export function analyzePortfolio({
     portfolio,
