@@ -3,7 +3,6 @@ import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
 const money = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
-const number = (amount) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(amount);
 
 function renderSchedule(schedule) {
     const body = $('#loan-schedule-rows');
