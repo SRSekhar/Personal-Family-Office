@@ -60,7 +60,9 @@ function isValidCalendarDate(value: string): boolean {
 }
 
 function savingsRate(income: number, expenses: number): number | null {
-    if (income === 0) return null;
+    if (income === 0) {
+        return null;
+    }
     const result = ((income - expenses) / income) * 100;
     if (!Number.isFinite(result)) {
         throw new RangeError('Cash-flow savings rate exceeds the supported numeric range.');
@@ -70,7 +72,9 @@ function savingsRate(income: number, expenses: number): number | null {
 
 function addAmount(current: number, amount: number, message: string): number {
     const next = current + amount;
-    if (!Number.isFinite(next)) throw new RangeError(message);
+    if (!Number.isFinite(next)) {
+        throw new RangeError(message);
+    }
     return next;
 }
 
@@ -150,7 +154,9 @@ export function analyzeCashFlow({
 
     const monthlyTrend = [...monthly.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([period, item]) => {
         const net = item.income - item.expenses;
-        if (!Number.isFinite(net)) throw new RangeError('Monthly net cash flow exceeds the supported numeric range.');
+        if (!Number.isFinite(net)) {
+            throw new RangeError('Monthly net cash flow exceeds the supported numeric range.');
+        }
         return {
             period,
             income: new Money(item.income, currency),
