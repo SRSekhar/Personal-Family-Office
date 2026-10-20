@@ -18,6 +18,9 @@ export * from './assets/AssetType.js';
 export * from './liabilities/Liability.js';
 export * from './liabilities/LiabilityType.js';
 
+export * from './loans/Loan.js';
+export * from './loans/LoanType.js';
+
 export * from './investments/Investment.js';
 export * from './investments/InvestmentType.js';
 
