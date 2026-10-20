@@ -95,6 +95,7 @@ In Progress
 - Return-series risk analysis with explicit annualization frequency, sample volatility, maximum drawdown, worst-period return, negative-period count, and input validation (PR #216).
 - Optional annualized Sharpe ratio using a caller-supplied risk-free return per period; no implicit risk-free-rate assumption (PR #217).
 - Optional annualized Sortino ratio using a caller-supplied minimum acceptable return per period; no implicit target assumption (PR #218).
+- Local return-series risk analysis UI using explicit dated period returns and annualization frequency; optional Sharpe/Sortino inputs, stale-result invalidation, and CSV export; no market-data fetching or recommendation.
 
 Planned
 - Portfolio Health — define required metrics and intended interpretation before implementation; do not invent a composite score or thresholds.
