@@ -272,3 +272,5 @@ No work should begin unless it has been added to the backlog.
 - Warn before manually saving an exact duplicate cash-flow transaction; allow explicit confirmation because legitimate same-day repeated transactions can exist.
 
 - Cash-flow CSV append import preserves existing transactions, previews post-import totals, warns about exact potential duplicates without silently deduplicating, and remains separate from replacement import.
+
+- Add a local monthly category budget planner with explicit user-entered limits, actual expenses derived from recorded transactions, over-budget indicators, and separately validated browser storage; no inferred budgets or forecasts.
