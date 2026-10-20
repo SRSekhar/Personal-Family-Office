@@ -145,3 +145,15 @@
 .growth-result-grid article strong{overflow-wrap:anywhere}
 @media(max-width:900px){.growth-input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.growth-input-grid,.growth-result-grid{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Local CAGR calculator */
+.cagr-panel{margin-top:17px;padding:22px}
+.cagr-intro{font-size:12px;line-height:1.7;color:#78857e;margin:12px 0 18px}
+.cagr-input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 15px}
+.cagr-input-grid .field-label{min-width:0;line-height:1.5}
+.cagr-input-grid input{min-width:0;width:100%;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:white;color:#2b3f32;font-size:12px}
+.cagr-result-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cagr-result-grid article strong{overflow-wrap:anywhere}
+@media(max-width:900px){.cagr-input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.cagr-input-grid,.cagr-result-grid{grid-template-columns:minmax(0,1fr)}}
