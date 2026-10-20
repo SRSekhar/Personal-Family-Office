@@ -154,6 +154,7 @@ describe('all-period budget history export contract', () => {
     });
 });
 
+describe('copy previous-month budgets contract', () => {
     it('offers an explicit copy action and preserves existing target-month limits', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
