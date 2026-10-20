@@ -140,7 +140,20 @@ describe('monthly budget export contract', () => {
     });
 });
 
-describe('copy previous-month budgets contract', () => {
+describe('all-period budget history export contract', () => {
+    it('exports recorded budgets and expense-only categories in deterministic order with formula-safe category text', async () => {
+        const [html, cashFlow] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('cashflow.js')]);
+        expect(html).toContain('id="cash-flow-budget-export-history-csv"');
+        expect(cashFlow).toContain("$('#cash-flow-budget-export-history-csv').addEventListener('click'");
+        expect(cashFlow).toContain('function budgetHistoryToCsv()');
+        expect(cashFlow).toContain("entry.type !== 'expense'");
+        expect(cashFlow).toContain('a.month.localeCompare(b.month)');
+        expect(cashFlow).toContain('pfo-category-budget-history.csv');
+        expect(cashFlow).toContain('budget history export is unavailable');
+        expect(cashFlow).toContain('if (textField && /^[=+\\-@\\t\\r]/u.test(field))');
+    });
+});
+
     it('offers an explicit copy action and preserves existing target-month limits', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
