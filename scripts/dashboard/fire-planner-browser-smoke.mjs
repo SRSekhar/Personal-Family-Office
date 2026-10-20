@@ -503,6 +503,8 @@ try {
         'monthly trend should total recorded expenses');
     assert.equal((await monthlyTrend.locator('td').nth(3).innerText()).replace(/[^0-9]/g, ''), '80000',
         'monthly trend should calculate recorded net cash flow');
+    assert.equal(await monthlyTrend.locator('td').nth(4).innerText(), '80%',
+        'monthly trend should calculate net cash flow as a share of income');
     const [monthlyCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#cash-flow-export-monthly-csv').click()
@@ -512,8 +514,10 @@ try {
     await monthlyCsvDownload.saveAs(monthlyCsvPath);
     const monthlyCsv = await readFile(monthlyCsvPath, 'utf8');
     assert.ok(monthlyCsv.includes('"' + cashFlowDate.slice(0, 7) + '"'), 'monthly CSV should include the current recorded month key');
-    assert.ok(monthlyCsv.includes('"100000","20000","80000","2"'),
-        'monthly CSV should include the income, expenses, net, and count shown in the trend');
+    assert.ok(monthlyCsv.includes('"month","income","expenses","net","savings_rate_percent","transaction_count"'),
+        'monthly CSV should include the machine-readable savings-rate column');
+    assert.ok(monthlyCsv.includes('"100000","20000","80000","80","2"'),
+        'monthly CSV should include income, expenses, net, savings rate, and count matching the trend');
     const [categoryCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#cash-flow-export-category-csv').click()
