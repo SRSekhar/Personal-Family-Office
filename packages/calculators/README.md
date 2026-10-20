@@ -199,6 +199,7 @@ src/
     FireScenarioComparison.ts
     RequiredFireContribution.ts
     LoanAmortization.ts
+    ProgressiveTax.ts
     index.ts
 tests/
     Cagr.test.ts
@@ -210,6 +211,7 @@ tests/
     FireScenarioComparison.test.ts
     RequiredFireContribution.test.ts
     LoanAmortization.test.ts
+    ProgressiveTax.test.ts
 ```
 
 ## Development
