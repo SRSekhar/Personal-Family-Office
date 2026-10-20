@@ -277,3 +277,5 @@ No work should begin unless it has been added to the backlog.
 - Cash-flow CSV append import preserves existing transactions, previews post-import totals, warns about exact potential duplicates without silently deduplicating, and remains separate from replacement import.
 
 - Copy previous-month category budget limits into the selected month on explicit user request; preserve existing target-month limits, preview missing categories, and never modify transaction records.
+
+- Show budget utilization as actual expenses divided by the explicit category limit, including a matching CSV field; leave utilization unavailable when no valid budget exists.
