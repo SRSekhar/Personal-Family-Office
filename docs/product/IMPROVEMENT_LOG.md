@@ -477,9 +477,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Kept the offline HTML download, avoided a PDF runtime dependency, and improved print layout for tables and page breaks. The app does not claim to generate a PDF file directly.
 - PR #237 passed renderer unit tests, CI, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Print invocation regression hardening — feature branch in progress
-- Strengthen the Chromium smoke test by stubbing the popup's print method and asserting that the print workflow actually invokes it, beyond merely opening the report popup.
-- Validation status: CI, browser smoke, dashboard packaging, and Secret Scan are pending.
+### Print invocation regression hardening — PR #238 merged
+- Strengthened the Chromium smoke test by stubbing the popup's print method and asserting that the print workflow actually invokes it, beyond merely opening the report popup.
+- PR #238 passed lint, typecheck, unit tests, Chromium browser smoke, and Secret Scan.
+
+### Monthly cash-flow trend table — feature branch in progress
+- Added a month-by-month table grouped from the existing dated cash-flow transactions, with income, expenses, net cash flow, and transaction count.
+- This is a live summary of existing transaction dates, not a forecast or a separate immutable financial snapshot; no persistence schema or backup format changes.
+- Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
