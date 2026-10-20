@@ -106,9 +106,11 @@ Ratios are returned as dimensionless numbers (for example, `0.25` means 25% for 
 src/
     PortfolioPositionMapper.ts
     PortfolioAnalysis.ts
+    FinancialRatios.ts
     index.ts
 tests/
     PortfolioAnalysis.test.ts
+    FinancialRatios.test.ts
 ```
 
 ## Development
