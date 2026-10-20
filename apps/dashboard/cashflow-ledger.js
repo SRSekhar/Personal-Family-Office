@@ -137,8 +137,9 @@ export function summarizeCashFlowByMonth(entries) {
 
 function csvCell(value) {
     let text = String(value);
-    // trimStart neutralizes leading spaces and control whitespace before formula detection.
-    if (/^[=+@-]/.test(text.trimStart())) text = "'" + text;
+    // Numeric values are already validated data, so negative totals remain numeric in spreadsheet exports.
+    // trimStart neutralizes leading spaces and control whitespace before formula detection in text fields.
+    if (typeof value !== 'number' && /^[=+@-]/.test(text.trimStart())) text = "'" + text;
     return '"' + text.replaceAll('"', '""') + '"';
 }
 
@@ -198,6 +199,16 @@ export function filterCashFlowEntries(entries, {
         .sort((a, b) => b.date.localeCompare(a.date)
             || a.description.localeCompare(b.description)
             || a.id.localeCompare(b.id));
+}
+
+export function cashFlowMonthlySummaryToCsv(entries) {
+    const summaries = summarizeCashFlowByMonth(entries);
+    return [
+        ['month', 'income', 'expenses', 'net', 'transaction_count'],
+        ...summaries.map((summary) => [
+            summary.month, summary.income, summary.expenses, summary.net, summary.transactionCount
+        ])
+    ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
 
 export function cashFlowToCsv(entries) {

@@ -1,5 +1,5 @@
 import {
-    calculateCashFlowSavingsRate, cashFlowToCsv, filterCashFlowEntries,
+    calculateCashFlowSavingsRate, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
     sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
     summarizeCashFlowByMonth, validateCashFlowEntries
 } from './cashflow-ledger.js';
@@ -328,6 +328,14 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     });
     $('#cash-flow-export-all-csv').addEventListener('click', () => {
         exportCsv(entries, 'pfo-cash-flow.csv', 'All cash flow transactions exported to this device.');
+    });
+    $('#cash-flow-export-monthly-csv').addEventListener('click', () => {
+        try {
+            download('pfo-cash-flow-monthly-summary.csv', cashFlowMonthlySummaryToCsv(entries), 'text/csv;charset=utf-8');
+            message('Monthly cash-flow summary exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export monthly cash-flow summary.', true);
+        }
     });
     $('#cash-flow-export-json').addEventListener('click', () => {
         download('pfo-cash-flow-backup.json', JSON.stringify({

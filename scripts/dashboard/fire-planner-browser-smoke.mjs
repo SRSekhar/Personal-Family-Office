@@ -448,6 +448,17 @@ try {
         'monthly trend should total recorded expenses');
     assert.equal((await monthlyTrend.locator('td').nth(3).innerText()).replace(/[^0-9]/g, ''), '80000',
         'monthly trend should calculate recorded net cash flow');
+    const [monthlyCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cash-flow-export-monthly-csv').click()
+    ]);
+    assert.equal(monthlyCsvDownload.suggestedFilename(), 'pfo-cash-flow-monthly-summary.csv');
+    const monthlyCsvPath = join(temporaryDirectory, 'pfo-cash-flow-monthly-summary.csv');
+    await monthlyCsvDownload.saveAs(monthlyCsvPath);
+    const monthlyCsv = await readFile(monthlyCsvPath, 'utf8');
+    assert.ok(monthlyCsv.includes('"' + cashFlowDate.slice(0, 7) + '"'), 'monthly CSV should include the current recorded month key');
+    assert.ok(monthlyCsv.includes('"100000","20000","80000","2"'),
+        'monthly CSV should include the income, expenses, net, and count shown in the trend');
     await page.locator('#cash-flow-frequency-filter').selectOption('recurring');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'recurring filter should show recurring transactions only');
     assert.equal((await page.locator('#cash-flow-rows tr').innerText()).includes('Browser test salary'), true);

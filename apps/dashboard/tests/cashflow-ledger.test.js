@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     calculateCashFlowSavingsRate,
+    cashFlowMonthlySummaryToCsv,
     cashFlowToCsv,
     filterCashFlowEntries,
     isValidCashFlowEntry,
@@ -164,6 +165,17 @@ describe('cash flow savings rate', () => {
 });
 
 describe('cash flow CSV export', () => {
+    it('exports a month-grouped summary with fixed, machine-readable columns', () => {
+        expect(cashFlowMonthlySummaryToCsv(entries)).toBe(
+            '"month","income","expenses","net","transaction_count"\r\n'
+            + '"2026-10","100000","20000","80000","2"\r\n'
+            + '"2026-09","0","2500","-2500","1"\r\n'
+        );
+        expect(cashFlowMonthlySummaryToCsv([])).toBe(
+            '"month","income","expenses","net","transaction_count"\r\n'
+        );
+    });
+
     it('quotes fields and neutralizes spreadsheet formula-like text', () => {
         const csv = cashFlowToCsv([{ ...entries[0], description: '=IMPORTDATA("https://example.invalid")' }]);
         expect(csv).toContain('"date","type","category","description","amount","recurring"');
