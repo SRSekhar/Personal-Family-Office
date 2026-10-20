@@ -31,25 +31,27 @@ export function analyzeInvestmentPerformanceMath({ cashFlows }: InvestmentPerfor
             throw new TypeError('Every investment cash flow must be an object.');
         }
         const flow = raw as Partial<XirrCashFlow>;
-        if (!(flow.date instanceof Date) || !Number.isFinite(flow.date.getTime())) {
+        const date = flow.date;
+        const amount = flow.amount;
+        if (!(date instanceof Date) || !Number.isFinite(date.getTime())) {
             throw new RangeError('Every investment cash flow must have a valid date.');
         }
-        if (!Number.isFinite(flow.amount) || flow.amount === 0) {
+        if (typeof amount !== 'number' || !Number.isFinite(amount) || amount === 0) {
             throw new RangeError('Investment cash-flow amounts must be non-zero finite values.');
         }
-        if (flow.amount < 0) {
-            contributions += Math.abs(flow.amount);
+        if (amount < 0) {
+            contributions += Math.abs(amount);
             if (!Number.isFinite(contributions)) {
                 throw new RangeError('Gross contributions exceed the supported numeric range.');
             }
         } else {
-            proceeds += flow.amount;
+            proceeds += amount;
             if (!Number.isFinite(proceeds)) {
                 throw new RangeError('Gross proceeds exceed the supported numeric range.');
             }
         }
-        firstTimestamp = Math.min(firstTimestamp, flow.date.getTime());
-        lastTimestamp = Math.max(lastTimestamp, flow.date.getTime());
+        firstTimestamp = Math.min(firstTimestamp, date.getTime());
+        lastTimestamp = Math.max(lastTimestamp, date.getTime());
     }
     const annualizedMoneyWeightedReturn = calculateXirr(cashFlows);
     const netGain = proceeds - contributions;
