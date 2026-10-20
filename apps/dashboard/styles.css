@@ -176,3 +176,12 @@
 .return-risk-panel{padding:22px;margin-top:16px}.return-risk-intro{max-width:900px;color:#6f7d73;font-size:12px;line-height:1.65}.return-risk-input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}.return-risk-panel textarea{display:block;width:100%;resize:vertical;min-height:150px;padding:12px;border:1px solid #dfe6df;border-radius:8px;background:#fbfcfb;color:#263a2e;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace}.return-risk-result-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.return-risk-result-grid article strong{overflow-wrap:anywhere}@media(max-width:850px){.return-risk-input-grid,.return-risk-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.return-risk-input-grid,.return-risk-result-grid{grid-template-columns:minmax(0,1fr)}.return-risk-panel{padding:15px}}
 
 .allocation-concentration{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}.concentration-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}.concentration-metrics article{min-width:0;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fbfcfb}.concentration-metrics article span,.concentration-metrics article small{display:block;color:var(--muted);font-size:10px;line-height:1.5}.concentration-metrics article strong{display:block;margin:7px 0;font-size:22px;letter-spacing:-.5px;overflow-wrap:anywhere}.concentration-note{margin:12px 0 0;color:var(--muted);font-size:10px;line-height:1.6}@media(max-width:650px){.concentration-metrics{grid-template-columns:1fr}.concentration-metrics article strong{font-size:20px}}
+
+
+.financial-ratios-panel{margin-top:18px;padding:18px 20px}
+.financial-ratio-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.financial-ratio-metrics article{min-width:0;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fbfcfb}
+.financial-ratio-metrics article span,.financial-ratio-metrics article small{display:block;color:var(--muted);font-size:11px;line-height:1.5}
+.financial-ratio-metrics article strong{display:block;margin:7px 0;font-size:24px;letter-spacing:-.5px;overflow-wrap:anywhere}
+.financial-ratio-note{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
+@media(max-width:650px){.financial-ratios-panel{padding:15px}.financial-ratio-metrics{grid-template-columns:1fr}.financial-ratio-metrics article strong{font-size:21px}}
