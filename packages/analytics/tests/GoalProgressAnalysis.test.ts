@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { analyzeGoalProgress } from '../src/GoalProgressAnalysis.js';
 
-function createGoal(targetAmount = 1000, targetDate = new Date('2027-12-31T23:00:00-05:00')): Goal {
+function createGoal(targetAmount = 1000, targetDate = new Date('2028-01-01T00:00:00Z')): Goal {
     return new Goal(
         Identifier.create('goal-progress'),
         'Emergency fund',
@@ -31,7 +31,7 @@ describe('analyzeGoalProgress', () => {
 
     it('preserves progress above 100 percent and clamps remaining amount to zero', () => {
         const result = analyzeGoalProgress({
-            goal: createGoal(100),
+            goal: createGoal(100, new Date('2027-12-31T00:00:00Z')),
             currentAmount: new Money(125, Currency.INR),
             asOf: new Date('2028-01-01T00:00:00Z')
         });
@@ -45,7 +45,7 @@ describe('analyzeGoalProgress', () => {
 
     it('marks an unachieved goal overdue after the target date', () => {
         const result = analyzeGoalProgress({
-            goal: createGoal(100),
+            goal: createGoal(100, new Date('2027-12-31T00:00:00Z')),
             currentAmount: new Money(20, Currency.INR),
             asOf: new Date('2028-01-01T00:00:00Z')
         });
