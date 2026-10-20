@@ -82,7 +82,20 @@ h1{margin:.25rem 0 .5rem;font-size:clamp(1.6rem,4vw,2.4rem)}h2{margin-top:0;font
 .metric strong{display:block;overflow-wrap:anywhere;font-size:clamp(1.15rem,3vw,1.6rem);margin-top:.4rem}
 .table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:.7rem .5rem;border-bottom:1px solid #e0e8e1;overflow-wrap:anywhere}
 thead th{font-size:.8rem;color:#53665a;text-transform:uppercase;letter-spacing:.03em}.numeric{text-align:right;font-variant-numeric:tabular-nums}
-footer{font-size:.85rem;color:#53665a}@media print{body{background:#fff}main{max-width:none;padding:0}header,section,footer{break-inside:avoid}}
+footer{font-size:.85rem;color:#53665a}
+@page{margin:14mm}
+@media print{
+body{background:#fff;color:#000;font-size:10pt}
+main{max-width:none;padding:0}
+header,section,footer{background:#fff;border-color:#aaa;border-radius:0;padding:0 0 5mm;margin-bottom:7mm}
+h1,h2{break-after:avoid-page}
+.table-scroll{overflow:visible}
+table{font-size:9pt}
+thead{display:table-header-group}
+tr{break-inside:avoid}
+.metric{break-inside:avoid;border-color:#aaa}
+footer{font-size:8pt}
+}
 </style>
 </head>
 <body><main>

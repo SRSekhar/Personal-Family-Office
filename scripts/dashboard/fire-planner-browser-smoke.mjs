@@ -119,6 +119,19 @@ try {
     assert.ok(financialReportHtml.includes('does not track valuation dates'),
         'financial report must disclose that records have no valuation dates');
     assert.ok(financialReportHtml.includes('Net worth'), 'financial report should include a net-worth summary');
+    assert.ok(financialReportHtml.includes('@page{margin:14mm}'), 'financial report should define printable page margins');
+    assert.ok(financialReportHtml.includes('thead{display:table-header-group}'), 'printed report should repeat table headings');
+    const [printReportPage] = await Promise.all([
+        page.waitForEvent('popup'),
+        page.locator('#print-report-button').click()
+    ]);
+    await printReportPage.waitForLoadState('load');
+    assert.ok((await printReportPage.locator('body').innerText()).includes('Financial overview'),
+        'print workflow should open the same self-contained financial report');
+    assert.ok((await page.locator('#toast').innerText()).includes('Choose Save as PDF'),
+        'dashboard should explain how to save the print-ready report as PDF');
+    await printReportPage.close();
+    process.stdout.write('PASS: financial summary can open a print-ready window and invoke Save as PDF workflow.\\n');
     process.stdout.write('PASS: financial summary report downloads with totals, records, and valuation-date limitation.\\n');
 
     await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
