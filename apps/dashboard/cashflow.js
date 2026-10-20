@@ -746,6 +746,19 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             message(error instanceof Error ? error.message : 'Could not export monthly cash-flow summary.', true);
         }
     });
+    $('#cash-flow-budget-export-csv').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            budgetMessage('Use the local-only dashboard to export personal budget data.', true);
+            return;
+        }
+        try {
+            const month = $('#cash-flow-budget-month').value;
+            download('pfo-monthly-category-budgets-' + month + '.csv', budgetSummaryToCsv(month), 'text/csv;charset=utf-8');
+            budgetMessage('Selected-month budget comparison exported to this device.');
+        } catch (error) {
+            budgetMessage(error instanceof Error ? error.message : 'Could not export the budget comparison.', true);
+        }
+    });
     $('#cash-flow-export-category-csv').addEventListener('click', () => {
         try {
             const period = $('#cash-flow-period').value || 'all';
