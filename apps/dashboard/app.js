@@ -14,6 +14,7 @@ import { createFireScenarioReport, renderFireScenarioReportHtml } from './report
 import { calculateRequiredFireContribution } from './calculators-runtime/RequiredFireContribution.js';
 import { calculateGoalProgress } from './calculators-runtime/GoalProgress.js';
 import { initializeCashFlowTracker } from './cashflow.js';
+import { initializeTaxEstimator } from './tax-estimator.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -1011,4 +1012,5 @@ if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#goal-tracker-form').querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
 }
 initializeCashFlowTracker();
+initializeTaxEstimator();
 switchWorkspace('demo');
