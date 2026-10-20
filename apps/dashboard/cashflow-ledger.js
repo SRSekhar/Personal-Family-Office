@@ -108,6 +108,33 @@ export function summarizeCashFlowByCategory(entries, period = 'all') {
         }));
 }
 
+export function summarizeCashFlowByMonth(entries) {
+    const months = new Map();
+    for (const entry of validateCashFlowEntries(entries)) {
+        const month = entry.date.slice(0, 7);
+        let summary = months.get(month);
+        if (!summary) {
+            summary = { month, income: 0, expenses: 0, transactionCount: 0 };
+            months.set(month, summary);
+        }
+        if (entry.type === 'income') summary.income += entry.amount;
+        else summary.expenses += entry.amount;
+        summary.transactionCount += 1;
+        if (!Number.isFinite(summary.income) || !Number.isFinite(summary.expenses)) {
+            throw new RangeError('Monthly cash flow totals exceed the supported numeric range.');
+        }
+    }
+    return [...months.values()]
+        .map((summary) => {
+            const net = summary.income - summary.expenses;
+            if (!Number.isFinite(net)) {
+                throw new RangeError('Monthly net cash flow exceeds the supported numeric range.');
+            }
+            return { ...summary, net };
+        })
+        .sort((a, b) => b.month.localeCompare(a.month));
+}
+
 function csvCell(value) {
     let text = String(value);
     // trimStart neutralizes leading spaces and control whitespace before formula detection.

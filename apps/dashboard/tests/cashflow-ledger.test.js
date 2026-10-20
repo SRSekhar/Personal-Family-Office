@@ -7,6 +7,7 @@ import {
     sortCashFlowEntries,
     summarizeCashFlow,
     summarizeCashFlowByCategory,
+    summarizeCashFlowByMonth,
     validateCashFlowEntries
 } from '../cashflow-ledger.js';
 
@@ -131,6 +132,21 @@ describe('cash flow summaries', () => {
             { ...entries[0], amount: Number.MAX_VALUE },
             { ...entries[0], id: 'e-1', type: 'expense', amount: Number.MAX_VALUE }
         ])).toThrow('category totals');
+    });
+});
+
+describe('cash flow monthly summaries', () => {
+    it('groups dated transactions by month and sorts newest month first', () => {
+        expect(summarizeCashFlowByMonth(entries)).toEqual([
+            { month: '2026-10', income: 100000, expenses: 20000, transactionCount: 2, net: 80000 },
+            { month: '2026-09', income: 0, expenses: 2500, transactionCount: 1, net: -2500 }
+        ]);
+    });
+
+    it('returns no months for an empty ledger and rejects invalid ledger data', () => {
+        expect(summarizeCashFlowByMonth([])).toEqual([]);
+        expect(() => summarizeCashFlowByMonth([{ ...entries[0], amount: Number.POSITIVE_INFINITY }]))
+            .toThrow('invalid or duplicate transaction');
     });
 });
 

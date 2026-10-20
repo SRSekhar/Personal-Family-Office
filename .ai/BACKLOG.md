@@ -77,7 +77,8 @@ Implemented
 - Local CSV export of CAGR inputs and calculated annualized rate, with stale-result invalidation (PR #235).
 - Local CSV export of saved-goal progress in the private workspace, with formula-safe goal names and no new persistence (PR #236).
 - Print-ready financial summary with a browser Print / Save as PDF action; retain the self-contained offline HTML report as the source artifact (PR #237).
-- In progress — make the Chromium regression assert that the popup's print method is actually invoked, not only that the popup opens.
+- Chromium regression stubs the popup's print method and asserts the print workflow actually invokes it (PR #238).
+- In progress — monthly cash-flow trend table grouped from existing dated transactions; no separate snapshot persistence or forecasts.
 - Local CAGR calculator using explicit beginning/ending values and period, distinct from dated cash-flow XIRR (PR #231)
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
@@ -209,7 +210,7 @@ Implemented
 
 Planned
 
-- Cash-flow charts and historical timeline after snapshot requirements are validated
+- Cash-flow charts and net-worth historical timeline remain gated on the snapshot-persistence ADR decision and requirements validation.
 - Portfolio explorer and additional KPIs after customer discovery
 
 ---

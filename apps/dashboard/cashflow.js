@@ -1,6 +1,7 @@
 import {
     calculateCashFlowSavingsRate, cashFlowToCsv, filterCashFlowEntries,
-    sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowEntries
+    sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
+    summarizeCashFlowByMonth, validateCashFlowEntries
 } from './cashflow-ledger.js';
 
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
@@ -158,6 +159,22 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 row.append(cell);
             }
             categoryBody.append(row);
+        }
+        const monthlyBody = $('#cash-flow-monthly-rows');
+        monthlyBody.replaceChildren();
+        const monthlySummaries = summarizeCashFlowByMonth(entries);
+        $('#cash-flow-monthly-empty').hidden = monthlySummaries.length !== 0;
+        for (const summary of monthlySummaries) {
+            const row = documentRef.createElement('tr');
+            const monthLabel = new Intl.DateTimeFormat('en-IN', {
+                month: 'short', year: 'numeric', timeZone: 'UTC'
+            }).format(new Date(summary.month + '-01T00:00:00.000Z'));
+            for (const value of [monthLabel, money(summary.income), money(summary.expenses), money(summary.net), String(summary.transactionCount)]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            monthlyBody.append(row);
         }
         const body = $('#cash-flow-rows');
         body.replaceChildren();
