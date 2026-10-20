@@ -17,7 +17,7 @@ const result = {
 };
 
 describe('investmentCashFlowsToCsv', () => {
-    it('exports signed dated cash flows in the importer's exact schema', () => {
+    it('exports signed dated cash flows in the exact import schema', () => {
         expect(investmentCashFlowsToCsv(cashFlows)).toBe(
             '"date","amount"\r\n'
             + '"2025-01-01","-1000"\r\n'
