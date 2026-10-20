@@ -68,7 +68,8 @@ Implemented
 - Loan amortization calculator using explicit monthly-rate/payment timing, final-payment cap, UTC month-end handling, and remaining-balance reporting (PR #225)
 - Caller-defined progressive tax estimator using ordered marginal brackets and explicit currency; no hard-coded jurisdiction rates, deductions, or credits (PR #226).
 - Local dashboard tax estimator UI using caller-defined brackets and shared progressive tax math; no jurisdiction defaults (PR #227).
-- In progress — local dashboard loan amortization calculator using shared calculation math, a monthly schedule preview, and full CSV export; no saved loan data or inferred terms
+- Local dashboard loan amortization calculator using shared calculation math, a monthly schedule preview, and full CSV export; no saved loan data or inferred terms (PR #228).
+- In progress — local dashboard investment performance calculator using explicit dated investor-perspective cash flows and the shared XIRR/performance math; no inferred terminal valuation
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
