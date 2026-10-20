@@ -92,6 +92,23 @@ describe('FIRE planner interaction contracts', () => {
 
 });
 
+describe('recurring-tagged cash-flow summary contract', () => {
+    it('summarizes explicitly recurring-tagged recorded transactions without forecasting', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-recurring-summary-heading"');
+        expect(html).toContain('id="cash-flow-recurring-income"');
+        expect(html).toContain('id="cash-flow-recurring-expenses"');
+        expect(html).toContain('id="cash-flow-recurring-net"');
+        expect(html).toContain('id="cash-flow-recurring-count"');
+        expect(html).toContain('do not estimate future payments, timing, or expected income');
+        expect(cashFlow).toContain('const recurringEntries = entries.filter((entry) => entry.recurring');
+        expect(cashFlow).toContain("(period === 'all' || entry.date.startsWith(period))");
+    });
+});
+
 describe('monthly budget export contract', () => {
     it('provides a budget export action and builds a formula-safe selected-month comparison CSV', async () => {
         const [html, cashFlow] = await Promise.all([
