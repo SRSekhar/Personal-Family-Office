@@ -887,6 +887,30 @@ try {
         'reset should clear validation messages');
     process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\\n');
 
+    await page.locator('#growth-initial-value').fill('100000');
+    await page.locator('#growth-annual-contribution').fill('12000');
+    await page.locator('#growth-annual-rate').fill('7');
+    await page.locator('#growth-years').fill('10');
+    await page.locator('#growth-contribution-timing').selectOption('end');
+    await page.locator('#growth-projection-form button[type="submit"]').click();
+    const endOfYearProjection = Number((await page.locator('#growth-projected-value').innerText()).replace(/[^0-9]/g, ''));
+    assert.equal((await page.locator('#growth-total-contributions').innerText()).replace(/[^0-9]/g, ''), '220000',
+        'growth projection should total the starting amount and annual contributions');
+    assert.ok(Number((await page.locator('#growth-estimated-growth').innerText()).replace(/[^0-9]/g, '')) > 0,
+        'growth projection should report growth above contributed capital for positive return assumptions');
+    await page.locator('#growth-contribution-timing').selectOption('beginning');
+    await page.locator('#growth-projection-form button[type="submit"]').click();
+    const beginningOfYearProjection = Number((await page.locator('#growth-projected-value').innerText()).replace(/[^0-9]/g, ''));
+    assert.ok(beginningOfYearProjection > endOfYearProjection,
+        'beginning-of-year contributions should compound for one additional period');
+    await page.locator('#growth-years').fill('0');
+    await page.locator('#growth-projection-form button[type="submit"]').click();
+    assert.equal((await page.locator('#growth-projected-value').innerText()).replace(/[^0-9]/g, ''), '100000',
+        'zero years should preserve the starting amount without future contributions');
+    await page.locator('#growth-reset').click();
+    assert.equal(await page.locator('#growth-results').isHidden(), true,
+        'growth projection reset should clear previous results');
+
     const investmentFlow0 = page.locator('#investment-cash-flows .investment-flow-row').nth(0);
     await investmentFlow0.locator('.investment-flow-date').fill('2025-01-01');
     await investmentFlow0.locator('.investment-flow-amount').fill('-1000');
