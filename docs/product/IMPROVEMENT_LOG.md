@@ -417,9 +417,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Payment timing, month-end date anchoring, maximum schedule length, final-payment cap, and no-rounding/no-fees assumptions are explicit. Non-amortizing payments are rejected and an unfinished schedule returns the remaining balance rather than implying payoff.
 - PR #225 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Progressive tax estimate — feature branch in progress
+### Progressive tax estimate — PR #226 merged
 - Added a generic progressive tax calculator using caller-supplied ordered marginal-rate brackets, explicit currency, and taxable income.
 - No jurisdiction-specific rates, deductions, credits, exemptions, surcharges, cess, or filing status are hard-coded. Invalid bracket schedules and currency mismatches are rejected.
+- PR #226 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Local progressive tax estimator — feature branch in progress
+- Added a local-only dashboard form for caller-defined income brackets and marginal rates, reusing a shared pure numeric calculation function from the calculator package.
+- No jurisdiction defaults or tax-rule assumptions are embedded; results are ephemeral and the hosted dashboard disables entry.
 - Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open
