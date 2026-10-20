@@ -467,10 +467,15 @@ Do not record personal financial values or claim customer demand without evidenc
 - Editing calculator inputs invalidates the previous result and disables export; no inputs or results are persisted.
 - PR #235 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Saved-goal progress CSV export — feature branch in progress
-- Add an export of saved goals with target/current amounts, remaining amount, progress percentage, due date, days remaining, status, and the explicitly defined no-returns monthly pace.
+### Saved-goal progress CSV export — PR #236 merged
+- Added an export of saved goals with target/current amounts, remaining amount, progress percentage, due date, days remaining, status, and the explicitly defined no-returns monthly pace.
 - Export is available only in the loopback-only private workspace with healthy saved-goal storage. Goal names are CSV-quoted and spreadsheet-formula-neutralized.
-- Validation status: export unit tests, Chromium browser smoke, CI, dashboard packaging, and Secret Scan are pending.
+- PR #236 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Financial summary Print / Save as PDF — feature branch in progress
+- Add a dedicated dashboard action that opens the existing self-contained financial summary in a print-ready window and invokes the browser print dialog, where users can choose Save as PDF.
+- Keep the offline HTML download, avoid adding a PDF runtime dependency, and improve print layout for tables and page breaks. The app will not claim to generate a PDF file directly.
+- Validation status: renderer unit tests, Chromium popup/print regression, CI, dashboard packaging, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
