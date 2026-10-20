@@ -7,6 +7,20 @@ async function readDashboardFile(name) {
     return readFile(new URL(name, dashboardRoot), 'utf8');
 }
 
+describe('asset allocation CSV export contract', () => {
+    it('exports category weights and concentration metrics through a local-only action', async () => {
+        const [html, app] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('app.js')]);
+        expect(html).toContain('id="export-allocation-csv"');
+        expect(app).toContain("$('#export-allocation-csv').addEventListener('click', exportAllocationCsv)");
+        expect(app).toContain('function exportAllocationCsv()');
+        expect(app).toContain('isPrivateWorkspaceAllowed(window.location.hostname)');
+        expect(app).toContain("'pfo-os-asset-allocation.csv'");
+        expect(app).toContain("'concentration_index_hhi'");
+        expect(app).toContain("'effective_category_count'");
+        expect(app).toContain("'largest_category_share_percent'");
+        expect(app).toContain("text.trimStart()" );
+    });
+});
 describe('dashboard static integrity', () => {
     it('provides every HTML id referenced by the dashboard controller', async () => {
         const [html, app] = await Promise.all([
