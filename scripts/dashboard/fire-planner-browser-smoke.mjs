@@ -373,6 +373,36 @@ try {
     assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
 
+    await page.goto(`${baseUrl}#return-risk-analysis`, { waitUntil: 'networkidle' });
+    await page.locator('#return-risk-observations').fill('2026-01-31,10\\n2026-02-28,-20\\n2026-03-31,5');
+    await page.locator('#return-risk-risk-free').fill('1');
+    await page.locator('#return-risk-target').fill('0');
+    await page.locator('#return-risk-form button[type="submit"]').click();
+    assert.equal(await page.locator('#return-risk-observation-count').innerText(), '3');
+    assert.equal(await page.locator('#return-risk-drawdown').innerText(), '20%');
+    assert.equal(await page.locator('#return-risk-worst-period').innerText(), '-20%');
+    assert.equal(await page.locator('#return-risk-negative-count').innerText(), '1');
+    assert.notEqual(await page.locator('#return-risk-sharpe').innerText(), '—',
+        'an explicit risk-free return should enable the Sharpe ratio');
+    assert.notEqual(await page.locator('#return-risk-sortino').innerText(), '—',
+        'an explicit target should enable the Sortino ratio');
+    const riskCsvDownload = page.waitForEvent('download');
+    await page.locator('#return-risk-export-csv').click();
+    const riskCsv = await riskCsvDownload;
+    assert.equal(riskCsv.suggestedFilename(), 'pfo-return-risk-analysis.csv');
+    const riskCsvPath = join(temporaryDirectory, riskCsv.suggestedFilename());
+    await riskCsv.saveAs(riskCsvPath);
+    const riskCsvText = await readFile(riskCsvPath, 'utf8');
+    assert.match(riskCsvText, /"maximum_drawdown","0\\.19/,
+        'risk CSV should export the calculated maximum drawdown');
+    await page.locator('#return-risk-observations').fill('2026-02-30,3');
+    assert.equal(await page.locator('#return-risk-export-csv').isDisabled(), true,
+        'editing risk observations should invalidate stale metric exports');
+    await page.locator('#return-risk-form button[type="submit"]').click();
+    assert.equal(await page.locator('#return-risk-validation').isVisible(), true,
+        'invalid calendar dates should show an actionable validation message');
+    process.stdout.write('PASS: return risk calculator validates dates, calculates metrics, exports CSV, and invalidates stale results.\\n');
+
     const cashFlowDate = await page.evaluate(() => {
         const now = new Date();
         return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
