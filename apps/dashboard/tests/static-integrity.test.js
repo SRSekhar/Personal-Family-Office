@@ -126,6 +126,23 @@ describe('copy previous-month budgets contract', () => {
     });
 });
 
+describe('monthly budget backup contract', () => {
+    it('provides a separate local JSON budget backup with validated, confirmed restore', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-budget-export-json"');
+        expect(html).toContain('id="cash-flow-budget-import-json"');
+        expect(cashFlow).toContain("schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), budgets");
+        expect(cashFlow).toContain("payload.schemaVersion !== 1");
+        expect(cashFlow).toContain("const imported = validateBudgets(payload.budgets);");
+        expect(cashFlow).toContain("if (!windowRef.confirm(preview))");
+        expect(cashFlow).toContain("Cash-flow transactions will not be changed.");
+        expect(cashFlow).toContain("if (!isLoopback(windowRef.location.hostname))");
+    });
+});
+
 describe('monthly budget overview contract', () => {
     it('summarizes only explicitly budgeted categories and explains the aggregation boundary', async () => {
         const [html, cashFlow] = await Promise.all([
