@@ -81,20 +81,3 @@ export function calculateLoanAmortization({
     };
 }
 
-function addFinite(current: number, amount: number, message: string): number {
-    const result = current + amount;
-    if (!Number.isFinite(result)) {
-        throw new RangeError(message);
-    }
-    return result;
-}
-
-function monthlyDueDate(firstPaymentDate: Date, monthOffset: number): Date {
-    const date = new Date(firstPaymentDate.getTime());
-    const originalDay = date.getUTCDate();
-    date.setUTCDate(1);
-    date.setUTCMonth(date.getUTCMonth() + monthOffset);
-    const lastDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
-    date.setUTCDate(Math.min(originalDay, lastDay));
-    return date;
-}
