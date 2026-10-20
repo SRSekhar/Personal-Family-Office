@@ -21,6 +21,20 @@ describe('asset allocation CSV export contract', () => {
         expect(app).toContain("text.trimStart()" );
     });
 });
+describe('balance-sheet ratio CSV export contract', () => {
+    it('exports the three shared ratios with explicit numerator, denominator, and unavailable states', async () => {
+        const [html, app] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('app.js')]);
+        expect(html).toContain('id="export-financial-ratios-csv"');
+        expect(app).toContain("addEventListener('click', exportFinancialRatiosCsv)");
+        expect(app).toContain("'pfo-os-balance-sheet-ratios.csv'");
+        expect(app).toContain("'liabilities_to_assets'");
+        expect(app).toContain("'net_worth_to_assets'");
+        expect(app).toContain("'assets_to_liabilities'");
+        expect(app).toContain("'Unavailable: zero assets'");
+        expect(app).toContain("'Unavailable: zero liabilities'");
+        expect(app).toContain('isPrivateWorkspaceAllowed(window.location.hostname)');
+    });
+});
 describe('dashboard static integrity', () => {
     it('provides every HTML id referenced by the dashboard controller', async () => {
         const [html, app] = await Promise.all([

@@ -562,6 +562,49 @@ function render() {
     renderRecords();
 }
 
+function exportFinancialRatiosCsv() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Ratio export is paused because saved financial data could not be read safely. Existing storage remains untouched.');
+        return;
+    }
+    try {
+        const result = totals();
+        const ratios = calculateFinancialRatios({
+            currency: CURRENCY,
+            totalAssets: { amount: result.assets, currency: CURRENCY },
+            totalLiabilities: { amount: result.liabilities, currency: CURRENCY },
+            netWorth: { amount: result.netWorth, currency: CURRENCY }
+        });
+        const rows = [
+            ['metric', 'ratio_value', 'numerator_inr', 'denominator_inr', 'status'],
+            ['liabilities_to_assets', ratios.liabilitiesToAssets ?? '', result.liabilities, result.assets, ratios.liabilitiesToAssets === null ? 'Unavailable: zero assets' : 'Available'],
+            ['net_worth_to_assets', ratios.netWorthToAssets ?? '', result.netWorth, result.assets, ratios.netWorthToAssets === null ? 'Unavailable: zero assets' : 'Available'],
+            ['assets_to_liabilities', ratios.assetsToLiabilities ?? '', result.assets, result.liabilities, ratios.assetsToLiabilities === null ? 'Unavailable: zero liabilities' : 'Available']
+        ];
+        const cell = (value) => {
+            let text = String(value ?? '');
+            if (typeof value !== 'number' && /^[=+@\t\r-]/u.test(text.trimStart())) text = "'" + text;
+            return '"' + text.replaceAll('"', '""') + '"';
+        };
+        const csv = rows.map((row) => row.map(cell).join(',')).join('\r\n') + '\r\n';
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-balance-sheet-ratios.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Balance-sheet ratios exported to this device.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create ratio CSV export.');
+    }
+}
 function renderFinancialRatios(result) {
     const ratios = calculateFinancialRatios({
         currency: CURRENCY,
@@ -571,8 +614,7 @@ function renderFinancialRatios(result) {
     });
     const percentage = (value) => value === null ? '—' : (value * 100).toFixed(1) + '%';
     const multiple = (value) => value === null ? '—' : value.toFixed(2) + '×';
-    $('#financial-ratios').innerHTML = `<p class="eyebrow">BALANCE-SHEET RATIOS</p>
-        <div class="financial-ratio-metrics">
+    $('#financial-ratios').innerHTML = `<div class="financial-ratio-metrics">
             <article><span>Liabilities / assets</span><strong id="ratio-liabilities-to-assets">${percentage(ratios.liabilitiesToAssets)}</strong><small>Recorded liabilities as a share of recorded assets.</small></article>
             <article><span>Net worth / assets</span><strong id="ratio-net-worth-to-assets">${percentage(ratios.netWorthToAssets)}</strong><small>Recorded net worth as a share of recorded assets.</small></article>
             <article><span>Assets / liabilities</span><strong id="ratio-assets-to-liabilities">${multiple(ratios.assetsToLiabilities)}</strong><small>Recorded assets per unit of recorded liabilities.</small></article>
@@ -1128,6 +1170,7 @@ $('#export-button').addEventListener('click', exportData);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
+$('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
