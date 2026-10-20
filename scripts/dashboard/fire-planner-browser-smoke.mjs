@@ -1198,6 +1198,7 @@ try {
         mimeType: 'text/csv',
         buffer: Buffer.from('date,type,category,description,amount,recurring\\r\\n"2026-10-20","income","Salary","CSV import, test",50000,"true"\\r\\n')
     });
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('Imported 1 cash flow transactions from CSV'));
     assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '50000',
         'CSV import should replace the ledger with the validated imported income');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1,
