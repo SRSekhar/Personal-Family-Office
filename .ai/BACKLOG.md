@@ -62,7 +62,8 @@ Implemented
 - XIRR calculation for dated cash flows using ACT/365 and bisection; ambiguous multi-sign-change streams are rejected
 - Net worth calculation with canonical IDs, same-currency validation, and explicit no-FX behavior
 - Asset allocation by caller-supplied category with deterministic ordering and validated weights
-- In progress — deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown; no forecasts or inferred recurring schedules
+- Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
+- In progress — goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
 In Progress
 

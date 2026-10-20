@@ -108,10 +108,15 @@ The analysis validates that category values and weights reconcile to the allocat
 
 The result includes total income, expenses, net cash flow, savings rate, monthly summaries in chronological order, and a category breakdown sorted by total activity. Savings rate is `null` when income is zero and can be negative when expenses exceed income. Only months containing transactions are returned; missing months are not synthesized. This is deterministic historical bookkeeping analysis, not a forecast or recommendation.
 
+## Implemented: goal progress analysis
+
+`analyzeGoalProgress` accepts a domain `Goal`, an explicit current accumulated `Money` amount, and a reference `Date`. It returns progress percentage (not capped at 100%), remaining amount (clamped to zero once the target is reached), signed calendar days until the deadline, target-reached status, and whether an unachieved goal is overdue. Current and target amounts must use the same currency; target must be positive and current amount non-negative. Deadline comparisons use UTC calendar days, not elapsed hours.
+
+This is a point-in-time progress calculation only. It does not infer contribution schedules, investment returns, probability of success, or recommended actions.
+
 ## Planned responsibilities
 
 - Investment performance analysis
-- Goal progress analysis
 - Financial health metrics, pending explicit metric and interpretation requirements
 - Risk analysis and forecasting support, subject to explicit assumptions and validation
 

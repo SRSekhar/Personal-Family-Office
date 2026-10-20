@@ -31,6 +31,9 @@ export type {
     CashFlowTransactionType
 } from './CashFlowAnalysis.js';
 
+export { analyzeGoalProgress } from './GoalProgressAnalysis.js';
+export type { GoalProgressAnalysis, GoalProgressInput } from './GoalProgressAnalysis.js';
+
 export { mapPortfolioPositions } from './PortfolioPositionMapper.js';
 export type {
     PortfolioPositionSelection,
