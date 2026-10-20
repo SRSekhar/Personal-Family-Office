@@ -197,7 +197,14 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-savings-rate-caption').textContent = savingsRate === null
             ? 'Unavailable when income is zero'
             : 'Net cash flow ÷ income';
-        const shown = visibleEntries();
+        const fromDate = $('#cash-flow-date-from').value;
+        const toDate = $('#cash-flow-date-to').value;
+        const invalidDateRange = Boolean(fromDate && toDate && fromDate > toDate);
+        const dateRangeError = $('#cash-flow-date-range-error');
+        dateRangeError.textContent = invalidDateRange ? 'Start date must be on or before end date. Correct the date range to view or export transactions.' : '';
+        dateRangeError.hidden = !invalidDateRange;
+        const shown = invalidDateRange ? [] : visibleEntries();
+        $('#cash-flow-export-filtered-csv').disabled = invalidDateRange;
         const filteredSummary = summarizeCashFlow(shown);
         $('#cash-flow-filtered-income').textContent = money(filteredSummary.income);
         $('#cash-flow-filtered-expenses').textContent = money(filteredSummary.expenses);
@@ -215,12 +222,16 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             || $('#cash-flow-date-from').value !== ''
             || $('#cash-flow-date-to').value !== ''
             || $('#cash-flow-search').value.trim() !== '';
-        $('#cash-flow-count').textContent = filtersActive
-            ? shown.length + ' shown of ' + summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's')
-            : summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's');
-        $('#cash-flow-empty').textContent = filtersActive
-            ? 'No transactions match the current filters.'
-            : 'No transactions for this period. Add income or an expense to begin.';
+        $('#cash-flow-count').textContent = invalidDateRange
+            ? 'Invalid date range'
+            : filtersActive
+                ? shown.length + ' shown of ' + summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's')
+                : summary.transactionCount + ' transaction' + (summary.transactionCount === 1 ? '' : 's');
+        $('#cash-flow-empty').textContent = invalidDateRange
+            ? 'Correct the date range to see matching transactions.'
+            : filtersActive
+                ? 'No transactions match the current filters.'
+                : 'No transactions for this period. Add income or an expense to begin.';
         const categoryBody = $('#cash-flow-category-rows');
         categoryBody.replaceChildren();
         const categories = summarizeCashFlowByCategory(entries, period);
@@ -443,6 +454,10 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
     }
     $('#cash-flow-export-filtered-csv').addEventListener('click', () => {
+        if ($('#cash-flow-export-filtered-csv').disabled) {
+            message('Correct the date range before exporting filtered transactions.', true);
+            return;
+        }
         exportCsv(visibleEntries(), 'pfo-cash-flow-filtered.csv', 'Filtered cash flow CSV exported to this device.');
     });
     $('#cash-flow-export-all-csv').addEventListener('click', () => {

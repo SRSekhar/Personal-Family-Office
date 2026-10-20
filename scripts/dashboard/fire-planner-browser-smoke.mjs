@@ -465,13 +465,22 @@ try {
     assert.match(await page.locator('#cash-flow-empty').innerText(), /No transactions match/);
     await page.locator('#cash-flow-reset-filters').click();
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should restore visible transactions');
-    const cashFlowRangeTomorrow = new Date();
+    const cashFlowRangeToday = new Date();
+    const cashFlowRangeTodayString = [cashFlowRangeToday.getFullYear(), String(cashFlowRangeToday.getMonth() + 1).padStart(2, '0'), String(cashFlowRangeToday.getDate()).padStart(2, '0')].join('-');
+    const cashFlowRangeTomorrow = new Date(cashFlowRangeToday);
     cashFlowRangeTomorrow.setDate(cashFlowRangeTomorrow.getDate() + 1);
     const cashFlowRangeTomorrowString = [cashFlowRangeTomorrow.getFullYear(), String(cashFlowRangeTomorrow.getMonth() + 1).padStart(2, '0'), String(cashFlowRangeTomorrow.getDate()).padStart(2, '0')].join('-');
     await page.locator('#cash-flow-date-from').fill(cashFlowRangeTomorrowString);
-    assert.equal(await page.locator('#cash-flow-rows tr').count(), 0, 'date range should exclude earlier transactions');
-    assert.match(await page.locator('#cash-flow-empty').innerText(), /No transactions match/);
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 0, 'a valid future start date should exclude earlier transactions');
+    await page.locator('#cash-flow-date-to').fill(cashFlowRangeTodayString);
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 0, 'an inverted date range should not render stale or misleading rows');
+    assert.match(await page.locator('#cash-flow-date-range-error').innerText(), /Start date must be on or before end date/);
+    assert.equal(await page.locator('#cash-flow-count').innerText(), 'Invalid date range');
+    assert.equal(await page.locator('#cash-flow-export-filtered-csv').isDisabled(), true,
+        'filtered CSV export should be disabled while the date range is invalid');
     await page.locator('#cash-flow-reset-filters').click();
+    assert.equal(await page.locator('#cash-flow-date-range-error').isHidden(), true,
+        'reset should clear date-range validation errors');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should clear date range filters');
     await page.locator('#cash-flow-category-filter').selectOption({ label: 'Housing' });
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'category filter should show only matching transactions');

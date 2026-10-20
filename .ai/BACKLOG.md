@@ -263,3 +263,4 @@ Features
 Future enhancements are added here and prioritized during sprint planning.
 
 No work should begin unless it has been added to the backlog.
+- Cash-flow date-range validation now reports inverted from/to dates, avoids render exceptions, and blocks filtered CSV export until corrected.
