@@ -826,6 +826,70 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             budgetMessage(error instanceof Error ? error.message : 'Could not export the budget comparison.', true);
         }
     });
+    $('#cash-flow-budget-export-json').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            budgetMessage('Use the local-only dashboard to export personal budget data.', true);
+            return;
+        }
+        if (!budgetStorageHealthy) {
+            budgetMessage('Budget backup is unavailable because saved budget data could not be validated.', true);
+            return;
+        }
+        download('pfo-category-budget-backup.json', JSON.stringify({
+            schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), budgets
+        }, null, 2), 'application/json');
+        budgetMessage('Budget backup exported to this device. Cash-flow transactions were not included.');
+    });
+    $('#cash-flow-budget-import-json').addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            try {
+                if (!isLoopback(windowRef.location.hostname)) {
+                    throw new Error('Use the local-only dashboard to import personal budget data.');
+                }
+                const payload = JSON.parse(String(reader.result));
+                if (!payload || typeof payload !== 'object' || payload.schemaVersion !== 1
+                    || payload.currency !== CURRENCY || !Array.isArray(payload.budgets)) {
+                    throw new Error('Unsupported budget backup. Expected schemaVersion 1, INR currency, and a budgets list.');
+                }
+                const imported = validateBudgets(payload.budgets);
+                const totalLimits = imported.reduce((total, item) => total + item.amount, 0);
+                if (!Number.isFinite(totalLimits)) throw new Error('Budget backup totals exceed the supported numeric range.');
+                const months = [...new Set(imported.map((item) => item.month))].sort();
+                const preview = [
+                    'Budget backup restore preview',
+                    'Budget entries to restore: ' + imported.length,
+                    'Months covered: ' + (months.length ? months[0] + (months.length > 1 ? ' through ' + months[months.length - 1] : '') : 'none'),
+                    'Sum of monthly category limits across all entries: ' + money(totalLimits),
+                    '',
+                    'This replaces all saved category budgets in this browser. Cash-flow transactions will not be changed.',
+                    'Continue?'
+                ].join('\n');
+                if (!windowRef.confirm(preview)) {
+                    budgetMessage('Budget restore cancelled. Existing budgets and transactions were not changed.');
+                    return;
+                }
+                const wasHealthy = budgetStorageHealthy;
+                budgetStorageHealthy = true;
+                if (!saveBudgets(imported)) budgetStorageHealthy = wasHealthy;
+                else {
+                    resetBudgetForm();
+                    budgetMessage('Restored ' + imported.length + ' category budget' + (imported.length === 1 ? '' : 's') + '. Cash-flow transactions were not changed.');
+                }
+            } catch (error) {
+                budgetMessage(error instanceof Error ? error.message : 'Could not import budget backup.', true);
+            } finally {
+                $('#cash-flow-budget-import-json').value = '';
+            }
+        });
+        reader.addEventListener('error', () => {
+            budgetMessage('Could not read the selected budget backup.', true);
+            $('#cash-flow-budget-import-json').value = '';
+        });
+        reader.readAsText(file);
+    });
     $('#cash-flow-export-category-csv').addEventListener('click', () => {
         try {
             const period = $('#cash-flow-period').value || 'all';
