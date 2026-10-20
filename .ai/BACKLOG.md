@@ -142,7 +142,7 @@ Implemented
 - Persistent multi-goal tracker with edit/delete confirmation, goal-aware version 2 backups, legacy version 1 compatibility, and an approximate no-returns monthly savings pace (PRs #169, #173, #175)
 - Local income/expense ledger with month summaries, recurring flags, edit/delete, dedicated JSON backup/restore, and formula-safe CSV export (PR #200).
 - Cash-flow category breakdown for the selected period with income, expenses, and net by category (PR #201).
-- Separate summary of explicitly recurring-tagged transactions for the selected period, with income, expenses, net, and count; descriptive only, not a forecast.
+- Separate summary of explicitly recurring-tagged transactions for the selected period, with income, expenses, net, and count; descriptive only, not a forecast, with a dedicated formula-safe CSV export of the recorded entries.
 - Cash-flow transaction search, type filtering, visible-result counts, and reset controls (PR #202).
 - Cash-flow filtered CSV and full-ledger CSV export actions (PR #205).
 - Deterministic transaction sorting by date, amount, and category; filtered CSV follows the selected sort (PR #206).
@@ -267,7 +267,7 @@ Features
 Future enhancements are added here and prioritized during sprint planning.
 
 No work should begin unless it has been added to the backlog.
-- Add a recurring-tagged cash-flow summary for the selected period, explicitly labeled as recorded transactions rather than a forecast.
+- Add a recurring-only cash-flow CSV export for the selected reporting period, retaining the standard transaction schema and spreadsheet formula neutralization.
 
 
 
