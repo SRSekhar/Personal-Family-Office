@@ -49,6 +49,14 @@ try {
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#allocation-concentration').isVisible(), true,
+        'overview should show category concentration metrics for sample assets');
+    assert.equal(await page.locator('#allocation-concentration .concentration-metrics article').count(), 3,
+        'concentration summary should show HHI, effective category count, and largest category share');
+    assert.equal(await page.locator('#allocation-concentration .concentration-metrics article:nth-child(3) strong').innerText(), '54.0%',
+        'largest category share should reconcile to the sample allocation');
+    assert.match(await page.locator('#allocation-concentration').innerText(), /does not measure holding-level diversification/);
+
     await page.keyboard.press('Tab');
     assert.equal(
         await page.evaluate(() => globalThis.document.activeElement?.classList.contains('skip-link')),
