@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { investmentPerformanceToCsv } from '../investment-performance-export.js';
+import { investmentCashFlowsToCsv, investmentPerformanceToCsv } from '../investment-performance-export.js';
 
 const cashFlows = [
     { date: new Date('2025-01-01T00:00:00.000Z'), amount: -1000 },
@@ -15,6 +15,25 @@ const result = {
     netReturnOnContributionsPercentage: 10,
     annualizedMoneyWeightedReturn: 0.1
 };
+
+describe('investmentCashFlowsToCsv', () => {
+    it('exports signed dated cash flows in the exact import schema', () => {
+        expect(investmentCashFlowsToCsv(cashFlows)).toBe(
+            '"date","amount"\r\n'
+            + '"2025-01-01","-1000"\r\n'
+            + '"2026-01-01","1100"\r\n'
+        );
+    });
+
+    it.each([
+        ['too few cash flows', [cashFlows[0]]],
+        ['invalid date', [{ date: new Date('invalid'), amount: -1 }, cashFlows[1]]],
+        ['zero amount', [{ ...cashFlows[0], amount: 0 }, cashFlows[1]]],
+        ['infinite amount', [{ ...cashFlows[0], amount: Number.POSITIVE_INFINITY }, cashFlows[1]]]
+    ])('rejects invalid cash-flow export data: %s', (_description, flows) => {
+        expect(() => investmentCashFlowsToCsv(flows)).toThrow();
+    });
+});
 
 describe('investmentPerformanceToCsv', () => {
     it('exports the summary and preserves dated cash-flow signs', () => {

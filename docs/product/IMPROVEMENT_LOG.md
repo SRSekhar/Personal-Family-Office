@@ -150,6 +150,19 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - Document the percentage denominator in the field name and keep it scoped to the selected period.
 - A zero denominator is unavailable; do not conflate unavailable with zero percent.
 
+## 2026-10-20 — Re-importable investment cash-flow export
+
+### Delivered
+- Added a second export action that downloads only the dated signed cash flows in the importer's exact `date,amount` CSV schema.
+- Kept the existing performance-summary CSV unchanged, preserving both human-readable results and a machine-readable re-import file.
+- Disabled both export actions when inputs change or results become stale.
+- Added unit coverage for signed values and invalid inputs, plus Chromium coverage that exports cash flows and imports the exported file back into the calculator.
+
+### Product and engineering lessons
+- A summary export and a data-interchange export serve different purposes; don't make users edit a report to reuse its source inputs.
+- Round-trip tests catch schema drift between import and export workflows.
+- Preserve investor-perspective cash-flow signs and explicit dates through the full export/import loop.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.

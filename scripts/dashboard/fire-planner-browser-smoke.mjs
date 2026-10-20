@@ -1116,9 +1116,25 @@ try {
     assert.ok(investmentCsv.includes('Annualized money-weighted return (XIRR %),10'), 'investment CSV should include annualized return');
     assert.ok(investmentCsv.includes('2025-01-01,-1000'), 'investment CSV should preserve dated contribution signs');
     assert.ok(investmentCsv.includes('2026-01-01,1100'), 'investment CSV should preserve dated receipt signs');
+    const [investmentCashFlowsDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-cash-flows-export-csv').click()
+    ]);
+    assert.equal(investmentCashFlowsDownload.suggestedFilename(), 'pfo-investment-cash-flows.csv');
+    const investmentCashFlowsPath = join(temporaryDirectory, 'pfo-investment-cash-flows.csv');
+    await investmentCashFlowsDownload.saveAs(investmentCashFlowsPath);
+    const investmentCashFlowsCsv = await readFile(investmentCashFlowsPath, 'utf8');
+    assert.match(investmentCashFlowsCsv, /^"date","amount"\r\n/u,
+        'cash-flow export should use the import-compatible date,amount schema');
+    assert.ok(investmentCashFlowsCsv.includes('"2025-01-01","-1000"'),
+        'cash-flow export should preserve negative contribution signs');
+    assert.ok(investmentCashFlowsCsv.includes('"2026-01-01","1100"'),
+        'cash-flow export should preserve positive receipt signs');
     await page.locator('#investment-add-flow').click();
     assert.equal(await page.locator('#investment-performance-export-csv').isDisabled(), true,
         'adding a cash flow should invalidate the prior result and disable export');
+    assert.equal(await page.locator('#investment-cash-flows-export-csv').isDisabled(), true,
+        'adding a cash flow should disable the reusable cash-flow export too');
     const investmentFlow2 = page.locator('#investment-cash-flows .investment-flow-row').nth(2);
     await investmentFlow2.locator('.investment-flow-date').fill('2026-06-01');
     await investmentFlow2.locator('.investment-flow-amount').fill('-100');
@@ -1137,7 +1153,7 @@ try {
     await page.locator('#investment-import-csv').setInputFiles({
         name: 'investment-cash-flows.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('"date","amount"\r\n"2025-01-01","-1000"\r\n"2026-01-01","1100"\r\n')
+        buffer: await readFile(investmentCashFlowsPath)
     });
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('Imported 2 investment cash flows from CSV.'));
     assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,

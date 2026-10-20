@@ -60,3 +60,26 @@ export function investmentPerformanceToCsv({ cashFlows, result }) {
     ];
     return lines.join('\r\n') + '\r\n';
 }
+
+/**
+ * Serialize only dated signed cash flows in the importer's strict date,amount
+ * schema so exported inputs can be re-imported without the summary section.
+ */
+export function investmentCashFlowsToCsv(cashFlows) {
+    if (!Array.isArray(cashFlows) || cashFlows.length < 2) {
+        throw new RangeError('At least two cash flows are required for export.');
+    }
+    const rows = cashFlows.map((flow) => {
+        if (!flow || !(flow.date instanceof Date) || !Number.isFinite(flow.date.getTime())) {
+            throw new RangeError('Every exported cash flow must have a valid date.');
+        }
+        if (!Number.isFinite(flow.amount) || flow.amount === 0) {
+            throw new RangeError('Every exported cash-flow amount must be non-zero and finite.');
+        }
+        return [flow.date.toISOString().slice(0, 10), flow.amount];
+    });
+    return [
+        ['date', 'amount'],
+        ...rows
+    ].map((row) => row.map((value) => '"' + String(value).replaceAll('"', '""') + '"').join(',')).join('\r\n') + '\r\n';
+}
