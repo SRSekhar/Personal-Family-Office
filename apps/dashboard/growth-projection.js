@@ -53,7 +53,7 @@ export function initializeGrowthProjectionCalculator() {
                 row.year, row.projectedValue, row.totalContributions, row.estimatedGrowth
             ].join(','))
         ];
-        const blob = new Blob([lines.join('\\r\\n') + '\\r\\n'], { type: 'text/csv;charset=utf-8' });
+        const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
