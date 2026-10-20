@@ -70,7 +70,9 @@ export function analyzeReturnSeries(
         previousDate = observation.date;
         returns.push(observation.returnRate);
         worstPeriodReturn = Math.min(worstPeriodReturn, observation.returnRate);
-        if (observation.returnRate < 0) negativePeriodCount += 1;
+        if (observation.returnRate < 0) {
+            negativePeriodCount += 1;
+        }
 
         wealthIndex *= 1 + observation.returnRate;
         if (!Number.isFinite(wealthIndex)) {
