@@ -91,6 +91,17 @@ All selected positions must already be valued in the requested currency. Mixed c
 
 Ratios are returned as dimensionless numbers (for example, `0.25` means 25% for a share ratio, while `2` means assets are twice liabilities). A ratio is `null` when its denominator is zero. All values must use the same currency, asset and liability totals must be non-negative, and net worth must reconcile to assets minus liabilities. These are descriptive balance-sheet measures, not investment recommendations or a guarantee of financial health.
 
+## Implemented: category concentration and diversification metrics
+
+`analyzeDiversification` summarizes caller-supplied asset-allocation weights using:
+
+- `concentrationIndex`: the Herfindahl–Hirschman Index, `sum(weight²)`.
+- `effectiveCategoryCount`: `1 / concentrationIndex`, a mathematical equivalent of the number of equally weighted categories.
+- `largestCategoryShare`: the highest category weight.
+- `categoryCount`: the number of supplied categories.
+
+The analysis validates that category values and weights reconcile to the allocation total. Empty allocations return zero categories and `null` concentration/share metrics. This measures concentration only within the caller-supplied categories; it does not model correlations, asset-class risk, liquidity, or true economic diversification and does not make recommendations.
+
 ## Planned responsibilities
 
 - Cash-flow analysis
@@ -107,10 +118,12 @@ src/
     PortfolioPositionMapper.ts
     PortfolioAnalysis.ts
     FinancialRatios.ts
+    DiversificationAnalysis.ts
     index.ts
 tests/
     PortfolioAnalysis.test.ts
     FinancialRatios.test.ts
+    DiversificationAnalysis.test.ts
 ```
 
 ## Development

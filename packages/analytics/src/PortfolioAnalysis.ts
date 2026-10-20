@@ -11,6 +11,10 @@ import {
     type FinancialRatiosResult
 } from './FinancialRatios.js';
 import {
+    analyzeDiversification,
+    type DiversificationAnalysisResult
+} from './DiversificationAnalysis.js';
+import {
     mapPortfolioPositions,
     type PortfolioPositionSelection
 } from './PortfolioPositionMapper.js';
@@ -29,12 +33,13 @@ export interface PortfolioAnalysis {
     readonly netWorth: NetWorthResult;
     readonly assetAllocation: AssetAllocationResult;
     readonly financialRatios: FinancialRatiosResult;
+    readonly diversification: DiversificationAnalysisResult;
 }
 
 /**
- * Produces deterministic net-worth, asset-allocation, and balance-sheet ratio
- * results for an explicitly selected set of portfolio records. No market data,
- * FX rates, persistence, or AI-generated interpretation is involved.
+ * Produces deterministic net-worth, allocation, balance-sheet ratio, and
+ * category-concentration results for explicitly selected portfolio records.
+ * No market data, FX rates, persistence, or AI interpretation is involved.
  */
 export function analyzePortfolio({
     portfolio,
@@ -43,6 +48,7 @@ export function analyzePortfolio({
 }: PortfolioAnalysisInput): PortfolioAnalysis {
     const positions = mapPortfolioPositions(portfolio, selections);
     const netWorth = calculateNetWorth({ currency, positions });
+    const assetAllocation = calculateAssetAllocation({ currency, positions });
 
     return {
         portfolioId: portfolio.id.toString(),
@@ -50,7 +56,8 @@ export function analyzePortfolio({
         currency,
         positionCount: positions.length,
         netWorth,
-        assetAllocation: calculateAssetAllocation({ currency, positions }),
-        financialRatios: calculateFinancialRatios(netWorth)
+        assetAllocation,
+        financialRatios: calculateFinancialRatios(netWorth),
+        diversification: analyzeDiversification(assetAllocation)
     };
 }
