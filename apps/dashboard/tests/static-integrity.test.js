@@ -126,6 +126,23 @@ describe('copy previous-month budgets contract', () => {
     });
 });
 
+describe('monthly budget overview contract', () => {
+    it('summarizes only explicitly budgeted categories and explains the aggregation boundary', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-budget-total"');
+        expect(html).toContain('id="cash-flow-budget-actual"');
+        expect(html).toContain('id="cash-flow-budget-remaining"');
+        expect(html).toContain('id="cash-flow-budget-utilization"');
+        expect(html).toContain('expenses in categories without a budget');
+        expect(cashFlow).toContain("const budgetedRows = [...combined.values()].filter((item) => item.budget !== null);");
+        expect(cashFlow).toContain("Number.isFinite(remainingAgainstBudget)");
+        expect(cashFlow).toContain("const overallUtilization = totalBudget > 0");
+    });
+});
+
 describe('monthly budget utilization contract', () => {
     it('shows budget-used percentage and exports the same metric without inventing a budget', async () => {
         const [html, cashFlow] = await Promise.all([
