@@ -1325,11 +1325,9 @@ try {
 
     const appendConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
-            assert.match(dialog.message(), /CSV append preview: 1 transaction/);
-            assert.match(dialog.message(), /Potential exact duplicates against the existing ledger: 1/);
-            assert.match(dialog.message(), /Existing transactions will be kept and the imported transactions appended/);
+            const confirmationMessage = dialog.message();
             await dialog.accept();
-            resolve(true);
+            resolve(confirmationMessage);
         });
     });
     await page.locator('#cash-flow-append-csv').setInputFiles({
@@ -1337,7 +1335,10 @@ try {
         mimeType: 'text/csv',
         buffer: Buffer.from('date,type,category,description,amount,recurring\\r\\n"2026-10-20","income","Salary","CSV import, test",50000,"true"\\r\\n')
     });
-    await appendConfirmation;
+    const appendConfirmationMessage = await appendConfirmation;
+    assert.match(appendConfirmationMessage, /CSV append preview: 1 transaction/);
+    assert.match(appendConfirmationMessage, /Potential exact duplicates against the existing ledger: 1/);
+    assert.match(appendConfirmationMessage, /Existing transactions will be kept and the imported transactions appended/);
     await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('Appended 1 cash flow transactions from CSV'));
     assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
         'CSV append should add to, not replace, the existing ledger total');
