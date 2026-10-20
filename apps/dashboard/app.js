@@ -22,6 +22,7 @@ import { initializeGrowthProjectionCalculator } from './growth-projection.js';
 import { initializeCagrCalculator } from './cagr.js';
 import { initializeReturnRiskCalculator } from './return-risk.js';
 import { analyzeDiversification } from './analytics-runtime/DiversificationAnalysis.js';
+import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -556,8 +557,27 @@ function render() {
     $('#asset-count').textContent = `${records.filter((item) => item.type === 'asset').length} records`;
     $('#liability-count').textContent = `${records.filter((item) => item.type === 'liability').length} records`;
     $('#net-worth-caption').textContent = result.netWorth < 0 ? 'Liabilities exceed assets' : 'Assets minus liabilities';
+    renderFinancialRatios(result);
     renderAllocation(result.assets);
     renderRecords();
+}
+
+function renderFinancialRatios(result) {
+    const ratios = calculateFinancialRatios({
+        currency: CURRENCY,
+        totalAssets: { amount: result.assets, currency: CURRENCY },
+        totalLiabilities: { amount: result.liabilities, currency: CURRENCY },
+        netWorth: { amount: result.netWorth, currency: CURRENCY }
+    });
+    const percentage = (value) => value === null ? '—' : (value * 100).toFixed(1) + '%';
+    const multiple = (value) => value === null ? '—' : value.toFixed(2) + '×';
+    $('#financial-ratios').innerHTML = `<p class="eyebrow">BALANCE-SHEET RATIOS</p>
+        <div class="financial-ratio-metrics">
+            <article><span>Liabilities / assets</span><strong id="ratio-liabilities-to-assets">${percentage(ratios.liabilitiesToAssets)}</strong><small>Recorded liabilities as a share of recorded assets.</small></article>
+            <article><span>Net worth / assets</span><strong id="ratio-net-worth-to-assets">${percentage(ratios.netWorthToAssets)}</strong><small>Recorded net worth as a share of recorded assets.</small></article>
+            <article><span>Assets / liabilities</span><strong id="ratio-assets-to-liabilities">${multiple(ratios.assetsToLiabilities)}</strong><small>Recorded assets per unit of recorded liabilities.</small></article>
+        </div>
+        <p class="financial-ratio-note">Descriptive ratios only; no benchmarks, forecasts, or recommendations are implied. A dash means the denominator is zero.</p>`;
 }
 
 function renderAllocation(totalAssets) {
