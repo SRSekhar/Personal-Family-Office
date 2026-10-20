@@ -63,7 +63,9 @@ Implemented
 - Net worth calculation with canonical IDs, same-currency validation, and explicit no-FX behavior
 - Asset allocation by caller-supplied category with deterministic ordering and validated weights
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
-- Category concentration metrics using HHI, effective category count, and largest-category share, without inferring correlations or risk (in progress).
+In Progress
+
+- Category concentration metrics using HHI, effective category count, and largest-category share, without inferring correlations or risk.
 
 Planned
 - Risk Analysis
