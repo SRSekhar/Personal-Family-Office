@@ -267,7 +267,8 @@ Features
 Future enhancements are added here and prioritized during sprint planning.
 
 No work should begin unless it has been added to the backlog.
-- Add a recurring-only cash-flow CSV export for the selected reporting period, retaining the standard transaction schema and spreadsheet formula neutralization.
+- Add a recurring-only cash-flow CSV export for the selected reporting period, retaining the standard transaction schema and spreadsheet formula neutralization (delivered in PR #264).
+- Add an all-period category budget history CSV export, including budgeted categories and expense-only categories, with deterministic month/category ordering and formula-safe text.
 
 
 
