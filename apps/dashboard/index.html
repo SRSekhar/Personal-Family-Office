@@ -26,6 +26,7 @@
                 <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
                 <a class="nav-item" href="#loan-calculator"><span class="nav-icon">↘</span> Loan calculator</a>
                 <a class="nav-item" href="#investment-performance"><span class="nav-icon">↗</span> Investment returns</a>
+                <a class="nav-item" href="#return-risk-analysis"><span class="nav-icon">△</span> Return risk analysis</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
                 <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
                 <a class="nav-item" href="#tax-estimator"><span class="nav-icon">%</span> Tax estimator</a>
@@ -284,6 +285,34 @@
                         <article><span>Annualized money-weighted return (XIRR)</span><strong id="investment-xirr">—</strong><small>ACT/365; depends on dates and cash-flow timing</small></article>
                     </div>
                     <p class="investment-performance-meta"><strong id="investment-cash-flow-count">0</strong> cash flows · <span id="investment-date-range">—</span></p>
+                </section>
+            </section>
+            <section class="panel return-risk-panel" id="return-risk-analysis" aria-labelledby="return-risk-heading">
+                <div class="panel-header"><div><p class="eyebrow">HISTORICAL RETURN SERIES</p><h2 id="return-risk-heading">Return risk analysis</h2></div><span class="panel-tag">Local calculation · no forecasts</span></div>
+                <p class="return-risk-intro">Paste one observation per line as <code>YYYY-MM-DD,return-percent</code>, oldest first. Returns are simple period returns, not currency amounts. Use consistent observation intervals and choose the annualization frequency that matches them.</p>
+                <div class="notice" id="return-risk-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for return analysis</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal investment data.</p></div></div>
+                <form id="return-risk-form">
+                    <div class="return-risk-input-grid">
+                        <label class="field-label" for="return-risk-periods-year">Periods per year<input id="return-risk-periods-year" type="number" min="1" max="366" step="1" required value="12"></label>
+                        <label class="field-label" for="return-risk-risk-free">Risk-free return per period (%) — optional<input id="return-risk-risk-free" type="number" min="-100" step="any" placeholder="Leave blank to omit Sharpe"></label>
+                        <label class="field-label" for="return-risk-target">Minimum acceptable return per period (%) — optional<input id="return-risk-target" type="number" min="-100" step="any" placeholder="Leave blank to omit Sortino"></label>
+                    </div>
+                    <label class="field-label" for="return-risk-observations">Dated return observations<textarea id="return-risk-observations" rows="7" required spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="2026-01-31,2.5&#10;2026-02-28,-1.2&#10;2026-03-31,1.1"></textarea></label>
+                    <p class="fire-assumptions-note">Metrics are descriptive and depend on the supplied observations. Volatility uses sample standard deviation annualized by √periods/year; drawdown uses a compounded wealth index. Sharpe and Sortino require explicit assumptions. No market data is fetched, and no risk score or investment recommendation is produced. Inputs are not saved.</p>
+                    <p id="return-risk-validation" class="fire-validation" role="alert" hidden></p>
+                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate risk metrics</button><button class="button button-secondary" id="return-risk-reset" type="button">Reset calculator</button></div>
+                </form>
+                <section id="return-risk-results" class="fire-results" aria-labelledby="return-risk-results-heading" aria-live="polite" hidden>
+                    <div class="fire-result-heading"><div><p class="eyebrow">HISTORICAL METRICS</p><h3 id="return-risk-results-heading">Return-series summary</h3></div><button class="button button-secondary button-small" id="return-risk-export-csv" type="button" disabled>Export metrics CSV</button></div>
+                    <div class="fire-result-grid return-risk-result-grid">
+                        <article><span>Observations</span><strong id="return-risk-observation-count">—</strong><small>Validated dated returns</small></article>
+                        <article><span>Annualized volatility</span><strong id="return-risk-volatility">—</strong><small>Sample standard deviation</small></article>
+                        <article><span>Maximum drawdown</span><strong id="return-risk-drawdown">—</strong><small>Peak-to-trough compounded decline</small></article>
+                        <article><span>Worst period return</span><strong id="return-risk-worst-period">—</strong><small>Lowest observed period</small></article>
+                        <article><span>Negative periods</span><strong id="return-risk-negative-count">—</strong><small>Count of returns below zero</small></article>
+                        <article><span>Annualized Sharpe ratio</span><strong id="return-risk-sharpe">—</strong><small>Requires an explicit risk-free return</small></article>
+                        <article><span>Annualized Sortino ratio</span><strong id="return-risk-sortino">—</strong><small>Requires an explicit minimum acceptable return</small></article>
+                    </div>
                 </section>
             </section>
             <section class="panel loan-calculator-panel" id="loan-calculator" aria-labelledby="loan-calculator-heading">
