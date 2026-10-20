@@ -102,7 +102,7 @@ In Progress
 - Return-series risk analysis with explicit annualization frequency, sample volatility, maximum drawdown, worst-period return, negative-period count, and input validation (PR #216).
 - Optional annualized Sharpe ratio using a caller-supplied risk-free return per period; no implicit risk-free-rate assumption (PR #217).
 - Optional annualized Sortino ratio using a caller-supplied minimum acceptable return per period; no implicit target assumption (PR #218).
-- Local return-series risk analysis UI using explicit dated period returns and annualization frequency; optional Sharpe/Sortino inputs, stale-result invalidation, and CSV export; no market-data fetching or recommendation.
+- Local return-series risk analysis UI using explicit dated period returns and annualization frequency; optional Sharpe/Sortino inputs, stale-result invalidation, metrics CSV export, and a separate re-importable observations CSV export; no market-data fetching or recommendation.
 
 Planned
 - Portfolio Health — define required metrics and intended interpretation before implementation; do not invent a composite score or thresholds.
@@ -268,7 +268,7 @@ Future enhancements are added here and prioritized during sprint planning.
 
 No work should begin unless it has been added to the backlog.
 - Add a recurring-only cash-flow CSV export for the selected reporting period, retaining the standard transaction schema and spreadsheet formula neutralization (delivered in PR #264).
-- Add a separate re-importable `date,return_percent` CSV export for the validated return observations used in the risk analysis, invalidated with stale results.
+- Add a separate re-importable `date,return_percent` CSV export for the validated return observations used in the risk analysis, invalidated with stale results. (delivered in this branch).
 - Add an all-period category budget history CSV export, including budgeted categories and expense-only categories, with deterministic month/category ordering and formula-safe text (delivered in this branch).
 
 
