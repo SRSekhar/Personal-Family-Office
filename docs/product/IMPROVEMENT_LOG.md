@@ -457,9 +457,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - The export contains only numeric inputs/results and fixed headings; no user-entered free text. Editing any input invalidates the displayed result and disables export.
 - PR #233 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Investment-performance CSV export — feature branch in progress
-- Add a local export of the investment-performance summary together with the exact dated cash-flow inputs used for the XIRR result.
-- Preserve contribution/receipt signs and explicit cash-flow dates; do not infer terminal valuation or adjust for fees/taxes.
+### Investment-performance CSV export — PR #234 merged
+- Added a local export of the investment-performance summary together with the exact dated cash-flow inputs used for the XIRR result.
+- Preserves contribution/receipt signs and explicit cash-flow dates; does not infer terminal valuation or adjust for fees/taxes. Editing, adding, or removing a cash flow invalidates the prior result and disables export.
+- PR #234 passed export unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Local CAGR CSV export — feature branch in progress
+- Add a local CSV export containing the beginning value, ending value, elapsed years, and calculated annualized CAGR.
+- Editing calculator inputs will invalidate the previous result and disable export; no inputs or results are persisted.
 - Validation status: export unit tests, Chromium browser smoke, CI, dashboard packaging, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open
