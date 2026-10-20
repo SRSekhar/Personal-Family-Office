@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     calculateCashFlowSavingsRate,
+    cashFlowCategorySummaryToCsv,
     cashFlowMonthlySummaryToCsv,
     cashFlowToCsv,
     filterCashFlowEntries,
