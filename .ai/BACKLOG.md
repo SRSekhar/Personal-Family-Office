@@ -276,6 +276,4 @@ No work should begin unless it has been added to the backlog.
 
 - Cash-flow CSV append import preserves existing transactions, previews post-import totals, warns about exact potential duplicates without silently deduplicating, and remains separate from replacement import.
 
-- Add a local monthly category budget planner with explicit user-entered limits, actual expenses derived from recorded transactions, over-budget indicators, and separately validated browser storage; no inferred budgets or forecasts.
-
-- Export the selected month's category budget comparison to CSV, including explicit limits, recorded expense actuals, remaining amounts, and status; include unbudgeted categories with expenses, neutralize formula-like category text, and keep the export local-only.
+- Copy previous-month category budget limits into the selected month on explicit user request; preserve existing target-month limits, preview missing categories, and never modify transaction records.

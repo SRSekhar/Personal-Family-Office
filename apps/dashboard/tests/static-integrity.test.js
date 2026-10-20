@@ -108,6 +108,24 @@ describe('monthly budget export contract', () => {
     });
 });
 
+describe('copy previous-month budgets contract', () => {
+    it('offers an explicit copy action and preserves existing target-month limits', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-budget-copy-previous"');
+        expect(cashFlow).toContain("$('#cash-flow-budget-copy-previous').addEventListener('click'");
+        expect(cashFlow).toContain("const previousMonth = previousDate.getUTCFullYear()");
+        expect(cashFlow).toContain("const toCopy = sourceBudgets.filter((budget) => !existingCategories.has");
+        expect(cashFlow).toContain("if (toCopy.length === 0)");
+        expect(cashFlow).toContain("if (!windowRef.confirm(preview))");
+        expect(cashFlow).toContain("saveBudgets([...budgets, ...copied])");
+        expect(cashFlow).toContain("Transactions will not be changed.");
+        expect(cashFlow).toContain("if (!budgetStorageHealthy)");
+    });
+});
+
 describe('dashboard export reliability', () => {
     it('keeps the JSON backup object URL alive briefly after initiating download', async () => {
         const app = await readDashboardFile('app.js');
