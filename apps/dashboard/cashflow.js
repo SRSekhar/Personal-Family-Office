@@ -1,5 +1,5 @@
 import {
-    calculateCashFlowSavingsRate, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
+    calculateCashFlowSavingsRate, cashFlowCategorySummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
     sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
     summarizeCashFlowByMonth, validateCashFlowEntries
 } from './cashflow-ledger.js';
@@ -335,6 +335,15 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             message('Monthly cash-flow summary exported to this device.');
         } catch (error) {
             message(error instanceof Error ? error.message : 'Could not export monthly cash-flow summary.', true);
+        }
+    });
+    $('#cash-flow-export-category-csv').addEventListener('click', () => {
+        try {
+            const period = $('#cash-flow-period').value || 'all';
+            download('pfo-cash-flow-category-summary.csv', cashFlowCategorySummaryToCsv(entries, period), 'text/csv;charset=utf-8');
+            message('Selected-period category summary exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export category summary.', true);
         }
     });
     $('#cash-flow-export-json').addEventListener('click', () => {
