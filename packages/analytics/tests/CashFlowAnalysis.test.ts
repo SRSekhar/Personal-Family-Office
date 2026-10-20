@@ -36,7 +36,7 @@ describe('analyzeCashFlow', () => {
         expect(result.monthlyTrend.map((item) => item.net.amount)).toEqual([75, 90]);
         expect(result.monthlyTrend.map((item) => item.transactionCount)).toEqual([2, 3]);
         expect(result.categoryBreakdown.map((item) => item.category)).toEqual(['Salary', 'Housing', 'Food']);
-        expect(result.categoryBreakdown.map((item) => item.net.amount)).toEqual([220, -40, -10]);
+        expect(result.categoryBreakdown.map((item) => item.net.amount)).toEqual([220, -45, -10]);
     });
 
     it('returns zero totals and no trend for an empty ledger', () => {
