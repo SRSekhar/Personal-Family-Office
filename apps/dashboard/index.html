@@ -22,6 +22,7 @@
                 <a class="nav-item active" href="#overview" aria-current="page"><span class="nav-icon">◫</span> Overview</a>
                 <a class="nav-item" href="#records"><span class="nav-icon">▤</span> Financial records</a>
                 <a class="nav-item" href="#fire-planner"><span class="nav-icon">◎</span> FIRE planner</a>
+                <a class="nav-item" href="#loan-planner"><span class="nav-icon">↘</span> Loan planner</a>
                 <a class="nav-item" href="#goal-tracker"><span class="nav-icon">◷</span> Goal tracker</a>
                 <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
             </nav>
@@ -168,6 +169,35 @@
 <p id="fire-compare-validation" class="fire-validation" role="alert" hidden></p>
 <div id="fire-compare-results" class="fire-compare-results" aria-live="polite" hidden><div class="table-scroll"><table><caption>Scenario results in the same order as entered</caption><thead><tr><th scope="col">Scenario and assumptions</th><th scope="col">Projected portfolio</th><th scope="col">Target corpus</th><th scope="col">Surplus / shortfall</th><th scope="col">Status</th></tr></thead><tbody id="fire-compare-body"></tbody></table></div><p class="fire-comparison-note">Scenarios are not ranked or recommended. Results are deterministic illustrations, not forecasts or guarantees.</p><div class="fire-actions"><button class="button button-secondary" id="fire-download-comparison-report" type="button">Download comparison report</button></div></div>
 </section>
+            </section>
+            <section class="panel loan-planner-panel" id="loan-planner" aria-labelledby="loan-planner-heading">
+                <div class="panel-header">
+                    <div><p class="eyebrow">FIXED-RATE ESTIMATE</p><h2 id="loan-planner-heading">Loan amortization planner</h2></div>
+                    <span class="panel-tag">Local only · INR</span>
+                </div>
+                <p class="loan-planner-intro">Estimate a fixed-payment monthly schedule from an outstanding balance, nominal annual rate, payment amount, and first due date. Values are examples until you change them; nothing is saved.</p>
+                <div class="notice" id="loan-planner-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for financial planning</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal loan assumptions.</p></div></div>
+                <form id="loan-planner-form" class="loan-planner-form">
+                    <label class="field-label" for="loan-principal">Outstanding balance (₹)<input id="loan-principal" name="principal" type="number" min="0" step="any" required value="1000000" inputmode="decimal"></label>
+                    <label class="field-label" for="loan-interest-rate">Annual interest rate (%)<input id="loan-interest-rate" name="annualInterestRate" type="number" min="0" max="100" step="any" required value="8.5" inputmode="decimal"></label>
+                    <label class="field-label" for="loan-monthly-payment">Monthly payment (₹)<input id="loan-monthly-payment" name="monthlyPayment" type="number" min="0" step="any" required value="15000" inputmode="decimal"></label>
+                    <label class="field-label" for="loan-first-payment-date">First payment date<input id="loan-first-payment-date" name="firstPaymentDate" type="date" required value="2026-11-01"></label>
+                    <label class="field-label" for="loan-maximum-payments">Maximum monthly payments<input id="loan-maximum-payments" name="maximumPayments" type="number" min="1" max="1200" step="1" required value="360"></label>
+                    <div class="loan-planner-actions"><button class="button button-primary" type="submit">Calculate schedule</button><button class="button button-secondary" id="loan-planner-reset" type="button">Reset example</button></div>
+                </form>
+                <p class="loan-planner-assumptions">Assumptions: annual rate ÷ 12, interest on opening balance, payment at period end, no fees/taxes/rate changes, and no currency-specific rounding. This is not a lender quote.</p>
+                <p id="loan-planner-error" class="loan-planner-error" role="alert" hidden></p>
+                <section id="loan-planner-results" class="loan-planner-results" aria-labelledby="loan-planner-results-heading" aria-live="polite" hidden>
+                    <div class="panel-header"><div><p class="eyebrow">ESTIMATE RESULT</p><h3 id="loan-planner-results-heading">Amortization summary</h3></div></div>
+                    <div class="loan-summary-grid">
+                        <article><span>Total interest</span><strong id="loan-total-interest">—</strong></article>
+                        <article><span>Total payments</span><strong id="loan-total-payments">—</strong></article>
+                        <article><span>Principal paid</span><strong id="loan-total-principal">—</strong></article>
+                        <article><span>Remaining balance</span><strong id="loan-remaining-balance">—</strong></article>
+                    </div>
+                    <p id="loan-planner-summary" class="loan-planner-summary"></p>
+                    <div class="loan-table-wrap"><table><caption>Monthly payment schedule</caption><thead><tr><th scope="col">#</th><th scope="col">Due date</th><th scope="col">Opening balance</th><th scope="col">Interest</th><th scope="col">Payment</th><th scope="col">Principal paid</th><th scope="col">Closing balance</th></tr></thead><tbody id="loan-planner-schedule"></tbody></table></div>
+                </section>
             </section>
             <section class="panel goal-tracker-panel" id="goal-tracker" aria-labelledby="goal-tracker-heading">
                 <div class="panel-header"><div><p class="eyebrow">FINANCIAL MILESTONES</p><h2 id="goal-tracker-heading">Goal tracker</h2></div><span class="panel-tag">Saved locally · INR</span></div>
