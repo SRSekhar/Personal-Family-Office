@@ -35,7 +35,7 @@ Features
 
 Status
 
-Planned
+In Progress
 
 Features
 
@@ -46,6 +46,7 @@ Features
 - Insurance Model
 - Loan Model
 - Goal Model
+- In progress — enforce financial snapshot invariants for valid capture date, same-currency non-negative asset/liability totals, and reconciled net worth (no history/persistence changes)
 
 ---
 
@@ -62,7 +63,7 @@ Implemented
 - XIRR calculation for dated cash flows using ACT/365 and bisection; ambiguous multi-sign-change streams are rejected
 - Net worth calculation with canonical IDs, same-currency validation, and explicit no-FX behavior
 - Asset allocation by caller-supplied category with deterministic ordering and validated weights
-- In progress — investment performance analysis using explicit investor-perspective dated cash flows, XIRR, gross contributions/proceeds, net gain, and simple net return on contributions; no inferred terminal valuation
+- Investment performance analysis using explicit investor-perspective dated cash flows, XIRR, gross contributions/proceeds, net gain, and simple net return on contributions (PR #222); no inferred terminal valuation
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
