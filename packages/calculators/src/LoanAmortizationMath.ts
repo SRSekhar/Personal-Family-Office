@@ -70,9 +70,13 @@ export function calculateLoanAmortizationMath({
     const schedule: LoanAmortizationMathPayment[] = [];
     for (let period = 1; period <= maximumPayments && balance > 0; period += 1) {
         const interest = balance * monthlyRate;
-        if (!Number.isFinite(interest)) throw new RangeError('Loan interest exceeds the supported numeric range.');
+        if (!Number.isFinite(interest)) {
+            throw new RangeError('Loan interest exceeds the supported numeric range.');
+        }
         const amountDue = balance + interest;
-        if (!Number.isFinite(amountDue)) throw new RangeError('Loan amount due exceeds the supported numeric range.');
+        if (!Number.isFinite(amountDue)) {
+            throw new RangeError('Loan amount due exceeds the supported numeric range.');
+        }
         const payment = Math.min(monthlyPayment, amountDue);
         const principalPaid = payment - interest;
         const closingBalance = Math.max(0, balance - principalPaid);
@@ -93,7 +97,9 @@ export function calculateLoanAmortizationMath({
 
 function addFinite(current: number, amount: number, message: string): number {
     const result = current + amount;
-    if (!Number.isFinite(result)) throw new RangeError(message);
+    if (!Number.isFinite(result)) {
+        throw new RangeError(message);
+    }
     return result;
 }
 
