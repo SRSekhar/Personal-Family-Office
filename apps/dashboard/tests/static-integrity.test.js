@@ -92,6 +92,22 @@ describe('FIRE planner interaction contracts', () => {
 
 });
 
+describe('monthly budget export contract', () => {
+    it('provides a budget export action and builds a formula-safe selected-month comparison CSV', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-budget-export-csv"');
+        expect(cashFlow).toContain("$('#cash-flow-budget-export-csv').addEventListener('click'");
+        expect(cashFlow).toContain("budgetSummaryToCsv(month)");
+        expect(cashFlow).toContain("'actual_expenses'");
+        expect(cashFlow).toContain(String.raw`if (textField && /^[=+\-@\t\r]/u.test(field)) field = "'" + field;`);
+        expect(cashFlow).toContain("pfo-monthly-category-budgets-' + month + '.csv'");
+        expect(cashFlow).toContain("if (!isLoopback(windowRef.location.hostname))");
+    });
+});
+
 describe('dashboard export reliability', () => {
     it('keeps the JSON backup object URL alive briefly after initiating download', async () => {
         const app = await readDashboardFile('app.js');
