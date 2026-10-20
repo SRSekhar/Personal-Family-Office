@@ -422,9 +422,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - No jurisdiction-specific rates, deductions, credits, exemptions, surcharges, cess, or filing status are hard-coded. Invalid bracket schedules and currency mismatches are rejected.
 - PR #226 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Local progressive tax estimator — feature branch in progress
+### Local progressive tax estimator — PR #227 merged
 - Added a local-only dashboard form for caller-defined income brackets and marginal rates, reusing a shared pure numeric calculation function from the calculator package.
 - No jurisdiction defaults or tax-rule assumptions are embedded; results are ephemeral and the hosted dashboard disables entry.
+- PR #227 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Local loan amortization calculator — feature branch in progress
+- Added a local-only loan calculator using the same pure numeric monthly amortization engine as the validated Loan-domain API.
+- Shows a summary and the first 12 monthly payments, with full-schedule CSV export. Inputs are not persisted; interest/payment timing and excluded fees/taxes/rate changes are disclosed.
 - Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open

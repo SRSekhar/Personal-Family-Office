@@ -1,5 +1,7 @@
 import { Money, type Currency, Loan } from '@pfo/models';
 
+import { calculateLoanAmortizationMath } from './LoanAmortizationMath.js';
+
 export interface LoanAmortizationInput {
     readonly loan: Loan;
     /** First payment due date. Later due dates preserve this UTC day-of-month where possible. */
@@ -53,95 +55,29 @@ export function calculateLoanAmortization({
     }
 
     const currency = loan.outstandingAmount.currency;
-    const originalBalance = loan.outstandingAmount.amount;
-    const monthlyRate = loan.annualInterestRate.toDecimal() / 12;
-    const scheduledPayment = loan.monthlyPayment.amount;
-    if (originalBalance === 0) {
-        return {
-            currency,
-            schedule: [],
-            totalInterest: Money.zero(currency),
-            totalPayments: Money.zero(currency),
-            totalPrincipalPaid: Money.zero(currency),
-            remainingBalance: Money.zero(currency),
-            paidOff: true
-        };
-    }
-    if (scheduledPayment <= 0) {
-        throw new RangeError('Monthly payment must be positive to amortize a non-zero loan balance.');
-    }
-
-    const firstInterest = originalBalance * monthlyRate;
-    if (!Number.isFinite(firstInterest)) {
-        throw new RangeError('Loan interest exceeds the supported numeric range.');
-    }
-    if (scheduledPayment <= firstInterest) {
-        throw new RangeError('Monthly payment must exceed the first period interest to amortize the loan.');
-    }
-
-    let balance = originalBalance;
-    let totalInterest = 0;
-    let totalPayments = 0;
-    let totalPrincipalPaid = 0;
-    const schedule: LoanAmortizationPayment[] = [];
-
-    for (let period = 1; period <= maximumPayments && balance > 0; period++) {
-        const interest = balance * monthlyRate;
-        if (!Number.isFinite(interest)) {
-            throw new RangeError('Loan interest exceeds the supported numeric range.');
-        }
-        const amountDue = balance + interest;
-        if (!Number.isFinite(amountDue)) {
-            throw new RangeError('Loan amount due exceeds the supported numeric range.');
-        }
-        const payment = Math.min(scheduledPayment, amountDue);
-        const principalPaid = payment - interest;
-        const closingBalance = Math.max(0, balance - principalPaid);
-        if (![payment, principalPaid, closingBalance].every(Number.isFinite) || principalPaid <= 0) {
-            throw new RangeError('Loan amortization exceeds the supported numeric range or fails to reduce principal.');
-        }
-
-        totalInterest = addFinite(totalInterest, interest, 'Total loan interest exceeds the supported numeric range.');
-        totalPayments = addFinite(totalPayments, payment, 'Total loan payments exceed the supported numeric range.');
-        totalPrincipalPaid = addFinite(totalPrincipalPaid, principalPaid, 'Total principal paid exceeds the supported numeric range.');
-
-        schedule.push({
-            period,
-            dueDate: monthlyDueDate(firstPaymentDate, period - 1).toISOString(),
-            openingBalance: new Money(balance, currency),
-            interest: new Money(interest, currency),
-            payment: new Money(payment, currency),
-            principalPaid: new Money(principalPaid, currency),
-            closingBalance: new Money(closingBalance, currency)
-        });
-        balance = closingBalance;
-    }
-
+    const result = calculateLoanAmortizationMath({
+        outstandingPrincipal: loan.outstandingAmount.amount,
+        annualInterestRatePercent: loan.annualInterestRate.value,
+        monthlyPayment: loan.monthlyPayment.amount,
+        firstPaymentDate,
+        maximumPayments
+    });
     return {
         currency,
-        schedule,
-        totalInterest: new Money(totalInterest, currency),
-        totalPayments: new Money(totalPayments, currency),
-        totalPrincipalPaid: new Money(totalPrincipalPaid, currency),
-        remainingBalance: new Money(balance, currency),
-        paidOff: balance === 0
+        schedule: result.schedule.map((payment) => ({
+            period: payment.period,
+            dueDate: payment.dueDate,
+            openingBalance: new Money(payment.openingBalance, currency),
+            interest: new Money(payment.interest, currency),
+            payment: new Money(payment.payment, currency),
+            principalPaid: new Money(payment.principalPaid, currency),
+            closingBalance: new Money(payment.closingBalance, currency)
+        })),
+        totalInterest: new Money(result.totalInterest, currency),
+        totalPayments: new Money(result.totalPayments, currency),
+        totalPrincipalPaid: new Money(result.totalPrincipalPaid, currency),
+        remainingBalance: new Money(result.remainingBalance, currency),
+        paidOff: result.paidOff
     };
 }
 
-function addFinite(current: number, amount: number, message: string): number {
-    const result = current + amount;
-    if (!Number.isFinite(result)) {
-        throw new RangeError(message);
-    }
-    return result;
-}
-
-function monthlyDueDate(firstPaymentDate: Date, monthOffset: number): Date {
-    const date = new Date(firstPaymentDate.getTime());
-    const originalDay = date.getUTCDate();
-    date.setUTCDate(1);
-    date.setUTCMonth(date.getUTCMonth() + monthOffset);
-    const lastDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
-    date.setUTCDate(Math.min(originalDay, lastDay));
-    return date;
-}

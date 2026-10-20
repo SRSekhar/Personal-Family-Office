@@ -11,7 +11,7 @@ const reportSource = resolve(root, 'packages/reports/dist');
 const reportDestination = resolve(root, 'apps/dashboard/reports-runtime');
 
 await mkdir(destination, { recursive: true });
-for (const name of ['CompoundGrowth.js', 'FireReadiness.js', 'FireScenarioComparison.js', 'RequiredFireContribution.js', 'GoalProgress.js', 'ProgressiveTaxMath.js']) {
+for (const name of ['CompoundGrowth.js', 'FireReadiness.js', 'FireScenarioComparison.js', 'RequiredFireContribution.js', 'GoalProgress.js', 'ProgressiveTaxMath.js', 'LoanAmortizationMath.js']) {
     await copyFile(resolve(source, name), resolve(destination, name));
 }
 await mkdir(reportDestination, { recursive: true });
