@@ -432,9 +432,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Shows a summary and the first 12 monthly payments, with full-schedule CSV export. Inputs are not persisted; interest/payment timing and excluded fees/taxes/rate changes are disclosed.
 - PR #228 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Local investment performance calculator — feature branch in progress
+### Local investment performance calculator — PR #229 merged
 - Added a local-only form for dated investor-perspective cash flows, reusing a shared pure numeric performance function and the existing XIRR solver.
 - Shows gross contributions/proceeds, net gain, simple return on contributions, and annualized money-weighted return. The user must explicitly include terminal valuation when applicable; no valuation is fetched or inferred.
+- PR #229 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Local compound-growth projection — feature branch in progress
+- Added a local-only UI for a starting amount, fixed annual contributions, annual return assumption, period, and beginning/end-of-year contribution timing.
+- Shows projected future value, total contributed capital, and estimated growth. The UI discloses excluded inflation, taxes, fees, volatility, and changing contributions; results are not saved.
 - Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open
