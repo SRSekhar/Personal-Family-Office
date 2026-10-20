@@ -118,10 +118,12 @@ src/
     PortfolioPositionMapper.ts
     PortfolioAnalysis.ts
     FinancialRatios.ts
+    DiversificationAnalysis.ts
     index.ts
 tests/
     PortfolioAnalysis.test.ts
     FinancialRatios.test.ts
+    DiversificationAnalysis.test.ts
 ```
 
 ## Development
