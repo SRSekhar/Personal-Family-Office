@@ -522,11 +522,11 @@ try {
     const categoryCsvPath = join(temporaryDirectory, 'pfo-cash-flow-category-summary.csv');
     await categoryCsvDownload.saveAs(categoryCsvPath);
     const categoryCsv = await readFile(categoryCsvPath, 'utf8');
-    assert.ok(categoryCsv.includes('"category","income","expenses","net","transaction_count"'),
+    assert.ok(categoryCsv.includes('"category","income","expenses","expense_share_percent","net","transaction_count"'),
         'category CSV should include its machine-readable header');
-    assert.ok(categoryCsv.includes('"Salary","100000","0","100000","1"'),
+    assert.ok(categoryCsv.includes('"Salary","100000","0","0","100000","1"'),
         'category CSV should include income totals matching the visible category breakdown');
-    assert.ok(categoryCsv.includes('"Housing","0","20000","-20000","1"'),
+    assert.ok(categoryCsv.includes('"Housing","0","20000","100","-20000","1"'),
         'category CSV should preserve negative category net as a numeric value');
     await page.locator('#cash-flow-frequency-filter').selectOption('recurring');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'recurring filter should show recurring transactions only');
