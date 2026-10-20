@@ -95,6 +95,19 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - Validate the complete import and preview its financial effect before replacing local data.
 - CSV import remains local-only and does not add network calls or a new persistence location.
 
+## 2026-10-20 — Cash-flow expense share by category
+
+### Delivered
+- Added a selected-period expense-share column to the cash-flow category table.
+- Each share is calculated as category expenses divided by all recorded expenses in the same reporting period.
+- The table explicitly shows an unavailable marker when the selected period has no expenses; it does not present a misleading percentage.
+- Added a Chromium regression proving that the housing category accounts for 100% of expenses while an income-only category accounts for 0% in the sample period.
+
+### Product and engineering lessons
+- Ratios need a clearly named denominator and a matching time window.
+- Keep expense mix distinct from income share, and do not interpret the metric as a budget, target, or recommendation.
+- Zero-denominator behavior must be explicit rather than silently reported as zero percent.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.
