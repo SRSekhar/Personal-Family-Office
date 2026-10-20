@@ -21,6 +21,7 @@ import { initializeInvestmentPerformanceCalculator } from './investment-performa
 import { initializeGrowthProjectionCalculator } from './growth-projection.js';
 import { initializeCagrCalculator } from './cagr.js';
 import { initializeReturnRiskCalculator } from './return-risk.js';
+import { analyzeDiversification } from './analytics-runtime/DiversificationAnalysis.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -561,6 +562,7 @@ function render() {
 
 function renderAllocation(totalAssets) {
     const container = $('#allocation-content');
+    $('#allocation-concentration').hidden = true;
     const grouped = new Map();
     records.filter((item) => item.type === 'asset').forEach((item) => {
         grouped.set(item.category, (grouped.get(item.category) || 0) + item.value);
@@ -574,6 +576,23 @@ function renderAllocation(totalAssets) {
         `<span class="allocation-segment" title="${escapeHtml(category)}: ${money(value)}" style="width:${(value / totalAssets * 100).toFixed(4)}%;background:${COLORS[index % COLORS.length]}"></span>`).join('');
     const legend = entries.map(([category, value], index) => `<div class="legend-item"><span class="legend-dot" style="background:${COLORS[index % COLORS.length]}"></span><span class="legend-name" title="${escapeHtml(category)}">${escapeHtml(category)}</span><span class="legend-value">${(value / totalAssets * 100).toFixed(1)}%</span></div>`).join('');
     container.innerHTML = `<div class="allocation-total"><strong>${money(totalAssets)}</strong><span>${entries.length} categories</span></div><div class="allocation-bar" role="img" aria-label="Asset allocation: ${escapeHtml(entries.map(([category, value]) => `${category} ${(value / totalAssets * 100).toFixed(1)} percent`).join(', '))}">${segments}</div><div class="allocation-legend">${legend}</div>`;
+    const concentration = analyzeDiversification({
+        currency: CURRENCY,
+        totalValue: { amount: totalAssets, currency: CURRENCY },
+        allocations: entries.map(([category, value]) => ({
+            category,
+            value: { amount: value, currency: CURRENCY },
+            weight: value / totalAssets
+        }))
+    });
+    $('#allocation-concentration').hidden = false;
+    $('#allocation-concentration').innerHTML = `<p class="eyebrow">CATEGORY CONCENTRATION</p>
+        <div class="concentration-metrics">
+            <article><span>Concentration index (HHI)</span><strong>${concentration.concentrationIndex.toFixed(3)}</strong><small>Sum of squared category shares; higher means more concentrated.</small></article>
+            <article><span>Effective category count</span><strong>${concentration.effectiveCategoryCount.toFixed(2)}</strong><small>Equivalent number of equally sized categories.</small></article>
+            <article><span>Largest category</span><strong>${(concentration.largestCategoryShare * 100).toFixed(1)}%</strong><small>Share held by the largest asset category.</small></article>
+        </div>
+        <p class="concentration-note">Category concentration only. This does not measure holding-level diversification, correlations, liquidity, or overall portfolio risk.</p>`;
 }
 
 function renderRecords() {
