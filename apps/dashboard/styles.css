@@ -98,3 +98,22 @@
 .tax-estimator-panel .fire-result-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.tax-estimator-panel .fire-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.tax-bracket-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.tax-bracket-row .tax-remove-bracket,.tax-final-bracket-note{grid-column:1/-1}.tax-final-bracket-note{padding:0}.tax-bracket-heading{flex-wrap:wrap}}
+
+
+/* Local loan amortization calculator */
+.loan-calculator-panel{margin-top:17px;padding:22px}
+.loan-calculator-intro{font-size:12px;line-height:1.7;color:#78857e;margin:12px 0 18px}
+.loan-input-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 15px}
+.loan-input-grid .field-label{min-width:0;line-height:1.5}
+.loan-input-grid input{min-width:0;width:100%;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:white;color:#2b3f32;font-size:12px}
+.loan-result-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.loan-schedule-heading{margin:18px 0 10px;align-items:flex-start}
+.loan-schedule-heading h3{font-size:15px;margin:0}
+.loan-schedule-heading .loan-calculator-intro{margin:6px 0 0}
+.loan-calculator-panel .table-scroll{overflow-x:auto}
+.loan-calculator-panel table{width:100%;border-collapse:collapse;white-space:nowrap}
+.loan-calculator-panel th,.loan-calculator-panel td{padding:10px 12px;border-bottom:1px solid #e8eee8;text-align:right;font-size:11px}
+.loan-calculator-panel th{background:#f8faf8;color:#64746a;font-weight:700}
+.loan-calculator-panel th:nth-child(1),.loan-calculator-panel td:nth-child(1),.loan-calculator-panel th:nth-child(2),.loan-calculator-panel td:nth-child(2){text-align:left}
+@media(max-width:900px){.loan-input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.loan-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.loan-input-grid{grid-template-columns:minmax(0,1fr)}.loan-calculator-panel .fire-result-heading,.loan-schedule-heading{align-items:flex-start;flex-direction:column}}
