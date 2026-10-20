@@ -62,11 +62,11 @@ Implemented
 - XIRR calculation for dated cash flows using ACT/365 and bisection; ambiguous multi-sign-change streams are rejected
 - Net worth calculation with canonical IDs, same-currency validation, and explicit no-FX behavior
 - Asset allocation by caller-supplied category with deterministic ordering and validated weights
-- Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation
+- Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
+- Category concentration metrics using HHI, effective category count, and largest-category share, without inferring correlations or risk (in progress).
 
 Planned
 - Risk Analysis
-- Diversification
 - Portfolio Health
 
 ---
