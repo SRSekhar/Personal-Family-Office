@@ -442,10 +442,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Shows projected future value, total contributed capital, and estimated growth. The UI discloses excluded inflation, taxes, fees, volatility, and changing contributions; results are not saved.
 - PR #230 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Local CAGR calculator — feature branch in progress
+### Local CAGR calculator — PR #231 merged
 - Added a local-only calculator for beginning value, ending value, and elapsed years, reusing the existing CAGR engine.
 - The UI distinguishes CAGR from dated-cash-flow XIRR and discloses that interim contributions/withdrawals, fees, taxes, and inflation are excluded. Results are not saved.
-- Validation is pending on the feature pull request.
+- PR #231 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
