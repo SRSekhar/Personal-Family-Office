@@ -68,7 +68,6 @@ Planned
 - Risk Analysis
 - Diversification
 - Portfolio Health
-- Financial Ratios
 
 ---
 
