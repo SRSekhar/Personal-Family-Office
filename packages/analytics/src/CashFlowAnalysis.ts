@@ -163,17 +163,26 @@ export function analyzeCashFlow({
 
     const categoryBreakdown = [...categories.entries()].map(([category, item]) => {
         const net = item.income - item.expenses;
-        if (!Number.isFinite(net)) throw new RangeError('Category net cash flow exceeds the supported numeric range.');
+        const activity = item.income + item.expenses;
+        if (!Number.isFinite(net) || !Number.isFinite(activity)) {
+            throw new RangeError('Category cash-flow totals exceed the supported numeric range.');
+        }
         return {
             category,
             income: new Money(item.income, currency),
             expenses: new Money(item.expenses, currency),
             net: new Money(net, currency),
             transactionCount: item.count,
-            activity: item.income + item.expenses
+            activity
         };
     }).sort((a, b) => b.activity - a.activity || a.category.localeCompare(b.category))
-        .map(({ activity: _activity, ...item }) => item);
+        .map((item) => ({
+            category: item.category,
+            income: item.income,
+            expenses: item.expenses,
+            net: item.net,
+            transactionCount: item.transactionCount
+        }));
 
     return {
         currency,
