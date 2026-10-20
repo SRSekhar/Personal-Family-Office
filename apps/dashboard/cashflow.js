@@ -314,6 +314,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             row.append(actions);
             body.append(row);
         }
+        renderBudgets();
     }
 
     function budgetMessage(text, isError = false) {
@@ -473,7 +474,6 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             budgetMessage('Monthly category budget saved. Actuals use recorded expenses only.');
             renderBudgets();
         }
-        renderBudgets();
     });
     $('#cash-flow-budget-cancel').addEventListener('click', resetBudgetForm);
 
