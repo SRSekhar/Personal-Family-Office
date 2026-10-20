@@ -521,7 +521,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     }
 
     function budgetSummaryToCsv(month) {
-        if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
             throw new Error('Select a valid budget month before exporting.');
         }
         const actuals = new Map();
@@ -545,7 +545,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
         const csvField = (value, textField = false) => {
             let field = String(value ?? '');
-            if (textField && /^[=+\\-@\\t\\r]/u.test(field)) field = "'" + field;
+            if (textField && /^[=+\-@\t\r]/u.test(field)) field = "'" + field;
             return '"' + field.replaceAll('"', '""') + '"';
         };
         const rows = [...combined.values()].sort((a, b) =>
@@ -566,7 +566,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 status
             ]);
         }
-        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\\r\\n') + '\\r\\n';
+        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
 
     function download(filename, text, type) {
