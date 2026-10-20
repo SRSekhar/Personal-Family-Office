@@ -764,13 +764,15 @@ function printFinancialReport() {
             return;
         }
         printWindow.opener = null;
-        printWindow.addEventListener('load', () => {
-            printWindow.focus();
-            printWindow.print();
-        }, { once: true });
         printWindow.document.open();
         printWindow.document.write(html);
         printWindow.document.close();
+        printWindow.setTimeout(() => {
+            if (!printWindow.closed) {
+                printWindow.focus();
+                printWindow.print();
+            }
+        }, 100);
         showToast('Print-ready report opened. Choose Save as PDF in the browser print dialog.');
     } catch (error) {
         if (printWindow && !printWindow.closed) printWindow.close();
