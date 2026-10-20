@@ -23,8 +23,8 @@ describe('asset allocation CSV export contract', () => {
 });
 describe('balance-sheet ratio CSV export contract', () => {
     it('exports the three shared ratios with explicit numerator, denominator, and unavailable states', async () => {
-        const app = await readDashboardFile('app.js');
-        expect(app).toContain('id="export-financial-ratios-csv"');
+        const [html, app] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('app.js')]);
+        expect(html).toContain('id="export-financial-ratios-csv"');
         expect(app).toContain("addEventListener('click', exportFinancialRatiosCsv)");
         expect(app).toContain("'pfo-os-balance-sheet-ratios.csv'");
         expect(app).toContain("'liabilities_to_assets'");
