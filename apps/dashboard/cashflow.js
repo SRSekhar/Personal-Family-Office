@@ -330,7 +330,34 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
 
     $('#cash-flow-form').addEventListener('submit', (event) => {
         event.preventDefault();
-    
+        if (!isLoopback(windowRef.location.hostname)) {
+            message('Use the local-only dashboard to manage personal cash flow.', true);
+            return;
+        }
+        const entry = {
+            id: editingId ?? windowRef.crypto.randomUUID(),
+            date: $('#cash-flow-date').value,
+            type: $('#cash-flow-type').value,
+            category: $('#cash-flow-category').value.trim(),
+            description: $('#cash-flow-description').value.trim(),
+            amount: Number($('#cash-flow-amount').value),
+            recurring: $('#cash-flow-recurring').checked
+        };
+        if (!entry.date || !entry.category || !entry.description || !Number.isFinite(entry.amount) || entry.amount <= 0) {
+            message('Enter a valid date, category, description, and amount greater than zero.', true);
+            return;
+        }
+        const wasEditing = Boolean(editingId);
+        const wasDuplicating = duplicatingEntry;
+        const next = editingId
+            ? entries.map((item) => item.id === editingId ? entry : item)
+            : [...entries, entry];
+        if (save(next)) {
+            resetForm();
+            message(wasEditing ? 'Transaction updated.' : wasDuplicating ? 'Transaction duplicated locally.' : 'Transaction saved locally.');
+        }
+    });
+
     $('#cash-flow-import-csv').addEventListener('change', (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -366,34 +393,6 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             $('#cash-flow-import-csv').value = '';
         });
         reader.readAsText(file);
-    });
-
-    if (!isLoopback(windowRef.location.hostname)) {
-            message('Use the local-only dashboard to manage personal cash flow.', true);
-            return;
-        }
-        const entry = {
-            id: editingId ?? windowRef.crypto.randomUUID(),
-            date: $('#cash-flow-date').value,
-            type: $('#cash-flow-type').value,
-            category: $('#cash-flow-category').value.trim(),
-            description: $('#cash-flow-description').value.trim(),
-            amount: Number($('#cash-flow-amount').value),
-            recurring: $('#cash-flow-recurring').checked
-        };
-        if (!entry.date || !entry.category || !entry.description || !Number.isFinite(entry.amount) || entry.amount <= 0) {
-            message('Enter a valid date, category, description, and amount greater than zero.', true);
-            return;
-        }
-        const wasEditing = Boolean(editingId);
-        const wasDuplicating = duplicatingEntry;
-        const next = editingId
-            ? entries.map((item) => item.id === editingId ? entry : item)
-            : [...entries, entry];
-        if (save(next)) {
-            resetForm();
-            message(wasEditing ? 'Transaction updated.' : wasDuplicating ? 'Transaction duplicated locally.' : 'Transaction saved locally.');
-        }
     });
 
     $('#cash-flow-cancel').addEventListener('click', resetForm);
