@@ -903,6 +903,24 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         });
         reader.readAsText(file);
     });
+    $('#cash-flow-export-recurring-csv').addEventListener('click', () => {
+        try {
+            const period = $('#cash-flow-period').value || 'all';
+            const recurringEntries = entries.filter((entry) => entry.recurring
+                && (period === 'all' || entry.date.startsWith(period)));
+            if (recurringEntries.length === 0) {
+                message('No recurring-tagged transactions exist in the selected reporting period. Nothing was exported.');
+                return;
+            }
+            const periodLabel = period === 'all' ? 'all-periods' : period;
+            download('pfo-recurring-cash-flow-' + periodLabel + '.csv',
+                cashFlowToCsv(recurringEntries), 'text/csv;charset=utf-8');
+            message('Exported ' + recurringEntries.length + ' recurring-tagged transaction' +
+                (recurringEntries.length === 1 ? '' : 's') + ' for ' + periodLabel + '.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export recurring transactions.', true);
+        }
+    });
     $('#cash-flow-export-category-csv').addEventListener('click', () => {
         try {
             const period = $('#cash-flow-period').value || 'all';
