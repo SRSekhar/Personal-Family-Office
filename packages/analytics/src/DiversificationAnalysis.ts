@@ -52,8 +52,16 @@ export function analyzeDiversification(
     let concentrationIndex = 0;
     let largestCategoryShare = 0;
 
-    for (const item of allocations) {
-        if (!item || typeof item.category !== 'string' || item.category.trim() === '') {
+    for (const rawItem of allocations as readonly unknown[]) {
+        if (typeof rawItem !== 'object' || rawItem === null) {
+            throw new RangeError('Every allocation category must be a valid object.');
+        }
+        const item = rawItem as {
+            readonly category?: unknown;
+            readonly value?: unknown;
+            readonly weight?: unknown;
+        };
+        if (typeof item.category !== 'string' || item.category.trim() === '') {
             throw new RangeError('Every allocation category must have a non-empty name.');
         }
         const category = item.category.trim();
@@ -63,7 +71,8 @@ export function analyzeDiversification(
         seenCategories.add(category);
 
         if (!isMoneyLike(item.value) || item.value.currency !== currency || item.value.amount < 0
-            || !Number.isFinite(item.weight) || item.weight < 0 || item.weight > 1) {
+            || typeof item.weight !== 'number' || !Number.isFinite(item.weight)
+            || item.weight < 0 || item.weight > 1) {
             throw new RangeError('Allocation category values and weights must be finite, non-negative, and use one currency.');
         }
 
