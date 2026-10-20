@@ -71,7 +71,8 @@ Planned
 In Progress
 
 - Return-series risk analysis with explicit annualization frequency, sample volatility, maximum drawdown, worst-period return, negative-period count, and input validation (PR #216).
-- In progress — optional annualized Sharpe ratio using a caller-supplied risk-free return per period; no implicit risk-free-rate assumption.
+- Optional annualized Sharpe ratio using a caller-supplied risk-free return per period; no implicit risk-free-rate assumption (PR #217).
+- In progress — optional annualized Sortino ratio using a caller-supplied minimum acceptable return per period; no implicit target assumption.
 
 Planned
 - Portfolio Health

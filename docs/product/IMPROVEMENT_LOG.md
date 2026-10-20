@@ -376,7 +376,12 @@ Do not record personal financial values or claim customer demand without evidenc
 - No market data, forecasts, risk ratings, or investment recommendations are inferred.
 - PR #216 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Annualized Sharpe ratio — feature branch in progress
+### Annualized Sharpe ratio — PR #217 merged
 - Added an optional annualized Sharpe ratio that is only calculated when the caller explicitly supplies a risk-free return per period.
 - Missing rate, fewer than two observations, or zero excess-return volatility yields null; invalid rates and numeric overflow are rejected.
+- PR #217 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Annualized Sortino ratio — feature branch in progress
+- Added an optional annualized Sortino ratio that requires an explicit minimum acceptable return per period.
+- Missing target, no observations, or no below-target returns yields null; invalid targets and numeric overflow are rejected.
 - Validation status: unit tests, package build/typecheck, CI, and Secret Scan are pending on the feature pull request.

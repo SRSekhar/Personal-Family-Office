@@ -11,6 +11,8 @@ export interface RiskAnalysisInput {
     readonly periodsPerYear: number;
     /** Optional risk-free return per period as a decimal fraction; required to calculate an annualized Sharpe ratio. */
     readonly riskFreeRatePerPeriod?: number;
+    /** Optional minimum acceptable return per period as a decimal fraction; required to calculate an annualized Sortino ratio. */
+    readonly minimumAcceptableReturnPerPeriod?: number;
 }
 
 export interface RiskAnalysisResult {
@@ -23,6 +25,8 @@ export interface RiskAnalysisResult {
     readonly worstPeriodReturn: number | null;
     /** Annualized Sharpe ratio; null without a risk-free rate, two observations, or non-zero excess-return volatility. */
     readonly annualizedSharpeRatio: number | null;
+    /** Annualized Sortino ratio; null without a target return, observations, or downside deviation. */
+    readonly annualizedSortinoRatio: number | null;
     readonly negativePeriodCount: number;
 }
 
@@ -39,13 +43,17 @@ export function analyzeReturnSeries(
         throw new TypeError('A return-series input is required.');
     }
 
-    const { observations, periodsPerYear, riskFreeRatePerPeriod } = input;
+    const { observations, periodsPerYear, riskFreeRatePerPeriod, minimumAcceptableReturnPerPeriod } = input;
     if (!Number.isInteger(periodsPerYear) || periodsPerYear <= 0) {
         throw new RangeError('Periods per year must be a positive integer.');
     }
     if (riskFreeRatePerPeriod !== undefined
         && (!Number.isFinite(riskFreeRatePerPeriod) || riskFreeRatePerPeriod < -1)) {
         throw new RangeError('Risk-free return per period must be finite and greater than or equal to -1.');
+    }
+    if (minimumAcceptableReturnPerPeriod !== undefined
+        && (!Number.isFinite(minimumAcceptableReturnPerPeriod) || minimumAcceptableReturnPerPeriod < -1)) {
+        throw new RangeError('Minimum acceptable return per period must be finite and greater than or equal to -1.');
     }
     if (!Array.isArray(observations)) {
         throw new TypeError('Return observations must be an array.');
@@ -96,6 +104,9 @@ export function analyzeReturnSeries(
     const annualizedSharpeRatio = riskFreeRatePerPeriod === undefined || returns.length < 2
         ? null
         : calculateAnnualizedSharpeRatio(returns, riskFreeRatePerPeriod, periodsPerYear);
+    const annualizedSortinoRatio = minimumAcceptableReturnPerPeriod === undefined || returns.length === 0
+        ? null
+        : calculateAnnualizedSortinoRatio(returns, minimumAcceptableReturnPerPeriod, periodsPerYear);
 
     return {
         observationCount: returns.length,
@@ -103,6 +114,7 @@ export function analyzeReturnSeries(
         maximumDrawdown: returns.length === 0 ? null : maximumDrawdown,
         worstPeriodReturn: returns.length === 0 ? null : worstPeriodReturn,
         annualizedSharpeRatio,
+        annualizedSortinoRatio,
         negativePeriodCount
     };
 }
@@ -138,6 +150,34 @@ function calculateAnnualizedSharpeRatio(
     const ratio = (meanExcessReturn / sampleStandardDeviation) * Math.sqrt(periodsPerYear);
     if (!Number.isFinite(ratio)) {
         throw new RangeError('Annualized Sharpe ratio exceeds the supported numeric range.');
+    }
+    return ratio;
+}
+
+function calculateAnnualizedSortinoRatio(
+    returns: readonly number[],
+    minimumAcceptableReturnPerPeriod: number,
+    periodsPerYear: number
+): number | null {
+    const meanExcessReturn = returns.reduce(
+        (sum, value) => sum + (value - minimumAcceptableReturnPerPeriod),
+        0
+    ) / returns.length;
+    const squaredDownsideTotal = returns.reduce((sum, value) => {
+        const shortfall = Math.min(0, value - minimumAcceptableReturnPerPeriod);
+        return sum + shortfall ** 2;
+    }, 0);
+    const downsideDeviation = Math.sqrt(squaredDownsideTotal / returns.length);
+    if (!Number.isFinite(meanExcessReturn) || !Number.isFinite(downsideDeviation)) {
+        throw new RangeError('Sortino ratio inputs exceed the supported numeric range.');
+    }
+    if (downsideDeviation === 0) {
+        return null;
+    }
+
+    const ratio = (meanExcessReturn / downsideDeviation) * Math.sqrt(periodsPerYear);
+    if (!Number.isFinite(ratio)) {
+        throw new RangeError('Annualized Sortino ratio exceeds the supported numeric range.');
     }
     return ratio;
 }
