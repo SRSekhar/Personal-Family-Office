@@ -25,6 +25,7 @@
                 <a class="nav-item" href="#goal-tracker"><span class="nav-icon">◷</span> Goal tracker</a>
                 <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
                 <a class="nav-item" href="#loan-calculator"><span class="nav-icon">↘</span> Loan calculator</a>
+                <a class="nav-item" href="#investment-performance"><span class="nav-icon">↗</span> Investment returns</a>
                 <a class="nav-item" href="#tax-estimator"><span class="nav-icon">%</span> Tax estimator</a>
             </nav>
             <div class="sidebar-bottom">
@@ -201,6 +202,29 @@
                         <article><span>Time status</span><strong id="goal-time-result">—</strong></article>
                         <article><span>Monthly pace needed</span><strong id="goal-monthly-pace-result">—</strong></article>
                     </div>
+                </section>
+            </section>
+            <section class="panel investment-performance-panel" id="investment-performance" aria-labelledby="investment-performance-heading">
+                <div class="panel-header"><div><p class="eyebrow">INVESTOR-PERSPECTIVE CASH FLOWS</p><h2 id="investment-performance-heading">Investment performance calculator</h2></div><span class="panel-tag">Local calculation · INR</span></div>
+                <p class="investment-performance-intro">Enter dated contributions as negative amounts and receipts as positive amounts. Include an explicit positive terminal valuation on the date you want to measure performance if the investment is still held. No market value is fetched or inferred.</p>
+                <div class="notice" id="investment-performance-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for investment calculations</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal investment cash flows.</p></div></div>
+                <form id="investment-performance-form">
+                    <div class="panel-header investment-flow-heading"><div><h3>Dated cash flows</h3><p class="investment-performance-intro">All amounts use INR. Same-date flows are netted for XIRR. Streams with ambiguous multiple sign changes are rejected.</p></div><button class="button button-secondary button-small" id="investment-add-flow" type="button">Add cash flow</button></div>
+                    <div id="investment-cash-flows" class="investment-cash-flows" aria-label="Investment cash flow inputs"></div>
+                    <p id="investment-performance-validation" class="fire-validation" role="alert" hidden></p>
+                    <p class="fire-assumptions-note">The annualized return uses the existing ACT/365 XIRR solver. Gross contributions, proceeds, and simple net return are descriptive arithmetic. Taxes, fees, inflation, currency conversion, and investment recommendations are excluded.</p>
+                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate performance</button><button class="button button-secondary" id="investment-performance-reset" type="button">Reset calculator</button></div>
+                </form>
+                <section id="investment-performance-results" class="fire-results" aria-labelledby="investment-performance-results-heading" aria-live="polite" hidden>
+                    <div class="fire-result-heading"><div><p class="eyebrow">PERFORMANCE SUMMARY</p><h3 id="investment-performance-results-heading">Investment return</h3></div></div>
+                    <div class="fire-result-grid investment-performance-result-grid">
+                        <article><span>Gross contributions</span><strong id="investment-gross-contributions">—</strong><small>Sum of negative cash flows</small></article>
+                        <article><span>Gross proceeds</span><strong id="investment-gross-proceeds">—</strong><small>Sum of positive cash flows</small></article>
+                        <article><span>Net gain / loss</span><strong id="investment-net-gain">—</strong><small>Proceeds minus contributions</small></article>
+                        <article><span>Simple net return</span><strong id="investment-simple-return">—</strong><small>Not annualized</small></article>
+                        <article><span>Annualized money-weighted return (XIRR)</span><strong id="investment-xirr">—</strong><small>ACT/365; depends on dates and cash-flow timing</small></article>
+                    </div>
+                    <p class="investment-performance-meta"><strong id="investment-cash-flow-count">0</strong> cash flows · <span id="investment-date-range">—</span></p>
                 </section>
             </section>
             <section class="panel loan-calculator-panel" id="loan-calculator" aria-labelledby="loan-calculator-heading">
