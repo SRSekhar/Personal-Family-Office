@@ -66,7 +66,7 @@ Implemented
 - Asset allocation by caller-supplied category with deterministic ordering and validated weights
 - Investment performance analysis using explicit investor-perspective dated cash flows, XIRR, gross contributions/proceeds, net gain, and simple net return on contributions (PR #222); no inferred terminal valuation
 - Loan amortization calculator using explicit monthly-rate/payment timing, final-payment cap, UTC month-end handling, and remaining-balance reporting (PR #225)
-- In progress — caller-defined progressive tax estimator using ordered marginal brackets and explicit currency; no hard-coded jurisdiction rates, deductions, or credits
+- Caller-defined progressive tax estimator using ordered marginal brackets and explicit currency (PR #226); no hard-coded jurisdiction rates, deductions, or credits
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
@@ -195,6 +195,9 @@ Implemented
 - FIRE planner correctness: clear stale required-contribution output when shared assumptions change, with a real-browser regression test (PR #183)
 - FIRE planner correctness: invalidate stale comparison-report snapshots when comparison-specific assumptions change, with a real-browser regression test (PR #186)
 
+In Progress
+
+- Local-only loan amortization planner UI using the browser-safe calculator core, with explicit assumptions and no persistence.
 Planned
 
 - Cash-flow charts and historical timeline after snapshot requirements are validated
