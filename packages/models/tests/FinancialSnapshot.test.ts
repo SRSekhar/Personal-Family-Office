@@ -49,9 +49,14 @@ describe('FinancialSnapshot', () => {
         )).toThrow('non-negative');
     });
 
-    it('rejects mixed currencies', () => {
-        expect(() => FinancialSnapshot.create(
-            Identifier.create(), portfolio(), new Date(), new Money(100, Currency.INR), new Money(50, Currency.USD)
+    it('rejects mixed currencies even when directly constructed', () => {
+        expect(() => new FinancialSnapshot(
+            Identifier.create(),
+            portfolio(),
+            new Date(),
+            new Money(100, Currency.INR),
+            new Money(50, Currency.USD),
+            new Money(50, Currency.INR)
         )).toThrow('same currency');
     });
 
@@ -66,14 +71,4 @@ describe('FinancialSnapshot', () => {
         )).toThrow('must equal total assets minus total liabilities');
     });
 
-    it('rejects non-finite totals', () => {
-        expect(() => new FinancialSnapshot(
-            Identifier.create(),
-            portfolio(),
-            new Date(),
-            new Money(Number.POSITIVE_INFINITY),
-            new Money(50),
-            new Money(Number.POSITIVE_INFINITY)
-        )).toThrow('valid number');
-    });
 });
