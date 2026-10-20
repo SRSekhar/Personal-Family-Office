@@ -70,6 +70,7 @@ Implemented
 - Local dashboard tax estimator UI using caller-defined brackets and shared progressive tax math; no jurisdiction defaults (PR #227).
 - Local dashboard loan amortization calculator using shared calculation math, a monthly schedule preview, and full CSV export; no saved loan data or inferred terms (PR #228).
 - Local dashboard investment performance calculator using explicit dated investor-perspective cash flows and shared XIRR/performance math; no inferred terminal valuation (PR #229).
+- Local investment-performance calculator supports validated date-and-amount CSV import, a preview of contributions and proceeds, and confirmation before replacing entered cash flows.
 - Local compound-growth projection calculator using explicit annual return, contribution amount, contribution timing, and period assumptions; no forecasts or guarantees (PR #230).
 - Year-by-year compound-growth schedule with explicit annual contribution timing and full CSV export, limited to 100 annual periods (PR #232).
 - Local CSV export of caller-defined tax estimates and exact supplied bracket assumptions, with stale-result invalidation (PR #233).
