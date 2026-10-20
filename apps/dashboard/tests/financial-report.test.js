@@ -23,6 +23,9 @@ describe('renderFinancialReportHtml', () => {
         expect(html).toContain('Cash &amp; deposits');
         expect(html).toContain('75.0%');
         expect(html).toContain('does not track valuation dates');
+        expect(html).toContain('@page{margin:14mm}');
+        expect(html).toContain('thead{display:table-header-group}');
+        expect(html).toContain('tr{break-inside:avoid}');
         expect(html).toContain('2026-10-19T12:00:00.000Z');
         expect(html).not.toMatch(/<script\b/i);
         expect(html).not.toMatch(/<(?:script|link|img)\b[^>]*(?:src|href)=["']https?:\/\//i);
