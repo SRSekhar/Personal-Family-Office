@@ -185,3 +185,7 @@
 .financial-ratio-metrics article strong{display:block;margin:7px 0;font-size:24px;letter-spacing:-.5px;overflow-wrap:anywhere}
 .financial-ratio-note{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
 @media(max-width:650px){.financial-ratios-panel{padding:15px}.financial-ratio-metrics{grid-template-columns:1fr}.financial-ratio-metrics article strong{font-size:21px}}
+
+.investment-flow-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.investment-performance-import-status:empty{display:none}
+@media(max-width:600px){.investment-flow-actions{width:100%;justify-content:flex-start}}

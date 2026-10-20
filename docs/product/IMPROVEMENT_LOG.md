@@ -122,6 +122,21 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - A zero denominator is unavailable, not zero or infinity.
 - The dashboard reports descriptive ratios only and does not invent benchmarks, thresholds, or recommendations.
 
+## 2026-10-20 — Investment cash-flow CSV import
+
+### Delivered
+- Added a local CSV import action to the investment-performance calculator using the strict `date,amount` schema.
+- Preserves investor-perspective signs: contributions are negative and proceeds or an explicitly supplied terminal valuation are positive.
+- Validates the header, row shape, ISO dates, real calendar dates, and non-zero finite signed amounts before changing inputs.
+- Previews flow count, gross contributions, and gross proceeds; replacing the entered flow list requires explicit confirmation.
+- Invalid input and cancelled replacement leave the existing cash-flow inputs untouched.
+- Added Chromium smoke coverage for quoted CSV fields, return calculation after import, malformed date rejection, and cancelled replacement.
+
+### Product and engineering lessons
+- Import formats should match the calculator's actual input semantics rather than export-result summaries.
+- Signed cash flows are domain-significant; do not normalize all amounts to positive values.
+- Keep the imported data ephemeral and local-only, consistent with the calculator's existing privacy model.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.
