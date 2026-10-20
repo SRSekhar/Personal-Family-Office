@@ -1,5 +1,17 @@
 # Product Improvement Log
 
+## 2026-10-20 — Cash-flow date-range validation
+
+### Delivered
+- Handle inverted inclusive date filters without throwing during dashboard rendering.
+- Show an explicit accessible error, replace misleading transaction counts with an invalid-range state, and disable filtered CSV export until corrected.
+- Extend Chromium regression coverage for valid one-sided ranges, inverted ranges, validation messaging, export safety, and reset recovery.
+
+### Product and engineering lessons
+- Validate combinations of otherwise-valid inputs at the UI boundary, not only individual field values in the calculation layer.
+- Invalid filter state must not leave stale results visible or allow an export that silently bypasses the user's intended constraints.
+
+
 ## 2026-10-20 — Filter-aware cash-flow totals
 
 ### Delivered
