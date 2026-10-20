@@ -81,6 +81,7 @@ Implemented
 - Monthly cash-flow trend table grouped from existing dated transactions; no separate snapshot persistence or forecasts (PR #239).
 - Local CSV export of monthly cash-flow trend totals and transaction counts (PR #240).
 - Local CSV export of the selected-period cash-flow category breakdown, including income, expenses, net, and transaction counts; formula-like category text is neutralized.
+- Local cash-flow CSV import using the exact exported transaction schema, strict row/date/type/amount validation, a replacement preview, and explicit confirmation; quoted commas and escaped quotes are supported.
 - Local CAGR calculator using explicit beginning/ending values and period, distinct from dated cash-flow XIRR (PR #231)
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)

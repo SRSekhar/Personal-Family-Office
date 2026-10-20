@@ -79,6 +79,22 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - These are regression-protected code paths, not proof of browser-level behavior. Manual/browser verification of invalid submission, report-download availability, keyboard interaction, and screen-reader announcements remains open.
 - After PR #152 merged, the main dashboard deployment workflow failed at the GitHub Pages configuration step, while packaging succeeded. Owner-side Pages setup is still a release prerequisite; do not describe the hosted deployment as verified until a successful main-branch deployment is confirmed.
 
+## 2026-10-20 — Cash-flow CSV import
+
+### Delivered
+- Added CSV import for the cash-flow ledger using the exact column schema emitted by the existing CSV export: date, type, category, description, amount, recurring.
+- Strictly validates header, column count, calendar dates, transaction types, positive finite amounts, and recurring flags before touching stored data.
+- Supports quoted fields, commas, escaped quotes, CRLF/LF row endings, and UTF-8 BOM input.
+- Shows an income/expense/net preview and requires explicit confirmation before replacing the existing local ledger.
+- Rejecting the confirmation preserves existing transactions; malformed input is rejected without storage writes.
+- Added a Chromium smoke regression for importing a quoted description and checking the resulting totals and status message.
+
+### Product and engineering lessons
+- A round-trip CSV workflow is more useful than export-only data portability.
+- Reuse the exported schema as the import contract; do not guess alternate column names or silently coerce invalid values.
+- Validate the complete import and preview its financial effect before replacing local data.
+- CSV import remains local-only and does not add network calls or a new persistence location.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.

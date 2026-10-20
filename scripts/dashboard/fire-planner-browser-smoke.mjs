@@ -1192,6 +1192,23 @@ try {
         'tax reset should restore a single final bracket');
     process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\\n');
 
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.locator('#cash-flow-import-csv').setInputFiles({
+        name: 'cash-flow-import.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('date,type,category,description,amount,recurring\r\n"2026-10-20","income","Salary","CSV import, test",50000,"true"\r\n')
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('Imported 1 cash flow transactions from CSV'));
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '50000',
+        'CSV import should replace the ledger with the validated imported income');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 1,
+        'CSV import should create exactly the imported transaction');
+    assert.match(await page.locator('#cash-flow-rows').innerText(), /CSV import, test/,
+        'CSV import should preserve quoted commas in transaction descriptions');
+    assert.match(await page.locator('#cash-flow-message').innerText(), /Imported 1 cash flow transactions from CSV/,
+        'CSV import should announce successful replacement');
+    process.stdout.write('PASS: cash-flow CSV import validates exported schema, previews replacement, and preserves quoted fields.\\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
