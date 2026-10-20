@@ -1035,6 +1035,10 @@ try {
     assert.ok(taxCsv.includes('25000,0'), 'tax CSV should include supplied bracket assumptions');
     assert.ok(taxCsv.includes('No upper limit,20'), 'tax CSV should identify the final open-ended bracket');
     await secondTaxBracket.locator('.tax-bracket-bound').fill('10000');
+    assert.equal(await page.locator('#tax-estimate-results').isHidden(), true,
+        'editing tax inputs should invalidate the previously calculated result');
+    assert.equal(await page.locator('#tax-export-csv').isDisabled(), true,
+        'editing tax inputs should disable stale CSV export');
     await page.locator('#tax-estimator-form button[type="submit"]').click();
     assert.equal(await page.locator('#tax-validation').isVisible(), true,
         'tax estimator should reject non-increasing bracket thresholds');
