@@ -849,7 +849,7 @@ function exportAllocationCsv() {
         });
         const cell = (value) => {
             let text = String(value ?? '');
-            if (typeof value !== 'number' && /^[=+@\\-\\t\\r]/u.test(text.trimStart())) text = "'" + text;
+            if (typeof value !== 'number' && /^[=+@\t\r-]/u.test(text.trimStart())) text = "'" + text;
             return '"' + text.replaceAll('"', '""') + '"';
         };
         const header = ['record_type', 'category', 'value_inr', 'share_percent', 'concentration_index_hhi', 'effective_category_count', 'largest_category_share_percent', 'total_assets_inr'];
@@ -860,7 +860,7 @@ function exportAllocationCsv() {
         for (const [category, value] of entries) {
             rows.push(['category', category, value, value / totalAssets * 100, '', '', '', totalAssets]);
         }
-        const csv = [header, ...rows].map((row) => row.map(cell).join(',')).join('\\r\\n') + '\\r\\n';
+        const csv = [header, ...rows].map((row) => row.map(cell).join(',')).join('\r\n') + '\r\n';
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
