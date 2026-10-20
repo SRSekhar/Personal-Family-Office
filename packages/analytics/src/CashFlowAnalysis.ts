@@ -54,7 +54,10 @@ function isValidCalendarDate(value: string): boolean {
     if (!DATE_PATTERN.test(value)) {
         return false;
     }
-    const [year, month, day] = value.split('-').map(Number);
+    const parts = value.split('-');
+    const year = Number(parts[0]);
+    const month = Number(parts[1]);
+    const day = Number(parts[2]);
     const date = new Date(Date.UTC(year, month - 1, day));
     return date.getUTCFullYear() === year
         && date.getUTCMonth() === month - 1
