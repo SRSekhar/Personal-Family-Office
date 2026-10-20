@@ -266,16 +266,10 @@ Features
 Future enhancements are added here and prioritized during sprint planning.
 
 No work should begin unless it has been added to the backlog.
-- Cash-flow date-range validation now reports inverted from/to dates, avoids render exceptions, and blocks filtered CSV export until corrected.
+- Add a selected-month budget overview with total explicit limits, actual spending within budgeted categories, remaining amount, and aggregate utilization; clearly exclude unbudgeted categories from the aggregate.
 
-- Export a one-row CSV summary of the exact filtered cash-flow view, including income, expenses, net, savings rate, and transaction count; disabled for invalid date ranges.
 
-- Export a category breakdown for the exact filtered transaction view, including expense share computed within that view; disabled when the date range is invalid.
 
-- Warn before manually saving an exact duplicate cash-flow transaction; allow explicit confirmation because legitimate same-day repeated transactions can exist.
 
-- Cash-flow CSV append import preserves existing transactions, previews post-import totals, warns about exact potential duplicates without silently deduplicating, and remains separate from replacement import.
 
-- Copy previous-month category budget limits into the selected month on explicit user request; preserve existing target-month limits, preview missing categories, and never modify transaction records.
 
-- Show budget utilization as actual expenses divided by the explicit category limit, including a matching CSV field; leave utilization unavailable when no valid budget exists.

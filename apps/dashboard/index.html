@@ -422,6 +422,13 @@
                         <div class="cash-flow-monthly-actions"><span class="panel-tag">Explicit limits · INR</span><button class="button button-secondary button-small" id="cash-flow-budget-copy-previous" type="button">Copy previous month</button><button class="button button-secondary button-small" id="cash-flow-budget-export-csv" type="button">Export budget CSV</button></div>
                     </div>
                     <p class="cash-flow-intro">Set your own monthly spending limits by category and compare them with recorded expenses. Actuals come only from saved transactions for the selected month; no budget is inferred. Budgets are stored separately in this browser and are not included in cash-flow ledger backups.</p>
+                    <div class="cash-flow-summary cash-flow-budget-summary" aria-live="polite" aria-atomic="true" aria-label="Monthly budget overview">
+                        <article><span>Total budgeted limits</span><strong id="cash-flow-budget-total">—</strong></article>
+                        <article><span>Actual in budgeted categories</span><strong id="cash-flow-budget-actual">—</strong></article>
+                        <article><span>Budget remaining</span><strong id="cash-flow-budget-remaining">—</strong></article>
+                        <article><span>Budget used</span><strong id="cash-flow-budget-utilization">—</strong><small>Based only on categories with explicit limits</small></article>
+                    </div>
+                    <p class="cash-flow-intro">Overview totals include only categories with an explicitly saved budget; expenses in categories without a budget remain visible in the comparison table but are excluded from the aggregate utilization.</p>
                     <form id="cash-flow-budget-form" class="cash-flow-budget-form" aria-label="Monthly category budget">
                     <div class="cash-flow-input-grid cash-flow-budget-controls">
                         <label class="field-label" for="cash-flow-budget-month">Budget month<input id="cash-flow-budget-month" type="month" required></label>
