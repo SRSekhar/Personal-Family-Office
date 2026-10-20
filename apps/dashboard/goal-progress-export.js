@@ -6,7 +6,7 @@ function assertFiniteNonNegative(name, value) {
 
 function escapeCsvText(value) {
     const text = String(value ?? '');
-    const safeText = /^[=+\-@]/u.test(text.trimStart()) ? `'${text}` : text;
+    const safeText = /^[=+@-]/u.test(text.trimStart()) ? `'${text}` : text;
     return `"${safeText.replaceAll('"', '""')}"`;
 }
 
