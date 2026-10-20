@@ -84,16 +84,12 @@ export function analyzeInvestmentPerformance({
         xirrCashFlows.push({ amount, date: flow.date });
     }
 
+    const annualizedMoneyWeightedReturn = calculateXirr(xirrCashFlows);
     const netGain = proceeds - contributions;
-    const netReturnOnContributionsPercentage = contributions === 0
-        ? null
-        : ((proceeds - contributions) / contributions) * 100;
-    if (!Number.isFinite(netGain) || netReturnOnContributionsPercentage === null
-        || !Number.isFinite(netReturnOnContributionsPercentage)) {
+    const netReturnOnContributionsPercentage = ((proceeds - contributions) / contributions) * 100;
+    if (!Number.isFinite(netGain) || !Number.isFinite(netReturnOnContributionsPercentage)) {
         throw new RangeError('Investment performance totals exceed the supported numeric range.');
     }
-
-    const annualizedMoneyWeightedReturn = calculateXirr(xirrCashFlows);
     return {
         currency,
         cashFlowCount: cashFlows.length,
