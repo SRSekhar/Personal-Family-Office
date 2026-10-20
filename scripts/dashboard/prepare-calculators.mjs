@@ -19,6 +19,7 @@ for (const name of ['CompoundGrowth.js', 'Cagr.js', 'FireReadiness.js', 'FireSce
 await mkdir(analyticsDestination, { recursive: true });
 await copyFile(resolve(analyticsSource, 'RiskAnalysis.js'), resolve(analyticsDestination, 'RiskAnalysis.js'));
 await copyFile(resolve(analyticsSource, 'DiversificationAnalysis.js'), resolve(analyticsDestination, 'DiversificationAnalysis.js'));
+await copyFile(resolve(analyticsSource, 'FinancialRatios.js'), resolve(analyticsDestination, 'FinancialRatios.js'));
 await mkdir(reportDestination, { recursive: true });
 await copyFile(resolve(reportSource, 'FireScenarioReport.js'), resolve(reportDestination, 'FireScenarioReport.js'));
 process.stdout.write('Prepared local calculator, analytics, and report modules.\n');
