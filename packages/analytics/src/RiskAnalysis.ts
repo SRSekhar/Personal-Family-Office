@@ -17,6 +17,8 @@ export interface RiskAnalysisInput {
 
 export interface RiskAnalysisResult {
     readonly observationCount: number;
+    /** Compounded total return across all supplied observations; null when no observations exist. */
+    readonly cumulativeReturn: number | null;
     /** Sample standard deviation of returns annualized by sqrt(periodsPerYear); null with fewer than two observations. */
     readonly annualizedVolatility: number | null;
     /** Largest peak-to-trough decline in the compounded wealth index; null when no observations exist. */
@@ -110,6 +112,7 @@ export function analyzeReturnSeries(
 
     return {
         observationCount: returns.length,
+        cumulativeReturn: returns.length === 0 ? null : wealthIndex - 1,
         annualizedVolatility,
         maximumDrawdown: returns.length === 0 ? null : maximumDrawdown,
         worstPeriodReturn: returns.length === 0 ? null : worstPeriodReturn,
