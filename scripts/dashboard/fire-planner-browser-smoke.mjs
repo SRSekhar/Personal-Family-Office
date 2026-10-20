@@ -39,9 +39,9 @@ try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ acceptDownloads: true });
     await context.addInitScript(() => {
-        window.__pfoPrintInvoked = false;
-        window.print = () => {
-            window.__pfoPrintInvoked = true;
+        globalThis.__pfoPrintInvoked = false;
+        globalThis.print = () => {
+            globalThis.__pfoPrintInvoked = true;
         };
     });
     const page = await context.newPage();
@@ -134,7 +134,7 @@ try {
     await printReportPage.waitForLoadState('load');
     assert.ok((await printReportPage.locator('body').innerText()).includes('Financial overview'),
         'print workflow should open the same self-contained financial report');
-    await printReportPage.waitForFunction(() => window.__pfoPrintInvoked === true);
+    await printReportPage.waitForFunction(() => globalThis.__pfoPrintInvoked === true);
     assert.ok((await page.locator('#toast').innerText()).includes('Choose Save as PDF'),
         'dashboard should explain how to save the print-ready report as PDF');
     await printReportPage.close();
