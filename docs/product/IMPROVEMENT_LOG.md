@@ -353,8 +353,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - Invalid calendar dates and reversed ranges are rejected by the ledger filter; reset clears the date bounds, and filtered CSV follows the visible rows.
 - PR #211 passed CI, Chromium browser smoke tests, dashboard packaging, and Secret Scan before merge.
 
-### Cash-flow delete confirmation — implementation on main; cancellation regression PR #212
+### Cash-flow delete confirmation — PR #213 merged
 - Expanded deletion confirmation to show description, date, transaction type, category, and amount so repeated descriptions can be distinguished (main commit a7a821a).
-- Added an explicit browser regression that dismisses the confirmation and verifies the transaction row, net cash flow, and savings rate remain unchanged before confirming a separate deletion.
-- Validation status for the cancellation regression: CI, Chromium browser smoke, dashboard packaging, and Secret Scan are pending on PR #212.
+- Added a browser regression that dismisses the confirmation and verifies the transaction row, net cash flow, and savings rate remain unchanged before confirming a separate deletion.
+- PR #213 passed CI, Chromium browser smoke tests, and Secret Scan before merge.
 
+### Balance-sheet financial ratios — feature branch in progress
+- Added deterministic liabilities-to-assets, net-worth-to-assets, and assets-to-liabilities ratios to explicit portfolio analysis.
+- Ratios are dimensionless, zero denominators return null, inputs must reconcile and share a currency, and overflow is rejected rather than returned as Infinity.
+- The metrics are descriptive only: no thresholds, forecasts, or investment recommendations are inferred.
+- Validation status: unit tests, package build/typecheck, CI, and Secret Scan are pending on the feature pull request.

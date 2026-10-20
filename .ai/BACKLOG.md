@@ -62,12 +62,12 @@ Implemented
 - XIRR calculation for dated cash flows using ACT/365 and bisection; ambiguous multi-sign-change streams are rejected
 - Net worth calculation with canonical IDs, same-currency validation, and explicit no-FX behavior
 - Asset allocation by caller-supplied category with deterministic ordering and validated weights
+- Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation
 
 Planned
 - Risk Analysis
 - Diversification
 - Portfolio Health
-- Financial Ratios
 
 ---
 
@@ -114,7 +114,7 @@ Implemented
 - Transaction frequency filter for recurring vs one-time cash-flow entries (PR #204).
 - Cash-flow backup import preview with transaction count and totals before replacement, including cancel-safe restore (PR #210).
 - Inclusive from/to date filters for cash-flow transactions; filtered CSV follows the date range (PR #211).
-- Cash-flow delete confirmation includes description, date, type, category, and amount; explicit cancellation regression added in PR #212 (implementation commit a7a821a).
+- Cash-flow delete confirmation includes description, date, type, and amount (implementation commit a7a821a); PR #213 adds a browser regression proving cancellation preserves the transaction and totals.
 - Filtered CSV and full-ledger CSV exports are separate and have browser regression coverage (PR #205).
 - Saved-goal deletion cancellation preserves the goal and persisted progress, covered by a real Chromium reload regression (PR #189)
 

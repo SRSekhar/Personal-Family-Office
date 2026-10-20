@@ -81,6 +81,16 @@ The mapper rejects missing source records, duplicate source selections, and dupl
 
 All selected positions must already be valued in the requested currency. Mixed currencies are rejected; no FX rate is inferred or fetched. The analysis uses the values stored in the supplied domain entities and does not fetch current market prices.
 
+## Implemented: balance-sheet financial ratios
+
+`calculateFinancialRatios` derives three descriptive ratios from a validated `NetWorthResult` and is also included in the `analyzePortfolio` result:
+
+- `liabilitiesToAssets`: total liabilities / total assets.
+- `netWorthToAssets`: net worth / total assets.
+- `assetsToLiabilities`: total assets / total liabilities.
+
+Ratios are returned as dimensionless numbers (for example, `0.25` means 25% for a share ratio, while `2` means assets are twice liabilities). A ratio is `null` when its denominator is zero. All values must use the same currency, asset and liability totals must be non-negative, and net worth must reconcile to assets minus liabilities. These are descriptive balance-sheet measures, not investment recommendations or a guarantee of financial health.
+
 ## Planned responsibilities
 
 - Cash-flow analysis
@@ -96,9 +106,11 @@ All selected positions must already be valued in the requested currency. Mixed c
 src/
     PortfolioPositionMapper.ts
     PortfolioAnalysis.ts
+    FinancialRatios.ts
     index.ts
 tests/
     PortfolioAnalysis.test.ts
+    FinancialRatios.test.ts
 ```
 
 ## Development
