@@ -63,7 +63,9 @@ jobs:
           test -s apps/dashboard/calculators-runtime/CompoundGrowth.js
           test -s apps/dashboard/analytics-runtime/RiskAnalysis.js
           test -s apps/dashboard/analytics-runtime/DiversificationAnalysis.js
+          test -s apps/dashboard/analytics-runtime/FinancialRatios.js
           grep -q 'analyzeDiversification' apps/dashboard/app.js
+          grep -q 'calculateFinancialRatios' apps/dashboard/app.js
           test -s apps/dashboard/return-risk.js
           node --check apps/dashboard/app.js
           node --check apps/dashboard/return-risk.js
