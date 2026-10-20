@@ -49,6 +49,13 @@ export function initializeTaxEstimator() {
         $('#tax-add-bracket').disabled = true;
         return;
     }
+    const invalidateEstimate = () => {
+        latestEstimate = null;
+        $('#tax-export-csv').disabled = true;
+        $('#tax-estimate-results').hidden = true;
+    };
+    form.addEventListener('input', invalidateEstimate);
+    form.addEventListener('change', invalidateEstimate);
     $('#tax-export-csv').addEventListener('click', () => {
         if (!latestEstimate) return;
         const blob = new Blob([taxEstimateToCsv(latestEstimate)], { type: 'text/csv;charset=utf-8' });
