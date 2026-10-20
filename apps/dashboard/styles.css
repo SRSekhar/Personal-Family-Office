@@ -80,3 +80,21 @@
 .cash-flow-toolbar .cash-flow-search-label{flex:1;min-width:210px}
 .cash-flow-toolbar #cash-flow-search{width:100%;min-width:0;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:white;color:#2b3f32;font-size:12px}
 .cash-flow-toolbar #cash-flow-reset-filters{white-space:nowrap}
+
+
+/* Local progressive tax estimator */
+.tax-estimator-panel{margin-top:17px;padding:22px}
+.tax-estimator-intro,.tax-bracket-help{font-size:12px;line-height:1.7;color:#78857e;margin:12px 0 18px}
+.tax-income-grid{display:grid;grid-template-columns:minmax(220px,1fr);max-width:420px}
+.tax-income-grid input{width:100%;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:white;color:#2b3f32;font-size:12px}
+.tax-bracket-heading{margin:18px 0 10px;align-items:flex-start}
+.tax-bracket-heading h3{font-size:15px;margin:0}
+.tax-bracket-help{margin:6px 0 0;max-width:620px}
+.tax-brackets{display:grid;gap:9px}
+.tax-bracket-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:12px;padding:12px;background:#f8faf8;border:1px solid #edf1ed;border-radius:8px}
+.tax-bracket-row input{min-width:0;width:100%;height:38px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:white;color:#2b3f32;font-size:12px}
+.tax-bracket-row input[readonly]{background:#f0f3f0;color:#78857e}
+.tax-final-bracket-note{font-size:11px;color:#78857e;padding-bottom:11px;white-space:nowrap}
+.tax-estimator-panel .fire-result-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.tax-estimator-panel .fire-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.tax-bracket-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.tax-bracket-row .tax-remove-bracket,.tax-final-bracket-note{grid-column:1/-1}.tax-final-bracket-note{padding:0}.tax-bracket-heading{flex-wrap:wrap}}
