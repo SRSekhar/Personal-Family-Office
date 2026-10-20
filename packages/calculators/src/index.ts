@@ -30,6 +30,8 @@ export type {
 } from './RequiredFireContribution.js';
 
 export { calculateXirr } from './Xirr.js';
+export { analyzeInvestmentPerformanceMath } from './InvestmentPerformanceMath.js';
+export type { InvestmentPerformanceMathInput, InvestmentPerformanceMathResult } from './InvestmentPerformanceMath.js';
 export type { XirrCashFlow } from './Xirr.js';
 
 export { calculateNetWorth } from './NetWorth.js';
