@@ -659,6 +659,20 @@ try {
     assert.match(await page.locator('#saved-goals-list').innerText(), /3,75,000/);
     assert.ok((await page.locator('#saved-goals-list').innerText()).includes('25,000 per month'),
         'saved goal should display its approximate monthly savings pace');
+    assert.equal(await page.locator('#saved-goals-export-csv').isDisabled(), false,
+        'saved-goal CSV export should be enabled in the private workspace when a goal exists');
+    const [goalProgressCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#saved-goals-export-csv').click()
+    ]);
+    assert.equal(goalProgressCsvDownload.suggestedFilename(), 'pfo-saved-goal-progress.csv');
+    const goalProgressCsvPath = join(temporaryDirectory, 'pfo-saved-goal-progress.csv');
+    await goalProgressCsvDownload.saveAs(goalProgressCsvPath);
+    const goalProgressCsv = await readFile(goalProgressCsvPath, 'utf8');
+    assert.ok(goalProgressCsv.includes('Browser test emergency fund'), 'goal CSV should include the saved goal name');
+    assert.ok(goalProgressCsv.includes('500000,125000,375000,25'), 'goal CSV should include target, current, remaining, and progress');
+    assert.ok(goalProgressCsv.includes('2027-12-31'), 'goal CSV should include the target date');
+    process.stdout.write('PASS: saved goal progress can be exported as a local CSV.\\n');
     process.stdout.write('PASS: a financial goal can be saved with calculated progress and monthly pace in the private workspace.\\n');
 
     const csvImportConfirmation = new Promise((resolve) => {
