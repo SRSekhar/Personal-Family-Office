@@ -16,6 +16,7 @@ import { calculateGoalProgress } from './calculators-runtime/GoalProgress.js';
 import { initializeCashFlowTracker } from './cashflow.js';
 import { initializeTaxEstimator } from './tax-estimator.js';
 import { initializeLoanAmortizationCalculator } from './loan-amortization.js';
+import { initializeInvestmentPerformanceCalculator } from './investment-performance.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -1015,4 +1016,5 @@ if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
 initializeCashFlowTracker();
 initializeTaxEstimator();
 initializeLoanAmortizationCalculator();
+initializeInvestmentPerformanceCalculator();
 switchWorkspace('demo');
