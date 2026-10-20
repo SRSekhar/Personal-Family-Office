@@ -374,6 +374,8 @@ try {
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
 
     await page.goto(`${baseUrl}#return-risk-analysis`, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#page-breadcrumb').innerText(), 'Return risk analysis',
+        'return risk navigation should synchronize the breadcrumb');
     await page.locator('#return-risk-observations').fill('2026-01-31,10\\n2026-02-28,-20\\n2026-03-31,5');
     await page.locator('#return-risk-risk-free').fill('1');
     await page.locator('#return-risk-target').fill('0');
