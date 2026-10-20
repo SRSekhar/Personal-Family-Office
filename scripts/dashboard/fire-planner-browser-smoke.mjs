@@ -39,7 +39,7 @@ try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ acceptDownloads: true });
     await context.addInitScript(() => {
-        window.print = () => { document.documentElement.dataset.printRequested = 'true'; };
+        globalThis.print = () => { globalThis.document.documentElement.dataset.printRequested = 'true'; };
     });
     const page = await context.newPage();
     const pageErrors = [];
@@ -131,7 +131,7 @@ try {
     await printReportPage.waitForLoadState('load');
     assert.ok((await printReportPage.locator('body').innerText()).includes('Financial overview'),
         'print workflow should open the same self-contained financial report');
-    await printReportPage.waitForFunction(() => document.documentElement.dataset.printRequested === 'true');
+    await printReportPage.waitForFunction(() => globalThis.document.documentElement.dataset.printRequested === 'true');
     await printReportPage.close();
     process.stdout.write('PASS: financial summary can open a print-ready window and invoke Save as PDF workflow.\\n');
     process.stdout.write('PASS: financial summary report downloads with totals, records, and valuation-date limitation.\\n');
