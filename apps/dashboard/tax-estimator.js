@@ -2,7 +2,7 @@ import { estimateProgressiveTaxMath } from './calculators-runtime/ProgressiveTax
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
-const money = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(amount);
+const money = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
 function createBracketRow({ upperBound = '', rate = '', final = false } = {}) {
     const row = document.createElement('div'); row.className = 'tax-bracket-row'; row.dataset.final = String(final);
