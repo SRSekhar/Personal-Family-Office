@@ -55,6 +55,9 @@ export function estimateProgressiveTax({
                 throw new RangeError('The final tax bracket must have no upper bound.');
             }
         } else {
+            if (bracket.upperBound === null) {
+                throw new RangeError('Only the final tax bracket may have no upper bound.');
+            }
             if (!(bracket.upperBound instanceof Money) || !Number.isFinite(bracket.upperBound.amount)
                 || bracket.upperBound.amount <= previousUpperBound) {
                 throw new RangeError('Tax bracket upper bounds must be positive and strictly increasing.');
