@@ -455,6 +455,52 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
 
     $('#cash-flow-budget-month').value = localMonthString();
     $('#cash-flow-budget-month').addEventListener('change', () => { resetBudgetForm(); renderBudgets(); });
+    $('#cash-flow-budget-copy-previous').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            budgetMessage('Use the local-only dashboard to manage personal budgets.', true);
+            return;
+        }
+        if (!budgetStorageHealthy) {
+            budgetMessage('Budget copying is paused because saved data could not be validated. Existing data was left untouched.', true);
+            return;
+        }
+        const month = $('#cash-flow-budget-month').value;
+        if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+            budgetMessage('Select a valid target month before copying budgets.', true);
+            return;
+        }
+        const [year, monthNumber] = month.split('-').map(Number);
+        const previousDate = new Date(Date.UTC(year, monthNumber - 2, 1));
+        const previousMonth = previousDate.getUTCFullYear() + '-' + String(previousDate.getUTCMonth() + 1).padStart(2, '0');
+        const sourceBudgets = budgets.filter((budget) => budget.month === previousMonth);
+        if (sourceBudgets.length === 0) {
+            budgetMessage('No budgets were found for ' + previousMonth + '. Nothing was changed.');
+            return;
+        }
+        const existingCategories = new Set(budgets.filter((budget) => budget.month === month)
+            .map((budget) => budget.category.toLocaleLowerCase('en-US')));
+        const toCopy = sourceBudgets.filter((budget) => !existingCategories.has(budget.category.toLocaleLowerCase('en-US')));
+        if (toCopy.length === 0) {
+            budgetMessage('All categories from ' + previousMonth + ' already have budgets for ' + month + '. Existing limits were preserved.');
+            return;
+        }
+        const preview = [
+            'Copy ' + toCopy.length + ' budget limit' + (toCopy.length === 1 ? '' : 's') + ' from ' + previousMonth + ' to ' + month + '?',
+            '',
+            ...toCopy.map((budget) => budget.category + ': ' + money(budget.amount)),
+            '',
+            'Existing budgets for ' + month + ' will not be overwritten. Transactions will not be changed.'
+        ].join('\\n');
+        if (!windowRef.confirm(preview)) {
+            budgetMessage('Budget copy cancelled. Existing budgets and transactions were not changed.');
+            return;
+        }
+        const copied = toCopy.map((budget) => ({ ...budget, month }));
+        if (saveBudgets([...budgets, ...copied])) {
+            resetBudgetForm();
+            budgetMessage('Copied ' + copied.length + ' budget limit' + (copied.length === 1 ? '' : 's') + ' from ' + previousMonth + '. Existing limits were preserved.');
+        }
+    });
     $('#cash-flow-budget-form').addEventListener('submit', (event) => {
         event.preventDefault();
         if (!isLoopback(windowRef.location.hostname)) {
