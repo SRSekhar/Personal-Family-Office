@@ -266,3 +266,5 @@ No work should begin unless it has been added to the backlog.
 - Cash-flow date-range validation now reports inverted from/to dates, avoids render exceptions, and blocks filtered CSV export until corrected.
 
 - Export a one-row CSV summary of the exact filtered cash-flow view, including income, expenses, net, savings rate, and transaction count; disabled for invalid date ranges.
+
+- Export a category breakdown for the exact filtered transaction view, including expense share computed within that view; disabled when the date range is invalid.

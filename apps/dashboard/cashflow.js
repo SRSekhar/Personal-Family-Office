@@ -206,6 +206,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const shown = invalidDateRange ? [] : visibleEntries();
         $('#cash-flow-export-filtered-csv').disabled = invalidDateRange;
         $('#cash-flow-export-filtered-summary-csv').disabled = invalidDateRange;
+        $('#cash-flow-export-filtered-category-csv').disabled = invalidDateRange;
         const filteredSummary = summarizeCashFlow(shown);
         $('#cash-flow-filtered-income').textContent = money(filteredSummary.income);
         $('#cash-flow-filtered-expenses').textContent = money(filteredSummary.expenses);
@@ -471,6 +472,18 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             message('Filtered cash-flow summary exported to this device.');
         } catch (error) {
             message(error instanceof Error ? error.message : 'Could not export filtered cash-flow summary.', true);
+        }
+    });
+    $('#cash-flow-export-filtered-category-csv').addEventListener('click', () => {
+        if ($('#cash-flow-export-filtered-category-csv').disabled) {
+            message('Correct the date range before exporting filtered categories.', true);
+            return;
+        }
+        try {
+            download('pfo-cash-flow-filtered-categories.csv', cashFlowCategorySummaryToCsv(visibleEntries(), 'all'), 'text/csv;charset=utf-8');
+            message('Filtered cash-flow category summary exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export filtered category summary.', true);
         }
     });
     $('#cash-flow-export-all-csv').addEventListener('click', () => {

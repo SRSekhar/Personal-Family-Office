@@ -1,5 +1,17 @@
 # Product Improvement Log
 
+## 2026-10-20 — Export filtered cash-flow categories
+
+### Delivered
+- Added a dedicated category CSV export derived from the exact visible transaction set, applying period, date, type, frequency, category, and search filters.
+- Calculate each category's expense share against only the expenses in the filtered view, rather than mixing it with unfiltered reporting-period totals.
+- Keep the existing selected-period category export unchanged and disable the new export for inverted date ranges.
+- Add Chromium download assertions for schema, selected-category-only output, and expense-share reconciliation.
+
+### Product and engineering lessons
+- A filtered report should apply the same constraints to both its rows and its denominators; otherwise percentages can be technically valid but misleading for the current view.
+
+
 ## 2026-10-20 — Export filtered cash-flow summary
 
 ### Delivered
