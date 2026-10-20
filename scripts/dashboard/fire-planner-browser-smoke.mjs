@@ -153,8 +153,8 @@ try {
     assert.ok((await page.locator('#toast').innerText()).includes('Choose Save as PDF'),
         'dashboard should explain how to save the print-ready report as PDF');
     await printReportPage.close();
-    process.stdout.write('PASS: financial summary can open a print-ready window and invoke Save as PDF workflow.\\n');
-    process.stdout.write('PASS: financial summary report downloads with totals, records, and valuation-date limitation.\\n');
+    process.stdout.write('PASS: financial summary can open a print-ready window and invoke Save as PDF workflow.\n');
+    process.stdout.write('PASS: financial summary report downloads with totals, records, and valuation-date limitation.\n');
 
     await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
     assert.equal(await page.locator('#fire-required-result').isVisible(), true,
@@ -164,7 +164,7 @@ try {
         'editing a shared assumption must hide the stale required-contribution result');
     assert.equal(await page.locator('#fire-results').isHidden(), true,
         'editing a shared assumption must hide stale readiness results');
-    process.stdout.write('PASS: editing FIRE assumptions invalidates stale required-contribution and readiness results.\\n');
+    process.stdout.write('PASS: editing FIRE assumptions invalidates stale required-contribution and readiness results.\n');
 
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
     await page.locator('#fire-annual-contribution').fill('300000');
@@ -343,8 +343,8 @@ try {
     assert.ok(narrowReportButton && narrowReportButton.x >= 0
         && narrowReportButton.x + narrowReportButton.width <= narrowComparison.viewportWidth,
     `comparison report action should fit within the narrow viewport: ${JSON.stringify(narrowReportButton)}`);
-    process.stdout.write('PASS: narrow comparison layout contains table overflow without widening the page.\\n');
-    process.stdout.write('PASS: comparison recalculation and report-action keyboard focus work at 320px.\\n');
+    process.stdout.write('PASS: narrow comparison layout contains table overflow without widening the page.\n');
+    process.stdout.write('PASS: comparison recalculation and report-action keyboard focus work at 320px.\n');
     await page.setViewportSize({ width: 1280, height: 800 });
 
     // A 320 CSS-pixel viewport is the automated reflow proxy for 400% zoom from a 1280px baseline.
@@ -369,7 +369,7 @@ try {
     assert.equal(await page.locator('#fire-projected-portfolio').isVisible(), true,
         'FIRE results should remain available at a 400%-zoom-equivalent viewport');
     await page.setViewportSize({ width: initialCssViewportWidth, height: 800 });
-    process.stdout.write('PASS: FIRE planner reflows and remains operable at a 320 CSS-pixel viewport (400% zoom equivalent from 1280px); this is not a browser-chrome zoom test.\\n');
+    process.stdout.write('PASS: FIRE planner reflows and remains operable at a 320 CSS-pixel viewport (400% zoom equivalent from 1280px); this is not a browser-chrome zoom test.\n');
 
     const futureDate = new Date();
     futureDate.setFullYear(futureDate.getFullYear() + 1);
@@ -418,7 +418,7 @@ try {
     await page.locator('#return-risk-form button[type="submit"]').click();
     assert.equal(await page.locator('#return-risk-validation').isVisible(), true,
         'invalid calendar dates should show an actionable validation message');
-    process.stdout.write('PASS: return risk calculator validates dates, calculates metrics, exports CSV, and invalidates stale results.\\n');
+    process.stdout.write('PASS: return risk calculator validates dates, calculates metrics, exports CSV, and invalidates stale results.\n');
 
     const cashFlowDate = await page.evaluate(() => {
         const now = new Date();
@@ -644,7 +644,7 @@ try {
     assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '220000',
         'duplicating an income transaction should update totals using the edited source amount');
     assert.match(await page.locator('#cash-flow-message').innerText(), /duplicated locally/);
-    process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\\n');
+    process.stdout.write('PASS: local cash flow add, persistence, edit, delete, summaries, and JSON backup/restore work in Chromium.\n');
     const [cashFlowCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#cash-flow-export-all-csv').click()
@@ -655,7 +655,7 @@ try {
     const cashFlowCsv = await readFile(cashFlowCsvPath, 'utf8');
     assert.match(cashFlowCsv, /"date","type","category","description","amount","recurring"/);
     assert.ok(cashFlowCsv.includes('Browser test salary'));
-    process.stdout.write('PASS: cash flow CSV export downloads the current ledger.\\n');
+    process.stdout.write('PASS: cash flow CSV export downloads the current ledger.\n');
 
     // Cash-flow tests do not depend on the asset/liability workspace; switch back explicitly for its backup assertions.
     await page.locator('#switch-private-button').click();
@@ -783,8 +783,8 @@ try {
     assert.ok(goalProgressCsv.includes('Browser test emergency fund'), 'goal CSV should include the saved goal name');
     assert.ok(goalProgressCsv.includes('500000,125000,375000,25'), 'goal CSV should include target, current, remaining, and progress');
     assert.ok(goalProgressCsv.includes('2027-12-31'), 'goal CSV should include the target date');
-    process.stdout.write('PASS: saved goal progress can be exported as a local CSV.\\n');
-    process.stdout.write('PASS: a financial goal can be saved with calculated progress and monthly pace in the private workspace.\\n');
+    process.stdout.write('PASS: saved goal progress can be exported as a local CSV.\n');
+    process.stdout.write('PASS: a financial goal can be saved with calculated progress and monthly pace in the private workspace.\n');
 
     const csvImportConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
@@ -805,12 +805,12 @@ try {
         'CSV import should recalculate totals from all imported rows');
     assert.ok((await page.locator('#saved-goals-list').innerText()).includes('Browser test emergency fund'),
         'CSV import must preserve saved goals');
-    process.stdout.write('PASS: CSV import replaces financial records, recalculates totals, and preserves saved goals.\\n');
+    process.stdout.write('PASS: CSV import replaces financial records, recalculates totals, and preserves saved goals.\n');
 
     await page.locator('#import-csv-file').setInputFiles({
         name: 'invalid-records.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('Name,Value\\nCash,1')
+        buffer: Buffer.from('Name,Value\nCash,1')
     });
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#toast')?.textContent.includes('Unsupported CSV format')
@@ -819,7 +819,7 @@ try {
         'invalid CSV must not overwrite imported records');
     assert.ok((await page.locator('#saved-goals-list').innerText()).includes('Browser test emergency fund'),
         'invalid CSV must not alter saved goals');
-    process.stdout.write('PASS: malformed CSV is rejected without changing records or saved goals.\\n');
+    process.stdout.write('PASS: malformed CSV is rejected without changing records or saved goals.\n');
 
     const [goalBackupDownload] = await Promise.all([
         page.waitForEvent('download'),
@@ -832,7 +832,7 @@ try {
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
-    process.stdout.write('PASS: private backup includes saved goals and their current progress.\\n');
+    process.stdout.write('PASS: private backup includes saved goals and their current progress.\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
@@ -844,7 +844,7 @@ try {
     await page.locator('#goal-current').fill('250000');
     await page.locator('#goal-save-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('2,50,000 saved'));
-    process.stdout.write('PASS: saved goal can be edited and progress updates persist.\\n');
+    process.stdout.write('PASS: saved goal can be edited and progress updates persist.\n');
 
     const cancelledDeleteConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
@@ -869,7 +869,7 @@ try {
     );
     assert.match(await page.locator('#saved-goals-list').innerText(), /2,50,000 saved/,
         'a cancelled deletion must preserve the persisted goal across reload');
-    process.stdout.write('PASS: cancelling saved-goal deletion preserves the goal and persisted progress.\\n');
+    process.stdout.write('PASS: cancelling saved-goal deletion preserves the goal and persisted progress.\n');
 
     const deleteGoalConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
@@ -882,7 +882,7 @@ try {
     assert.match(await deleteGoalConfirmation, /Delete saved goal "Browser test emergency fund"/);
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-empty')?.hidden === false);
     assert.match(await page.locator('#saved-goals-count').innerText(), /0 goals/);
-    process.stdout.write('PASS: saved goal can be deleted after confirmation.\\n');
+    process.stdout.write('PASS: saved goal can be deleted after confirmation.\n');
 
     const restoreGoalConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
@@ -902,7 +902,7 @@ try {
     );
     assert.match(await page.locator('#saved-goals-list').innerText(), /1,25,000 saved/,
         'restoring a backup should recover saved-goal progress');
-    process.stdout.write('PASS: importing a goal-aware backup restores saved goals and progress.\\n');
+    process.stdout.write('PASS: importing a goal-aware backup restores saved goals and progress.\n');
 
     const finalDeleteConfirmation = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
@@ -940,7 +940,7 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Private equity holding updated'));
     assert.ok((await page.locator('#records-body').innerText()).includes('Private equity'),
         'saving an edited imported record must not silently replace its category');
-    process.stdout.write('PASS: editing an imported record preserves its custom category.\\n');
+    process.stdout.write('PASS: editing an imported record preserves its custom category.\n');
 
     let reachedFireInput = false;
     for (let index = 0; index < 40; index += 1) {
@@ -979,7 +979,7 @@ try {
         'with zero years, projected portfolio should equal the current portfolio regardless of annual contribution');
     assert.equal((await page.locator('#fire-target-corpus').innerText()).replaceAll('₹', '').replaceAll(',', '').trim(), '15000000',
         'with zero years, target corpus should use current annual spending without future inflation');
-    process.stdout.write('PASS: zero-year FIRE boundary preserves current portfolio and applies no future inflation.\\n');
+    process.stdout.write('PASS: zero-year FIRE boundary preserves current portfolio and applies no future inflation.\n');
 
     await page.locator('#fire-reset-button').click();
     assert.equal(await page.locator('#fire-current-portfolio').inputValue(), '0',
@@ -1010,7 +1010,7 @@ try {
         'reset should hide the comparison report action');
     assert.equal(await page.locator('#fire-validation').isHidden(), true,
         'reset should clear validation messages');
-    process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\\n');
+    process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\n');
 
     await page.locator('#cagr-beginning-value').fill('1000');
     await page.locator('#cagr-ending-value').fill('1331');
@@ -1137,7 +1137,7 @@ try {
     await page.locator('#investment-import-csv').setInputFiles({
         name: 'investment-cash-flows.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('"date","amount"\\r\\n"2025-01-01","-1000"\\r\\n"2026-01-01","1100"\\r\\n')
+        buffer: Buffer.from('"date","amount"\r\n"2025-01-01","-1000"\r\n"2026-01-01","1100"\r\n')
     });
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('Imported 2 investment cash flows from CSV.'));
     assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
@@ -1151,7 +1151,7 @@ try {
     await page.locator('#investment-import-csv').setInputFiles({
         name: 'invalid-investment-cash-flows.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('date,amount\\r\\n2025-02-30,-100\\r\\n')
+        buffer: Buffer.from('date,amount\r\n2025-02-30,-100\r\n')
     });
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('invalid calendar date'));
     assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
@@ -1161,7 +1161,7 @@ try {
     await page.locator('#investment-import-csv').setInputFiles({
         name: 'cancelled-investment-cash-flows.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('date,amount\\r\\n2025-01-01,-500\\r\\n')
+        buffer: Buffer.from('date,amount\r\n2025-01-01,-500\r\n')
     });
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('CSV import cancelled.'));
     assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
@@ -1241,7 +1241,7 @@ try {
         'tax reset should disable export until another valid estimate');
     assert.equal(await page.locator('#tax-brackets .tax-bracket-row').count(), 1,
         'tax reset should restore a single final bracket');
-    process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\\n');
+    process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\n');
 
     page.once('dialog', (dialog) => dialog.accept());
     await page.locator('#cash-flow-import-csv').setInputFiles({
@@ -1258,7 +1258,7 @@ try {
         'CSV import should preserve quoted commas in transaction descriptions');
     assert.match(await page.locator('#cash-flow-message').innerText(), /Imported 1 cash flow transactions from CSV/,
         'CSV import should announce successful replacement');
-    process.stdout.write('PASS: cash-flow CSV import validates exported schema, previews replacement, and preserves quoted fields.\\n');
+    process.stdout.write('PASS: cash-flow CSV import validates exported schema, previews replacement, and preserves quoted fields.\n');
 
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
