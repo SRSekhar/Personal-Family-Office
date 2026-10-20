@@ -7,6 +7,10 @@ import {
 import type { Currency, Portfolio } from '@pfo/models';
 
 import {
+    calculateFinancialRatios,
+    type FinancialRatiosResult
+} from './FinancialRatios.js';
+import {
     mapPortfolioPositions,
     type PortfolioPositionSelection
 } from './PortfolioPositionMapper.js';
@@ -24,6 +28,7 @@ export interface PortfolioAnalysis {
     readonly positionCount: number;
     readonly netWorth: NetWorthResult;
     readonly assetAllocation: AssetAllocationResult;
+    readonly financialRatios: FinancialRatiosResult;
 }
 
 /**
@@ -37,13 +42,15 @@ export function analyzePortfolio({
     selections
 }: PortfolioAnalysisInput): PortfolioAnalysis {
     const positions = mapPortfolioPositions(portfolio, selections);
+    const netWorth = calculateNetWorth({ currency, positions });
 
     return {
         portfolioId: portfolio.id.toString(),
         portfolioName: portfolio.name,
         currency,
         positionCount: positions.length,
-        netWorth: calculateNetWorth({ currency, positions }),
-        assetAllocation: calculateAssetAllocation({ currency, positions })
+        netWorth,
+        assetAllocation: calculateAssetAllocation({ currency, positions }),
+        financialRatios: calculateFinancialRatios(netWorth)
     };
 }
