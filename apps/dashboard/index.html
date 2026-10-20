@@ -24,6 +24,7 @@
                 <a class="nav-item" href="#fire-planner"><span class="nav-icon">◎</span> FIRE planner</a>
                 <a class="nav-item" href="#goal-tracker"><span class="nav-icon">◷</span> Goal tracker</a>
                 <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
+                <a class="nav-item" href="#loan-calculator"><span class="nav-icon">↘</span> Loan calculator</a>
                 <a class="nav-item" href="#tax-estimator"><span class="nav-icon">%</span> Tax estimator</a>
             </nav>
             <div class="sidebar-bottom">
@@ -199,6 +200,40 @@
                         <article><span>Target date</span><strong id="goal-date-result">—</strong></article>
                         <article><span>Time status</span><strong id="goal-time-result">—</strong></article>
                         <article><span>Monthly pace needed</span><strong id="goal-monthly-pace-result">—</strong></article>
+                    </div>
+                </section>
+            </section>
+            <section class="panel loan-calculator-panel" id="loan-calculator" aria-labelledby="loan-calculator-heading">
+                <div class="panel-header"><div><p class="eyebrow">MONTHLY REPAYMENT MODEL</p><h2 id="loan-calculator-heading">Loan amortization calculator</h2></div><span class="panel-tag">Local calculation · INR</span></div>
+                <p class="loan-calculator-intro">Estimate how a fixed monthly payment reduces an outstanding balance over time. Inputs and results are not saved.</p>
+                <div class="notice" id="loan-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for loan calculations</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal financial assumptions.</p></div></div>
+                <form id="loan-amortization-form">
+                    <div class="loan-input-grid">
+                        <label class="field-label" for="loan-outstanding-principal">Current outstanding principal (₹)<input id="loan-outstanding-principal" type="number" min="0.01" step="any" required></label>
+                        <label class="field-label" for="loan-annual-rate">Nominal annual interest rate (%)<input id="loan-annual-rate" type="number" min="0" max="100" step="any" required></label>
+                        <label class="field-label" for="loan-monthly-payment">Fixed monthly payment (₹)<input id="loan-monthly-payment" type="number" min="0" step="any" required></label>
+                        <label class="field-label" for="loan-first-payment-date">First payment date<input id="loan-first-payment-date" type="date" required></label>
+                    </div>
+                    <p class="fire-assumptions-note">Assumptions: annual nominal rate divided by 12, interest on each period’s opening balance, payment at period end, no fees, taxes, rate changes, or currency-specific rounding. A payment that does not reduce principal is rejected.</p>
+                    <p id="loan-validation" class="fire-validation" role="alert" hidden></p>
+                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate amortization</button><button class="button button-secondary" id="loan-reset" type="button">Reset calculator</button></div>
+                </form>
+                <section id="loan-estimate-results" class="fire-results" aria-labelledby="loan-results-heading" aria-live="polite" hidden>
+                    <div class="fire-result-heading"><div><p class="eyebrow">SCHEDULE SUMMARY</p><h3 id="loan-results-heading">Repayment estimate</h3></div><span id="loan-payoff-status" class="panel-tag"></span></div>
+                    <div class="fire-result-grid loan-result-grid">
+                        <article><span>Total interest</span><strong id="loan-total-interest">—</strong><small>Across the calculated schedule</small></article>
+                        <article><span>Total payments</span><strong id="loan-total-payments">—</strong><small>Including interest</small></article>
+                        <article><span>Principal repaid</span><strong id="loan-principal-paid">—</strong><small>Principal reduction</small></article>
+                        <article><span>Remaining balance</span><strong id="loan-remaining-balance">—</strong><small>After the schedule limit, if not paid off</small></article>
+                    </div>
+                    <div class="panel-header loan-schedule-heading"><div><h3>Monthly schedule</h3><p id="loan-schedule-caption" class="loan-calculator-intro"></p></div><button class="button button-secondary button-small" id="loan-export-schedule" type="button" hidden>Export full CSV</button></div>
+                    <p id="loan-schedule-empty" class="cash-flow-empty">No monthly payments are needed for a zero balance.</p>
+                    <div class="table-scroll">
+                        <table>
+                            <caption>First <span id="loan-payment-count">0</span> scheduled payments (up to 12 displayed)</caption>
+                            <thead><tr><th scope="col">#</th><th scope="col">Due date</th><th scope="col">Opening balance</th><th scope="col">Interest</th><th scope="col">Payment</th><th scope="col">Principal paid</th><th scope="col">Closing balance</th></tr></thead>
+                            <tbody id="loan-schedule-rows"></tbody>
+                        </table>
                     </div>
                 </section>
             </section>
