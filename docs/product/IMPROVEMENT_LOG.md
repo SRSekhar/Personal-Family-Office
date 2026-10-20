@@ -358,3 +358,8 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a browser regression that dismisses the confirmation and verifies the transaction row, net cash flow, and savings rate remain unchanged before confirming a separate deletion.
 - PR #213 passed CI, Chromium browser smoke tests, and Secret Scan before merge.
 
+### Balance-sheet financial ratios — feature branch in progress
+- Added deterministic liabilities-to-assets, net-worth-to-assets, and assets-to-liabilities ratios to explicit portfolio analysis.
+- Ratios are dimensionless, zero denominators return null, inputs must reconcile and share a currency, and overflow is rejected rather than returned as Infinity.
+- The metrics are descriptive only: no thresholds, forecasts, or investment recommendations are inferred.
+- Validation status: unit tests, package build/typecheck, CI, and Secret Scan are pending on the feature pull request.
