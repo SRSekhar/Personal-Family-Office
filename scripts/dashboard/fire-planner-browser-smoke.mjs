@@ -887,6 +887,33 @@ try {
         'reset should clear validation messages');
     process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\\n');
 
+    await page.locator('#taxable-income').fill('100000');
+    await page.locator('#tax-add-bracket').click();
+    await page.locator('#tax-add-bracket').click();
+    const firstTaxBracket = page.locator('#tax-brackets .tax-bracket-row').nth(0);
+    await firstTaxBracket.locator('.tax-bracket-bound').fill('25000');
+    await firstTaxBracket.locator('.tax-bracket-rate').fill('0');
+    const secondTaxBracket = page.locator('#tax-brackets .tax-bracket-row').nth(1);
+    await secondTaxBracket.locator('.tax-bracket-bound').fill('50000');
+    await secondTaxBracket.locator('.tax-bracket-rate').fill('10');
+    const finalTaxBracket = page.locator('#tax-brackets .tax-bracket-row').nth(2);
+    await finalTaxBracket.locator('.tax-bracket-rate').fill('20');
+    await page.locator('#tax-estimator-form button[type="submit"]').click();
+    assert.equal((await page.locator('#tax-estimated-tax').innerText()).replace(/[^0-9]/g, ''), '12500',
+        'tax estimator should apply marginal rates only within each supplied bracket');
+    assert.equal(await page.locator('#tax-effective-rate').innerText(), '12.5%',
+        'tax estimator should show the effective tax rate');
+    await secondTaxBracket.locator('.tax-bracket-bound').fill('10000');
+    await page.locator('#tax-estimator-form button[type="submit"]').click();
+    assert.equal(await page.locator('#tax-validation').isVisible(), true,
+        'tax estimator should reject non-increasing bracket thresholds');
+    await page.locator('#tax-reset').click();
+    assert.equal(await page.locator('#tax-estimate-results').isHidden(), true,
+        'tax reset should clear previous results');
+    assert.equal(await page.locator('#tax-brackets .tax-bracket-row').count(), 1,
+        'tax reset should restore a single final bracket');
+    process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
