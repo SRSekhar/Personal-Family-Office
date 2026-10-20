@@ -402,10 +402,15 @@ Do not record personal financial values or claim customer demand without evidenc
 - The caller must supply any terminal valuation. Mixed currencies, invalid dates/amounts, overflow, and ambiguous XIRR sign patterns are rejected.
 - PR #222 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Financial snapshot invariants — feature branch in progress
+### Financial snapshot invariants — PR #223 merged
 - Hardened the existing FinancialSnapshot model so capture dates must be valid, asset/liability/net-worth totals use one currency, asset and liability totals are non-negative, and net worth reconciles to assets minus liabilities.
 - Negative net worth remains valid when liabilities exceed assets. This does not introduce snapshot persistence, history, or charting.
-- Validation status: model tests, typecheck, lint, and Secret Scan are pending on the feature pull request.
+- PR #223 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Loan domain model — feature branch in progress
+- Added Loan as a specialized Liability so it can be held in the existing Portfolio liability collection.
+- The model records original/outstanding principal, annual interest rate, monthly payment, start/maturity dates, loan type, and optional lender. It validates principal bounds, same-currency amounts, date ordering, and immutable outstanding-balance updates.
+- No amortization schedule, interest accrual, payoff projection, or payment recommendation is inferred. Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
