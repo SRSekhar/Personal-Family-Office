@@ -100,5 +100,7 @@ function toLiabilityType(type: LoanType): LiabilityType {
             return LiabilityType.Mortgage;
         case LoanType.BusinessLoan:
             return LiabilityType.BusinessLoan;
+        default:
+            throw new RangeError('Unsupported loan type.');
     }
 }
