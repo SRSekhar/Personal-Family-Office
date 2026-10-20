@@ -187,16 +187,16 @@ describe('cash flow category summary CSV export', () => {
     it('exports selected-period category totals and transaction counts in deterministic order', async () => {
         const { cashFlowCategorySummaryToCsv } = await import('../cashflow-ledger.js');
         expect(cashFlowCategorySummaryToCsv(entries, '2026-10')).toBe(
-            '"category","income","expenses","net","transaction_count"\\r\\n'
-            + '"Salary","100000","0","100000","1"\\r\\n'
-            + '"Housing","0","20000","-20000","1"\\r\\n'
+            '"category","income","expenses","net","transaction_count"\r\n'
+            + '"Salary","100000","0","100000","1"\r\n'
+            + '"Housing","0","20000","-20000","1"\r\n'
         );
     });
 
     it('exports a header-only CSV for an empty category summary', async () => {
         const { cashFlowCategorySummaryToCsv } = await import('../cashflow-ledger.js');
         expect(cashFlowCategorySummaryToCsv([], 'all')).toBe(
-            '"category","income","expenses","net","transaction_count"\\r\\n'
+            '"category","income","expenses","net","transaction_count"\r\n'
         );
     });
 
