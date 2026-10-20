@@ -587,7 +587,7 @@ function exportFinancialRatiosCsv() {
         ];
         const cell = (value) => {
             let text = String(value ?? '');
-            if (typeof value !== 'number' && /^[=+@\\t\\r-]/u.test(text.trimStart())) text = "'" + text;
+            if (typeof value !== 'number' && /^[=+@\t\r-]/u.test(text.trimStart())) text = "'" + text;
             return '"' + text.replaceAll('"', '""') + '"';
         };
         const csv = rows.map((row) => row.map(cell).join(',')).join('\r\n') + '\r\n';
