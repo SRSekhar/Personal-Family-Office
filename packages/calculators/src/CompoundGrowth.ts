@@ -20,6 +20,44 @@ export interface CompoundGrowthInput {
     readonly contributionTiming?: ContributionTiming;
 }
 
+export interface CompoundGrowthScheduleRow {
+    readonly year: number;
+    readonly projectedValue: number;
+    readonly totalContributions: number;
+    readonly estimatedGrowth: number;
+}
+
+/** Maximum supported annual rows in a browser-facing schedule. */
+export const MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS = 100;
+
+/**
+ * Builds an annual breakdown by reusing the canonical projection calculation
+ * for each year. The first row is year zero and contains only the initial value.
+ *
+ * @throws RangeError when the requested schedule exceeds the supported length
+ * or any yearly total exceeds the supported numeric range.
+ */
+export function projectCompoundGrowthSchedule(input: CompoundGrowthInput): CompoundGrowthScheduleRow[] {
+    if (!Number.isInteger(input.periods) || input.periods < 0) {
+        throw new RangeError('periods must be a non-negative integer.');
+    }
+    if (input.periods > MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS) {
+        throw new RangeError(`periods must not exceed ${String(MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS)} for an annual schedule.`);
+    }
+
+    const rows: CompoundGrowthScheduleRow[] = [];
+    for (let year = 0; year <= input.periods; year += 1) {
+        const projectedValue = projectCompoundGrowth({ ...input, periods: year });
+        const totalContributions = input.initialValue + (input.contributionPerPeriod ?? 0) * year;
+        const estimatedGrowth = projectedValue - totalContributions;
+        if (![totalContributions, estimatedGrowth].every(Number.isFinite)) {
+            throw new RangeError('Growth projection totals exceed the supported numeric range.');
+        }
+        rows.push({ year, projectedValue, totalContributions, estimatedGrowth });
+    }
+    return rows;
+}
+
 /**
  * Projects the future value of an initial amount and optional recurring
  * contributions, compounded annually.

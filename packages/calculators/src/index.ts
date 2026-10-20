@@ -11,8 +11,16 @@
 export { calculateCagr } from './Cagr.js';
 export type { CagrInput } from './Cagr.js';
 
-export { projectCompoundGrowth } from './CompoundGrowth.js';
-export type { CompoundGrowthInput, ContributionTiming } from './CompoundGrowth.js';
+export {
+    MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS,
+    projectCompoundGrowth,
+    projectCompoundGrowthSchedule
+} from './CompoundGrowth.js';
+export type {
+    CompoundGrowthInput,
+    CompoundGrowthScheduleRow,
+    ContributionTiming
+} from './CompoundGrowth.js';
 
 export { calculateFireReadiness } from './FireReadiness.js';
 export type { FireReadinessInput, FireReadinessResult } from './FireReadiness.js';

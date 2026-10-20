@@ -241,7 +241,7 @@
                         <label class="field-label" for="growth-years">Years<input id="growth-years" type="number" min="0" step="1" required></label>
                         <label class="field-label" for="growth-contribution-timing">Contribution timing<select id="growth-contribution-timing"><option value="end">End of year</option><option value="beginning">Beginning of year</option></select></label>
                     </div>
-                    <p class="fire-assumptions-note">Contributions remain fixed in nominal terms and are added annually at the selected timing. Inflation, taxes, fees, volatility, changing contributions, and currency conversion are excluded. Inputs and results are not saved.</p>
+                    <p class="fire-assumptions-note">Contributions remain fixed in nominal terms and are added annually at the selected timing. Inflation, taxes, fees, volatility, changing contributions, and currency conversion are excluded. Inputs and results are not saved. The annual schedule supports up to 100 years.</p>
                     <p id="growth-validation" class="fire-validation" role="alert" hidden></p>
                     <div class="fire-actions"><button class="button button-primary" type="submit">Calculate projection</button><button class="button button-secondary" id="growth-reset" type="button">Reset calculator</button></div>
                 </form>
@@ -251,6 +251,14 @@
                         <article><span>Projected future value</span><strong id="growth-projected-value">—</strong><small>At the end of the selected period</small></article>
                         <article><span>Total contributed capital</span><strong id="growth-total-contributions">—</strong><small>Starting amount plus annual contributions</small></article>
                         <article><span>Estimated growth</span><strong id="growth-estimated-growth">—</strong><small>Projected value minus contributed capital</small></article>
+                    </div>
+                    <div class="growth-schedule-header"><h4>Annual projection schedule</h4><button class="button button-secondary button-small" id="growth-export-csv" type="button" disabled>Export schedule CSV</button></div>
+                    <div class="growth-schedule-scroll">
+                        <table class="growth-schedule-table">
+                            <caption>Year-by-year projected value and contributed capital under the selected assumptions</caption>
+                            <thead><tr><th scope="col">Year</th><th scope="col">Projected value</th><th scope="col">Contributed capital</th><th scope="col">Estimated growth</th></tr></thead>
+                            <tbody id="growth-schedule-rows"></tbody>
+                        </table>
                     </div>
                 </section>
             </section>

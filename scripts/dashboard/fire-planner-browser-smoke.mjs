@@ -910,6 +910,23 @@ try {
         'growth projection should total the starting amount and annual contributions');
     assert.ok(Number((await page.locator('#growth-estimated-growth').innerText()).replace(/[^0-9]/g, '')) > 0,
         'growth projection should report growth above contributed capital for positive return assumptions');
+    assert.equal(await page.locator('#growth-schedule-rows tr').count(), 11,
+        '10-year projection should render year zero plus 10 annual rows');
+    assert.equal((await page.locator('#growth-schedule-rows tr').last().locator('td').nth(1).innerText()).replace(/[^0-9]/g, ''),
+        (await page.locator('#growth-projected-value').innerText()).replace(/[^0-9]/g, ''),
+        'final schedule row should reconcile to the summary future value');
+    const [growthCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#growth-export-csv').click()
+    ]);
+    assert.equal(growthCsvDownload.suggestedFilename(), 'pfo-growth-projection.csv');
+    const growthCsvPath = join(temporaryDirectory, 'pfo-growth-projection.csv');
+    await growthCsvDownload.saveAs(growthCsvPath);
+    const growthCsv = await readFile(growthCsvPath, 'utf8');
+    assert.equal(growthCsv.trim().split(/\r?\n/).length, 12,
+        'growth schedule CSV should include a header and 11 annual rows');
+    assert.ok(growthCsv.includes('Year,Projected value,Total contributed capital,Estimated growth'),
+        'growth schedule CSV should have stable column headings');
     await page.locator('#growth-contribution-timing').selectOption('beginning');
     await page.locator('#growth-projection-form button[type="submit"]').click();
     const beginningOfYearProjection = Number((await page.locator('#growth-projected-value').innerText()).replace(/[^0-9]/g, ''));
@@ -922,6 +939,10 @@ try {
     await page.locator('#growth-reset').click();
     assert.equal(await page.locator('#growth-results').isHidden(), true,
         'growth projection reset should clear previous results');
+    assert.equal(await page.locator('#growth-schedule-rows tr').count(), 0,
+        'growth projection reset should clear annual schedule rows');
+    assert.equal(await page.locator('#growth-export-csv').isDisabled(), true,
+        'growth projection reset should disable CSV export until another calculation');
 
     const investmentFlow0 = page.locator('#investment-cash-flows .investment-flow-row').nth(0);
     await investmentFlow0.locator('.investment-flow-date').fill('2025-01-01');

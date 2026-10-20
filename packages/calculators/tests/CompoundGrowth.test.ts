@@ -1,6 +1,54 @@
 import { describe, expect, it } from 'vitest';
 
-import { projectCompoundGrowth } from '../src/index.js';
+import {
+    MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS,
+    projectCompoundGrowth,
+    projectCompoundGrowthSchedule
+} from '../src/index.js';
+
+describe('projectCompoundGrowthSchedule', () => {
+    it('includes year zero and produces a consistent annual breakdown', () => {
+        const rows = projectCompoundGrowthSchedule({
+            initialValue: 1000,
+            annualRate: 0.1,
+            periods: 2,
+            contributionPerPeriod: 100,
+            contributionTiming: 'end'
+        });
+        expect(rows).toHaveLength(3);
+        expect(rows[0]).toEqual({
+            year: 0, projectedValue: 1000, totalContributions: 1000, estimatedGrowth: 0
+        });
+        expect(rows[1].projectedValue).toBeCloseTo(1200, 10);
+        expect(rows[2].projectedValue).toBeCloseTo(1420, 10);
+        expect(rows[2].totalContributions).toBe(1200);
+        expect(rows[2].estimatedGrowth).toBeCloseTo(220, 10);
+    });
+
+    it('applies beginning-of-year timing consistently in every row', () => {
+        const rows = projectCompoundGrowthSchedule({
+            initialValue: 1000, annualRate: 0.1, periods: 2,
+            contributionPerPeriod: 100, contributionTiming: 'beginning'
+        });
+        expect(rows[2].projectedValue).toBeCloseTo(1441, 10);
+    });
+
+    it('handles zero years and rejects schedules longer than the supported cap', () => {
+        expect(projectCompoundGrowthSchedule({ initialValue: 50, annualRate: 0, periods: 0 }))
+            .toEqual([{ year: 0, projectedValue: 50, totalContributions: 50, estimatedGrowth: 0 }]);
+        expect(MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS).toBe(100);
+        expect(() => projectCompoundGrowthSchedule({
+            initialValue: 1, annualRate: 0.05, periods: MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS + 1
+        })).toThrow('must not exceed 100');
+    });
+
+    it('rejects yearly totals that exceed the numeric range', () => {
+        expect(() => projectCompoundGrowthSchedule({
+            initialValue: Number.MAX_VALUE, annualRate: 0, periods: 1,
+            contributionPerPeriod: Number.MAX_VALUE
+        })).toThrow(RangeError);
+    });
+});
 
 describe('projectCompoundGrowth', () => {
     it('compounds an initial value without recurring contributions', () => {
