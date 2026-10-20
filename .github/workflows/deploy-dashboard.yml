@@ -45,6 +45,7 @@ jobs:
         run: |
           pnpm --filter @pfo/models build
           pnpm --filter @pfo/calculators build
+          pnpm --filter @pfo/analytics build
           pnpm --filter @pfo/reports... build
           node scripts/dashboard/prepare-calculators.mjs
       - name: Validate dashboard files
@@ -60,7 +61,10 @@ jobs:
           test -s apps/dashboard/calculators-runtime/RequiredFireContribution.js
           test -s apps/dashboard/reports-runtime/FireScenarioReport.js
           test -s apps/dashboard/calculators-runtime/CompoundGrowth.js
+          test -s apps/dashboard/analytics-runtime/RiskAnalysis.js
+          test -s apps/dashboard/return-risk.js
           node --check apps/dashboard/app.js
+          node --check apps/dashboard/return-risk.js
           node --check apps/dashboard/workspace-security.js
           grep -q 'hosted-privacy-notice' apps/dashboard/index.html
           grep -q 'isPrivateWorkspaceAllowed' apps/dashboard/app.js

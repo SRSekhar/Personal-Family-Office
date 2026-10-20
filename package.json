@@ -10,7 +10,7 @@
   },
   "scripts": {
     "bootstrap": "pwsh ./scripts/build/Initialize-PFO.ps1",
-    "dashboard:serve": "pnpm --filter @pfo/models build && pnpm --filter @pfo/calculators build && pnpm --filter @pfo/reports... build && node scripts/dashboard/prepare-calculators.mjs && node scripts/dashboard/serve.mjs",
+    "dashboard:serve": "pnpm --filter @pfo/models build && pnpm --filter @pfo/calculators build && pnpm --filter @pfo/analytics build && pnpm --filter @pfo/reports... build && node scripts/dashboard/prepare-calculators.mjs && node scripts/dashboard/serve.mjs",
     "validate": "pwsh ./scripts/build/Initialize-PFO.ps1 -Validate",
     "doctor": "pwsh ./scripts/build/Initialize-PFO.ps1 -Doctor",
     "build": "pnpm --recursive --filter './packages/**' --filter './apps/cli' --if-present run build",

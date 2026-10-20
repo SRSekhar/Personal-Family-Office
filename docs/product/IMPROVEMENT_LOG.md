@@ -502,3 +502,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added unit coverage for selected-period totals, empty output, and formula-like category names, plus a Chromium download regression comparing exported values with the visible category summary.
 - Privacy and scope: export is generated in-browser from the local ledger; no network calls, persistence changes, forecasts, or financial advice.
 - Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+
+
+### Local return-series risk analysis — implementation
+- Added a local dashboard calculator for caller-supplied dated simple period returns, with explicit annualization frequency and optional risk-free / minimum acceptable return inputs.
+- Reuses the existing analytics engine for sample annualized volatility, compounded maximum drawdown, worst period, negative-period count, and optional annualized Sharpe and Sortino ratios.
+- Added a local CSV export of the result metrics and assumptions; edits invalidate the displayed result to avoid stale exports.
+- Privacy and scope: loopback-only input, no persistence, network requests, market-data acquisition, composite risk score, forecasts, or investment recommendations.
+- Validation status: pending GitHub Actions CI, dashboard smoke, packaging, and Secret Scan on the feature PR.
