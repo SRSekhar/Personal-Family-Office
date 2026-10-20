@@ -1333,7 +1333,7 @@ try {
     await page.locator('#cash-flow-append-csv').setInputFiles({
         name: 'cash-flow-append.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('date,type,category,description,amount,recurring\\r\\n"2026-10-20","income","Salary","CSV import, test",50000,"true"\\r\\n')
+        buffer: Buffer.from('date,type,category,description,amount,recurring\r\n"2026-10-20","income","Salary","CSV import, test",50000,"true"\r\n')
     });
     const appendConfirmationMessage = await appendConfirmation;
     assert.match(appendConfirmationMessage, /CSV append preview: 1 transaction/);
@@ -1345,7 +1345,7 @@ try {
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
         'CSV append should preserve the original transaction and add the repeated transaction');
     assert.match(await page.locator('#cash-flow-message').innerText(), /Appended 1 cash flow transactions from CSV/);
-    process.stdout.write('PASS: cash-flow CSV append preserves existing transactions and warns about potential duplicates.\\n');
+    process.stdout.write('PASS: cash-flow CSV append preserves existing transactions and warns about potential duplicates.\n');
 
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
