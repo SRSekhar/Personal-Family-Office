@@ -614,14 +614,12 @@ function renderFinancialRatios(result) {
     });
     const percentage = (value) => value === null ? '—' : (value * 100).toFixed(1) + '%';
     const multiple = (value) => value === null ? '—' : value.toFixed(2) + '×';
-    $('#financial-ratios').innerHTML = `<div class="panel-header"><div><p class="eyebrow">BALANCE-SHEET RATIOS</p><h2>Balance-sheet ratios</h2></div><button class="button button-secondary button-small" id="export-financial-ratios-csv" type="button">Export ratios CSV</button></div>
-        <div class="financial-ratio-metrics">
+    $('#financial-ratios').innerHTML = `<div class="financial-ratio-metrics">
             <article><span>Liabilities / assets</span><strong id="ratio-liabilities-to-assets">${percentage(ratios.liabilitiesToAssets)}</strong><small>Recorded liabilities as a share of recorded assets.</small></article>
             <article><span>Net worth / assets</span><strong id="ratio-net-worth-to-assets">${percentage(ratios.netWorthToAssets)}</strong><small>Recorded net worth as a share of recorded assets.</small></article>
             <article><span>Assets / liabilities</span><strong id="ratio-assets-to-liabilities">${multiple(ratios.assetsToLiabilities)}</strong><small>Recorded assets per unit of recorded liabilities.</small></article>
         </div>
         <p class="financial-ratio-note">Descriptive ratios only; no benchmarks, forecasts, or recommendations are implied. A dash means the denominator is zero.</p>`;
-    $('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
 }
 
 function renderAllocation(totalAssets) {
@@ -1172,6 +1170,7 @@ $('#export-button').addEventListener('click', exportData);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
+$('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
