@@ -485,7 +485,7 @@ try {
     const housingCategory = page.locator('#cash-flow-category-rows tr').filter({ hasText: 'Housing' });
     assert.equal((await housingCategory.locator('td').nth(2).innerText()).replace(/[^0-9]/g, ''), '20000',
         'category summary should show expenses in the correct category');
-    assert.equal(await housingCategory.locator('td').nth(4).innerText(), '1',
+    assert.equal(await housingCategory.locator('td').nth(5).innerText(), '1',
         'category summary should show the number of transactions in each category');
     assert.equal(await page.locator('#cash-flow-monthly-rows tr').count(), 1,
         'monthly trend should group transactions that share the same month');
