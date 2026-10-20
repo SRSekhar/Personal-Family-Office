@@ -179,6 +179,10 @@ The schedule preserves the first payment's UTC day-of-month where possible (for 
 
 No jurisdiction-specific rates or tax rules are embedded. Deductions, credits, exemptions, surcharges, cess, filing status, and other local rules are outside this calculator and must be handled explicitly by the caller. The result is a mathematical estimate, not tax advice.
 
+## Shared pure numeric adapters
+
+The package also exports pure numeric calculation adapters used by the local dashboard. `estimateProgressiveTaxMath` accepts caller-defined marginal brackets; `calculateLoanAmortizationMath` accepts an explicit outstanding balance, nominal annual rate, monthly payment, and first due date; and `analyzeInvestmentPerformanceMath` accepts dated investor-perspective cash flows and uses the existing XIRR solver. These adapters share the same calculation logic as the domain-facing wrappers and contain no jurisdiction-specific tax rules, currency conversion, market-data lookup, or investment recommendations. They are calculation primitives, not substitutes for validating the inputs and assumptions appropriate to a real financial decision.
+
 ## Planned capabilities
 
 - Portfolio performance analytics

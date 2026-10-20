@@ -427,9 +427,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - No jurisdiction defaults or tax-rule assumptions are embedded; results are ephemeral and the hosted dashboard disables entry.
 - PR #227 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Local loan amortization calculator — feature branch in progress
+### Local loan amortization calculator — PR #228 merged
 - Added a local-only loan calculator using the same pure numeric monthly amortization engine as the validated Loan-domain API.
 - Shows a summary and the first 12 monthly payments, with full-schedule CSV export. Inputs are not persisted; interest/payment timing and excluded fees/taxes/rate changes are disclosed.
+- PR #228 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Local investment performance calculator — feature branch in progress
+- Added a local-only form for dated investor-perspective cash flows, reusing a shared pure numeric performance function and the existing XIRR solver.
+- Shows gross contributions/proceeds, net gain, simple return on contributions, and annualized money-weighted return. The user must explicitly include terminal valuation when applicable; no valuation is fetched or inferred.
 - Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open
