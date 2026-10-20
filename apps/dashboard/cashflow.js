@@ -41,9 +41,9 @@ function parseCashFlowCsv(source, cryptoRef) {
         }
         if (quoteClosed) {
             if (ch === ',') { row.push(field); field = ''; quoteClosed = false; }
-            else if (ch === '\\r' || ch === '\\n') {
+            else if (ch === '\r' || ch === '\n') {
                 row.push(field); rows.push(row); row = []; field = ''; quoteClosed = false;
-                if (ch === '\\r' && input[i + 1] === '\\n') i += 1;
+                if (ch === '\r' && input[i + 1] === '\n') i += 1;
             } else throw new Error('The CSV contains characters after a closing quote.');
             continue;
         }
@@ -51,9 +51,9 @@ function parseCashFlowCsv(source, cryptoRef) {
             if (field.length !== 0) throw new Error('The CSV contains a quote inside an unquoted field.');
             quoted = true;
         } else if (ch === ',') { row.push(field); field = ''; }
-        else if (ch === '\\r' || ch === '\\n') {
+        else if (ch === '\r' || ch === '\n') {
             row.push(field); rows.push(row); row = []; field = '';
-            if (ch === '\\r' && input[i + 1] === '\\n') i += 1;
+            if (ch === '\r' && input[i + 1] === '\n') i += 1;
         } else field += ch;
     }
     if (quoted) throw new Error('The CSV contains an unterminated quoted field.');
@@ -69,7 +69,7 @@ function parseCashFlowCsv(source, cryptoRef) {
         }
         const [date, type, category, description, rawAmount, recurring] = columns;
         const amount = Number(rawAmount);
-        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)
             || !['income', 'expense'].includes(type)
             || !Number.isFinite(amount) || amount <= 0
             || !['true', 'false'].includes(recurring)) {
@@ -346,7 +346,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                     'Net cash flow: ' + money(preview.net),
                     '',
                     'Importing this CSV replaces all cash flow transactions stored in this browser. Continue?'
-                ].join('\\n');
+                ].join('\n');
                 if (!windowRef.confirm(confirmMessage)) {
                     message('CSV import cancelled. Existing transactions were not changed.');
                     return;
