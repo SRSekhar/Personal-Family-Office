@@ -185,8 +185,7 @@ describe('cash flow CSV export', () => {
 });
 
 describe('cash flow category summary CSV export', () => {
-    it('exports selected-period category totals and transaction counts in deterministic order', async () => {
-        const { cashFlowCategorySummaryToCsv } = await import('../cashflow-ledger.js');
+    it('exports selected-period category totals and transaction counts in deterministic order', () => {
         expect(cashFlowCategorySummaryToCsv(entries, '2026-10')).toBe(
             '"category","income","expenses","net","transaction_count"\r\n'
             + '"Salary","100000","0","100000","1"\r\n'
@@ -194,15 +193,13 @@ describe('cash flow category summary CSV export', () => {
         );
     });
 
-    it('exports a header-only CSV for an empty category summary', async () => {
-        const { cashFlowCategorySummaryToCsv } = await import('../cashflow-ledger.js');
+    it('exports a header-only CSV for an empty category summary', () => {
         expect(cashFlowCategorySummaryToCsv([], 'all')).toBe(
             '"category","income","expenses","net","transaction_count"\r\n'
         );
     });
 
-    it('neutralizes formula-like category text while preserving numeric net values', async () => {
-        const { cashFlowCategorySummaryToCsv } = await import('../cashflow-ledger.js');
+    it('neutralizes formula-like category text while preserving numeric net values', () => {
         const unsafe = [{ ...entries[0], category: '=HYPERLINK("https://example.invalid","x")' }];
         const csv = cashFlowCategorySummaryToCsv(unsafe, 'all');
         expect(csv).toContain('"\'=HYPERLINK(""https://example.invalid"",""x"")"');
