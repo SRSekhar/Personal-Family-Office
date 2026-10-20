@@ -81,6 +81,7 @@ Implemented
 - Print-ready financial summary with a browser Print / Save as PDF action; retain the self-contained offline HTML report as the source artifact (PR #237).
 - Chromium regression stubs the popup's print method and asserts the print workflow actually invokes it (PR #238).
 - Monthly cash-flow trend table grouped from existing dated transactions; no separate snapshot persistence or forecasts (PR #239).
+- Monthly cash-flow trend shows each month's savings rate as net divided by income, with an unavailable marker for months with zero income; the monthly CSV export includes the same metric.
 - Local CSV export of monthly cash-flow trend totals and transaction counts (PR #240).
 - Local CSV export of the selected-period cash-flow category breakdown, including income, expenses, net, and transaction counts; formula-like category text is neutralized.
 - Selected-period cash-flow category table shows each category's share of total recorded expenses, with an explicit unavailable state when the period has no expenses.
