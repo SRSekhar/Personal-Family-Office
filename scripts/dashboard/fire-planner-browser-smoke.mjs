@@ -923,7 +923,7 @@ try {
     const growthCsvPath = join(temporaryDirectory, 'pfo-growth-projection.csv');
     await growthCsvDownload.saveAs(growthCsvPath);
     const growthCsv = await readFile(growthCsvPath, 'utf8');
-    assert.equal(growthCsv.trim().split(/\\r?\\n/).length, 12,
+    assert.equal(growthCsv.trim().split(/\r?\n/).length, 12,
         'growth schedule CSV should include a header and 11 annual rows');
     assert.ok(growthCsv.includes('Year,Projected value,Total contributed capital,Estimated growth'),
         'growth schedule CSV should have stable column headings');
