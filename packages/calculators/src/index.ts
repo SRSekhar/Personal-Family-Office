@@ -57,6 +57,13 @@ export type {
     LoanAmortizationResult
 } from './LoanAmortization.js';
 
+export { calculateLoanAmortizationCore } from './LoanAmortizationCore.js';
+export type {
+    LoanAmortizationCoreInput,
+    LoanAmortizationCorePayment,
+    LoanAmortizationCoreResult
+} from './LoanAmortizationCore.js';
+
 export { estimateProgressiveTax } from './ProgressiveTax.js';
 export type {
     ProgressiveTaxBracket,
