@@ -20,6 +20,7 @@ describe('analyzeReturnSeries', () => {
         expect(result.annualizedVolatility).toBeCloseTo(Math.sqrt(sampleVariance) * Math.sqrt(12));
         expect(result.maximumDrawdown).toBeCloseTo(0.2);
         expect(result.worstPeriodReturn).toBe(-0.2);
+        expect(result.annualizedSharpeRatio).toBeNull();
         expect(result.negativePeriodCount).toBe(1);
     });
 
@@ -29,6 +30,7 @@ describe('analyzeReturnSeries', () => {
             annualizedVolatility: null,
             maximumDrawdown: null,
             worstPeriodReturn: null,
+            annualizedSharpeRatio: null,
             negativePeriodCount: 0
         });
         expect(analyzeReturnSeries({
@@ -39,6 +41,7 @@ describe('analyzeReturnSeries', () => {
             annualizedVolatility: null,
             maximumDrawdown: 1,
             worstPeriodReturn: -1,
+            annualizedSharpeRatio: null,
             negativePeriodCount: 1
         });
     });
@@ -53,6 +56,46 @@ describe('analyzeReturnSeries', () => {
         });
         expect(result.maximumDrawdown).toBe(0);
         expect(result.negativePeriodCount).toBe(0);
+    });
+
+    it('calculates an annualized Sharpe ratio only when an explicit risk-free rate is supplied', () => {
+        const observations = [
+            { date: '2026-01-31', returnRate: 0.1 },
+            { date: '2026-02-28', returnRate: 0.2 },
+            { date: '2026-03-31', returnRate: 0.15 }
+        ];
+        const result = analyzeReturnSeries({
+            periodsPerYear: 12,
+            riskFreeRatePerPeriod: 0.01,
+            observations
+        });
+        const excessReturns = [0.09, 0.19, 0.14];
+        const mean = excessReturns.reduce((sum, value) => sum + value, 0) / excessReturns.length;
+        const variance = excessReturns.reduce((sum, value) => sum + (value - mean) ** 2, 0) / 2;
+
+        expect(result.annualizedSharpeRatio).toBeCloseTo((mean / Math.sqrt(variance)) * Math.sqrt(12));
+        expect(analyzeReturnSeries({ periodsPerYear: 12, observations }).annualizedSharpeRatio).toBeNull();
+    });
+
+    it('returns null Sharpe ratio when excess-return volatility is zero and validates risk-free rates', () => {
+        expect(analyzeReturnSeries({
+            periodsPerYear: 12,
+            riskFreeRatePerPeriod: 0.01,
+            observations: [
+                { date: '2026-01-31', returnRate: 0.05 },
+                { date: '2026-02-28', returnRate: 0.05 }
+            ]
+        }).annualizedSharpeRatio).toBeNull();
+        expect(() => analyzeReturnSeries({
+            periodsPerYear: 12,
+            riskFreeRatePerPeriod: -1.01,
+            observations: []
+        })).toThrow('Risk-free return per period must be finite');
+        expect(() => analyzeReturnSeries({
+            periodsPerYear: 12,
+            riskFreeRatePerPeriod: Number.POSITIVE_INFINITY,
+            observations: []
+        })).toThrow('Risk-free return per period must be finite');
     });
 
     it('requires a positive integer annualization frequency', () => {
