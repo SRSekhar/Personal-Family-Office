@@ -236,7 +236,11 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             const monthLabel = new Intl.DateTimeFormat('en-IN', {
                 month: 'short', year: 'numeric', timeZone: 'UTC'
             }).format(new Date(summary.month + '-01T00:00:00.000Z'));
-            for (const value of [monthLabel, money(summary.income), money(summary.expenses), money(summary.net), String(summary.transactionCount)]) {
+            const savingsRate = calculateCashFlowSavingsRate(summary.income, summary.expenses);
+            const savingsRateLabel = savingsRate === null
+                ? '—'
+                : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(savingsRate) + '%';
+            for (const value of [monthLabel, money(summary.income), money(summary.expenses), money(summary.net), savingsRateLabel, String(summary.transactionCount)]) {
                 const cell = documentRef.createElement('td');
                 cell.textContent = value;
                 row.append(cell);

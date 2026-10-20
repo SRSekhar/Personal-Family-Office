@@ -163,6 +163,19 @@ Source decision contract: `docs/architecture/ADR-0003-deterministic-fire-planner
 - Round-trip tests catch schema drift between import and export workflows.
 - Preserve investor-perspective cash-flow signs and explicit dates through the full export/import loop.
 
+## 2026-10-20 — Monthly cash-flow savings rate
+
+### Delivered
+- Added a savings-rate column to the monthly cash-flow trend using the existing net-divided-by-income calculation.
+- Added the same `savings_rate_percent` field to monthly summary CSV exports.
+- Displays an unavailable marker and exports an empty field for months with zero income.
+- Added unit and Chromium regression coverage for the 80% savings-rate example and the zero-income CSV behavior.
+
+### Product and engineering lessons
+- Reuse the existing savings-rate definition to keep monthly and selected-period metrics consistent.
+- Ratios should use the same month grouping as the totals beside them.
+- Zero income makes the rate unavailable; do not silently display zero percent.
+
 ## Open product and release work (not yet completed)
 - Complete interactive browser/accessibility verification of the FIRE planner, comparison, and report-download workflows.
 - Validate the end-to-end dashboard-to-offline-report workflow with fictional data and prospective users.

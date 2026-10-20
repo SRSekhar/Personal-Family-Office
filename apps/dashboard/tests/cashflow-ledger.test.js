@@ -168,12 +168,12 @@ describe('cash flow savings rate', () => {
 describe('cash flow CSV export', () => {
     it('exports a month-grouped summary with fixed, machine-readable columns', () => {
         expect(cashFlowMonthlySummaryToCsv(entries)).toBe(
-            '"month","income","expenses","net","transaction_count"\r\n'
-            + '"2026-10","100000","20000","80000","2"\r\n'
-            + '"2026-09","0","2500","-2500","1"\r\n'
+            '"month","income","expenses","net","savings_rate_percent","transaction_count"\r\n'
+            + '"2026-10","100000","20000","80000","80","2"\r\n'
+            + '"2026-09","0","2500","-2500","","1"\r\n'
         );
         expect(cashFlowMonthlySummaryToCsv([])).toBe(
-            '"month","income","expenses","net","transaction_count"\r\n'
+            '"month","income","expenses","net","savings_rate_percent","transaction_count"\r\n'
         );
     });
 

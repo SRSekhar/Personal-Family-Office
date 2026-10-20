@@ -204,9 +204,14 @@ export function filterCashFlowEntries(entries, {
 export function cashFlowMonthlySummaryToCsv(entries) {
     const summaries = summarizeCashFlowByMonth(entries);
     return [
-        ['month', 'income', 'expenses', 'net', 'transaction_count'],
+        ['month', 'income', 'expenses', 'net', 'savings_rate_percent', 'transaction_count'],
         ...summaries.map((summary) => [
-            summary.month, summary.income, summary.expenses, summary.net, summary.transactionCount
+            summary.month,
+            summary.income,
+            summary.expenses,
+            summary.net,
+            calculateCashFlowSavingsRate(summary.income, summary.expenses) ?? '',
+            summary.transactionCount
         ])
     ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
