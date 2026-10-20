@@ -114,9 +114,14 @@ The result includes total income, expenses, net cash flow, savings rate, monthly
 
 This is a point-in-time progress calculation only. It does not infer contribution schedules, investment returns, probability of success, or recommended actions.
 
+## Implemented: investment performance analysis
+
+`analyzeInvestmentPerformance` accepts dated investor-perspective cash flows in one explicit currency and calculates annualized money-weighted return through the existing XIRR calculator. Negative amounts represent contributions; positive amounts represent proceeds, distributions, or a terminal valuation supplied by the caller. The output also reports gross contributions, gross proceeds, net gain, simple net return on contributions (not annualized), and the first/last cash-flow timestamps.
+
+The underlying XIRR validation is preserved: cash flows need positive and negative values and exactly one sign change after same-date amounts are netted. Ambiguous streams are rejected rather than selecting an arbitrary IRR. The caller must supply any terminal valuation; no current market price, FX conversion, taxes, fees, or recommendations are inferred.
+
 ## Planned responsibilities
 
-- Investment performance analysis
 - Financial health metrics, pending explicit metric and interpretation requirements
 - Risk analysis and forecasting support, subject to explicit assumptions and validation
 
@@ -135,6 +140,9 @@ src/
     FinancialRatios.ts
     DiversificationAnalysis.ts
     RiskAnalysis.ts
+    CashFlowAnalysis.ts
+    GoalProgressAnalysis.ts
+    InvestmentPerformanceAnalysis.ts
     index.ts
 tests/
     PortfolioAnalysis.test.ts
