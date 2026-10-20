@@ -510,3 +510,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a local CSV export of the result metrics and assumptions; edits invalidate the displayed result to avoid stale exports.
 - Privacy and scope: loopback-only input, no persistence, network requests, market-data acquisition, composite risk score, forecasts, or investment recommendations.
 - Validation status: pending GitHub Actions CI, dashboard smoke, packaging, and Secret Scan on the feature PR.
+
+
+### Dashboard category concentration summary — implementation
+- Added overview metrics derived from the existing analytics engine: HHI, effective category count, and largest asset-category share, using the dashboard's current asset allocation.
+- Includes an explicit limitation that category-level concentration does not measure holding-level diversification, correlations, liquidity, or overall portfolio risk.
+- Added browser regression coverage against the sample portfolio and packaged the analytics module for the local dashboard.
+- No data persistence, network requests, inferred holdings, or recommendations were added.
+- Validation status: pending CI, Chromium smoke, dashboard packaging, and Secret Scan on the feature PR.
