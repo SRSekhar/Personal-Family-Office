@@ -1133,6 +1133,40 @@ try {
     assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 1,
         'investment performance reset should restore one empty cash-flow row');
 
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.locator('#investment-import-csv').setInputFiles({
+        name: 'investment-cash-flows.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('"date","amount"\\r\\n"2025-01-01","-1000"\\r\\n"2026-01-01","1100"\\r\\n')
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('Imported 2 investment cash flows from CSV.'));
+    assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
+        'investment CSV import should replace inputs with the imported dated cash flows');
+    assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').nth(0).locator('.investment-flow-amount').inputValue(), '-1000',
+        'investment CSV import should preserve negative contribution signs');
+    await page.locator('#investment-performance-form button[type="submit"]').click();
+    assert.equal(await page.locator('#investment-xirr').innerText(), '10%',
+        'imported dated cash flows should calculate the same annualized return as manual entry');
+
+    await page.locator('#investment-import-csv').setInputFiles({
+        name: 'invalid-investment-cash-flows.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('date,amount\\r\\n2025-02-30,-100\\r\\n')
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('invalid calendar date'));
+    assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
+        'invalid investment CSV must preserve the previously entered cash flows');
+
+    page.once('dialog', (dialog) => dialog.dismiss());
+    await page.locator('#investment-import-csv').setInputFiles({
+        name: 'cancelled-investment-cash-flows.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('date,amount\\r\\n2025-01-01,-500\\r\\n')
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('CSV import cancelled.'));
+    assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
+        'cancelling investment CSV replacement must preserve the existing cash flows');
+
     await page.locator('#loan-outstanding-principal').fill('1200');
     await page.locator('#loan-annual-rate').fill('0');
     await page.locator('#loan-monthly-payment').fill('500');
