@@ -887,6 +887,37 @@ try {
         'reset should clear validation messages');
     process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\\n');
 
+    await page.locator('#loan-outstanding-principal').fill('1200');
+    await page.locator('#loan-annual-rate').fill('0');
+    await page.locator('#loan-monthly-payment').fill('500');
+    await page.locator('#loan-first-payment-date').fill('2026-01-31');
+    await page.locator('#loan-amortization-form button[type="submit"]').click();
+    assert.equal((await page.locator('#loan-total-interest').innerText()).replace(/[^0-9]/g, ''), '0',
+        'zero-interest loan should have no interest');
+    assert.equal((await page.locator('#loan-total-payments').innerText()).replace(/[^0-9]/g, ''), '1200',
+        'loan schedule should cap the final payment at the remaining balance');
+    assert.equal((await page.locator('#loan-remaining-balance').innerText()).replace(/[^0-9]/g, ''), '0',
+        'fully amortized loan should show no remaining balance');
+    assert.equal(await page.locator('#loan-schedule-rows tr').count(), 3,
+        'loan calculator should show each scheduled payment when fewer than 12 exist');
+    const [loanScheduleDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#loan-export-schedule').click()
+    ]);
+    assert.equal(loanScheduleDownload.suggestedFilename(), 'pfo-loan-amortization.csv');
+    const loanSchedulePath = join(temporaryDirectory, 'pfo-loan-amortization.csv');
+    await loanScheduleDownload.saveAs(loanSchedulePath);
+    const loanScheduleCsv = await readFile(loanSchedulePath, 'utf8');
+    assert.ok(loanScheduleCsv.includes('2026-01-31T00:00:00.000Z'), 'loan CSV should preserve the first payment date');
+    assert.ok(loanScheduleCsv.includes('"200"'), 'loan CSV should include the capped final payment');
+    await page.locator('#loan-monthly-payment').fill('0');
+    await page.locator('#loan-amortization-form button[type="submit"]').click();
+    assert.equal(await page.locator('#loan-validation').isVisible(), true,
+        'loan calculator should reject a payment that cannot amortize a non-zero balance');
+    await page.locator('#loan-reset').click();
+    assert.equal(await page.locator('#loan-estimate-results').isHidden(), true,
+        'loan reset should clear prior results');
+
     await page.locator('#taxable-income').fill('100000');
     await page.locator('#tax-add-bracket').click();
     await page.locator('#tax-add-bracket').click();
