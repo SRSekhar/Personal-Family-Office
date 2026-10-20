@@ -1,5 +1,18 @@
 # Product Improvement Log
 
+## 2026-10-20 — Filter-aware cash-flow totals
+
+### Delivered
+- Added a summary for the currently visible cash-flow transactions: income, expenses, net cash flow, and savings rate.
+- Applied the existing period, inclusive date range, type, frequency, category, and text-search filters consistently to the summary.
+- Kept reporting-period KPIs and period-based category/month summaries unchanged, and clarified the filtered summary scope in the UI.
+- Added a Chromium regression proving category-filtered totals exclude non-matching income and reconcile to the visible expense.
+
+### Product and engineering lessons
+- Show both reporting-period context and totals for the current filtered view; otherwise filters can make displayed totals feel inconsistent.
+- Sorting is presentational and must not alter aggregate values.
+
+
 This log preserves implementation outcomes, user decisions, lessons, and follow-up opportunities so future versions build on evidence rather than repeating discovery. It records engineering/product learnings; it must not contain real household financial data, credentials, or other secrets.
 
 ## 2026-10-18 — Dashboard usability and product-first prioritization

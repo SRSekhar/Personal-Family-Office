@@ -475,6 +475,12 @@ try {
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'reset should clear date range filters');
     await page.locator('#cash-flow-category-filter').selectOption({ label: 'Housing' });
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'category filter should show only matching transactions');
+    assert.equal((await page.locator('#cash-flow-filtered-expenses').innerText()).replace(/[^0-9]/g, ''), '20000',
+        'filtered totals should reflect the category-filtered expense');
+    assert.equal((await page.locator('#cash-flow-filtered-income').innerText()).replace(/[^0-9]/g, ''), '0',
+        'filtered totals should exclude income outside the selected category');
+    assert.equal((await page.locator('#cash-flow-filtered-net').innerText()).replace(/[^0-9]/g, ''), '20000',
+        'filtered net should reconcile to the visible expense');
     assert.match(await page.locator('#cash-flow-rows tr').first().innerText(), /Browser test rent/,
         'category filter should select the matching expense');
     await page.locator('#cash-flow-reset-filters').click();

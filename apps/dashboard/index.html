@@ -449,6 +449,16 @@
                         <input id="cash-flow-import-csv" type="file" accept="text/csv,.csv" hidden>
                     </div>
                 </div>
+                <section class="cash-flow-category-panel" aria-labelledby="cash-flow-filtered-heading" id="cash-flow-filtered-summary-panel">
+                    <div class="panel-header"><div><p class="eyebrow">CURRENT TRANSACTION VIEW</p><h3 id="cash-flow-filtered-heading">Filtered cash-flow totals</h3></div><span class="panel-tag">Updates with filters</span></div>
+                    <p class="cash-flow-intro">Totals below include only transactions matching the reporting period, date range, type, frequency, category, and search filters. Sorting changes row order only.</p>
+                    <div class="cash-flow-summary" aria-live="polite" aria-atomic="true">
+                        <article><span>Filtered income</span><strong id="cash-flow-filtered-income">₹0</strong></article>
+                        <article><span>Filtered expenses</span><strong id="cash-flow-filtered-expenses">₹0</strong></article>
+                        <article><span>Filtered net cash flow</span><strong id="cash-flow-filtered-net">₹0</strong></article>
+                        <article><span>Filtered savings rate</span><strong id="cash-flow-filtered-savings-rate">—</strong><small id="cash-flow-filtered-savings-rate-caption">Unavailable when income is zero</small></article>
+                    </div>
+                </section>
                 <div class="table-wrap cash-flow-table-wrap">
                     <table>
                         <caption class="sr-only">Income and expense transactions for the selected period</caption>
