@@ -71,6 +71,7 @@
 
 .cash-flow-category-panel{margin:18px 0 22px;padding:14px;border:1px solid #e8eee8;border-radius:10px;background:#fcfdfc}
 .cash-flow-category-panel .panel-header{margin-bottom:10px}
+.cash-flow-monthly-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 .cash-flow-category-panel h3{margin:0;font-size:15px;color:#263b2d}
 .cash-flow-category-table-wrap{width:100%;max-width:100%;overflow-x:auto}
 .cash-flow-category-table-wrap table{width:100%;min-width:430px}
