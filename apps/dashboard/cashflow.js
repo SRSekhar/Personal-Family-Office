@@ -520,6 +520,55 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-date').focus();
     }
 
+    function budgetSummaryToCsv(month) {
+        if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+            throw new Error('Select a valid budget month before exporting.');
+        }
+        const actuals = new Map();
+        for (const entry of entries) {
+            if (entry.date.slice(0, 7) !== month || entry.type !== 'expense') continue;
+            const key = entry.category.trim().toLocaleLowerCase('en-US');
+            const current = actuals.get(key) ?? { category: entry.category.trim(), amount: 0 };
+            current.amount += entry.amount;
+            if (!Number.isFinite(current.amount)) {
+                throw new Error('Expense totals exceed the supported numeric range; budget export is unavailable.');
+            }
+            actuals.set(key, current);
+        }
+        const combined = new Map();
+        for (const budget of budgets.filter((item) => item.month === month)) {
+            const key = budget.category.toLocaleLowerCase('en-US');
+            combined.set(key, { category: budget.category, budget: budget.amount, actual: actuals.get(key)?.amount ?? 0 });
+        }
+        for (const [key, actual] of actuals) {
+            if (!combined.has(key)) combined.set(key, { category: actual.category, budget: null, actual: actual.amount });
+        }
+        const csvField = (value, textField = false) => {
+            let field = String(value ?? '');
+            if (textField && /^[=+\\-@\\t\\r]/u.test(field)) field = "'" + field;
+            return '"' + field.replaceAll('"', '""') + '"';
+        };
+        const rows = [...combined.values()].sort((a, b) =>
+            a.category.localeCompare(b.category, undefined, { sensitivity: 'base' })
+        );
+        const lines = [['month', 'category', 'budget', 'actual_expenses', 'remaining', 'status']];
+        for (const item of rows) {
+            const remaining = item.budget === null ? null : item.budget - item.actual;
+            const status = item.budget === null ? 'No budget set'
+                : remaining < 0 ? 'Over budget'
+                    : item.actual === 0 ? 'Not spent' : 'Within budget';
+            lines.push([
+                month,
+                item.category,
+                item.budget === null ? '' : item.budget,
+                item.actual,
+                remaining === null ? '' : remaining,
+                status
+            ]);
+        }
+        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\\r\\n') + '\\r\\n';
+    }
+
     function download(filename, text, type) {
         const url = URL.createObjectURL(new Blob([text], { type }));
         const link = documentRef.createElement('a');
