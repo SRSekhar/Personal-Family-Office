@@ -395,7 +395,7 @@ try {
     const riskCsvPath = join(temporaryDirectory, riskCsv.suggestedFilename());
     await riskCsv.saveAs(riskCsvPath);
     const riskCsvText = await readFile(riskCsvPath, 'utf8');
-    assert.match(riskCsvText, /"maximum_drawdown","0\\.19/,
+    assert.match(riskCsvText, /"maximum_drawdown","0\.199999/,
         'risk CSV should export the calculated maximum drawdown');
     await page.locator('#return-risk-observations').fill('2026-02-30,3');
     assert.equal(await page.locator('#return-risk-export-csv').isDisabled(), true,
