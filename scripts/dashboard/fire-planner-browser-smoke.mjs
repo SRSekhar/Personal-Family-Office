@@ -887,6 +887,18 @@ try {
         'reset should clear validation messages');
     process.stdout.write('PASS: FIRE reset restores defaults and clears stale results and report actions.\\n');
 
+    await page.locator('#cagr-beginning-value').fill('1000');
+    await page.locator('#cagr-ending-value').fill('1331');
+    await page.locator('#cagr-periods').fill('3');
+    await page.locator('#cagr-form button[type="submit"]').click();
+    assert.equal(await page.locator('#cagr-rate-result').innerText(), '10%',
+        'CAGR calculator should annualize value growth over the stated period');
+    assert.equal((await page.locator('#cagr-beginning-result').innerText()).replace(/[^0-9]/g, ''), '1000');
+    assert.equal((await page.locator('#cagr-ending-result').innerText()).replace(/[^0-9]/g, ''), '1331');
+    await page.locator('#cagr-reset').click();
+    assert.equal(await page.locator('#cagr-results').isHidden(), true,
+        'CAGR reset should clear previous results');
+
     await page.locator('#growth-initial-value').fill('100000');
     await page.locator('#growth-annual-contribution').fill('12000');
     await page.locator('#growth-annual-rate').fill('7');

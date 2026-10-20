@@ -437,9 +437,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Shows gross contributions/proceeds, net gain, simple return on contributions, and annualized money-weighted return. The user must explicitly include terminal valuation when applicable; no valuation is fetched or inferred.
 - PR #229 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Local compound-growth projection — feature branch in progress
+### Local compound-growth projection — PR #230 merged
 - Added a local-only UI for a starting amount, fixed annual contributions, annual return assumption, period, and beginning/end-of-year contribution timing.
 - Shows projected future value, total contributed capital, and estimated growth. The UI discloses excluded inflation, taxes, fees, volatility, and changing contributions; results are not saved.
+- PR #230 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Local CAGR calculator — feature branch in progress
+- Added a local-only calculator for beginning value, ending value, and elapsed years, reusing the existing CAGR engine.
+- The UI distinguishes CAGR from dated-cash-flow XIRR and discloses that interim contributions/withdrawals, fees, taxes, and inflation are excluded. Results are not saved.
 - Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open
