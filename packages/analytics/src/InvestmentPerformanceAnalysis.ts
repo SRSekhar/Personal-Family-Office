@@ -1,4 +1,4 @@
-import { calculateXirr, type XirrCashFlow } from '@pfo/calculators';
+import { analyzeInvestmentPerformanceMath } from '@pfo/calculators';
 import { Currency, Money } from '@pfo/models';
 
 export interface InvestmentCashFlow {
@@ -45,12 +45,7 @@ export function analyzeInvestmentPerformance({
         throw new TypeError('Investment cash flows must be an array.');
     }
 
-    let contributions = 0;
-    let proceeds = 0;
-    let firstTimestamp = Number.POSITIVE_INFINITY;
-    let lastTimestamp = Number.NEGATIVE_INFINITY;
-    const xirrCashFlows: XirrCashFlow[] = [];
-
+    const numericCashFlows: { amount: number; date: Date }[] = [];
     for (const raw of cashFlows as readonly unknown[]) {
         if (typeof raw !== 'object' || raw === null) {
             throw new TypeError('Every investment cash flow must be an object.');
@@ -66,39 +61,19 @@ export function analyzeInvestmentPerformance({
         if (flow.amount.currency !== currency) {
             throw new RangeError('All investment cash flows must use the requested currency.');
         }
-
-        const amount = flow.amount.amount;
-        if (amount < 0) {
-            contributions += Math.abs(amount);
-            if (!Number.isFinite(contributions)) {
-                throw new RangeError('Gross contributions exceed the supported numeric range.');
-            }
-        } else {
-            proceeds += amount;
-            if (!Number.isFinite(proceeds)) {
-                throw new RangeError('Gross proceeds exceed the supported numeric range.');
-            }
-        }
-        firstTimestamp = Math.min(firstTimestamp, flow.date.getTime());
-        lastTimestamp = Math.max(lastTimestamp, flow.date.getTime());
-        xirrCashFlows.push({ amount, date: flow.date });
+        numericCashFlows.push({ amount: flow.amount.amount, date: flow.date });
     }
 
-    const annualizedMoneyWeightedReturn = calculateXirr(xirrCashFlows);
-    const netGain = proceeds - contributions;
-    const netReturnOnContributionsPercentage = ((proceeds - contributions) / contributions) * 100;
-    if (!Number.isFinite(netGain) || !Number.isFinite(netReturnOnContributionsPercentage)) {
-        throw new RangeError('Investment performance totals exceed the supported numeric range.');
-    }
+    const result = analyzeInvestmentPerformanceMath({ cashFlows: numericCashFlows });
     return {
         currency,
-        cashFlowCount: cashFlows.length,
-        startDate: new Date(firstTimestamp).toISOString(),
-        endDate: new Date(lastTimestamp).toISOString(),
-        grossContributions: new Money(contributions, currency),
-        grossProceeds: new Money(proceeds, currency),
-        netGain: new Money(netGain, currency),
-        netReturnOnContributionsPercentage,
-        annualizedMoneyWeightedReturn
+        cashFlowCount: result.cashFlowCount,
+        startDate: result.startDate,
+        endDate: result.endDate,
+        grossContributions: new Money(result.grossContributions, currency),
+        grossProceeds: new Money(result.grossProceeds, currency),
+        netGain: new Money(result.netGain, currency),
+        netReturnOnContributionsPercentage: result.netReturnOnContributionsPercentage,
+        annualizedMoneyWeightedReturn: result.annualizedMoneyWeightedReturn
     };
 }
