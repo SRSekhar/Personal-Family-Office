@@ -481,9 +481,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Strengthened the Chromium smoke test by stubbing the popup's print method and asserting that the print workflow actually invokes it, beyond merely opening the report popup.
 - PR #238 passed lint, typecheck, unit tests, Chromium browser smoke, and Secret Scan.
 
-### Monthly cash-flow trend table — feature branch in progress
-- Added a month-by-month table grouped from the existing dated cash-flow transactions, with income, expenses, net cash flow, and transaction count.
+### Monthly cash-flow trend table — PR #239 merged
+- Added a month-by-month table grouped from existing dated cash-flow transactions, with income, expenses, net cash flow, and transaction count.
 - This is a live summary of existing transaction dates, not a forecast or a separate immutable financial snapshot; no persistence schema or backup format changes.
+- PR #239 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Monthly cash-flow summary CSV — feature branch in progress
+- Added a dedicated CSV export for the monthly trend table, with month, income, expenses, net cash flow, and transaction count.
+- Export contains deterministic summary values only, does not persist anything, and remains local to the browser.
 - Validation status: unit tests, Chromium browser smoke, CI, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open
