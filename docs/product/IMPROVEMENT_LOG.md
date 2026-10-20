@@ -386,6 +386,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - Missing target, no observations, or no below-target returns yields null; invalid targets and numeric overflow are rejected.
 - PR #218 passed CI, typecheck, lint, tests, and Secret Scan.
 
+### Cash-flow analytics — feature branch in progress
+- Added a public analytics API for caller-supplied dated income/expense transactions, with explicit currency validation, monthly totals and savings rates, and category breakdowns.
+- Zero-income savings rates are null; negative savings rates are preserved when expenses exceed income. Missing months are not synthesized, and no recurrence cadence, forecast, market data, or recommendation is inferred.
+- Unit tests cover totals, deterministic ordering, empty input, zero income, negative savings rates, malformed inputs, mixed currencies, and numeric overflow. CI and Secret Scan are pending on the feature pull request.
+
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
 - The backlog item remains planned until the product defines which metrics belong in a health view and how users should interpret them. No arbitrary score, thresholds, or investment recommendations will be introduced.
