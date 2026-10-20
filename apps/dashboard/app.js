@@ -17,6 +17,7 @@ import { initializeCashFlowTracker } from './cashflow.js';
 import { initializeTaxEstimator } from './tax-estimator.js';
 import { initializeLoanAmortizationCalculator } from './loan-amortization.js';
 import { initializeInvestmentPerformanceCalculator } from './investment-performance.js';
+import { initializeGrowthProjectionCalculator } from './growth-projection.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -995,7 +996,7 @@ function syncActiveNavigation() {
     });
 
     if (activeItem) {
-        $('#page-breadcrumb').textContent = activeItem.textContent.trim().replace(/^[◫▤◷◎₹%↘↗]\s*/, '');
+        $('#page-breadcrumb').textContent = activeItem.textContent.trim().replace(/^[◫▤◷◎₹%↘↗∿]\s*/, '');
     }
 }
 
@@ -1017,4 +1018,5 @@ initializeCashFlowTracker();
 initializeTaxEstimator();
 initializeLoanAmortizationCalculator();
 initializeInvestmentPerformanceCalculator();
+initializeGrowthProjectionCalculator();
 switchWorkspace('demo');
