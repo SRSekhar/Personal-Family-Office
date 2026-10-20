@@ -409,6 +409,18 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         for (const [key, actual] of actuals) {
             if (!combined.has(key)) combined.set(key, { category: actual.category, budget: null, actual: actual.amount });
         }
+        const budgetedRows = [...combined.values()].filter((item) => item.budget !== null);
+        const totalBudget = budgetedRows.reduce((total, item) => total + item.budget, 0);
+        const actualAgainstBudget = budgetedRows.reduce((total, item) => total + item.actual, 0);
+        const remainingAgainstBudget = totalBudget - actualAgainstBudget;
+        const overviewIsFinite = Number.isFinite(totalBudget) && Number.isFinite(actualAgainstBudget)
+            && Number.isFinite(remainingAgainstBudget);
+        $('#cash-flow-budget-total').textContent = overviewIsFinite ? money(totalBudget) : '—';
+        $('#cash-flow-budget-actual').textContent = overviewIsFinite ? money(actualAgainstBudget) : '—';
+        $('#cash-flow-budget-remaining').textContent = overviewIsFinite ? money(remainingAgainstBudget) : '—';
+        const overallUtilization = totalBudget > 0 ? budgetUtilizationPercent(totalBudget, actualAgainstBudget) : null;
+        $('#cash-flow-budget-utilization').textContent = overviewIsFinite && overallUtilization !== null
+            ? overallUtilization.toFixed(1) + '%' : '—';
         const body = $('#cash-flow-budget-rows');
         body.replaceChildren();
         const rows = [...combined.values()].sort((a, b) => a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
