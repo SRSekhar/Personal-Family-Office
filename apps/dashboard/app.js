@@ -750,6 +750,34 @@ function exportFinancialReport() {
     }
 }
 
+function printFinancialReport() {
+    if (workspace === 'private' && (!isPrivateWorkspaceAllowed(window.location.hostname) || !privateStorageHealthy)) {
+        showToast('Financial report printing is unavailable until the local private workspace can be read safely.');
+        return;
+    }
+    let printWindow;
+    try {
+        const html = renderFinancialReportHtml({ records, currency: CURRENCY, generatedAt: new Date() });
+        printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            showToast('Allow pop-ups for this local dashboard to print or save the financial report as PDF.');
+            return;
+        }
+        printWindow.opener = null;
+        printWindow.addEventListener('load', () => {
+            printWindow.focus();
+            printWindow.print();
+        }, { once: true });
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+        showToast('Print-ready report opened. Choose Save as PDF in the browser print dialog.');
+    } catch (error) {
+        if (printWindow && !printWindow.closed) printWindow.close();
+        showToast(error instanceof Error ? error.message : 'Could not open the financial report for printing.');
+    }
+}
+
 function exportCsv() {
     if (workspace === 'private' && !privateStorageHealthy) {
         showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
@@ -1001,6 +1029,7 @@ $('#view-all-button').addEventListener('click', () => {
 });
 $('#export-button').addEventListener('click', exportData);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
+$('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
