@@ -220,3 +220,13 @@ export function cashFlowToCsv(entries) {
         ...rows
     ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
+
+export function cashFlowCategorySummaryToCsv(entries, period = 'all') {
+    const summaries = summarizeCashFlowByCategory(entries, period);
+    return [
+        ['category', 'income', 'expenses', 'net', 'transaction_count'],
+        ...summaries.map((summary) => [
+            summary.category, summary.income, summary.expenses, summary.net, summary.transactionCount
+        ])
+    ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+}

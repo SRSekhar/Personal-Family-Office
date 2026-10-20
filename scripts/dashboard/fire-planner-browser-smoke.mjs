@@ -459,6 +459,20 @@ try {
     assert.ok(monthlyCsv.includes('"' + cashFlowDate.slice(0, 7) + '"'), 'monthly CSV should include the current recorded month key');
     assert.ok(monthlyCsv.includes('"100000","20000","80000","2"'),
         'monthly CSV should include the income, expenses, net, and count shown in the trend');
+    const [categoryCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cash-flow-export-category-csv').click()
+    ]);
+    assert.equal(categoryCsvDownload.suggestedFilename(), 'pfo-cash-flow-category-summary.csv');
+    const categoryCsvPath = join(temporaryDirectory, 'pfo-cash-flow-category-summary.csv');
+    await categoryCsvDownload.saveAs(categoryCsvPath);
+    const categoryCsv = await readFile(categoryCsvPath, 'utf8');
+    assert.ok(categoryCsv.includes('"category","income","expenses","net","transaction_count"'),
+        'category CSV should include its machine-readable header');
+    assert.ok(categoryCsv.includes('"Salary","100000","0","100000","1"'),
+        'category CSV should include income totals matching the visible category breakdown');
+    assert.ok(categoryCsv.includes('"Housing","0","20000","-20000","1"'),
+        'category CSV should preserve negative category net as a numeric value');
     await page.locator('#cash-flow-frequency-filter').selectOption('recurring');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'recurring filter should show recurring transactions only');
     assert.equal((await page.locator('#cash-flow-rows tr').innerText()).includes('Browser test salary'), true);

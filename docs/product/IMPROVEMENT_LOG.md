@@ -494,3 +494,11 @@ Do not record personal financial values or claim customer demand without evidenc
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
 - The backlog item remains planned until the product defines which metrics belong in a health view and how users should interpret them. No arbitrary score, thresholds, or investment recommendations will be introduced.
+
+
+### Selected-period cash-flow category CSV export — implementation
+- Added a local CSV download for the category breakdown already displayed for the selected reporting period.
+- The export includes category, income, expenses, net cash flow, and transaction count; it reuses the ledger's existing deterministic category aggregation and CSV quoting/formula-neutralization rules.
+- Added unit coverage for selected-period totals, empty output, and formula-like category names, plus a Chromium download regression comparing exported values with the visible category summary.
+- Privacy and scope: export is generated in-browser from the local ledger; no network calls, persistence changes, forecasts, or financial advice.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     calculateCashFlowSavingsRate,
+    cashFlowCategorySummaryToCsv,
     cashFlowMonthlySummaryToCsv,
     cashFlowToCsv,
     filterCashFlowEntries,
@@ -180,5 +181,28 @@ describe('cash flow CSV export', () => {
         const csv = cashFlowToCsv([{ ...entries[0], description: '=IMPORTDATA("https://example.invalid")' }]);
         expect(csv).toContain('"date","type","category","description","amount","recurring"');
         expect(csv).toContain('"\'=IMPORTDATA(""https://example.invalid"")"');
+    });
+});
+
+describe('cash flow category summary CSV export', () => {
+    it('exports selected-period category totals and transaction counts in deterministic order', () => {
+        expect(cashFlowCategorySummaryToCsv(entries, '2026-10')).toBe(
+            '"category","income","expenses","net","transaction_count"\r\n'
+            + '"Salary","100000","0","100000","1"\r\n'
+            + '"Housing","0","20000","-20000","1"\r\n'
+        );
+    });
+
+    it('exports a header-only CSV for an empty category summary', () => {
+        expect(cashFlowCategorySummaryToCsv([], 'all')).toBe(
+            '"category","income","expenses","net","transaction_count"\r\n'
+        );
+    });
+
+    it('neutralizes formula-like category text while preserving numeric net values', () => {
+        const unsafe = [{ ...entries[0], category: '=HYPERLINK("https://example.invalid","x")' }];
+        const csv = cashFlowCategorySummaryToCsv(unsafe, 'all');
+        expect(csv).toContain('"\'=HYPERLINK(""https://example.invalid"",""x"")"');
+        expect(csv).toContain('"100000"');
     });
 });
