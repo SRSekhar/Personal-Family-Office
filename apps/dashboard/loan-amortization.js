@@ -24,8 +24,9 @@ function exportSchedule(schedule) {
     for (const item of schedule) rows.push([item.period, item.dueDate, item.openingBalance, item.interest, item.payment, item.principalPaid, item.closingBalance]);
     const csv = rows.map((row) => row.map((value) => '"' + String(value).replaceAll('"', '""') + '"').join(',')).join('\r\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const link = document.createElement('a'); link.href = url; link.download = 'pfo-loan-amortization.csv'; link.click();
-    URL.revokeObjectURL(url);
+    const link = document.createElement('a'); link.href = url; link.download = 'pfo-loan-amortization.csv';
+    document.body.append(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function initializeLoanAmortizationCalculator() {
