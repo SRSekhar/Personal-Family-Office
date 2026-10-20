@@ -669,7 +669,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
         const csvField = (value, textField = false) => {
             let field = String(value ?? '');
-            if (textField && /^[=+\\-@\\t\\r]/u.test(field)) field = "'" + field;
+            if (textField && /^[=+\-@\t\r]/u.test(field)) field = "'" + field;
             return '"' + field.replaceAll('"', '""') + '"';
         };
         const rows = [...combined.values()].sort((a, b) => a.month.localeCompare(b.month) || a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
@@ -679,7 +679,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             const status = item.budget === null ? 'No budget set' : remaining < 0 ? 'Over budget' : item.actual === 0 ? 'Not spent' : 'Within budget';
             lines.push([item.month, item.category, item.budget === null ? '' : item.budget, item.actual, budgetUtilizationPercent(item.budget, item.actual) ?? '', remaining === null ? '' : remaining, status]);
         }
-        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\\r\\n') + '\\r\\n';
+        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
 
     $('#cash-flow-budget-export-history-csv').addEventListener('click', () => {
