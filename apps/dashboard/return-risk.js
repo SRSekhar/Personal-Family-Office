@@ -30,12 +30,14 @@ export function initializeReturnRiskCalculator() {
     const results = $('#return-risk-results');
     const validation = $('#return-risk-validation');
     const exportButton = $('#return-risk-export-csv');
+    const observationsExportButton = $('#return-risk-export-observations-csv');
     let latest = null;
 
     const invalidate = () => {
         latest = null;
         results.hidden = true;
         exportButton.disabled = true;
+        observationsExportButton.disabled = true;
         validation.hidden = true;
         validation.textContent = '';
     };
@@ -64,7 +66,8 @@ export function initializeReturnRiskCalculator() {
             if (!periodsPerYearText || !Number.isInteger(periodsPerYear) || periodsPerYear <= 0) {
                 throw new RangeError('Periods per year must be a positive whole number.');
             }
-            const lines = $('#return-risk-observations').value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+            const rawLines = $('#return-risk-observations').value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+            const lines = rawLines[0]?.toLocaleLowerCase('en-US') === 'date,return_percent' ? rawLines.slice(1) : rawLines;
             if (lines.length === 0) throw new RangeError('Enter at least one dated return observation.');
             const observations = lines.map((line, index) => {
                 const parts = line.split(',');
@@ -75,7 +78,7 @@ export function initializeReturnRiskCalculator() {
                 if (!Number.isFinite(ratePercent)) {
                     throw new RangeError('Line ' + (index + 1) + ' must contain a finite return percentage.');
                 }
-                return { date: parts[0].trim(), returnRate: ratePercent / 100 };
+                return { date: parts[0].trim(), returnRate: ratePercent / 100, returnPercent: ratePercent };
             });
             const riskFreeText = $('#return-risk-risk-free').value.trim();
             const targetText = $('#return-risk-target').value.trim();
@@ -91,7 +94,12 @@ export function initializeReturnRiskCalculator() {
             if (targetText && !Number.isFinite(input.minimumAcceptableReturnPerPeriod)) {
                 throw new RangeError('Minimum acceptable return must be a finite percentage.');
             }
-            latest = { input, result: analyzeReturnSeries(input) };
+            const analysisInput = { ...input, observations: observations.map(({ date, returnRate }) => ({ date, returnRate })) };
+            latest = {
+                input: analysisInput,
+                result: analyzeReturnSeries(analysisInput),
+                observationRows: observations.map(({ date, returnPercent }) => [date, returnPercent])
+            };
             const result = latest.result;
             $('#return-risk-observation-count').textContent = String(result.observationCount);
             $('#return-risk-volatility').textContent = percent(result.annualizedVolatility);
@@ -102,11 +110,20 @@ export function initializeReturnRiskCalculator() {
             $('#return-risk-sortino').textContent = ratio(result.annualizedSortinoRatio);
             results.hidden = false;
             exportButton.disabled = false;
+            observationsExportButton.disabled = false;
         } catch (error) {
             latest = null;
             validation.textContent = error instanceof Error ? error.message : 'Check the return observations and assumptions.';
             validation.hidden = false;
         }
+    });
+
+    observationsExportButton.addEventListener('click', () => {
+        if (!latest) return;
+        downloadCsv('pfo-return-risk-observations.csv', [
+            ['date', 'return_percent'],
+            ...latest.observationRows
+        ]);
     });
 
     exportButton.addEventListener('click', () => {
