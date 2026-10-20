@@ -681,6 +681,10 @@ try {
         'duplicate action should clearly indicate that a new entry will be created');
     assert.equal(await page.locator('#cash-flow-description').inputValue(), 'Browser test salary',
         'duplicate action should prefill the selected transaction');
+    page.once('dialog', async (dialog) => {
+        assert.match(dialog.message(), /same date, type, category, description, amount, and frequency/i);
+        await dialog.accept();
+    });
     await page.locator('#cash-flow-save').click();
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
         'saving a duplicate should add a new transaction rather than edit the original');

@@ -1,5 +1,5 @@
 import {
-    calculateCashFlowSavingsRate, cashFlowCategorySummaryToCsv, cashFlowFilteredSummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
+    calculateCashFlowSavingsRate, findPotentialDuplicateCashFlowEntry, cashFlowCategorySummaryToCsv, cashFlowFilteredSummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
     sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
     summarizeCashFlowByMonth, validateCashFlowEntries
 } from './cashflow-ledger.js';
@@ -377,6 +377,16 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         };
         if (!entry.date || !entry.category || !entry.description || !Number.isFinite(entry.amount) || entry.amount <= 0) {
             message('Enter a valid date, category, description, and amount greater than zero.', true);
+            return;
+        }
+        const duplicate = findPotentialDuplicateCashFlowEntry(entries, entry, editingId);
+        if (duplicate && !windowRef.confirm([
+            'A transaction with the same date, type, category, description, amount, and frequency already exists.',
+            'Existing transaction: ' + duplicate.date + ' · ' + duplicate.description + ' · ' + money(duplicate.amount),
+            '',
+            'Save this as a separate transaction anyway?'
+        ].join('\\n'))) {
+            message('Save cancelled. The existing transaction was left unchanged.');
             return;
         }
         const wasEditing = Boolean(editingId);

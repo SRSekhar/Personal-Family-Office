@@ -6,6 +6,7 @@ import {
     cashFlowMonthlySummaryToCsv,
     cashFlowToCsv,
     filterCashFlowEntries,
+    findPotentialDuplicateCashFlowEntry,
     isValidCashFlowEntry,
     sortCashFlowEntries,
     summarizeCashFlow,
@@ -41,6 +42,26 @@ describe('cash flow ledger validation', () => {
     it('rejects duplicate IDs and non-array imports', () => {
         expect(() => validateCashFlowEntries([entries[0], entries[0]])).toThrow('invalid or duplicate');
         expect(() => validateCashFlowEntries({})).toThrow('must be an array');
+    });
+});
+
+describe('cash flow duplicate detection', () => {
+    it('finds an exact transaction match regardless of category and description casing or surrounding whitespace', () => {
+        expect(findPotentialDuplicateCashFlowEntry(entries, {
+            ...entries[1], id: 'new-id', category: ' housing ', description: ' RENT '
+        })).toEqual(entries[1]);
+    });
+
+    it('does not flag legitimate differences and excludes the record being edited', () => {
+        expect(findPotentialDuplicateCashFlowEntry(entries, { ...entries[1], id: 'new-id', date: '2026-10-04' })).toBeNull();
+        expect(findPotentialDuplicateCashFlowEntry(entries, { ...entries[1], id: 'new-id', amount: 20001 })).toBeNull();
+        expect(findPotentialDuplicateCashFlowEntry(entries, entries[1], entries[1].id)).toBeNull();
+    });
+
+    it('rejects invalid candidate or ledger data', () => {
+        expect(() => findPotentialDuplicateCashFlowEntry({}, entries[0])).toThrow('must be an array');
+        expect(() => findPotentialDuplicateCashFlowEntry(entries, { ...entries[0], amount: 0 })).toThrow('valid cash flow transaction');
+        expect(() => findPotentialDuplicateCashFlowEntry([{ ...entries[0], amount: 0 }], entries[0])).toThrow('invalid or duplicate');
     });
 });
 
