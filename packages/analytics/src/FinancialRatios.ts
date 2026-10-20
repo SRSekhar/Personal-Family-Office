@@ -16,14 +16,16 @@ export interface FinancialRatiosResult {
  * null rather than Infinity or an invented zero. No thresholds, forecasts, or
  * recommendations are inferred.
  */
-export function calculateFinancialRatios(netWorth: NetWorthResult): FinancialRatiosResult {
-    if (!netWorth || typeof netWorth !== 'object') {
+export function calculateFinancialRatios(
+    netWorth: NetWorthResult | null | undefined
+): FinancialRatiosResult {
+    if (netWorth === null || netWorth === undefined || typeof netWorth !== 'object') {
         throw new TypeError('A net-worth result is required.');
     }
 
     const { currency, totalAssets, totalLiabilities, netWorth: netWorthAmount } = netWorth;
-    const values = [totalAssets, totalLiabilities, netWorthAmount];
-    if (values.some((value) => !value || value.currency !== currency || !Number.isFinite(value.amount))) {
+    const values: unknown[] = [totalAssets, totalLiabilities, netWorthAmount];
+    if (values.some((value) => !isMoneyLike(value) || value.currency !== currency)) {
         throw new RangeError('Financial ratio inputs must contain finite amounts in one currency.');
     }
     if (totalAssets.amount < 0 || totalLiabilities.amount < 0) {
@@ -48,8 +50,19 @@ export function calculateFinancialRatios(netWorth: NetWorthResult): FinancialRat
     };
 }
 
+function isMoneyLike(value: unknown): value is { readonly amount: number; readonly currency: unknown } {
+    if (typeof value !== 'object' || value === null) {
+        return false;
+    }
+    const candidate = value as { readonly amount?: unknown; readonly currency?: unknown };
+    return typeof candidate.amount === 'number' && Number.isFinite(candidate.amount)
+        && 'currency' in candidate;
+}
+
 function divideOrNull(numerator: number, denominator: number): number | null {
-    if (denominator === 0) return null;
+    if (denominator === 0) {
+        return null;
+    }
     const result = numerator / denominator;
     if (!Number.isFinite(result)) {
         throw new RangeError('Financial ratio exceeds the supported numeric range.');
