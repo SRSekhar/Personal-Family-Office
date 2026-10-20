@@ -439,6 +439,14 @@ try {
     assert.equal(await page.locator('#cash-flow-savings-rate').innerText(), '80%',
         'savings rate should be net cash flow divided by income');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2, 'cash flow should list both transactions');
+    const housingCategoryRow = page.locator('#cash-flow-category-rows tr').filter({ hasText: 'Housing' });
+    const salaryCategoryRow = page.locator('#cash-flow-category-rows tr').filter({ hasText: 'Salary' });
+    assert.equal(await housingCategoryRow.locator('td').count(), 6,
+        'cash-flow category table should include the expense-share column');
+    assert.equal(await housingCategoryRow.locator('td').nth(3).innerText(), '100%',
+        'housing should account for all recorded expenses in the sample period');
+    assert.equal(await salaryCategoryRow.locator('td').nth(3).innerText(), '0%',
+        'income-only categories should have zero share of recorded expenses');
     await page.locator('#cash-flow-type-filter').selectOption('expense');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 1, 'type filter should limit visible transactions');
     assert.match(await page.locator('#cash-flow-count').innerText(), /1 shown of 2 transactions/,
