@@ -187,15 +187,22 @@ describe('cash flow CSV export', () => {
 describe('cash flow category summary CSV export', () => {
     it('exports selected-period category totals and transaction counts in deterministic order', () => {
         expect(cashFlowCategorySummaryToCsv(entries, '2026-10')).toBe(
-            '"category","income","expenses","net","transaction_count"\r\n'
-            + '"Salary","100000","0","100000","1"\r\n'
-            + '"Housing","0","20000","-20000","1"\r\n'
+            '"category","income","expenses","expense_share_percent","net","transaction_count"\r\n'
+            + '"Salary","100000","0","0","100000","1"\r\n'
+            + '"Housing","0","20000","100","-20000","1"\r\n'
+        );
+    });
+
+    it('exports an empty expense share when the selected period has no expenses', () => {
+        expect(cashFlowCategorySummaryToCsv(entries.filter((entry) => entry.type === 'income'), 'all')).toBe(
+            '"category","income","expenses","expense_share_percent","net","transaction_count"\\r\\n'
+            + '"Salary","100000","0","","100000","1"\\r\\n'
         );
     });
 
     it('exports a header-only CSV for an empty category summary', () => {
         expect(cashFlowCategorySummaryToCsv([], 'all')).toBe(
-            '"category","income","expenses","net","transaction_count"\r\n'
+            '"category","income","expenses","expense_share_percent","net","transaction_count"\r\n'
         );
     });
 
