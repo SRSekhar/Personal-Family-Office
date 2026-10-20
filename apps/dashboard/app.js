@@ -590,7 +590,7 @@ function exportFinancialRatiosCsv() {
             if (typeof value !== 'number' && /^[=+@\\t\\r-]/u.test(text.trimStart())) text = "'" + text;
             return '"' + text.replaceAll('"', '""') + '"';
         };
-        const csv = rows.map((row) => row.map(cell).join(',')).join('\\r\\n') + '\\r\\n';
+        const csv = rows.map((row) => row.map(cell).join(',')).join('\r\n') + '\r\n';
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
