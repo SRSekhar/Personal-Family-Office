@@ -24,6 +24,7 @@
                 <a class="nav-item" href="#fire-planner"><span class="nav-icon">◎</span> FIRE planner</a>
                 <a class="nav-item" href="#goal-tracker"><span class="nav-icon">◷</span> Goal tracker</a>
                 <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
+                <a class="nav-item" href="#tax-estimator"><span class="nav-icon">%</span> Tax estimator</a>
             </nav>
             <div class="sidebar-bottom">
                 <div class="privacy-card"><span class="privacy-dot"></span><div><strong>Private by design</strong><p>Your workspace stays in this browser.</p></div></div>
@@ -198,6 +199,30 @@
                         <article><span>Target date</span><strong id="goal-date-result">—</strong></article>
                         <article><span>Time status</span><strong id="goal-time-result">—</strong></article>
                         <article><span>Monthly pace needed</span><strong id="goal-monthly-pace-result">—</strong></article>
+                    </div>
+                </section>
+            </section>
+            <section class="panel tax-estimator-panel" id="tax-estimator" aria-labelledby="tax-estimator-heading">
+                <div class="panel-header"><div><p class="eyebrow">CALLER-DEFINED TAX RULES</p><h2 id="tax-estimator-heading">Progressive tax estimator</h2></div><span class="panel-tag">Local calculation · INR</span></div>
+                <p class="tax-estimator-intro">Enter your taxable income and the marginal brackets you want to model. No tax jurisdiction, slab, deduction, credit, surcharge, cess, or filing status is assumed. Results are estimates, not tax advice.</p>
+                <div class="notice" id="tax-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for tax calculations</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal financial assumptions.</p></div></div>
+                <form id="tax-estimator-form">
+                    <div class="tax-income-grid">
+                        <label class="field-label" for="taxable-income">Taxable income (₹)<input id="taxable-income" type="number" min="0" step="any" required value="0"></label>
+                    </div>
+                    <div class="panel-header tax-bracket-heading"><div><h3>Marginal tax brackets</h3><p class="tax-bracket-help">Use ascending income limits. Each rate applies only to income inside that bracket; the final bracket has no upper limit.</p></div><button class="button button-secondary button-small" id="tax-add-bracket" type="button">Add bracket</button></div>
+                    <div id="tax-brackets" class="tax-brackets" aria-label="Tax bracket inputs"></div>
+                    <p id="tax-validation" class="fire-validation" role="alert" hidden></p>
+                    <p class="fire-assumptions-note">Example bracket values are not prefilled. Confirm rates, thresholds, and other applicable rules from an authoritative source before using this estimate. The calculation runs in this browser and is not saved.</p>
+                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate estimate</button><button class="button button-secondary" id="tax-reset" type="button">Reset calculator</button></div>
+                </form>
+                <section id="tax-estimate-results" class="fire-results" aria-labelledby="tax-results-heading" aria-live="polite" hidden>
+                    <div class="fire-result-heading"><div><p class="eyebrow">ESTIMATE SUMMARY</p><h3 id="tax-results-heading">Progressive tax result</h3></div></div>
+                    <div class="fire-result-grid">
+                        <article><span>Estimated tax</span><strong id="tax-estimated-tax">—</strong><small>Based on supplied brackets only</small></article>
+                        <article><span>Income after estimated tax</span><strong id="tax-after-income">—</strong><small>Before any unmodeled items</small></article>
+                        <article><span>Effective tax rate</span><strong id="tax-effective-rate">—</strong><small>Unavailable for zero income</small></article>
+                        <article><span>Marginal rate at income</span><strong id="tax-marginal-rate">—</strong><small>Rate for the final occupied bracket</small></article>
                     </div>
                 </section>
             </section>
