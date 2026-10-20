@@ -1124,7 +1124,7 @@ try {
     const investmentCashFlowsPath = join(temporaryDirectory, 'pfo-investment-cash-flows.csv');
     await investmentCashFlowsDownload.saveAs(investmentCashFlowsPath);
     const investmentCashFlowsCsv = await readFile(investmentCashFlowsPath, 'utf8');
-    assert.match(investmentCashFlowsCsv, /^"date","amount"\\r\\n/u,
+    assert.match(investmentCashFlowsCsv, /^"date","amount"\r\n/u,
         'cash-flow export should use the import-compatible date,amount schema');
     assert.ok(investmentCashFlowsCsv.includes('"2025-01-01","-1000"'),
         'cash-flow export should preserve negative contribution signs');
