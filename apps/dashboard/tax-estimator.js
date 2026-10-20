@@ -1,4 +1,5 @@
 import { estimateProgressiveTaxMath } from './calculators-runtime/ProgressiveTaxMath.js';
+import { taxEstimateToCsv } from './tax-estimate-export.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -29,17 +30,42 @@ function renderTaxResult(result) {
 
 export function initializeTaxEstimator() {
     const form = $('#tax-estimator-form'); if (!form) return;
-    const rows = $('#tax-brackets'); rows.append(createBracketRow({ final: true }));
+    const rows = $('#tax-brackets');
+    let latestEstimate = null;
+    rows.append(createBracketRow({ final: true }));
     $('#tax-add-bracket').addEventListener('click', () => { const row = createBracketRow(); rows.insertBefore(row, rows.lastElementChild); row.querySelector('.tax-bracket-bound').focus(); });
-    $('#tax-reset').addEventListener('click', () => { form.reset(); rows.replaceChildren(createBracketRow({ final: true })); $('#tax-estimate-results').hidden = true; $('#tax-validation').hidden = true; $('#tax-validation').textContent = ''; });
+    $('#tax-reset').addEventListener('click', () => {
+        form.reset();
+        rows.replaceChildren(createBracketRow({ final: true }));
+        latestEstimate = null;
+        $('#tax-export-csv').disabled = true;
+        $('#tax-estimate-results').hidden = true;
+        $('#tax-validation').hidden = true;
+        $('#tax-validation').textContent = '';
+    });
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         $('#tax-hosted-notice').hidden = false;
         form.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
         $('#tax-add-bracket').disabled = true;
         return;
     }
+    $('#tax-export-csv').addEventListener('click', () => {
+        if (!latestEstimate) return;
+        const blob = new Blob([taxEstimateToCsv(latestEstimate)], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-tax-estimate.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
     form.addEventListener('submit', (event) => {
-        event.preventDefault(); $('#tax-validation').hidden = true;
+        event.preventDefault();
+        latestEstimate = null;
+        $('#tax-export-csv').disabled = true;
+        $('#tax-validation').hidden = true;
         try {
             const taxableIncome = Number($('#taxable-income').value);
             const bracketRows = [...rows.querySelectorAll('.tax-bracket-row')];
@@ -54,8 +80,13 @@ export function initializeTaxEstimator() {
                 if (boundValue.trim() === '') throw new RangeError('Enter an upper bound for every non-final bracket.');
                 return { upperBound: Number(boundValue), marginalRatePercent: Number(rateValue) };
             });
-            renderTaxResult(estimateProgressiveTaxMath(taxableIncome, brackets));
+            const result = estimateProgressiveTaxMath(taxableIncome, brackets);
+            renderTaxResult(result);
+            latestEstimate = { taxableIncome, brackets, result };
+            $('#tax-export-csv').disabled = false;
         } catch (error) {
+            latestEstimate = null;
+            $('#tax-export-csv').disabled = true;
             $('#tax-estimate-results').hidden = true;
             $('#tax-validation').textContent = error instanceof Error ? error.message : 'Could not calculate the tax estimate.';
             $('#tax-validation').hidden = false;
