@@ -46,7 +46,8 @@ Features
 - Insurance Model
 - Loan Model
 - Goal Model
-- In progress — enforce financial snapshot invariants for valid capture date, same-currency non-negative asset/liability totals, and reconciled net worth (no history/persistence changes)
+- Financial snapshot invariants: valid capture date, same-currency non-negative asset/liability totals, and reconciled net worth (PR #223; no history/persistence changes)
+- In progress — Loan domain model as a specialized Liability, with principal, interest rate, monthly payment, origination/maturity dates, optional lender, and validated terms; no amortization schedule
 
 ---
 
