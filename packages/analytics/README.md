@@ -113,7 +113,7 @@ The analysis validates that category values and weights reconcile to the allocat
 
 ## Implemented: return-series risk analysis
 
-`analyzeReturnSeries` accepts caller-supplied dated simple returns and an explicit `periodsPerYear` value. It reports annualized sample volatility, maximum peak-to-trough drawdown, worst period return, observation count, and negative-period count. Fewer than two observations produce `null` annualized volatility; no observations produce `null` drawdown and worst-return metrics.
+`analyzeReturnSeries` accepts caller-supplied dated simple returns and an explicit `periodsPerYear` value. It reports annualized sample volatility, maximum peak-to-trough drawdown, worst period return, observation count, and negative-period count. If the caller also supplies an explicit `riskFreeRatePerPeriod`, it calculates the annualized Sharpe ratio from excess returns; the ratio is `null` when no risk-free rate is supplied, fewer than two observations exist, or excess-return volatility is zero. Fewer than two observations produce `null` annualized volatility; no observations produce `null` drawdown and worst-return metrics.
 
 Returns use decimal fractions (`0.05` means +5%), must be at least -1, and must have unique ascending calendar dates. The caller must supply regular observations consistent with the annualization frequency. No market data is fetched; these historical metrics are not forecasts, risk ratings, or recommendations.
 

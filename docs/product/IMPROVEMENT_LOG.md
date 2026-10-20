@@ -370,8 +370,13 @@ Do not record personal financial values or claim customer demand without evidenc
 - This is category concentration, not a correlation-aware risk or diversification recommendation.
 - PR #215 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Return-series risk analysis — feature branch in progress
+### Return-series risk analysis — PR #216 merged
 - Added deterministic annualized sample volatility, maximum drawdown, worst period return, and negative-period count for caller-supplied dated simple returns.
 - Annualization frequency is explicit; dates must be valid and ordered; returns below -100% and numeric overflow are rejected.
 - No market data, forecasts, risk ratings, or investment recommendations are inferred.
+- PR #216 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Annualized Sharpe ratio — feature branch in progress
+- Added an optional annualized Sharpe ratio that is only calculated when the caller explicitly supplies a risk-free return per period.
+- Missing rate, fewer than two observations, or zero excess-return volatility yields null; invalid rates and numeric overflow are rejected.
 - Validation status: unit tests, package build/typecheck, CI, and Secret Scan are pending on the feature pull request.
