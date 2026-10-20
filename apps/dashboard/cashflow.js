@@ -379,6 +379,12 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-budget-cancel').hidden = true;
     }
 
+    function budgetUtilizationPercent(budget, actual) {
+        if (budget === null) return null;
+        const percentage = actual / budget * 100;
+        return Number.isFinite(percentage) ? Number(percentage.toFixed(1)) : null;
+    }
+
     function renderBudgets() {
         const month = $('#cash-flow-budget-month').value || localMonthString();
         const actuals = new Map();
@@ -409,9 +415,11 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-budget-empty').hidden = rows.length !== 0;
         for (const item of rows) {
             const remaining = item.budget === null ? null : item.budget - item.actual;
+            const utilization = budgetUtilizationPercent(item.budget, item.actual);
             const status = item.budget === null ? 'No budget set' : remaining < 0 ? 'Over budget' : item.actual === 0 ? 'Not spent' : 'Within budget';
             const row = documentRef.createElement('tr');
             for (const value of [item.category, item.budget === null ? '—' : money(item.budget), money(item.actual),
+                utilization === null ? '—' : utilization.toFixed(1) + '%',
                 remaining === null ? '—' : money(remaining), status]) {
                 const cell = documentRef.createElement('td');
                 cell.textContent = value;
@@ -597,7 +605,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const rows = [...combined.values()].sort((a, b) =>
             a.category.localeCompare(b.category, undefined, { sensitivity: 'base' })
         );
-        const lines = [['month', 'category', 'budget', 'actual_expenses', 'remaining', 'status']];
+        const lines = [['month', 'category', 'budget', 'actual_expenses', 'budget_used_percent', 'remaining', 'status']];
         for (const item of rows) {
             const remaining = item.budget === null ? null : item.budget - item.actual;
             const status = item.budget === null ? 'No budget set'
@@ -608,6 +616,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 item.category,
                 item.budget === null ? '' : item.budget,
                 item.actual,
+                budgetUtilizationPercent(item.budget, item.actual) ?? '',
                 remaining === null ? '' : remaining,
                 status
             ]);
