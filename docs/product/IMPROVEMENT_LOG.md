@@ -381,7 +381,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - Missing rate, fewer than two observations, or zero excess-return volatility yields null; invalid rates and numeric overflow are rejected.
 - PR #217 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Annualized Sortino ratio — feature branch in progress
+### Annualized Sortino ratio — PR #218 merged
 - Added an optional annualized Sortino ratio that requires an explicit minimum acceptable return per period.
 - Missing target, no observations, or no below-target returns yields null; invalid targets and numeric overflow are rejected.
-- Validation status: unit tests, package build/typecheck, CI, and Secret Scan are pending on the feature pull request.
+- PR #218 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Portfolio health — requirements remain open
+- Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
+- The backlog item remains planned until the product defines which metrics belong in a health view and how users should interpret them. No arbitrary score, thresholds, or investment recommendations will be introduced.
