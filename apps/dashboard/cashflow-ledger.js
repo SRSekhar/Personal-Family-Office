@@ -228,5 +228,5 @@ export function cashFlowCategorySummaryToCsv(entries, period = 'all') {
         ...summaries.map((summary) => [
             summary.category, summary.income, summary.expenses, summary.net, summary.transactionCount
         ])
-    ].map((row) => row.map(csvCell).join(',')).join('\\r\\n') + '\\r\\n';
+    ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
