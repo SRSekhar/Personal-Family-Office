@@ -13,7 +13,7 @@ export class Loan extends Liability {
     public readonly monthlyPayment: Money;
     public readonly startDate: Date;
     public readonly maturityDate: Date;
-    public readonly lender?: string;
+    public readonly lender: string | undefined;
 
     public constructor(
         id: Identifier,
