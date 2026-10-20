@@ -447,10 +447,15 @@ Do not record personal financial values or claim customer demand without evidenc
 - The UI distinguishes CAGR from dated-cash-flow XIRR and discloses that interim contributions/withdrawals, fees, taxes, and inflation are excluded. Results are not saved.
 - PR #231 passed CI, typecheck, lint, unit tests, Chromium browser smoke, dashboard packaging, and Secret Scan.
 
-### Compound-growth annual schedule — feature branch in progress
-- Extend the existing local projection summary with a year-by-year schedule showing projected value, cumulative contributed capital, and estimated growth, reusing the shared projection engine for every row.
-- Provide CSV export of the generated schedule. The UI will cap the schedule at 100 annual periods to keep browser rendering bounded; assumptions remain explicit and no values are saved.
-- Validation status: calculator unit tests, Chromium browser smoke, CI, dashboard packaging, and Secret Scan are pending.
+### Compound-growth annual schedule — PR #232 merged
+- Extended the existing local projection summary with a year-by-year schedule showing projected value, cumulative contributed capital, and estimated growth, reusing the shared projection engine for every row.
+- Added CSV export of the generated schedule. The UI caps the schedule at 100 annual periods to keep browser rendering bounded; assumptions remain explicit and no values are saved.
+- PR #232 passed calculator unit tests, typecheck, lint, Chromium browser smoke, dashboard packaging, and Secret Scan.
+
+### Caller-defined tax estimate CSV export — feature branch in progress
+- Add a local export of the tax estimate summary and the exact caller-supplied marginal brackets so saved output remains interpretable without assuming a jurisdiction or official tax rules.
+- The export contains only numeric inputs/results and fixed headings; no user-entered free text, persistence, network calls, or telemetry.
+- Validation status: export unit tests, Chromium browser smoke, CI, dashboard packaging, and Secret Scan are pending.
 
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
