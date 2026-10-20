@@ -1,3 +1,16 @@
+## 2026-10-20 — Monthly cash-flow category budgets
+
+### Delivered in feature branch
+- Added explicit monthly spending limits per category and a local comparison against recorded expenses for the selected month.
+- Budget actuals aggregate expense transactions by category without case sensitivity; categories with recorded spending but no budget are shown separately.
+- The table identifies over-budget, within-budget, and not-spent states, with edit/delete controls for saved limits.
+- Budgets use a separate validated local-storage key and fail closed if saved budget data is invalid; ledger transaction storage and backup formats are unchanged.
+- No default budgets, recurring forecasts, network calls, or financial recommendations are introduced.
+
+### Validation
+- Chromium regression coverage added for saving a budget, aggregating expense actuals, overspend calculation, and persistence across reload.
+- Full CI, browser smoke, dashboard packaging, and Secret Scan are pending for the pull request.
+
 # Product Improvement Log
 
 ## 2026-10-20 — Append cash-flow transactions from CSV
