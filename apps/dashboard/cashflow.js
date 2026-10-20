@@ -1,5 +1,5 @@
 import {
-    calculateCashFlowSavingsRate, cashFlowCategorySummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
+    calculateCashFlowSavingsRate, cashFlowCategorySummaryToCsv, cashFlowFilteredSummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
     sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
     summarizeCashFlowByMonth, validateCashFlowEntries
 } from './cashflow-ledger.js';
@@ -205,6 +205,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         dateRangeError.hidden = !invalidDateRange;
         const shown = invalidDateRange ? [] : visibleEntries();
         $('#cash-flow-export-filtered-csv').disabled = invalidDateRange;
+        $('#cash-flow-export-filtered-summary-csv').disabled = invalidDateRange;
         const filteredSummary = summarizeCashFlow(shown);
         $('#cash-flow-filtered-income').textContent = money(filteredSummary.income);
         $('#cash-flow-filtered-expenses').textContent = money(filteredSummary.expenses);
@@ -459,6 +460,18 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             return;
         }
         exportCsv(visibleEntries(), 'pfo-cash-flow-filtered.csv', 'Filtered cash flow CSV exported to this device.');
+    });
+    $('#cash-flow-export-filtered-summary-csv').addEventListener('click', () => {
+        if ($('#cash-flow-export-filtered-summary-csv').disabled) {
+            message('Correct the date range before exporting the filtered summary.', true);
+            return;
+        }
+        try {
+            download('pfo-cash-flow-filtered-summary.csv', cashFlowFilteredSummaryToCsv(visibleEntries()), 'text/csv;charset=utf-8');
+            message('Filtered cash-flow summary exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export filtered cash-flow summary.', true);
+        }
     });
     $('#cash-flow-export-all-csv').addEventListener('click', () => {
         exportCsv(entries, 'pfo-cash-flow.csv', 'All cash flow transactions exported to this device.');

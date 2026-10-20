@@ -478,6 +478,8 @@ try {
     assert.equal(await page.locator('#cash-flow-count').innerText(), 'Invalid date range');
     assert.equal(await page.locator('#cash-flow-export-filtered-csv').isDisabled(), true,
         'filtered CSV export should be disabled while the date range is invalid');
+    assert.equal(await page.locator('#cash-flow-export-filtered-summary-csv').isDisabled(), true,
+        'filtered summary export should be disabled while the date range is invalid');
     await page.locator('#cash-flow-reset-filters').click();
     assert.equal(await page.locator('#cash-flow-date-range-error').isHidden(), true,
         'reset should clear date-range validation errors');
@@ -490,6 +492,16 @@ try {
         'filtered totals should exclude income outside the selected category');
     assert.equal((await page.locator('#cash-flow-filtered-net').innerText()).replace(/[^0-9]/g, ''), '20000',
         'filtered net should reconcile to the visible expense');
+    const filteredSummaryDownloadPromise = page.waitForEvent('download');
+    await page.locator('#cash-flow-export-filtered-summary-csv').click();
+    const filteredSummaryDownload = await filteredSummaryDownloadPromise;
+    assert.equal(filteredSummaryDownload.suggestedFilename(), 'pfo-cash-flow-filtered-summary.csv');
+    const filteredSummaryPath = join(temporaryDirectory, 'pfo-cash-flow-filtered-summary.csv');
+    await filteredSummaryDownload.saveAs(filteredSummaryPath);
+    const filteredSummaryCsv = await readFile(filteredSummaryPath, 'utf8');
+    assert.match(filteredSummaryCsv, /"income","expenses","net","savings_rate_percent","transaction_count"/);
+    assert.match(filteredSummaryCsv, /"0","20000","-20000","","1"/,
+        'filtered summary export should match category-filtered totals and leave savings rate empty without income');
     assert.match(await page.locator('#cash-flow-rows tr').first().innerText(), /Browser test rent/,
         'category filter should select the matching expense');
     await page.locator('#cash-flow-reset-filters').click();

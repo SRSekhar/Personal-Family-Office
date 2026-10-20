@@ -1,5 +1,18 @@
 # Product Improvement Log
 
+## 2026-10-20 — Export filtered cash-flow summary
+
+### Delivered
+- Added a dedicated CSV export for the exact currently visible transaction set, with income, expenses, net, savings rate, and transaction count.
+- Kept the full transaction export and period-based monthly/category exports separate.
+- Represented savings rate as an empty CSV field when filtered income is zero and disabled the action when the date range is invalid.
+- Added unit and Chromium browser coverage for output schema, selected-category totals, zero-income behavior, and invalid-range protection.
+
+### Product and engineering lessons
+- Let users take a compact analytical summary away from the app without forcing them to recalculate from the raw transaction export.
+- Keep the summary schema explicit and machine-readable; do not mix reporting-period totals with filtered-view totals.
+
+
 ## 2026-10-20 — Cash-flow date-range validation
 
 ### Delivered
