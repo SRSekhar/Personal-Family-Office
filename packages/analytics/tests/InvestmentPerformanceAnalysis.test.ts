@@ -69,11 +69,11 @@ describe('analyzeInvestmentPerformance', () => {
         expect(() => analyzeInvestmentPerformance({
             currency: Currency.INR,
             cashFlows: [flow(100, '2025-01-01T00:00:00.000Z'), flow(110, '2026-01-01T00:00:00.000Z')]
-        })).toThrow('positive and negative');
+        })).toThrow('positive and one negative');
         expect(() => analyzeInvestmentPerformance({
             currency: Currency.INR,
             cashFlows: [flow(-100, '2025-01-01T00:00:00.000Z'), flow(-110, '2026-01-01T00:00:00.000Z')]
-        })).toThrow('positive and negative');
+        })).toThrow('positive and one negative');
         expect(() => analyzeInvestmentPerformance({
             currency: Currency.INR,
             cashFlows: [
