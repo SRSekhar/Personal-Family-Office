@@ -169,15 +169,15 @@ describe('cash flow savings rate', () => {
 describe('cash flow filtered summary CSV export', () => {
     it('exports totals for only the supplied visible entries with a machine-readable savings rate', () => {
         expect(cashFlowFilteredSummaryToCsv([entries[0], entries[1]])).toBe(
-            '"income","expenses","net","savings_rate_percent","transaction_count"\\r\\n'
-            + '"100000","20000","80000","80","2"\\r\\n'
+            '"income","expenses","net","savings_rate_percent","transaction_count"\r\n'
+            + '"100000","20000","80000","80","2"\r\n'
         );
     });
 
     it('leaves the savings rate empty when filtered income is zero', () => {
         expect(cashFlowFilteredSummaryToCsv([entries[1]])).toBe(
-            '"income","expenses","net","savings_rate_percent","transaction_count"\\r\\n'
-            + '"0","20000","-20000","","1"\\r\\n'
+            '"income","expenses","net","savings_rate_percent","transaction_count"\r\n'
+            + '"0","20000","-20000","","1"\r\n'
         );
     });
 });
