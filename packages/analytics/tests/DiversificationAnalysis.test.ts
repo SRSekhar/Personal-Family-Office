@@ -10,7 +10,7 @@ function allocation(values: readonly number[]): AssetAllocationResult {
         currency: Currency.INR,
         totalValue: new Money(total, Currency.INR),
         allocations: values.map((value, index) => ({
-            category: `Category ${index + 1}`,
+            category: 'Category ' + String(index + 1),
             value: new Money(value, Currency.INR),
             weight: value / total
         }))
