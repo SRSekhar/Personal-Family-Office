@@ -137,8 +137,9 @@ export function summarizeCashFlowByMonth(entries) {
 
 function csvCell(value) {
     let text = String(value);
-    // trimStart neutralizes leading spaces and control whitespace before formula detection.
-    if (/^[=+@-]/.test(text.trimStart())) text = "'" + text;
+    // Numeric values are already validated data, so negative totals remain numeric in spreadsheet exports.
+    // trimStart neutralizes leading spaces and control whitespace before formula detection in text fields.
+    if (typeof value !== 'number' && /^[=+@-]/.test(text.trimStart())) text = "'" + text;
     return '"' + text.replaceAll('"', '""') + '"';
 }
 
