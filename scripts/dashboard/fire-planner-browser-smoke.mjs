@@ -38,6 +38,9 @@ try {
 
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ acceptDownloads: true });
+    await context.addInitScript(() => {
+        window.print = () => { document.documentElement.dataset.printRequested = 'true'; };
+    });
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -119,6 +122,18 @@ try {
     assert.ok(financialReportHtml.includes('does not track valuation dates'),
         'financial report must disclose that records have no valuation dates');
     assert.ok(financialReportHtml.includes('Net worth'), 'financial report should include a net-worth summary');
+    assert.ok(financialReportHtml.includes('@page{margin:14mm}'), 'financial report should define printable page margins');
+    assert.ok(financialReportHtml.includes('thead{display:table-header-group}'), 'printed report should repeat table headings');
+    const [printReportPage] = await Promise.all([
+        page.waitForEvent('popup'),
+        page.locator('#print-report-button').click()
+    ]);
+    await printReportPage.waitForLoadState('load');
+    assert.ok((await printReportPage.locator('body').innerText()).includes('Financial overview'),
+        'print workflow should open the same self-contained financial report');
+    await printReportPage.waitForFunction(() => document.documentElement.dataset.printRequested === 'true');
+    await printReportPage.close();
+    process.stdout.write('PASS: financial summary can open a print-ready window and invoke Save as PDF workflow.\\n');
     process.stdout.write('PASS: financial summary report downloads with totals, records, and valuation-date limitation.\\n');
 
     await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
