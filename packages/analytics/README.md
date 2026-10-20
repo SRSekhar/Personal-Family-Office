@@ -102,13 +102,17 @@ Ratios are returned as dimensionless numbers (for example, `0.25` means 25% for 
 
 The analysis validates that category values and weights reconcile to the allocation total. Empty allocations return zero categories and `null` concentration/share metrics. This measures concentration only within the caller-supplied categories; it does not model correlations, asset-class risk, liquidity, or true economic diversification and does not make recommendations.
 
+## Implemented: cash-flow analysis and monthly trends
+
+`analyzeCashFlow` accepts explicitly dated, caller-supplied income and expense transactions whose amounts are represented as `Money`. It requires one explicit currency and rejects mixed currencies, duplicate IDs, invalid dates, unsupported transaction types, empty categories, non-positive amounts, and numeric overflow.
+
+The result includes total income, expenses, net cash flow, savings rate, monthly summaries in chronological order, and a category breakdown sorted by total activity. Savings rate is `null` when income is zero and can be negative when expenses exceed income. Only months containing transactions are returned; missing months are not synthesized. This is deterministic historical bookkeeping analysis, not a forecast or recommendation.
+
 ## Planned responsibilities
 
-- Cash-flow analysis
 - Investment performance analysis
-- Income and expense trends
 - Goal progress analysis
-- Financial health metrics
+- Financial health metrics, pending explicit metric and interpretation requirements
 - Risk analysis and forecasting support, subject to explicit assumptions and validation
 
 ## Implemented: return-series risk analysis
