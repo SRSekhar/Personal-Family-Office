@@ -9,6 +9,8 @@ export interface RiskAnalysisInput {
     readonly observations: readonly PeriodReturn[];
     /** Number of regular return periods represented by one year (for example, 12 for monthly). */
     readonly periodsPerYear: number;
+    /** Optional risk-free return per period as a decimal fraction; required to calculate an annualized Sharpe ratio. */
+    readonly riskFreeRatePerPeriod?: number;
 }
 
 export interface RiskAnalysisResult {
@@ -19,6 +21,8 @@ export interface RiskAnalysisResult {
     readonly maximumDrawdown: number | null;
     /** Lowest observed simple period return; null when no observations exist. */
     readonly worstPeriodReturn: number | null;
+    /** Annualized Sharpe ratio; null without a risk-free rate, two observations, or non-zero excess-return volatility. */
+    readonly annualizedSharpeRatio: number | null;
     readonly negativePeriodCount: number;
 }
 
@@ -35,9 +39,13 @@ export function analyzeReturnSeries(
         throw new TypeError('A return-series input is required.');
     }
 
-    const { observations, periodsPerYear } = input;
+    const { observations, periodsPerYear, riskFreeRatePerPeriod } = input;
     if (!Number.isInteger(periodsPerYear) || periodsPerYear <= 0) {
         throw new RangeError('Periods per year must be a positive integer.');
+    }
+    if (riskFreeRatePerPeriod !== undefined
+        && (!Number.isFinite(riskFreeRatePerPeriod) || riskFreeRatePerPeriod < -1)) {
+        throw new RangeError('Risk-free return per period must be finite and greater than or equal to -1.');
     }
     if (!Array.isArray(observations)) {
         throw new TypeError('Return observations must be an array.');
@@ -85,12 +93,16 @@ export function analyzeReturnSeries(
     const annualizedVolatility = returns.length < 2
         ? null
         : calculateAnnualizedSampleVolatility(returns, periodsPerYear);
+    const annualizedSharpeRatio = riskFreeRatePerPeriod === undefined || returns.length < 2
+        ? null
+        : calculateAnnualizedSharpeRatio(returns, riskFreeRatePerPeriod, periodsPerYear);
 
     return {
         observationCount: returns.length,
         annualizedVolatility,
         maximumDrawdown: returns.length === 0 ? null : maximumDrawdown,
         worstPeriodReturn: returns.length === 0 ? null : worstPeriodReturn,
+        annualizedSharpeRatio,
         negativePeriodCount
     };
 }
@@ -104,6 +116,30 @@ function calculateAnnualizedSampleVolatility(returns: readonly number[], periods
         throw new RangeError('Annualized volatility exceeds the supported numeric range.');
     }
     return annualizedVolatility;
+}
+
+function calculateAnnualizedSharpeRatio(
+    returns: readonly number[],
+    riskFreeRatePerPeriod: number,
+    periodsPerYear: number
+): number | null {
+    const excessReturns = returns.map((value) => value - riskFreeRatePerPeriod);
+    const meanExcessReturn = excessReturns.reduce((sum, value) => sum + value, 0) / excessReturns.length;
+    const squaredDeviationTotal = excessReturns.reduce((sum, value) => sum + (value - meanExcessReturn) ** 2, 0);
+    const sampleVariance = squaredDeviationTotal / (excessReturns.length - 1);
+    const sampleStandardDeviation = Math.sqrt(sampleVariance);
+    if (!Number.isFinite(meanExcessReturn) || !Number.isFinite(sampleStandardDeviation)) {
+        throw new RangeError('Sharpe ratio inputs exceed the supported numeric range.');
+    }
+    if (sampleStandardDeviation === 0) {
+        return null;
+    }
+
+    const ratio = (meanExcessReturn / sampleStandardDeviation) * Math.sqrt(periodsPerYear);
+    if (!Number.isFinite(ratio)) {
+        throw new RangeError('Annualized Sharpe ratio exceeds the supported numeric range.');
+    }
+    return ratio;
 }
 
 function isValidDate(value: string): boolean {
