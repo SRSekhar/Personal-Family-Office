@@ -412,9 +412,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - The model records original/outstanding principal, annual interest rate, monthly payment, start/maturity dates, loan type, and optional lender. It validates principal bounds, same-currency amounts, date ordering, and immutable outstanding-balance updates.
 - PR #224 passed CI, typecheck, lint, tests, and Secret Scan.
 
-### Loan amortization calculator — feature branch in progress
+### Loan amortization calculator — PR #225 merged
 - Added a fixed-payment monthly amortization schedule based on the Loan's current outstanding principal and annual nominal interest rate divided by 12.
 - Payment timing, month-end date anchoring, maximum schedule length, final-payment cap, and no-rounding/no-fees assumptions are explicit. Non-amortizing payments are rejected and an unfinished schedule returns the remaining balance rather than implying payoff.
+- PR #225 passed CI, typecheck, lint, tests, and Secret Scan.
+
+### Progressive tax estimate — feature branch in progress
+- Added a generic progressive tax calculator using caller-supplied ordered marginal-rate brackets, explicit currency, and taxable income.
+- No jurisdiction-specific rates, deductions, credits, exemptions, surcharges, cess, or filing status are hard-coded. Invalid bracket schedules and currency mismatches are rejected.
 - Validation is pending on the feature pull request.
 
 ### Portfolio health — requirements remain open

@@ -173,9 +173,14 @@ Asset allocation groups asset positions by their supplied category and returns e
 
 The schedule preserves the first payment's UTC day-of-month where possible (for example, January 31 → February 28 → March 31). There is no currency-specific rounding, fees, taxes, rate changes, or daily-interest accrual. A payment that does not exceed initial period interest is rejected; reaching the maximum schedule length returns the remaining balance with `paidOff=false`. These are explicit calculation assumptions, not lender quotes.
 
+## Implemented: caller-defined progressive tax estimation
+
+`estimateProgressiveTax` applies caller-supplied marginal tax brackets to an explicit taxable income. Brackets must be ordered by strictly increasing upper bounds, the final bracket must be unbounded, currencies must match, and marginal rates must be non-decreasing. The result includes estimated tax, after-tax income, effective tax rate (null for zero income), and the rate used for the final occupied bracket.
+
+No jurisdiction-specific rates or tax rules are embedded. Deductions, credits, exemptions, surcharges, cess, filing status, and other local rules are outside this calculator and must be handled explicitly by the caller. The result is a mathematical estimate, not tax advice.
+
 ## Planned capabilities
 
-- Tax estimation
 - Portfolio performance analytics
 
 Planned capabilities must not be represented as implemented until code and tests exist.
@@ -194,6 +199,7 @@ src/
     FireScenarioComparison.ts
     RequiredFireContribution.ts
     LoanAmortization.ts
+    ProgressiveTax.ts
     index.ts
 tests/
     Cagr.test.ts
@@ -205,6 +211,7 @@ tests/
     FireScenarioComparison.test.ts
     RequiredFireContribution.test.ts
     LoanAmortization.test.ts
+    ProgressiveTax.test.ts
 ```
 
 ## Development

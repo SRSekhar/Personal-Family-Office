@@ -47,8 +47,7 @@ Features
 - Loan Model
 - Goal Model
 - Financial snapshot invariants: valid capture date, same-currency non-negative asset/liability totals, and reconciled net worth (PR #223; no history/persistence changes)
-- Loan domain model as a specialized Liability, with principal, interest rate, monthly payment, origination/maturity dates, optional lender, and validated terms (PR #224; no amortization schedule)
-- In progress — fixed-payment monthly loan amortization calculator with explicit monthly-rate/payment timing, end-of-term cap, UTC month-end date handling, and remaining-balance reporting; no fees, taxes, rate changes, or currency-specific rounding
+- Loan domain model as a specialized Liability, with principal, interest rate, monthly payment, origination/maturity dates, optional lender, and validated terms (PR #224)
 
 ---
 
@@ -66,6 +65,8 @@ Implemented
 - Net worth calculation with canonical IDs, same-currency validation, and explicit no-FX behavior
 - Asset allocation by caller-supplied category with deterministic ordering and validated weights
 - Investment performance analysis using explicit investor-perspective dated cash flows, XIRR, gross contributions/proceeds, net gain, and simple net return on contributions (PR #222); no inferred terminal valuation
+- Loan amortization calculator using explicit monthly-rate/payment timing, final-payment cap, UTC month-end handling, and remaining-balance reporting (PR #225)
+- In progress — caller-defined progressive tax estimator using ordered marginal brackets and explicit currency; no hard-coded jurisdiction rates, deductions, or credits
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
