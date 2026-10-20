@@ -102,7 +102,7 @@ describe('monthly budget export contract', () => {
         expect(cashFlow).toContain("$('#cash-flow-budget-export-csv').addEventListener('click'");
         expect(cashFlow).toContain("budgetSummaryToCsv(month)");
         expect(cashFlow).toContain("'actual_expenses'");
-        expect(cashFlow).toContain("if (textField && /^[=+\\\\-@\\\\t\\\\r]/u.test(field)) field = \"'\" + field;");
+        expect(cashFlow).toContain(String.raw`if (textField && /^[=+\-@\t\r]/u.test(field)) field = "'" + field;`);
         expect(cashFlow).toContain("pfo-monthly-category-budgets-' + month + '.csv'");
         expect(cashFlow).toContain("if (!isLoopback(windowRef.location.hostname))");
     });
