@@ -1,8 +1,8 @@
 import type { Identifier } from '@pfo/core';
 import { Entity } from '@pfo/core';
 
-import type { Money } from '../common/Money.js';
-import type { Portfolio } from '../portfolio/Portfolio.js';
+import { Money } from '../common/Money.js';
+import { Portfolio } from '../portfolio/Portfolio.js';
 
 export class FinancialSnapshot extends Entity {
     public constructor(
@@ -15,14 +15,13 @@ export class FinancialSnapshot extends Entity {
     ) {
         super(id);
 
-        if (!(portfolio instanceof Object) || portfolio === null) {
+        if (!(portfolio instanceof Portfolio)) {
             throw new TypeError('A portfolio is required for a financial snapshot.');
         }
         if (!(capturedOn instanceof Date) || !Number.isFinite(capturedOn.getTime())) {
             throw new RangeError('Snapshot capture date must be a valid date.');
         }
-        if (!(totalAssets instanceof Object) || !(totalLiabilities instanceof Object) || !(netWorth instanceof Object)
-            || !isMoneyLike(totalAssets) || !isMoneyLike(totalLiabilities) || !isMoneyLike(netWorth)) {
+        if (!(totalAssets instanceof Money) || !(totalLiabilities instanceof Money) || !(netWorth instanceof Money)) {
             throw new TypeError('Snapshot totals must be valid Money values.');
         }
         if (totalAssets.currency !== totalLiabilities.currency || totalAssets.currency !== netWorth.currency) {
@@ -42,8 +41,6 @@ export class FinancialSnapshot extends Entity {
         if (!Number.isFinite(expectedNetWorth) || Math.abs(netWorth.amount - expectedNetWorth) > tolerance) {
             throw new RangeError('Snapshot net worth must equal total assets minus total liabilities.');
         }
-
-        this.capturedOn.setTime(capturedOn.getTime());
     }
 
     public static create(
@@ -64,13 +61,4 @@ export class FinancialSnapshot extends Entity {
             netWorth
         );
     }
-}
-
-function isMoneyLike(value: unknown): value is Money {
-    if (typeof value !== 'object' || value === null) {
-        return false;
-    }
-    const candidate = value as { readonly amount?: unknown; readonly currency?: unknown };
-    return typeof candidate.amount === 'number' && Number.isFinite(candidate.amount)
-        && typeof candidate.currency === 'string';
 }
