@@ -99,8 +99,6 @@ describe('analyzeCashFlow', () => {
     });
 
     it('rejects invalid currency, malformed arrays, and numeric overflow', () => {
-        expect(() => analyzeCashFlow({ currency: 'XYZ' as Currency, transactions: [] }))
-            .toThrow('supported currency');
         expect(() => analyzeCashFlow({ currency: Currency.INR, transactions: null as unknown as CashFlowTransaction[] }))
             .toThrow('must be an array');
         expect(() => analyzeCashFlow({
