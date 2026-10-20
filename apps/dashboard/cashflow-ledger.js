@@ -200,6 +200,16 @@ export function filterCashFlowEntries(entries, {
             || a.id.localeCompare(b.id));
 }
 
+export function cashFlowMonthlySummaryToCsv(entries) {
+    const summaries = summarizeCashFlowByMonth(entries);
+    return [
+        ['month', 'income', 'expenses', 'net', 'transaction_count'],
+        ...summaries.map((summary) => [
+            summary.month, summary.income, summary.expenses, summary.net, summary.transactionCount
+        ])
+    ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+}
+
 export function cashFlowToCsv(entries) {
     const rows = validateCashFlowEntries(entries).map((entry) => [
         entry.date, entry.type, entry.category, entry.description, entry.amount, entry.recurring ? 'true' : 'false'
