@@ -5,6 +5,7 @@ import {
 } from './cashflow-ledger.js';
 
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
+const BUDGET_STORAGE_KEY = 'pfo-os.cash-flow-budgets.v1';
 const CURRENCY = 'INR';
 
 function localDateString() {
@@ -93,6 +94,9 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     }).format(value);
     let entries = [];
     let storageHealthy = true;
+    let budgets = [];
+    let budgetStorageHealthy = true;
+    let editingBudgetKey = null;
     let editingId = null;
     let duplicatingEntry = false;
 
@@ -311,7 +315,171 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             row.append(actions);
             body.append(row);
         }
+        renderBudgets();
     }
+
+    function budgetMessage(text, isError = false) {
+        $('#cash-flow-budget-message').textContent = text;
+        $('#cash-flow-budget-message').hidden = !text;
+        $('#cash-flow-budget-message').classList.toggle('fire-validation', isError);
+    }
+
+    function validateBudgets(value) {
+        if (!Array.isArray(value)) throw new Error('Saved budgets must be a list.');
+        const seen = new Set();
+        return value.map((budget) => {
+            if (!budget || typeof budget !== 'object'
+                || typeof budget.month !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
+                || typeof budget.category !== 'string' || budget.category.trim().length < 1 || budget.category.trim().length > 60
+                || typeof budget.amount !== 'number' || !Number.isFinite(budget.amount) || budget.amount <= 0) {
+                throw new Error('Saved budgets contain an invalid month, category, or positive amount.');
+            }
+            const category = budget.category.trim();
+            const key = budget.month + '|' + category.toLocaleLowerCase('en-US');
+            if (seen.has(key)) throw new Error('Saved budgets contain duplicate month/category entries.');
+            seen.add(key);
+            return { month: budget.month, category, amount: budget.amount };
+        });
+    }
+
+    function loadBudgets() {
+        try {
+            const raw = windowRef.localStorage.getItem(BUDGET_STORAGE_KEY);
+            budgets = raw === null ? [] : validateBudgets(JSON.parse(raw));
+            budgetStorageHealthy = true;
+        } catch {
+            budgets = [];
+            budgetStorageHealthy = false;
+            budgetMessage('Saved budget data could not be validated and has been left untouched. Budget editing is paused.', true);
+        }
+    }
+
+    function saveBudgets(nextBudgets) {
+        if (!budgetStorageHealthy) {
+            budgetMessage('Budget editing is paused because saved data could not be validated. Existing data was left untouched.', true);
+            return false;
+        }
+        try {
+            const validated = validateBudgets(nextBudgets);
+            windowRef.localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(validated));
+            budgets = validated;
+            renderBudgets();
+            return true;
+        } catch (error) {
+            budgetMessage(error instanceof Error ? error.message : 'Could not safely save budgets.', true);
+            return false;
+        }
+    }
+
+    function resetBudgetForm() {
+        $('#cash-flow-budget-category').value = '';
+        $('#cash-flow-budget-amount').value = '';
+        editingBudgetKey = null;
+        $('#cash-flow-budget-save').textContent = 'Save budget';
+        $('#cash-flow-budget-cancel').hidden = true;
+    }
+
+    function renderBudgets() {
+        const month = $('#cash-flow-budget-month').value || localMonthString();
+        const actuals = new Map();
+        for (const entry of entries) {
+            if (entry.date.slice(0, 7) !== month || entry.type !== 'expense') continue;
+            const key = entry.category.trim().toLocaleLowerCase('en-US');
+            const current = actuals.get(key) ?? { category: entry.category.trim(), amount: 0 };
+            current.amount += entry.amount;
+            if (!Number.isFinite(current.amount)) {
+                budgetMessage('Expense totals exceed the supported numeric range; comparison is unavailable.', true);
+                $('#cash-flow-budget-rows').replaceChildren();
+                $('#cash-flow-budget-empty').hidden = false;
+                return;
+            }
+            actuals.set(key, current);
+        }
+        const combined = new Map();
+        for (const budget of budgets.filter((item) => item.month === month)) {
+            const key = budget.category.toLocaleLowerCase('en-US');
+            combined.set(key, { category: budget.category, budget: budget.amount, actual: actuals.get(key)?.amount ?? 0 });
+        }
+        for (const [key, actual] of actuals) {
+            if (!combined.has(key)) combined.set(key, { category: actual.category, budget: null, actual: actual.amount });
+        }
+        const body = $('#cash-flow-budget-rows');
+        body.replaceChildren();
+        const rows = [...combined.values()].sort((a, b) => a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
+        $('#cash-flow-budget-empty').hidden = rows.length !== 0;
+        for (const item of rows) {
+            const remaining = item.budget === null ? null : item.budget - item.actual;
+            const status = item.budget === null ? 'No budget set' : remaining < 0 ? 'Over budget' : item.actual === 0 ? 'Not spent' : 'Within budget';
+            const row = documentRef.createElement('tr');
+            for (const value of [item.category, item.budget === null ? '—' : money(item.budget), money(item.actual),
+                remaining === null ? '—' : money(remaining), status]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            const actions = documentRef.createElement('td');
+            if (item.budget !== null) {
+                const edit = documentRef.createElement('button');
+                edit.type = 'button'; edit.className = 'row-action'; edit.textContent = 'Edit';
+                edit.setAttribute('aria-label', 'Edit ' + item.category + ' budget');
+                edit.disabled = !budgetStorageHealthy;
+                edit.addEventListener('click', () => {
+                    $('#cash-flow-budget-category').value = item.category;
+                    $('#cash-flow-budget-amount').value = String(item.budget);
+                    editingBudgetKey = month + '|' + item.category.toLocaleLowerCase('en-US');
+                    $('#cash-flow-budget-save').textContent = 'Save changes';
+                    $('#cash-flow-budget-cancel').hidden = false;
+                    $('#cash-flow-budget-category').focus();
+                });
+                const remove = documentRef.createElement('button');
+                remove.type = 'button'; remove.className = 'row-action'; remove.textContent = 'Delete';
+                remove.setAttribute('aria-label', 'Delete ' + item.category + ' budget');
+                remove.disabled = !budgetStorageHealthy;
+                remove.addEventListener('click', () => {
+                    if (!windowRef.confirm('Delete the ' + item.category + ' budget for ' + month + '?')) return;
+                    const nextBudgets = budgets.filter((budget) => budget.month !== month
+                        || budget.category.toLocaleLowerCase('en-US') !== item.category.toLocaleLowerCase('en-US'));
+                    if (saveBudgets(nextBudgets)) budgetMessage('Budget deleted. Recorded transactions were not changed.');
+                });
+                actions.append(edit, remove);
+            } else {
+                const empty = documentRef.createElement('span');
+                empty.textContent = '—';
+                actions.append(empty);
+            }
+            row.append(actions);
+            body.append(row);
+        }
+        $('#cash-flow-budget-form').querySelectorAll('input, button').forEach((control) => { control.disabled = !budgetStorageHealthy; });
+    }
+
+    $('#cash-flow-budget-month').value = localMonthString();
+    $('#cash-flow-budget-month').addEventListener('change', () => { resetBudgetForm(); renderBudgets(); });
+    $('#cash-flow-budget-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!isLoopback(windowRef.location.hostname)) {
+            budgetMessage('Use the local-only dashboard to manage personal budgets.', true);
+            return;
+        }
+        const month = $('#cash-flow-budget-month').value;
+        const category = $('#cash-flow-budget-category').value.trim();
+        const amount = Number($('#cash-flow-budget-amount').value);
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !category || category.length > 60 || !Number.isFinite(amount) || amount <= 0) {
+            budgetMessage('Enter a valid month, category, and monthly limit greater than zero.', true);
+            return;
+        }
+        const normalized = category.toLocaleLowerCase('en-US');
+        const next = budgets.filter((budget) => !(budget.month === month
+            && (budget.category.toLocaleLowerCase('en-US') === normalized
+                || editingBudgetKey === budget.month + '|' + budget.category.toLocaleLowerCase('en-US'))));
+        next.push({ month, category, amount });
+        if (saveBudgets(next)) {
+            resetBudgetForm();
+            budgetMessage('Monthly category budget saved. Actuals use recorded expenses only.');
+            renderBudgets();
+        }
+    });
+    $('#cash-flow-budget-cancel').addEventListener('click', resetBudgetForm);
 
     function resetForm() {
         $('#cash-flow-form').reset();
@@ -593,6 +761,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     }
 
     load();
+    loadBudgets();
     resetForm();
     render();
     if (!storageHealthy) root.querySelectorAll('#cash-flow-form input, #cash-flow-form select, #cash-flow-form button').forEach((control) => { control.disabled = true; });

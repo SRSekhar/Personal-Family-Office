@@ -189,3 +189,14 @@
 .investment-flow-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
 .investment-performance-import-status:empty{display:none}
 @media(max-width:600px){.investment-flow-actions{width:100%;justify-content:flex-start}}
+
+
+/* Local monthly cash-flow budgets */
+.cash-flow-budget-panel{margin-top:22px}
+.cash-flow-budget-controls{grid-template-columns:repeat(3,minmax(0,1fr));margin:12px 0}
+.cash-flow-budget-form .fire-actions{margin:0 0 12px}
+.cash-flow-budget-panel table{min-width:660px}
+.cash-flow-budget-panel th:not(:first-child),.cash-flow-budget-panel td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.cash-flow-budget-panel th:last-child,.cash-flow-budget-panel td:last-child{text-align:left;white-space:nowrap}
+.cash-flow-budget-panel .row-action{margin:2px 3px}
+@media(max-width:700px){.cash-flow-budget-controls{grid-template-columns:1fr}}
