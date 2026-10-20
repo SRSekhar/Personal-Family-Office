@@ -72,7 +72,8 @@ Implemented
 - Local dashboard investment performance calculator using explicit dated investor-perspective cash flows and shared XIRR/performance math; no inferred terminal valuation (PR #229).
 - Local compound-growth projection calculator using explicit annual return, contribution amount, contribution timing, and period assumptions; no forecasts or guarantees (PR #230).
 - Year-by-year compound-growth schedule with explicit annual contribution timing and full CSV export, limited to 100 annual periods (PR #232).
-- In progress — export caller-defined tax estimates and the exact supplied bracket assumptions to CSV; no jurisdiction defaults.
+- Local CSV export of caller-defined tax estimates and exact supplied bracket assumptions, with stale-result invalidation (PR #233).
+- In progress — export investment-performance summary and dated cash-flow inputs to CSV so results remain auditable.
 - Local CAGR calculator using explicit beginning/ending values and period, distinct from dated cash-flow XIRR (PR #231)
 - Deterministic cash-flow analysis from explicit dated transactions, including totals, savings rate, monthly trends, and category breakdown (PR #220); no forecasts or inferred recurring schedules
 - Goal progress analysis using explicit current amount and reference date, with target percentage, remaining amount, UTC calendar-day deadline status, and no contribution or return assumptions (PR #221)
