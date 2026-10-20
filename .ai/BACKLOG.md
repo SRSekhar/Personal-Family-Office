@@ -270,3 +270,5 @@ No work should begin unless it has been added to the backlog.
 - Export a category breakdown for the exact filtered transaction view, including expense share computed within that view; disabled when the date range is invalid.
 
 - Warn before manually saving an exact duplicate cash-flow transaction; allow explicit confirmation because legitimate same-day repeated transactions can exist.
+
+- Cash-flow CSV append import preserves existing transactions, previews post-import totals, warns about exact potential duplicates without silently deduplicating, and remains separate from replacement import.

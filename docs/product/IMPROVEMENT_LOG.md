@@ -1,5 +1,17 @@
 # Product Improvement Log
 
+## 2026-10-20 — Append cash-flow transactions from CSV
+
+### Delivered
+- Added a separate Append CSV action alongside the existing replace-all CSV import.
+- Preview the post-import transaction count and income, expenses, and net cash flow before confirming an append.
+- Warn when imported rows exactly match existing transactions; retain those rows only after explicit confirmation rather than silently deduplicating.
+- Preserve the existing replacement workflow and reject append when saved ledger data cannot be validated.
+- Added Chromium coverage for append semantics, duplicate warning, and total reconciliation.
+
+### Product and engineering lessons
+- Import should make the data operation explicit: replacement and append are different user intents. Duplicate warnings protect against accidental repeated imports without deleting legitimate repeated transactions.
+
 ## 2026-10-20 — Export filtered cash-flow categories
 
 ### Delivered

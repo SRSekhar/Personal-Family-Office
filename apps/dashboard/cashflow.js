@@ -400,42 +400,64 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
     });
 
-    $('#cash-flow-import-csv').addEventListener('change', (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.addEventListener('load', () => {
-            try {
-                const imported = parseCashFlowCsv(String(reader.result), windowRef.crypto);
-                const preview = summarizeCashFlow(imported);
-                const confirmMessage = [
-                    'CSV import preview: ' + imported.length + ' transaction' + (imported.length === 1 ? '' : 's'),
-                    'Income: ' + money(preview.income),
-                    'Expenses: ' + money(preview.expenses),
-                    'Net cash flow: ' + money(preview.net),
-                    '',
-                    'Importing this CSV replaces all cash flow transactions stored in this browser. Continue?'
-                ].join('\n');
-                if (!windowRef.confirm(confirmMessage)) {
-                    message('CSV import cancelled. Existing transactions were not changed.');
-                    return;
+    function registerCashFlowCsvImport(inputId, appendMode) {
+        $('#' + inputId).addEventListener('change', (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                try {
+                    if (appendMode && !storageHealthy) {
+                        throw new Error('Appending is unavailable because saved data could not be validated. Use Import CSV to replace the ledger with a valid file and recover safely.');
+                    }
+                    const imported = parseCashFlowCsv(String(reader.result), windowRef.crypto);
+                    const duplicateCount = appendMode
+                        ? imported.filter((candidate) => findPotentialDuplicateCashFlowEntry(entries, candidate) !== null).length
+                        : 0;
+                    const next = appendMode ? [...entries, ...imported] : imported;
+                    const preview = summarizeCashFlow(next);
+                    const confirmLines = [
+                        (appendMode ? 'CSV append preview: ' : 'CSV replacement preview: ')
+                            + imported.length + ' transaction' + (imported.length === 1 ? '' : 's'),
+                        'Total transactions after import: ' + next.length,
+                        'Income after import: ' + money(preview.income),
+                        'Expenses after import: ' + money(preview.expenses),
+                        'Net cash flow after import: ' + money(preview.net)
+                    ];
+                    if (appendMode && duplicateCount > 0) {
+                        confirmLines.push('', 'Potential exact duplicates against the existing ledger: ' + duplicateCount
+                            + '. They will be retained if you continue.');
+                    }
+                    confirmLines.push('', appendMode
+                        ? 'Existing transactions will be kept and the imported transactions appended. Continue?'
+                        : 'Importing this CSV replaces all cash flow transactions stored in this browser. Continue?');
+                    if (!windowRef.confirm(confirmLines.join('\n'))) {
+                        message(appendMode
+                            ? 'CSV append cancelled. Existing transactions were not changed.'
+                            : 'CSV import cancelled. Existing transactions were not changed.');
+                        return;
+                    }
+                    const wasHealthy = storageHealthy;
+                    storageHealthy = true;
+                    if (!save(next)) storageHealthy = wasHealthy;
+                    else message(appendMode
+                        ? 'Appended ' + imported.length + ' cash flow transactions from CSV.'
+                        : 'Imported ' + imported.length + ' cash flow transactions from CSV.');
+                } catch (error) {
+                    message(error instanceof Error ? error.message : 'Could not import cash flow CSV.', true);
+                } finally {
+                    $('#' + inputId).value = '';
                 }
-                const wasHealthy = storageHealthy;
-                storageHealthy = true;
-                if (!save(imported)) storageHealthy = wasHealthy;
-                else message('Imported ' + imported.length + ' cash flow transactions from CSV.');
-            } catch (error) {
-                message(error instanceof Error ? error.message : 'Could not import cash flow CSV.', true);
-            } finally {
-                $('#cash-flow-import-csv').value = '';
-            }
+            });
+            reader.addEventListener('error', () => {
+                message('Could not read the selected cash flow CSV.', true);
+                $('#' + inputId).value = '';
+            });
+            reader.readAsText(file);
         });
-        reader.addEventListener('error', () => {
-            message('Could not read the selected cash flow CSV.', true);
-            $('#cash-flow-import-csv').value = '';
-        });
-        reader.readAsText(file);
-    });
+    }
+    registerCashFlowCsvImport('cash-flow-import-csv', false);
+    registerCashFlowCsvImport('cash-flow-append-csv', true);
 
     $('#cash-flow-cancel').addEventListener('click', resetForm);
     $('#cash-flow-period').addEventListener('change', render);

@@ -1323,6 +1323,30 @@ try {
         'CSV import should announce successful replacement');
     process.stdout.write('PASS: cash-flow CSV import validates exported schema, previews replacement, and preserves quoted fields.\n');
 
+    const appendConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const confirmationMessage = dialog.message();
+            await dialog.accept();
+            resolve(confirmationMessage);
+        });
+    });
+    await page.locator('#cash-flow-append-csv').setInputFiles({
+        name: 'cash-flow-append.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('date,type,category,description,amount,recurring\r\n"2026-10-20","income","Salary","CSV import, test",50000,"true"\r\n')
+    });
+    const appendConfirmationMessage = await appendConfirmation;
+    assert.match(appendConfirmationMessage, /CSV append preview: 1 transaction/);
+    assert.match(appendConfirmationMessage, /Potential exact duplicates against the existing ledger: 1/);
+    assert.match(appendConfirmationMessage, /Existing transactions will be kept and the imported transactions appended/);
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('Appended 1 cash flow transactions from CSV'));
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
+        'CSV append should add to, not replace, the existing ledger total');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
+        'CSV append should preserve the original transaction and add the repeated transaction');
+    assert.match(await page.locator('#cash-flow-message').innerText(), /Appended 1 cash flow transactions from CSV/);
+    process.stdout.write('PASS: cash-flow CSV append preserves existing transactions and warns about potential duplicates.\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
