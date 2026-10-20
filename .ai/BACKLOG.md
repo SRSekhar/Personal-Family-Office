@@ -239,6 +239,9 @@ Features
 - Annual Review
 - Portfolio Assistant
 - Investment Committee
+- Ollama/Gemma model-provider integration: introduce a small, model-agnostic provider boundary and evaluate Ollama's `gemma4:31b-cloud` for opt-in AI assistance. Keep deterministic calculators and validated domain data as the source of truth; AI may explain results but must not invent balances, holdings, market data, or financial calculations.
+- Privacy and operational contract for AI: default to no AI/network calls until explicitly invoked; never transmit household financial records by default; require explicit user selection and data minimization before any cloud request; keep API keys in environment/local secret storage and out of Git, browser bundles, logs, reports, and prompts where not needed. Document cloud data handling, cost/usage limits, timeouts, retries, structured-output validation, and behavior when the provider is unavailable.
+- Provider verification: confirm the exact model identifier, API contract, authentication method, cost/usage behavior, and data handling against current official Ollama documentation before implementation. Test with synthetic fixtures and mocked provider responses; no live household data or secrets in tests.
 
 ---
 
