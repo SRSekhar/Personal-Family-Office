@@ -51,6 +51,8 @@ export { calculateGoalProgress } from './GoalProgress.js';
 export type { GoalProgressInput, GoalProgressResult } from './GoalProgress.js';
 
 export { calculateLoanAmortization } from './LoanAmortization.js';
+export { calculateLoanAmortizationMath } from './LoanAmortizationMath.js';
+export type { LoanAmortizationMathInput, LoanAmortizationMathPayment, LoanAmortizationMathResult } from './LoanAmortizationMath.js';
 export type {
     LoanAmortizationInput,
     LoanAmortizationPayment,
