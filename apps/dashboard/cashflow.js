@@ -96,6 +96,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     let storageHealthy = true;
     let budgets = [];
     let budgetStorageHealthy = true;
+    let editingBudgetKey = null;
     let editingId = null;
     let duplicatingEntry = false;
 
@@ -373,6 +374,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     function resetBudgetForm() {
         $('#cash-flow-budget-category').value = '';
         $('#cash-flow-budget-amount').value = '';
+        editingBudgetKey = null;
         $('#cash-flow-budget-save').textContent = 'Save budget';
         $('#cash-flow-budget-cancel').hidden = true;
     }
@@ -424,6 +426,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 edit.addEventListener('click', () => {
                     $('#cash-flow-budget-category').value = item.category;
                     $('#cash-flow-budget-amount').value = String(item.budget);
+                    editingBudgetKey = month + '|' + item.category.toLocaleLowerCase('en-US');
                     $('#cash-flow-budget-save').textContent = 'Save changes';
                     $('#cash-flow-budget-cancel').hidden = false;
                     $('#cash-flow-budget-category').focus();
@@ -467,7 +470,9 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             return;
         }
         const normalized = category.toLocaleLowerCase('en-US');
-        const next = budgets.filter((budget) => !(budget.month === month && budget.category.toLocaleLowerCase('en-US') === normalized));
+        const next = budgets.filter((budget) => !(budget.month === month
+            && (budget.category.toLocaleLowerCase('en-US') === normalized
+                || editingBudgetKey === budget.month + '|' + budget.category.toLocaleLowerCase('en-US'))));
         next.push({ month, category, amount });
         if (saveBudgets(next)) {
             resetBudgetForm();
