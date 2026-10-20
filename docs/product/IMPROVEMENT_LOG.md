@@ -391,6 +391,12 @@ Do not record personal financial values or claim customer demand without evidenc
 - Zero-income savings rates are null; negative savings rates are preserved when expenses exceed income. Missing months are not synthesized, and no recurrence cadence, forecast, market data, or recommendation is inferred.
 - Unit tests cover totals, deterministic ordering, empty input, zero income, negative savings rates, malformed inputs, mixed currencies, and numeric overflow. CI and Secret Scan are pending on the feature pull request.
 
+### Goal progress analytics — feature branch in progress
+- Added a public `analyzeGoalProgress` API that composes the existing domain Goal with an explicitly supplied current amount and reference date.
+- Reports uncapped progress percentage, remaining amount clamped at zero, signed UTC calendar-day distance to deadline, target reached, and overdue status only when the target remains unmet.
+- Validates target/current amounts, matching currencies, and valid dates. No contribution schedule, investment return, success probability, or recommendation is inferred.
+- Unit tests cover progress, overachievement, overdue and due-today behavior, currency mismatch, invalid values, and invalid dates. CI and Secret Scan are pending on the feature pull request.
+
 ### Portfolio health — requirements remain open
 - Existing portfolio analysis now exposes reconciled balance-sheet ratios, category concentration, historical-return volatility/drawdown, and optional Sharpe/Sortino ratios.
 - The backlog item remains planned until the product defines which metrics belong in a health view and how users should interpret them. No arbitrary score, thresholds, or investment recommendations will be introduced.
