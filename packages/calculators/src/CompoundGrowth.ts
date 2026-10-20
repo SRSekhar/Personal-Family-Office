@@ -42,7 +42,7 @@ export function projectCompoundGrowthSchedule(input: CompoundGrowthInput): Compo
         throw new RangeError('periods must be a non-negative integer.');
     }
     if (input.periods > MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS) {
-        throw new RangeError(`periods must not exceed ${MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS} for an annual schedule.`);
+        throw new RangeError(`periods must not exceed ${String(MAX_COMPOUND_GROWTH_SCHEDULE_PERIODS)} for an annual schedule.`);
     }
 
     const rows: CompoundGrowthScheduleRow[] = [];
