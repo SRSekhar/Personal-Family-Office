@@ -27,6 +27,7 @@
                 <a class="nav-item" href="#loan-calculator"><span class="nav-icon">↘</span> Loan calculator</a>
                 <a class="nav-item" href="#investment-performance"><span class="nav-icon">↗</span> Investment returns</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
+                <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
                 <a class="nav-item" href="#tax-estimator"><span class="nav-icon">%</span> Tax estimator</a>
             </nav>
             <div class="sidebar-bottom">
@@ -202,6 +203,29 @@
                         <article><span>Target date</span><strong id="goal-date-result">—</strong></article>
                         <article><span>Time status</span><strong id="goal-time-result">—</strong></article>
                         <article><span>Monthly pace needed</span><strong id="goal-monthly-pace-result">—</strong></article>
+                    </div>
+                </section>
+            </section>
+            <section class="panel cagr-panel" id="cagr-calculator" aria-labelledby="cagr-heading">
+                <div class="panel-header"><div><p class="eyebrow">ANNUALIZED VALUE GROWTH</p><h2 id="cagr-heading">CAGR calculator</h2></div><span class="panel-tag">Local calculation · INR</span></div>
+                <p class="cagr-intro">Calculate the compound annual growth rate between two values over a stated period. Use values in the same currency and unit.</p>
+                <div class="notice" id="cagr-hosted-notice" role="alert" hidden><span class="notice-icon">!</span><div><strong>Use the local workspace for growth calculations</strong><p>Run <code>pnpm dashboard:serve</code> locally before entering personal financial assumptions.</p></div></div>
+                <form id="cagr-form">
+                    <div class="cagr-input-grid">
+                        <label class="field-label" for="cagr-beginning-value">Beginning value (₹)<input id="cagr-beginning-value" type="number" min="0.01" step="any" required></label>
+                        <label class="field-label" for="cagr-ending-value">Ending value (₹)<input id="cagr-ending-value" type="number" min="0.01" step="any" required></label>
+                        <label class="field-label" for="cagr-periods">Elapsed years<input id="cagr-periods" type="number" min="0.01" step="any" required></label>
+                    </div>
+                    <p class="fire-assumptions-note">CAGR describes a smoothed annualized rate between the two values. It does not account for deposits, withdrawals, taxes, fees, inflation, or interim cash flows; use the investment performance calculator for dated cash flows.</p>
+                    <p id="cagr-validation" class="fire-validation" role="alert" hidden></p>
+                    <div class="fire-actions"><button class="button button-primary" type="submit">Calculate CAGR</button><button class="button button-secondary" id="cagr-reset" type="button">Reset calculator</button></div>
+                </form>
+                <section id="cagr-results" class="fire-results" aria-labelledby="cagr-results-heading" aria-live="polite" hidden>
+                    <div class="fire-result-heading"><div><p class="eyebrow">CAGR SUMMARY</p><h3 id="cagr-results-heading">Annualized growth rate</h3></div></div>
+                    <div class="fire-result-grid cagr-result-grid">
+                        <article><span>Beginning value</span><strong id="cagr-beginning-result">—</strong></article>
+                        <article><span>Ending value</span><strong id="cagr-ending-result">—</strong></article>
+                        <article><span>Compound annual growth rate</span><strong id="cagr-rate-result">—</strong><small>Annualized; excludes interim cash flows</small></article>
                     </div>
                 </section>
             </section>
