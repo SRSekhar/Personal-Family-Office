@@ -436,11 +436,10 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 remove.setAttribute('aria-label', 'Delete ' + item.category + ' budget');
                 remove.disabled = !budgetStorageHealthy;
                 remove.addEventListener('click', () => {
-                    if (windowRef.confirm('Delete the ' + item.category + ' budget for ' + month + '?')
-                        && saveBudgets(budgets.filter((budget) => !(budget.month === month
-                            && budget.category.toLocaleLowerCase('en-US') === item.category.toLocaleLowerCase('en-US')))) {
-                        budgetMessage('Budget deleted. Recorded transactions were not changed.');
-                    }
+                    if (!windowRef.confirm('Delete the ' + item.category + ' budget for ' + month + '?')) return;
+                    const nextBudgets = budgets.filter((budget) => budget.month !== month
+                        || budget.category.toLocaleLowerCase('en-US') !== item.category.toLocaleLowerCase('en-US'));
+                    if (saveBudgets(nextBudgets)) budgetMessage('Budget deleted. Recorded transactions were not changed.');
                 });
                 actions.append(edit, remove);
             } else {
