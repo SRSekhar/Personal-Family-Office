@@ -87,7 +87,7 @@ Implemented
 - Balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities), with explicit zero-denominator handling and net-worth reconciliation (PR #214).
 In Progress
 
-- Category concentration metrics using HHI, effective category count, and largest-category share, without inferring correlations or risk (PR #215).
+- Category concentration metrics using HHI, effective category count, and largest-category share, without inferring correlations or risk (PR #215); dashboard summary implemented in PR #243.
 
 Planned
 In Progress
