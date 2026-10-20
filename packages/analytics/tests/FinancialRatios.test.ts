@@ -1,9 +1,10 @@
+import type { NetWorthResult } from '@pfo/calculators';
 import { Currency, Money } from '@pfo/models';
 import { describe, expect, it } from 'vitest';
 
 import { calculateFinancialRatios } from '../src/FinancialRatios.js';
 
-function netWorth(totalAssets: number, totalLiabilities: number) {
+function netWorth(totalAssets: number, totalLiabilities: number): NetWorthResult {
     return {
         currency: Currency.INR,
         totalAssets: new Money(totalAssets, Currency.INR),
