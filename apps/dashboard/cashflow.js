@@ -201,6 +201,19 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-savings-rate-caption').textContent = savingsRate === null
             ? 'Unavailable when income is zero'
             : 'Net cash flow ÷ income';
+        const recurringEntries = entries.filter((entry) => entry.recurring
+            && (period === 'all' || entry.date.startsWith(period)));
+        const recurringIncome = recurringEntries.filter((entry) => entry.type === 'income')
+            .reduce((total, entry) => total + entry.amount, 0);
+        const recurringExpenses = recurringEntries.filter((entry) => entry.type === 'expense')
+            .reduce((total, entry) => total + entry.amount, 0);
+        const recurringNet = recurringIncome - recurringExpenses;
+        const recurringTotalsAreFinite = Number.isFinite(recurringIncome)
+            && Number.isFinite(recurringExpenses) && Number.isFinite(recurringNet);
+        $('#cash-flow-recurring-income').textContent = recurringTotalsAreFinite ? money(recurringIncome) : '—';
+        $('#cash-flow-recurring-expenses').textContent = recurringTotalsAreFinite ? money(recurringExpenses) : '—';
+        $('#cash-flow-recurring-net').textContent = recurringTotalsAreFinite ? money(recurringNet) : '—';
+        $('#cash-flow-recurring-count').textContent = String(recurringEntries.length);
         const fromDate = $('#cash-flow-date-from').value;
         const toDate = $('#cash-flow-date-to').value;
         const invalidDateRange = Boolean(fromDate && toDate && fromDate > toDate);
