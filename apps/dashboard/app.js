@@ -552,7 +552,6 @@ function totals() {
 }
 
 function renderFinancialHealth() {
-    const panel = $('#financial-health-dashboard');
     const status = $('#financial-health-status');
     const body = $('#financial-health-metrics');
     const note = $('#financial-health-note');
