@@ -749,7 +749,7 @@ function exportFinancialHealthCsv() {
         const reportingPeriod = status.slice('Local data · '.length);
         const cell = (value) => {
             let text = String(value ?? '');
-            if (/^[=+@\\t\\r-]/u.test(text.trimStart())) text = "'" + text;
+            if (/^[=+@\t\r-]/u.test(text.trimStart())) text = "'" + text;
             return '"' + text.replaceAll('"', '""') + '"';
         };
         const rows = [['metric', 'value', 'details', 'reporting_period', 'scope']];
@@ -758,7 +758,7 @@ function exportFinancialHealthCsv() {
             if (parts.length < 3) throw new Error('The displayed health summary is incomplete.');
             rows.push([parts[0].textContent, parts[1].textContent, parts[2].textContent, reportingPeriod, 'Private local workspace']);
         }
-        const csv = rows.map((row) => row.map(cell).join(',')).join('\\r\\n') + '\\r\\n';
+        const csv = rows.map((row) => row.map(cell).join(',')).join('\r\n') + '\r\n';
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
