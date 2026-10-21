@@ -289,3 +289,5 @@ No work should begin unless it has been added to the backlog.
 
 
 
+
+- Filter cash-flow transactions and filtered exports by an optional minimum and maximum amount; validate invalid or reversed ranges and reset both filters with the existing view controls (implemented in this change).
