@@ -616,3 +616,22 @@ describe('monthly category cash-flow comparison contract', () => {
         expect(cashFlow).toContain('Monthly category comparison export is unavailable because saved cash-flow data could not be validated.');
     });
 });
+
+
+describe('financial health dashboard contract', () => {
+    it('surfaces the combined overview and refreshes it after cash-flow and budget changes', async () => {
+        const [html, app, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('app.js'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="financial-health-dashboard"');
+        expect(html).toContain('id="financial-health-metrics"');
+        expect(html).toContain('id="financial-health-status"');
+        expect(app).toContain("calculateFinancialHealth({ records, cashFlowEntries: entries, budgets, goals: savedGoals, month })");
+        expect(app).toContain("isPrivateWorkspaceAllowed(window.location.hostname)");
+        expect(app).toContain("workspace !== 'private'");
+        expect(cashFlow).toContain("dispatchEvent(new Event('pfo:cashflow-updated'))");
+        expect(app).toContain("window.addEventListener('pfo:cashflow-updated', renderFinancialHealth)");
+    });
+});
