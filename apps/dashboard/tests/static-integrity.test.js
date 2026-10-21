@@ -504,3 +504,16 @@ describe('cash-flow CSV import duplicate preview', () => {
         expect(cashFlow).toContain('They will be retained if you continue.');
     });
 });
+
+describe('cash-flow CSV import preview detail', () => {
+    it('shows imported income and expense counts and the imported date range before confirmation', async () => {
+        const cashFlow = await readDashboardFile('cashflow.js');
+        expect(cashFlow).toContain("const importedIncomeCount = imported.filter((item) => item.type === 'income').length;");
+        expect(cashFlow).toContain('const importedExpenseCount = imported.length - importedIncomeCount;');
+        expect(cashFlow).toContain("const importedDates = imported.map((item) => item.date).sort();");
+        expect(cashFlow).toContain("'Imported income transactions: ' + importedIncomeCount");
+        expect(cashFlow).toContain("'Imported expense transactions: ' + importedExpenseCount");
+        expect(cashFlow).toContain("'Imported transaction date range: ' + importedDateRange");
+        expect(cashFlow).toContain("'Total transactions after import: ' + next.length");
+    });
+});
