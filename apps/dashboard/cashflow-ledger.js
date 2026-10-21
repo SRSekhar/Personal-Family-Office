@@ -58,6 +58,24 @@ export function validateCashFlowEntries(entries) {
     return validated;
 }
 
+export function validateCashFlowBudgets(value) {
+    if (!Array.isArray(value)) throw new Error('Saved budgets must be a list.');
+    const seen = new Set();
+    return value.map((budget) => {
+        if (!budget || typeof budget !== 'object'
+            || typeof budget.month !== 'string' || !/^\\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
+            || typeof budget.category !== 'string' || budget.category.trim().length < 1 || budget.category.trim().length > 60
+            || typeof budget.amount !== 'number' || !Number.isFinite(budget.amount) || budget.amount <= 0) {
+            throw new Error('Saved budgets contain an invalid month, category, or positive amount.');
+        }
+        const category = budget.category.trim();
+        const key = budget.month + '|' + category.toLocaleLowerCase('en-US');
+        if (seen.has(key)) throw new Error('Saved budgets contain duplicate month/category entries.');
+        seen.add(key);
+        return { month: budget.month, category, amount: budget.amount };
+    });
+}
+
 export function summarizeCashFlow(entries, period = 'all') {
     if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
         throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
