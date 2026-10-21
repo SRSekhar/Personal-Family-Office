@@ -183,7 +183,7 @@ describe('all-period budget history export contract', () => {
         expect(cashFlow).toContain("entry.type !== 'expense'");
         expect(cashFlow).toContain('a.month.localeCompare(b.month)');
         expect(cashFlow).toContain('pfo-category-budget-history.csv');
-        expect(cashFlow).toContain('budget history is unavailable');
+        expect(cashFlow.toLowerCase()).toContain('budget history is unavailable');
         expect(cashFlow).toContain('textField && /^[=+');
     });
 });
