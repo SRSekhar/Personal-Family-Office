@@ -1051,6 +1051,12 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 message('No recorded transactions for ' + year + '. Nothing was exported.', true);
                 return;
             }
+            const annualExpenses = yearEntries.filter((entry) => entry.type === 'expense')
+                .reduce((total, entry) => total + entry.amount, 0);
+            if (!Number.isFinite(annualExpenses)) {
+                message('Annual expense totals exceed the supported numeric range; export is unavailable.', true);
+                return;
+            }
             download('pfo-cash-flow-category-summary-' + year + '.csv', cashFlowCategorySummaryToCsv(yearEntries, 'all'), 'text/csv;charset=utf-8');
             message('Annual category summary for ' + year + ' exported to this device.');
         } catch (error) {
