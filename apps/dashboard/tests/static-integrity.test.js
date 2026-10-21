@@ -324,6 +324,29 @@ describe('monthly cash-flow category breakdown contract', () => {
     });
 });
 
+describe('monthly cash-flow comparison contract', () => {
+    it('compares two explicitly selected recorded months and guards a local-only CSV export', async () => {
+        const [html, app] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-monthly-comparison-heading"');
+        expect(html).toContain('id="cash-flow-comparison-current-month"');
+        expect(html).toContain('id="cash-flow-comparison-base-month"');
+        expect(html).toContain('id="cash-flow-monthly-comparison-rows"');
+        expect(html).toContain('Difference means selected month minus comparison month.');
+        expect(html).toContain('id="cash-flow-export-monthly-comparison-csv"');
+        expect(app).toContain('const comparisonMonths = monthlySummaries.map((item) => item.month)');
+        expect(app).toContain("calculateCashFlowSavingsRate(currentComparison.income, currentComparison.expenses)");
+        expect(app).toContain("$('#cash-flow-comparison-current-month').addEventListener('change', render)");
+        expect(app).toContain("$('#cash-flow-comparison-base-month').addEventListener('change', render)");
+        expect(app).toContain("$('#cash-flow-export-monthly-comparison-csv').addEventListener('click'");
+        expect(app).toContain('Monthly comparison export is unavailable because saved cash-flow data could not be validated.');
+        expect(app).toContain("['metric', 'selected_month', 'selected_value', 'comparison_month', 'comparison_value', 'difference']");
+        expect(app).toContain('Monthly comparison contains a numeric difference outside the supported range; export is unavailable.');
+    });
+});
+
 describe('annual cash-flow summary export contract', () => {
     it('exposes an annual summary export backed by validated recorded transactions and local-only controls', async () => {
         const [html, app, ledger] = await Promise.all([
