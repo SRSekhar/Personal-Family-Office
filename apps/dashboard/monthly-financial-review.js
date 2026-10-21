@@ -123,9 +123,10 @@ export function buildMonthlyFinancialReview({ entries, budgets, goals, month, ge
         .map((row) => ({ category: row.category, actual: row.expenses, transactionCount: row.transactionCount }))
         .sort((a, b) => b.actual - a.actual || a.category.localeCompare(b.category));
     const unbudgetedExpenseTotal = unbudgetedExpenses.reduce((sum, row) => sum + row.actual, 0);
-    if (!Number.isFinite(unbudgetedExpenseTotal)) throw new RangeError('Unbudgeted expense totals exceed the supported numeric range.');
-    const budgetedActualExpenses = current.expenses - unbudgetedExpenseTotal;
-    if (!Number.isFinite(budgetedActualExpenses) || budgetedActualExpenses < 0) {
+    const budgetedActualExpenses = expenseCategories
+        .filter((row) => budgetedCategoryKeys.has(row.category.toLocaleLowerCase('en-US')))
+        .reduce((sum, row) => sum + row.expenses, 0);
+    if (![unbudgetedExpenseTotal, budgetedActualExpenses].every(Number.isFinite)) {
         throw new RangeError('Budget coverage totals exceed the supported numeric range.');
     }
     const budgetCoverage = {
