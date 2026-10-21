@@ -368,6 +368,24 @@ describe('monthly cash-flow comparison contract', () => {
     });
 });
 
+describe('annual cash-flow category comparison contract', () => {
+    it('compares category income and expenses across selected years and includes category rows in local CSV export', async () => {
+        const [html, app] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('Category drivers');
+        expect(html).toContain('id="cash-flow-annual-category-comparison-rows"');
+        expect(html).toContain('id="cash-flow-annual-category-comparison-empty"');
+        expect(html).toContain('Expense difference is selected year minus comparison year');
+        expect(app).toContain("summarizeCashFlowByCategory(entries.filter((entry) => entry.date.startsWith(currentYearComparison.year)), 'all')");
+        expect(app).toContain("summarizeCashFlowByCategory(entries.filter((entry) => entry.date.startsWith(baseYearComparison.year)), 'all')");
+        expect(app).toContain("['record_type', 'metric', 'category', 'selected_year', 'selected_value', 'comparison_year', 'comparison_value', 'difference']");
+        expect(app).toContain("csvRows.push(['category', 'expenses', item.category");
+        expect(app).toContain("'pfo-cash-flow-annual-comparison.csv'");
+    });
+});
+
 describe('annual cash-flow comparison contract', () => {
     it('compares recorded years, shows percentage-point savings-rate changes, and restricts CSV export to the local workspace', async () => {
         const [html, app] = await Promise.all([
