@@ -60,7 +60,7 @@ describe('financial health aggregation', () => {
             cashFlowEntries: [
                 { date: '2026-10-03', type: 'expense', amount: 120, category: 'Food' },
                 { date: '2026-10-04', type: 'expense', amount: 80, category: 'food' },
-                { date: '2026-10-05', type: 'expense', amount: 50, category: 'Transport' }
+                { date: '2026-10-05', type: 'expense', amount: 50, category: 'Misc' }
             ]
         });
         expect(result).toMatchObject({
