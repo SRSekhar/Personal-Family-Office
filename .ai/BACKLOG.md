@@ -302,3 +302,4 @@ No work should begin unless it has been added to the backlog.
 - Export the month-over-month budget performance trend to a deterministic CSV with explicit aggregate fields and local-only/storage-validation guards (implemented in feature/budget-performance-trend-export).
 
 - Surface categories that exceed their explicit monthly budgets in at least two recorded months, showing over-budget month count, budgeted month count, cumulative overrun, and average overrun; derive only from saved budgets and recorded expenses.
+- In the monthly financial review, separately show recorded expense categories without an explicitly saved budget, with expense totals and transaction counts; do not infer budgets or assign thresholds (implemented in this change).
