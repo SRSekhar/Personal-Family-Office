@@ -396,6 +396,14 @@
                     <span class="panel-tag">Saved locally · INR</span>
                 </div>
                 <p class="cash-flow-intro">Track dated income and expenses, recurring items, and monthly net cash flow. Transactions are stored separately in this browser and are not mixed into asset/liability net worth totals.</p>
+                <section class="monthly-review-launcher" aria-labelledby="monthly-review-heading">
+                    <div><p class="eyebrow">PERIOD CLOSE</p><h3 id="monthly-review-heading">Monthly financial review</h3>
+                    <p class="cash-flow-intro">Create a self-contained report for a selected month, comparing recorded cash flow with the prior month and summarizing explicit budget overruns and saved goal progress. No forecast or new data is created.</p></div>
+                    <div class="monthly-review-controls">
+                        <label class="field-label" for="monthly-review-month">Reporting month<input id="monthly-review-month" type="month" required></label>
+                        <button class="button button-primary" id="monthly-review-export-button" type="button">Download monthly review</button>
+                    </div>
+                </section>
                 <div class="cash-flow-summary" aria-label="Cash flow summary" aria-live="polite">
                     <article><span>Income</span><strong id="cash-flow-income-total">₹0</strong></article>
                     <article><span>Expenses</span><strong id="cash-flow-expense-total">₹0</strong></article>
