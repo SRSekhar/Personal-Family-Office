@@ -25,6 +25,7 @@ import { analyzeDiversification } from './analytics-runtime/DiversificationAnaly
 import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js';
 import { validateCashFlowEntries } from './cashflow-ledger.js';
 import { calculateFinancialHealth } from './financial-health.js';
+import { buildMonthlyFinancialReview, renderMonthlyFinancialReviewHtml } from './monthly-financial-review.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -934,6 +935,45 @@ function importCsvData(file) {
     reader.readAsText(file);
 }
 
+function exportMonthlyFinancialReview() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace !== 'private') {
+        showToast('Switch to your local private workspace before generating a monthly financial review.');
+        return;
+    }
+    if (!privateStorageHealthy || !goalsStorageHealthy) {
+        showToast('Monthly review is unavailable until saved financial records and goals can be validated safely.');
+        return;
+    }
+    const month = $('#monthly-review-month').value;
+    if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        showToast('Choose a valid reporting month.');
+        return;
+    }
+    try {
+        const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
+        const entries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw));
+        const budgetsRaw = localStorage.getItem('pfo-os.cash-flow-budgets.v1');
+        const budgets = budgetsRaw === null ? [] : JSON.parse(budgetsRaw);
+        const review = buildMonthlyFinancialReview({ entries, budgets, goals: savedGoals, month, generatedAt: new Date() });
+        const blob = new Blob([renderMonthlyFinancialReviewHtml(review)], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-monthly-financial-review-' + month + '.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Downloaded the offline monthly financial review. Keep the report private; it contains financial details.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not safely create the monthly financial review.');
+    }
+}
+
 function exportFinancialReport() {
     if (workspace === 'private' && (!isPrivateWorkspaceAllowed(window.location.hostname) || !privateStorageHealthy)) {
         showToast('Financial report export is unavailable until the local private workspace can be read safely.');
@@ -1292,6 +1332,7 @@ $('#view-all-button').addEventListener('click', () => {
 });
 $('#export-button').addEventListener('click', exportData);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
+$('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview);
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
 $('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
@@ -1358,6 +1399,8 @@ if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#fire-results').querySelectorAll('button').forEach((control) => { control.disabled = true; });
     $('#goal-tracker-form').querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
 }
+const reviewNow = new Date();
+$('#monthly-review-month').value = reviewNow.getFullYear() + '-' + String(reviewNow.getMonth() + 1).padStart(2, '0');
 initializeCashFlowTracker();
 initializeTaxEstimator();
 initializeLoanAmortizationCalculator();
