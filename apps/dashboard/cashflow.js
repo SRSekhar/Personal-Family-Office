@@ -334,6 +334,37 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             }
             annualCategoryBody.append(row);
         }
+        const monthlyCategoryMonthFilter = $('#cash-flow-monthly-category-month');
+        const priorCategoryMonth = monthlyCategoryMonthFilter.value;
+        const categoryMonths = [...new Set(entries.map((entry) => entry.date.slice(0, 7)))].sort((a, b) => b.localeCompare(a));
+        if (categoryMonths.length === 0) categoryMonths.push(localMonthString());
+        monthlyCategoryMonthFilter.replaceChildren();
+        for (const month of categoryMonths) {
+            const option = documentRef.createElement('option');
+            option.value = month;
+            option.textContent = new Intl.DateTimeFormat('en-IN', {
+                month: 'long', year: 'numeric', timeZone: 'UTC'
+            }).format(new Date(month + '-01T00:00:00.000Z'));
+            monthlyCategoryMonthFilter.append(option);
+        }
+        monthlyCategoryMonthFilter.value = categoryMonths.includes(priorCategoryMonth) ? priorCategoryMonth : categoryMonths[0];
+        const monthlyCategoryEntries = entries.filter((entry) => entry.date.startsWith(monthlyCategoryMonthFilter.value));
+        const monthlyCategories = summarizeCashFlowByCategory(monthlyCategoryEntries, 'all');
+        const monthlyCategoryExpenses = monthlyCategories.reduce((total, item) => total + item.expenses, 0);
+        const monthlyCategoryBody = $('#cash-flow-monthly-category-rows');
+        monthlyCategoryBody.replaceChildren();
+        $('#cash-flow-monthly-category-empty').hidden = monthlyCategories.length !== 0;
+        for (const category of monthlyCategories) {
+            const row = documentRef.createElement('tr');
+            const expenseShare = !Number.isFinite(monthlyCategoryExpenses) || monthlyCategoryExpenses === 0 ? '—'
+                : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format((category.expenses / monthlyCategoryExpenses) * 100) + '%';
+            for (const value of [category.category, money(category.income), money(category.expenses), expenseShare, money(category.net), String(category.transactionCount)]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            monthlyCategoryBody.append(row);
+        }
         const body = $('#cash-flow-rows');
         body.replaceChildren();
         $('#cash-flow-empty').hidden = shown.length !== 0;
@@ -1033,6 +1064,35 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     });
     $('#cash-flow-export-all-csv').addEventListener('click', () => {
         exportCsv(entries, 'pfo-cash-flow.csv', 'All cash flow transactions exported to this device.');
+    });
+    $('#cash-flow-monthly-category-month').addEventListener('change', render);
+    $('#cash-flow-export-monthly-categories-csv').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            message('Use the local-only dashboard to export personal cash-flow data.', true);
+            return;
+        }
+        if (!storageHealthy) {
+            message('Monthly category export is unavailable because saved cash-flow data could not be validated.', true);
+            return;
+        }
+        try {
+            const month = $('#cash-flow-monthly-category-month').value;
+            const monthEntries = entries.filter((entry) => entry.date.startsWith(month));
+            if (monthEntries.length === 0) {
+                message('No recorded transactions for ' + month + '. Nothing was exported.', true);
+                return;
+            }
+            const monthExpenses = monthEntries.filter((entry) => entry.type === 'expense')
+                .reduce((total, entry) => total + entry.amount, 0);
+            if (!Number.isFinite(monthExpenses)) {
+                message('Monthly expense totals exceed the supported numeric range; export is unavailable.', true);
+                return;
+            }
+            download('pfo-cash-flow-category-summary-' + month + '.csv', cashFlowCategorySummaryToCsv(monthEntries, 'all'), 'text/csv;charset=utf-8');
+            message('Monthly category summary for ' + month + ' exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export monthly category summary.', true);
+        }
     });
     $('#cash-flow-annual-category-year').addEventListener('change', render);
     $('#cash-flow-export-annual-categories-csv').addEventListener('click', () => {
