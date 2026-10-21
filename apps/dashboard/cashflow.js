@@ -144,6 +144,8 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             category: $('#cash-flow-category-filter').value || null,
             fromDate: $('#cash-flow-date-from').value,
             toDate: $('#cash-flow-date-to').value,
+            minAmount: $('#cash-flow-amount-min').value === '' ? null : Number($('#cash-flow-amount-min').value),
+            maxAmount: $('#cash-flow-amount-max').value === '' ? null : Number($('#cash-flow-amount-max').value),
             search: $('#cash-flow-search').value
         });
         return sortCashFlowEntries(filtered, $('#cash-flow-sort-order').value || 'date-newest');
@@ -232,14 +234,22 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
         const fromDate = $('#cash-flow-date-from').value;
         const toDate = $('#cash-flow-date-to').value;
+        const minAmount = $('#cash-flow-amount-min').value === '' ? null : Number($('#cash-flow-amount-min').value);
+        const maxAmount = $('#cash-flow-amount-max').value === '' ? null : Number($('#cash-flow-amount-max').value);
         const invalidDateRange = Boolean(fromDate && toDate && fromDate > toDate);
+        const invalidAmountRange = (minAmount !== null && (!Number.isFinite(minAmount) || minAmount < 0))
+            || (maxAmount !== null && (!Number.isFinite(maxAmount) || maxAmount < 0))
+            || (minAmount !== null && maxAmount !== null && minAmount > maxAmount);
+        const invalidFilterRange = invalidDateRange || invalidAmountRange;
         const dateRangeError = $('#cash-flow-date-range-error');
-        dateRangeError.textContent = invalidDateRange ? 'Start date must be on or before end date. Correct the date range to view or export transactions.' : '';
-        dateRangeError.hidden = !invalidDateRange;
-        const shown = invalidDateRange ? [] : visibleEntries();
-        $('#cash-flow-export-filtered-csv').disabled = invalidDateRange;
-        $('#cash-flow-export-filtered-summary-csv').disabled = invalidDateRange;
-        $('#cash-flow-export-filtered-category-csv').disabled = invalidDateRange;
+        dateRangeError.textContent = invalidDateRange
+            ? 'Start date must be on or before end date. Correct the date range to view or export transactions.'
+            : invalidAmountRange ? 'Amount range must use non-negative finite amounts, with minimum no greater than maximum. Correct the range to view or export transactions.' : '';
+        dateRangeError.hidden = !invalidFilterRange;
+        const shown = invalidFilterRange ? [] : visibleEntries();
+        $('#cash-flow-export-filtered-csv').disabled = invalidFilterRange;
+        $('#cash-flow-export-filtered-summary-csv').disabled = invalidFilterRange;
+        $('#cash-flow-export-filtered-category-csv').disabled = invalidFilterRange;
         const filteredSummary = summarizeCashFlow(shown);
         $('#cash-flow-filtered-income').textContent = money(filteredSummary.income);
         $('#cash-flow-filtered-expenses').textContent = money(filteredSummary.expenses);
@@ -1102,6 +1112,8 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-category-filter').addEventListener('change', render);
     $('#cash-flow-date-from').addEventListener('change', render);
     $('#cash-flow-date-to').addEventListener('change', render);
+    $('#cash-flow-amount-min').addEventListener('input', render);
+    $('#cash-flow-amount-max').addEventListener('input', render);
     $('#cash-flow-sort-order').addEventListener('change', render);
     $('#cash-flow-search').addEventListener('input', render);
     $('#cash-flow-reset-filters').addEventListener('click', () => {
@@ -1111,6 +1123,8 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-category-filter').value = '';
         $('#cash-flow-date-from').value = '';
         $('#cash-flow-date-to').value = '';
+        $('#cash-flow-amount-min').value = '';
+        $('#cash-flow-amount-max').value = '';
         $('#cash-flow-sort-order').value = 'date-newest';
         render();
         $('#cash-flow-search').focus();
