@@ -718,7 +718,8 @@ try {
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
-    assert.deepEqual(backup.cashFlowEntries, [], 'private JSON backup should include cash-flow transactions');
+    assert.equal(backup.cashFlowEntries.length, 2, 'private JSON backup should include all cash-flow transactions');
+    assert.ok(backup.cashFlowEntries.some((entry) => entry.description === 'Browser test salary'), 'cash-flow backup should preserve transaction details');
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
