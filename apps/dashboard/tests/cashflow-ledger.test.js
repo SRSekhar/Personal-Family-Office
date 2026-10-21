@@ -231,15 +231,15 @@ describe('annual cash-flow summary CSV', () => {
             { id: 'e-3', date: '2025-06-10', type: 'expense', category: 'Food', description: 'Prior year food', amount: 10000, recurring: false }
         ]);
         expect(csv).toBe(
-            '"year","income","expenses","net","savings_rate_percent","transaction_count"\\r\\n'
-            + '"2026","100000","22500","77500","77.5","3"\\r\\n'
-            + '"2025","50000","10000","40000","80","2"\\r\\n'
+            '"year","income","expenses","net","savings_rate_percent","transaction_count"\r\n'
+            + '"2026","100000","22500","77500","77.5","3"\r\n'
+            + '"2025","50000","10000","40000","80","2"\r\n'
         );
     });
 
     it('exports a header-only CSV when there are no transactions and leaves savings rate empty when income is zero', () => {
         expect(cashFlowAnnualSummaryToCsv([])).toBe(
-            '"year","income","expenses","net","savings_rate_percent","transaction_count"\\r\\n'
+            '"year","income","expenses","net","savings_rate_percent","transaction_count"\r\n'
         );
         expect(cashFlowAnnualSummaryToCsv([entries[1]])).toContain('"2026","0","20000","-20000","","1"');
     });
