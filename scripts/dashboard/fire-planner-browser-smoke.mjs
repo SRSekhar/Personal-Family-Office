@@ -710,8 +710,8 @@ try {
         page.waitForEvent('download'),
         page.locator('#export-button').click()
     ]);
-    assert.equal(backupDownload.suggestedFilename(), 'pfo-os-financial-records.json');
-    const backupPath = join(temporaryDirectory, 'pfo-os-financial-records.json');
+    assert.equal(backupDownload.suggestedFilename(), 'pfo-os-full-workspace-backup.json');
+    const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
     assert.equal(backup.schemaVersion, 2, 'private JSON backup should use the goal-aware schema version');
