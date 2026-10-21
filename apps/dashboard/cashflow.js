@@ -383,6 +383,57 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             }
             annualBody.append(row);
         }
+        const comparisonCurrentYearFilter = $('#cash-flow-comparison-current-year');
+        const comparisonBaseYearFilter = $('#cash-flow-comparison-base-year');
+        const priorCurrentYear = comparisonCurrentYearFilter.value;
+        const priorBaseYear = comparisonBaseYearFilter.value;
+        const comparisonYears = annualSummaries.map((item) => item.year);
+        for (const [select, previous, fallbackIndex] of [
+            [comparisonCurrentYearFilter, priorCurrentYear, 0],
+            [comparisonBaseYearFilter, priorBaseYear, Math.min(1, comparisonYears.length - 1)]
+        ]) {
+            select.replaceChildren();
+            for (const year of comparisonYears) {
+                const option = documentRef.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                select.append(option);
+            }
+            select.value = comparisonYears.includes(previous) ? previous : (comparisonYears[fallbackIndex] || '');
+            select.disabled = comparisonYears.length === 0;
+        }
+        $('#cash-flow-annual-comparison-empty').hidden = comparisonYears.length !== 0;
+        const currentYearComparison = annualSummaries.find((item) => item.year === comparisonCurrentYearFilter.value);
+        const baseYearComparison = annualSummaries.find((item) => item.year === comparisonBaseYearFilter.value);
+        const annualComparisonBody = $('#cash-flow-annual-comparison-rows');
+        annualComparisonBody.replaceChildren();
+        const annualComparisonMetrics = currentYearComparison && baseYearComparison ? [
+            ['Income', currentYearComparison.income, baseYearComparison.income, money],
+            ['Expenses', currentYearComparison.expenses, baseYearComparison.expenses, money],
+            ['Net cash flow', currentYearComparison.net, baseYearComparison.net, money],
+            ['Savings rate', calculateCashFlowSavingsRate(currentYearComparison.income, currentYearComparison.expenses),
+                calculateCashFlowSavingsRate(baseYearComparison.income, baseYearComparison.expenses),
+                (value) => value === null ? '—' : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(value) + '%'],
+            ['Transaction count', currentYearComparison.transactionCount, baseYearComparison.transactionCount, (value) => String(value)]
+        ] : [];
+        for (const [label, currentValue, baseValue, format] of annualComparisonMetrics) {
+            const row = documentRef.createElement('tr');
+            let differenceLabel = '—';
+            if (Number.isFinite(currentValue) && Number.isFinite(baseValue)) {
+                const difference = currentValue - baseValue;
+                if (Number.isFinite(difference)) {
+                    differenceLabel = label === 'Savings rate'
+                        ? new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(difference) + ' pp'
+                        : format(difference);
+                }
+            }
+            for (const value of [label, format(currentValue), format(baseValue), differenceLabel]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            annualComparisonBody.append(row);
+        }
         const annualCategoryYearFilter = $('#cash-flow-annual-category-year');
         const priorCategoryYear = annualCategoryYearFilter.value;
         const categoryYears = [...new Set(entries.map((entry) => entry.date.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
@@ -1173,6 +1224,44 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     });
     $('#cash-flow-comparison-current-month').addEventListener('change', render);
     $('#cash-flow-comparison-base-month').addEventListener('change', render);
+    $('#cash-flow-comparison-current-year').addEventListener('change', render);
+    $('#cash-flow-comparison-base-year').addEventListener('change', render);
+    $('#cash-flow-export-annual-comparison-csv').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            message('Use the local-only dashboard to export personal cash-flow data.', true);
+            return;
+        }
+        if (!storageHealthy) {
+            message('Annual comparison export is unavailable because saved cash-flow data could not be validated.', true);
+            return;
+        }
+        const currentYear = $('#cash-flow-comparison-current-year').value;
+        const baseYear = $('#cash-flow-comparison-base-year').value;
+        const summaries = summarizeCashFlowByYear(entries);
+        const current = summaries.find((item) => item.year === currentYear);
+        const comparison = summaries.find((item) => item.year === baseYear);
+        if (!current || !comparison || !current.transactionCount || !comparison.transactionCount) {
+            message('Record transactions in both selected years before exporting a comparison.', true);
+            return;
+        }
+        const currentRate = calculateCashFlowSavingsRate(current.income, current.expenses);
+        const baseRate = calculateCashFlowSavingsRate(comparison.income, comparison.expenses);
+        const csvRows = [
+            ['metric', 'selected_year', 'selected_value', 'comparison_year', 'comparison_value', 'difference'],
+            ['income', currentYear, current.income, baseYear, comparison.income, current.income - comparison.income],
+            ['expenses', currentYear, current.expenses, baseYear, comparison.expenses, current.expenses - comparison.expenses],
+            ['net_cash_flow', currentYear, current.net, baseYear, comparison.net, current.net - comparison.net],
+            ['savings_rate_percent', currentYear, currentRate ?? '', baseYear, baseRate ?? '', currentRate === null || baseRate === null ? '' : currentRate - baseRate],
+            ['transaction_count', currentYear, current.transactionCount, baseYear, comparison.transactionCount, current.transactionCount - comparison.transactionCount]
+        ];
+        if (csvRows.slice(1).some((row) => row.some((value) => typeof value === 'number' && !Number.isFinite(value)))) {
+            message('Annual comparison contains a numeric difference outside the supported range; export is unavailable.', true);
+            return;
+        }
+        const csv = csvRows.map((row) => row.map((value) => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(',')).join('\\r\\n') + '\\r\\n';
+        download('pfo-cash-flow-annual-comparison.csv', csv, 'text/csv;charset=utf-8');
+        message('Annual cash-flow comparison exported to this device.');
+    });
     $('#cash-flow-export-monthly-comparison-csv').addEventListener('click', () => {
         if (!isLoopback(windowRef.location.hostname)) {
             message('Use the local-only dashboard to export personal cash-flow data.', true);
