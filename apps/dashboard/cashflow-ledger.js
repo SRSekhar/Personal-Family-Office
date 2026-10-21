@@ -245,6 +245,42 @@ export function cashFlowMonthlySummaryToCsv(entries) {
     ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
 
+export function cashFlowAnnualSummaryToCsv(entries) {
+    const years = new Map();
+    for (const summary of summarizeCashFlowByMonth(entries)) {
+        const year = summary.month.slice(0, 4);
+        let annual = years.get(year);
+        if (!annual) {
+            annual = { year, income: 0, expenses: 0, transactionCount: 0 };
+            years.set(year, annual);
+        }
+        annual.income += summary.income;
+        annual.expenses += summary.expenses;
+        annual.transactionCount += summary.transactionCount;
+        if (!Number.isFinite(annual.income) || !Number.isFinite(annual.expenses)) {
+            throw new RangeError('Annual cash flow totals exceed the supported numeric range.');
+        }
+    }
+    const summaries = [...years.values()].map((summary) => {
+        const net = summary.income - summary.expenses;
+        if (!Number.isFinite(net)) {
+            throw new RangeError('Annual net cash flow exceeds the supported numeric range.');
+        }
+        return { ...summary, net };
+    }).sort((a, b) => b.year.localeCompare(a.year));
+    return [
+        ['year', 'income', 'expenses', 'net', 'savings_rate_percent', 'transaction_count'],
+        ...summaries.map((summary) => [
+            summary.year,
+            summary.income,
+            summary.expenses,
+            summary.net,
+            calculateCashFlowSavingsRate(summary.income, summary.expenses) ?? '',
+            summary.transactionCount
+        ])
+    ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+}
+
 export function cashFlowToCsv(entries) {
     const rows = validateCashFlowEntries(entries).map((entry) => [
         entry.date, entry.type, entry.category, entry.description, entry.amount, entry.recurring ? 'true' : 'false'

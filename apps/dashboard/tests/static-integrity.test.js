@@ -256,6 +256,23 @@ describe('monthly budget overview contract', () => {
     });
 });
 
+describe('annual cash-flow summary export contract', () => {
+    it('exposes an annual summary export backed by validated recorded transactions and local-only controls', async () => {
+        const [html, app, ledger] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('cashflow-ledger.js')
+        ]);
+        expect(html).toContain('id="cash-flow-export-annual-csv"');
+        expect(app).toContain("$('#cash-flow-export-annual-csv').addEventListener('click'");
+        expect(app).toContain("cashFlowAnnualSummaryToCsv(entries)");
+        expect(app).toContain("isLoopback(windowRef.location.hostname)");
+        expect(app).toContain("'pfo-cash-flow-annual-summary.csv'");
+        expect(ledger).toContain("['year', 'income', 'expenses', 'net', 'savings_rate_percent', 'transaction_count']");
+        expect(ledger).toContain('Annual cash flow totals exceed the supported numeric range.');
+    });
+});
+
 describe('monthly budget utilization contract', () => {
     it('shows budget-used percentage and exports the same metric without inventing a budget', async () => {
         const [html, cashFlow] = await Promise.all([

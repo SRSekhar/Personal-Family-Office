@@ -1,5 +1,5 @@
 import {
-    calculateCashFlowSavingsRate, findPotentialDuplicateCashFlowEntry, cashFlowCategorySummaryToCsv, cashFlowFilteredSummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
+    calculateCashFlowSavingsRate, findPotentialDuplicateCashFlowEntry, cashFlowAnnualSummaryToCsv, cashFlowCategorySummaryToCsv, cashFlowFilteredSummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
     sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
     summarizeCashFlowByMonth, validateCashFlowEntries
 } from './cashflow-ledger.js';
@@ -867,6 +867,18 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             message('Monthly cash-flow summary exported to this device.');
         } catch (error) {
             message(error instanceof Error ? error.message : 'Could not export monthly cash-flow summary.', true);
+        }
+    });
+    $('#cash-flow-export-annual-csv').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            message('Use the local-only dashboard to export personal cash-flow data.', true);
+            return;
+        }
+        try {
+            download('pfo-cash-flow-annual-summary.csv', cashFlowAnnualSummaryToCsv(entries), 'text/csv;charset=utf-8');
+            message('Annual cash-flow summary exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export annual cash-flow summary.', true);
         }
     });
     $('#cash-flow-budget-export-csv').addEventListener('click', () => {
