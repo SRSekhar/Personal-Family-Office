@@ -45,6 +45,17 @@ describe('monthly financial review', () => {
         expect(review.goals[0]).toMatchObject({ name: 'Emergency fund', progress: 50, remaining: 100000, status: 'In progress' });
     });
 
+    it('separates recorded expenses that have no explicit budget for the selected month', () => {
+        const review = buildMonthlyFinancialReview({
+            entries: [...entries, { id: 'expense-unbudgeted', date: '2026-09-06', type: 'expense', category: 'Transport', description: 'Bus and taxi', amount: 12000, recurring: false }],
+            budgets, goals: [], month: '2026-09', generatedAt: new Date('2026-10-21T08:00:00.000Z')
+        });
+        expect(review.unbudgetedExpenses).toEqual([{ category: 'Transport', actual: 12000, transactionCount: 1 }]);
+        const html = renderMonthlyFinancialReviewHtml(review);
+        expect(html).toContain('Expenses without a saved budget');
+        expect(html).toContain('Total expenses without a saved budget: ₹12,000.');
+    });
+
     it('handles a month without transactions and zero-income savings rates explicitly', () => {
         const review = buildMonthlyFinancialReview({ entries, budgets: [], goals: [], month: '2026-07', generatedAt: new Date('2026-10-21T08:00:00.000Z') });
         expect(review.current).toMatchObject({ income: 0, expenses: 0, net: 0, savingsRate: null, transactionCount: 0 });
