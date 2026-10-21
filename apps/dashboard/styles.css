@@ -227,3 +227,13 @@
 .fire-gap-card>small{font-size:10px;line-height:1.55;color:#78857e;overflow-wrap:anywhere}
 @media(max-width:1150px){.fire-gap-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:680px){.fire-gap-grid{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Selected-month financial review report launcher */
+.monthly-review-launcher{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:18px;margin:18px 0;padding:17px;border:1px solid var(--line);border-radius:10px;background:#fbfcfb}
+.monthly-review-launcher h3{margin:0;font-size:15px;color:var(--text)}
+.monthly-review-launcher .cash-flow-intro{margin:8px 0 0}
+.monthly-review-controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.monthly-review-controls .field-label{min-width:165px;margin:0}
+.monthly-review-controls input{width:100%;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:#fff;color:#2b3f32;font-size:12px}
+@media(max-width:700px){.monthly-review-launcher{grid-template-columns:1fr}.monthly-review-controls{align-items:stretch;flex-direction:column}.monthly-review-controls .field-label{min-width:0}}

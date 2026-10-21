@@ -658,3 +658,28 @@ describe('FIRE goal gap analysis contract', () => {
         expect(css).toContain('@media(max-width:680px){.fire-gap-grid{grid-template-columns:minmax(0,1fr)}}');
     });
 });
+
+
+describe('monthly financial review report contract', () => {
+    it('connects an explicitly selected month to a guarded, offline report using validated local records', async () => {
+        const [html, app, report, css] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('app.js'),
+            readDashboardFile('monthly-financial-review.js'),
+            readDashboardFile('styles.css')
+        ]);
+        expect(html).toContain('id="monthly-review-month"');
+        expect(html).toContain('id="monthly-review-export-button"');
+        expect(app).toContain("$('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview)");
+        expect(app).toContain("workspace !== 'private'");
+        expect(app).toContain("isPrivateWorkspaceAllowed(window.location.hostname)");
+        expect(app).toContain("validateCashFlowEntries(JSON.parse(entriesRaw))");
+        expect(app).toContain("buildMonthlyFinancialReview({ entries, budgets, goals: savedGoals, month, generatedAt: new Date() })");
+        expect(app).toContain("pfo-os-monthly-financial-review-' + month + '.html'");
+        expect(report).toContain('function buildMonthlyFinancialReview');
+        expect(report).toContain('function renderMonthlyFinancialReviewHtml');
+        expect(report).toContain('No forecasts, inferred transactions, or recommendations.');
+        expect(css).toContain('.monthly-review-launcher');
+        expect(css).toContain('@media(max-width:700px){.monthly-review-launcher{grid-template-columns:1fr}');
+    });
+});
