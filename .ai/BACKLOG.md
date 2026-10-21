@@ -295,3 +295,5 @@ No work should begin unless it has been added to the backlog.
 - Compare two recorded cash-flow years side by side for income, expenses, net cash flow, savings rate, and transaction counts; show absolute differences and savings-rate percentage-point changes, with a local-only CSV export (implemented in this change).
 - Add a month-over-month budget performance trend showing budgeted-category actuals, remaining amounts, utilization, count of over-budget categories, and positive overruns; never infer budgets or include unbudgeted categories in totals (implemented in feature/budget-performance-trend).
 - Export the month-over-month budget performance trend to a deterministic CSV with explicit aggregate fields and local-only/storage-validation guards (implemented in feature/budget-performance-trend-export).
+
+- Surface categories that exceed their explicit monthly budgets in at least two recorded months, showing over-budget month count, budgeted month count, cumulative overrun, and average overrun; derive only from saved budgets and recorded expenses.

@@ -8,6 +8,7 @@
     <title>PFO OS — Financial workspace</title>
     <link rel="stylesheet" href="./styles.css">
     <script type="module" src="./app.js"></script>
+    <script type="module" src="./budget-overrun-insights.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -576,6 +577,19 @@
                                 </table>
                             </div>
                             <p id="cash-flow-budget-performance-empty" class="cash-flow-empty">Save a monthly category budget to start a performance trend.</p>
+                        </section>
+                        <section id="cash-flow-repeated-budget-overrun-panel" class="cash-flow-category-panel" aria-labelledby="cash-flow-repeated-budget-overrun-heading">
+                            <div class="panel-header"><div><p class="eyebrow">REPEATED OVERRUNS</p><h4 id="cash-flow-repeated-budget-overrun-heading">Categories repeatedly over budget</h4></div><span class="panel-tag">At least 2 budgeted months over limit</span></div>
+                            <p class="cash-flow-intro">Uses only saved monthly budgets and recorded expenses. Categories without explicit budgets are excluded; this is historical analysis, not a forecast.</p>
+                            <div class="table-wrap cash-flow-category-table-wrap">
+                                <table>
+                                    <caption class="sr-only">Categories over budget in at least two recorded months</caption>
+                                    <thead><tr><th scope="col">Category</th><th scope="col">Months over budget</th><th scope="col">Months budgeted</th><th scope="col">Cumulative overrun</th><th scope="col">Average overrun month</th></tr></thead>
+                                    <tbody id="cash-flow-repeated-budget-overrun-rows"></tbody>
+                                </table>
+                            </div>
+                            <p id="cash-flow-repeated-budget-overrun-empty" class="cash-flow-empty">Save monthly budgets to identify repeated overruns.</p>
+                            <p id="cash-flow-repeated-budget-overrun-message" class="cash-flow-message" role="status" aria-live="polite" hidden></p>
                         </section>
                     </section>
                 </section>
