@@ -119,6 +119,7 @@ Planned
 
 - Financial Health Dashboard: consolidated local-only balance-sheet net worth, current-month recorded income/expenses/net/savings rate, explicit monthly budget overruns, and saved-goal progress; validated inputs, unavailable states, and live refresh after cash-flow/budget changes (implemented in feature/financial-health-dashboard).
 - Monthly Financial Review: downloadable self-contained offline HTML report for an explicitly selected month, comparing recorded cash flow with the prior month and summarizing explicit saved-budget results, category activity, and saved-goal progress; local-only, validated, historical/descriptive, and no forecasts. Includes current-versus-prior category income and expense changes, treating categories absent from a month as zero.
+- Monthly financial review validates saved goal target dates as real calendar dates, rejecting impossible dates while allowing valid leap days.
 
 # Epic 4 — Recommendation Engine
 
