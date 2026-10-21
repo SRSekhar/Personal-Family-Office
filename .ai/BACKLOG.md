@@ -14,6 +14,23 @@ Build an enterprise-grade Personal Family Office Operating System that provides 
 
 ---
 
+## Future Platform Capability — Storage, Backup & Sync
+
+Status
+
+Planned — architecture and requirements first; no cloud provider is enabled by this item.
+
+- Preserve local-first, offline-capable use as the default. No financial records are uploaded unless the user explicitly configures and initiates a supported remote-storage workflow.
+- Evaluate Google Sheets as a possible user-owned storage/synchronization adapter, alongside alternatives such as Google Drive app data, a self-hosted API/database, and encrypted file-based backup. Select a provider only after assessing privacy, authentication, data integrity, quotas, portability, offline behavior, and recovery.
+- Introduce a provider-neutral storage boundary so domain logic and deterministic financial calculations do not depend on a vendor SDK or spreadsheet layout.
+- Treat remote sync as opt-in, with clear account/permission disclosure, explicit connect/disconnect and sync actions, conflict detection, schema/versioning, idempotent writes, retry limits, and visible sync status.
+- Never embed OAuth client secrets or access tokens in the browser bundle or repository. Use the minimum required scopes; define token handling, revocation, and account-data deletion behavior before implementation.
+- Keep local JSON export/import as a provider-independent escape hatch. Require round-trip, corruption, duplicate-write, partial-failure, conflict, and disconnect tests before calling sync production-ready.
+- Do not use a public spreadsheet as a database or publish household financial data. Google Sheets is a candidate, not a final architectural decision; evaluate whether it meets the security and consistency requirements before selecting it.
+- Acceptance gate: approved storage/sync ADR, threat/privacy review, data model/schema mapping, migration and recovery plan, automated integration tests, and explicit user opt-in.
+
+---
+
 # Epic 1 — Platform Foundation
 
 Status
