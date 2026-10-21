@@ -325,7 +325,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-annual-category-empty').hidden = annualCategories.length !== 0;
         for (const category of annualCategories) {
             const row = documentRef.createElement('tr');
-            const expenseShare = annualCategoryExpenses === 0 ? '—'
+            const expenseShare = !Number.isFinite(annualCategoryExpenses) || annualCategoryExpenses === 0 ? '—'
                 : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format((category.expenses / annualCategoryExpenses) * 100) + '%';
             for (const value of [category.category, money(category.income), money(category.expenses), expenseShare, money(category.net), String(category.transactionCount)]) {
                 const cell = documentRef.createElement('td');
