@@ -23,6 +23,8 @@ import { initializeCagrCalculator } from './cagr.js';
 import { initializeReturnRiskCalculator } from './return-risk.js';
 import { analyzeDiversification } from './analytics-runtime/DiversificationAnalysis.js';
 import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js';
+import { validateCashFlowEntries } from './cashflow-ledger.js';
+import { calculateFinancialHealth } from './financial-health.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const CURRENCY = 'INR';
@@ -443,6 +445,7 @@ function renderSavedGoals() {
         card.innerHTML = `<div class="saved-goal-heading"><div><h4>${escapeHtml(goal.name)}</h4><p class="saved-goal-meta">Target ${escapeHtml(money(goal.targetAmount))} · Due ${escapeHtml(formatter.format(new Date(goal.targetDate + 'T00:00:00Z')))}</p></div><span class="saved-goal-status ${statusClass}">${statusText}</span></div><div class="saved-goal-progress"><span>${escapeHtml(money(goal.currentAmount))} saved</span><strong>${escapeHtml(number(result.progressPercent))}%</strong></div><progress max="100" value="${Math.min(100, result.progressPercent)}" aria-label="${escapeHtml(goal.name)} progress">${Math.min(100, result.progressPercent)}%</progress><p class="saved-goal-meta">${result.isComplete ? 'Target reached' : result.isOverdue ? Math.abs(result.daysRemaining) + ' days overdue · ' + escapeHtml(money(result.amountRemaining)) + ' remaining' : result.daysRemaining + ' days remaining · ' + escapeHtml(money(result.amountRemaining)) + ' remaining'}</p><p class="saved-goal-meta">${escapeHtml(monthlyPace)}</p><div class="saved-goal-actions"><button class="button button-secondary" type="button" data-goal-edit="${escapeHtml(goal.id)}">Edit / update progress</button><button class="button button-secondary" type="button" data-goal-delete="${escapeHtml(goal.id)}">Delete goal</button></div>`;
         container.append(card);
     }
+    renderFinancialHealth();
     const canManage = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname) && privateStorageHealthy && goalsStorageHealthy;
     container.querySelectorAll('[data-goal-edit], [data-goal-delete]').forEach((button) => { button.disabled = !canManage; });
     $('#saved-goals-export-csv').disabled = !(workspace === 'private'
@@ -548,6 +551,79 @@ function totals() {
     return calculateFinancialTotals(records);
 }
 
+function renderFinancialHealth() {
+    const status = $('#financial-health-status');
+    const body = $('#financial-health-metrics');
+    const note = $('#financial-health-note');
+    body.replaceChildren();
+    const showUnavailable = (message) => {
+        status.textContent = 'Unavailable';
+        note.textContent = message;
+        body.innerHTML = '<p class="financial-health-empty">No combined summary is shown until the required local data can be validated.</p>';
+    };
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showUnavailable('This summary is disabled outside a trusted local dashboard.');
+        return;
+    }
+    if (workspace !== 'private') {
+        status.textContent = 'Sample workspace';
+        note.textContent = 'Switch to your private workspace to summarize your saved financial records.';
+        body.innerHTML = '<p class="financial-health-empty">Your saved financial data is not read while the sample workspace is active.</p>';
+        return;
+    }
+    if (!privateStorageHealthy || !goalsStorageHealthy) {
+        showUnavailable('Financial records or saved goals could not be validated. Existing data has been left untouched.');
+        return;
+    }
+    try {
+        const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
+        const entries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw));
+        const budgetsRaw = localStorage.getItem('pfo-os.cash-flow-budgets.v1');
+        const budgets = budgetsRaw === null ? [] : JSON.parse(budgetsRaw);
+        if (!Array.isArray(budgets)) throw new Error('Saved budget data is not a valid list.');
+        const budgetKeys = new Set();
+        for (const budget of budgets) {
+            if (!budget || typeof budget.month !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
+                || typeof budget.category !== 'string' || !budget.category.trim()
+                || typeof budget.amount !== 'number' || !Number.isFinite(budget.amount) || budget.amount <= 0) {
+                throw new Error('Saved budget data failed validation.');
+            }
+            const key = budget.month + '|' + budget.category.trim().toLocaleLowerCase('en-US');
+            if (budgetKeys.has(key)) throw new Error('Saved budget data contains duplicate month/category entries.');
+            budgetKeys.add(key);
+        }
+        const now = new Date();
+        const month = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        const result = calculateFinancialHealth({ records, cashFlowEntries: entries, budgets, goals: savedGoals, month });
+        const monthLabel = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' })
+            .format(new Date(month + '-01T12:00:00'));
+        const percent = (value) => value === null ? 'Unavailable' : number(value) + '%';
+        const cards = [
+            ['Net worth', money(result.netWorth), 'Assets ' + money(result.assets) + ' · Liabilities ' + money(result.liabilities)],
+            ['Recorded cash flow · ' + monthLabel, money(result.netCashFlow), 'Income ' + money(result.income) + ' · Expenses ' + money(result.expenses)],
+            ['Savings rate · ' + monthLabel, percent(result.savingsRate), result.savingsRate === null ? 'No recorded income for this month' : 'Recorded net cash flow ÷ recorded income'],
+            ['Monthly budget control', result.budgetedCategoryCount === 0 ? 'No budgets set' : result.overBudgetCategoryCount + ' over budget', result.budgetedCategoryCount === 0 ? 'Save monthly category budgets to compare' : money(result.totalPositiveOverrun) + ' positive overruns · ' + money(result.actualInBudgetedCategories) + ' spent in budgeted categories'],
+            ['Saved goal progress', result.goalProgressPercent === null ? 'No goals saved' : percent(result.goalProgressPercent), result.goalCount === 0 ? 'Save a goal to track progress' : result.completedGoals + ' of ' + result.goalCount + ' goals reached · ' + money(result.goalCurrentTotal) + ' of ' + money(result.goalTargetTotal)]
+        ];
+        for (const [label, value, detail] of cards) {
+            const card = document.createElement('article');
+            card.className = 'financial-health-card';
+            const heading = document.createElement('span');
+            heading.textContent = label;
+            const strong = document.createElement('strong');
+            strong.textContent = value;
+            const small = document.createElement('small');
+            small.textContent = detail;
+            card.append(heading, strong, small);
+            body.append(card);
+        }
+        status.textContent = 'Local data · ' + monthLabel;
+        note.textContent = 'Historical and descriptive only. Uses recorded balances, transactions, explicit budgets, and saved goals; no forecasts, external feeds, financial score, or recommendations.';
+    } catch {
+        showUnavailable('Cash-flow or budget data could not be validated. The dashboard has not changed or overwritten your saved data.');
+    }
+}
+
 function render() {
     const result = totals();
     $('#net-worth').textContent = money(result.netWorth);
@@ -558,6 +634,7 @@ function render() {
     $('#liability-count').textContent = `${records.filter((item) => item.type === 'liability').length} records`;
     $('#net-worth-caption').textContent = result.netWorth < 0 ? 'Liabilities exceed assets' : 'Assets minus liabilities';
     renderFinancialRatios(result);
+    renderFinancialHealth();
     renderAllocation(result.assets);
     renderRecords();
 }
@@ -1221,6 +1298,7 @@ function syncActiveNavigation() {
 
 document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', syncActiveNavigation));
 window.addEventListener('hashchange', syncActiveNavigation);
+window.addEventListener('pfo:cashflow-updated', renderFinancialHealth);
 syncActiveNavigation();
 
 resetGoal();
