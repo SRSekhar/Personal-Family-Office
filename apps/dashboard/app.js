@@ -23,7 +23,7 @@ import { initializeCagrCalculator } from './cagr.js';
 import { initializeReturnRiskCalculator } from './return-risk.js';
 import { analyzeDiversification } from './analytics-runtime/DiversificationAnalysis.js';
 import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js';
-import { validateCashFlowEntries } from './cashflow-ledger.js';
+import { validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
 import { calculateFinancialHealth } from './financial-health.js';
 import { buildMonthlyFinancialReview, renderMonthlyFinancialReviewHtml } from './monthly-financial-review.js';
 
@@ -923,23 +923,36 @@ function exportData() {
         return;
     }
     const payload = {
-        schemaVersion: isPrivateExport ? 2 : 1,
+        schemaVersion: isPrivateExport ? 3 : 1,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records
     };
-    if (isPrivateExport) payload.goals = savedGoals;
+    if (isPrivateExport) {
+        try {
+            const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
+            const budgetsRaw = localStorage.getItem('pfo-os.cash-flow-budgets.v1');
+            payload.goals = savedGoals;
+            payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw));
+            payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw));
+        } catch (error) {
+            showToast(error instanceof Error ? 'Full workspace export paused: ' + error.message : 'Full workspace data could not be validated; nothing was exported.');
+            return;
+        }
+    }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'pfo-os-financial-records.json';
+    link.download = 'pfo-os-full-workspace-backup.json';
     document.body.append(link);
     link.click();
     link.remove();
     // Keep the object URL alive briefly so the browser can begin consuming the download.
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Workspace exported to this device.');
+    showToast(isPrivateExport
+        ? 'Full workspace backup exported to this device, including records, goals, cash flow, and budgets.'
+        : 'Sample financial records exported to this device.');
 }
 
 function importCsvData(file) {
@@ -1205,14 +1218,58 @@ function importData(file) {
             const backup = validateBackupPayload(parsed, CURRENCY);
             const validatedRecords = backup.records.map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            const needsConfirmation = records.length > 0 || (backup.includesGoals && savedGoals.length > 0);
+            const needsConfirmation = records.length > 0 || (backup.includesGoals && savedGoals.length > 0)
+                || (backup.includesCashFlow && (localStorage.getItem('pfo-os.cash-flow.v1') !== null
+                    || localStorage.getItem('pfo-os.cash-flow-budgets.v1') !== null));
             const replacementConfirmed = !needsConfirmation || window.confirm(
-                backup.includesGoals
-                    ? 'Importing this backup will replace all records and saved goals in your private workspace. Export a backup first if you want to keep them. Continue?'
-                    : 'Importing this legacy backup will replace all financial records. Saved goals are not included and will be preserved. Continue?'
+                backup.includesCashFlow
+                    ? 'Importing this full workspace backup will replace financial records, saved goals, cash-flow transactions, and budgets in this browser. Export a backup first if you want to keep them. Continue?'
+                    : backup.includesGoals
+                        ? 'Importing this backup will replace all records and saved goals in your private workspace. Export a backup first if you want to keep them. Continue?'
+                        : 'Importing this legacy backup will replace all financial records. Saved goals are not included and will be preserved. Continue?'
             );
             if (!replacementConfirmed) {
-                showToast('Import cancelled. Your existing records and goals were not changed.');
+                showToast('Import cancelled. Your existing data was not changed.');
+                return;
+            }
+
+            if (backup.includesCashFlow) {
+                const storageKeys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1'];
+                let previousValues;
+                try {
+                    previousValues = storageKeys.map((key) => [key, localStorage.getItem(key)]);
+                    calculateFinancialTotals(validatedRecords);
+                } catch (error) {
+                    showToast(error instanceof Error ? 'Could not safely prepare workspace restore: ' + error.message : 'Could not inspect current storage. Nothing was imported.');
+                    return;
+                }
+                try {
+                    if (!persistJson(localStorage, STORAGE_KEY, validatedRecords)) throw new Error('Could not save financial records.');
+                    if (!saveSavedGoals(localStorage, backup.goals)) throw new Error('Could not save financial goals.');
+                    if (!persistJson(localStorage, 'pfo-os.cash-flow.v1', backup.cashFlowEntries)) throw new Error('Could not save cash-flow transactions.');
+                    if (!persistJson(localStorage, 'pfo-os.cash-flow-budgets.v1', backup.budgets)) throw new Error('Could not save category budgets.');
+                } catch (error) {
+                    const restored = previousValues.map(([key, value]) => restoreStorageValue(key, value)).every(Boolean);
+                    if (!restored) {
+                        privateStorageHealthy = false;
+                        goalsStorageHealthy = false;
+                        showToast('Workspace restore failed and rollback was incomplete. Stop editing and preserve this browser profile for recovery.');
+                    } else {
+                        showToast(error instanceof Error ? error.message + ' The previous workspace data was restored.' : 'Workspace restore failed; the previous data was restored.');
+                    }
+                    return;
+                }
+                records = validatedRecords;
+                savedGoals = backup.goals;
+                privateStorageHealthy = true;
+                goalsStorageHealthy = true;
+                renderSavedGoals();
+                showGoalMessage();
+                render();
+                window.dispatchEvent(new Event('pfo:cashflow-restored'));
+                window.dispatchEvent(new Event('pfo:cashflow-updated'));
+                showToast('Restored full workspace: ' + records.length + ' records, ' + savedGoals.length
+                    + ' goals, ' + backup.cashFlowEntries.length + ' cash-flow transactions, and ' + backup.budgets.length + ' budgets.');
                 return;
             }
 
