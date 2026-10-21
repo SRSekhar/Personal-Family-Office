@@ -150,6 +150,7 @@ Implemented
 - Local income/expense ledger with month summaries, recurring flags, edit/delete, dedicated JSON backup/restore, and formula-safe CSV export (PR #200).
 - Cash-flow category breakdown for the selected period with income, expenses, and net by category (PR #201).
 - Separate summary of explicitly recurring-tagged transactions for the selected period, with income, expenses, net, and count; descriptive only, not a forecast, with a dedicated formula-safe CSV export of the recorded entries.
+- Recurring-tagged cash-flow breakdown by category for the selected period, with income, expenses, share of recurring expenses, net, count, and guarded local CSV export (implemented in this change).
 - Cash-flow transaction search, type filtering, visible-result counts, and reset controls (PR #202).
 - Cash-flow filtered CSV and full-ledger CSV export actions (PR #205).
 - Deterministic transaction sorting by date, amount, and category; filtered CSV follows the selected sort (PR #206).
