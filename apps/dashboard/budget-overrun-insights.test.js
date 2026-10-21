@@ -1,5 +1,16 @@
+import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import { summarizeRepeatedOverruns } from './budget-overrun-insights.js';
+
+describe('repeated budget overrun dashboard contract', () => {
+    it('loads the analysis module and exposes the historical insights table', async () => {
+        const html = await readFile(new URL('./index.html', import.meta.url), 'utf8');
+        expect(html).toContain('<script type="module" src="./budget-overrun-insights.js"></script>');
+        expect(html).toContain('id="cash-flow-repeated-budget-overrun-panel"');
+        expect(html).toContain('id="cash-flow-repeated-budget-overrun-rows"');
+        expect(html).toContain('id="cash-flow-repeated-budget-overrun-message"');
+    });
+});
 
 describe('repeated budget overrun insights', () => {
     it('reports only categories over budget in at least two budgeted months', () => {
