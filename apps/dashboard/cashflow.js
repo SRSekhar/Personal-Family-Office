@@ -434,6 +434,52 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             }
             annualComparisonBody.append(row);
         }
+        const annualCategoryComparisonBody = $('#cash-flow-annual-category-comparison-rows');
+        annualCategoryComparisonBody.replaceChildren();
+        const currentYearCategories = currentYearComparison
+            ? summarizeCashFlowByCategory(entries.filter((entry) => entry.date.startsWith(currentYearComparison.year)), 'all')
+            : [];
+        const baseYearCategories = baseYearComparison
+            ? summarizeCashFlowByCategory(entries.filter((entry) => entry.date.startsWith(baseYearComparison.year)), 'all')
+            : [];
+        const categoriesByKey = new Map();
+        for (const item of currentYearCategories) {
+            categoriesByKey.set(item.category.toLocaleLowerCase('en-US'), {
+                category: item.category, currentIncome: item.income, currentExpenses: item.expenses,
+                baseIncome: 0, baseExpenses: 0
+            });
+        }
+        for (const item of baseYearCategories) {
+            const key = item.category.toLocaleLowerCase('en-US');
+            const existing = categoriesByKey.get(key);
+            if (existing) {
+                existing.baseIncome = item.income;
+                existing.baseExpenses = item.expenses;
+            } else {
+                categoriesByKey.set(key, {
+                    category: item.category, currentIncome: 0, currentExpenses: 0,
+                    baseIncome: item.income, baseExpenses: item.expenses
+                });
+            }
+        }
+        const annualCategoryComparison = [...categoriesByKey.values()].sort((a, b) =>
+            b.currentExpenses - a.currentExpenses || b.baseExpenses - a.baseExpenses
+            || a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
+        $('#cash-flow-annual-category-comparison-empty').hidden = annualCategoryComparison.length !== 0;
+        for (const item of annualCategoryComparison) {
+            const expenseDifference = item.currentExpenses - item.baseExpenses;
+            const row = documentRef.createElement('tr');
+            for (const value of [
+                item.category, money(item.currentIncome), money(item.currentExpenses),
+                money(item.baseIncome), money(item.baseExpenses),
+                Number.isFinite(expenseDifference) ? money(expenseDifference) : '—'
+            ]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            annualCategoryComparisonBody.append(row);
+        }
         const annualCategoryYearFilter = $('#cash-flow-annual-category-year');
         const priorCategoryYear = annualCategoryYearFilter.value;
         const categoryYears = [...new Set(entries.map((entry) => entry.date.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
@@ -1247,13 +1293,39 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const currentRate = calculateCashFlowSavingsRate(current.income, current.expenses);
         const baseRate = calculateCashFlowSavingsRate(comparison.income, comparison.expenses);
         const csvRows = [
-            ['metric', 'selected_year', 'selected_value', 'comparison_year', 'comparison_value', 'difference'],
-            ['income', currentYear, current.income, baseYear, comparison.income, current.income - comparison.income],
-            ['expenses', currentYear, current.expenses, baseYear, comparison.expenses, current.expenses - comparison.expenses],
-            ['net_cash_flow', currentYear, current.net, baseYear, comparison.net, current.net - comparison.net],
-            ['savings_rate_percent', currentYear, currentRate ?? '', baseYear, baseRate ?? '', currentRate === null || baseRate === null ? '' : currentRate - baseRate],
-            ['transaction_count', currentYear, current.transactionCount, baseYear, comparison.transactionCount, current.transactionCount - comparison.transactionCount]
+            ['record_type', 'metric', 'category', 'selected_year', 'selected_value', 'comparison_year', 'comparison_value', 'difference'],
+            ['summary', 'income', '', currentYear, current.income, baseYear, comparison.income, current.income - comparison.income],
+            ['summary', 'expenses', '', currentYear, current.expenses, baseYear, comparison.expenses, current.expenses - comparison.expenses],
+            ['summary', 'net_cash_flow', '', currentYear, current.net, baseYear, comparison.net, current.net - comparison.net],
+            ['summary', 'savings_rate_percent', '', currentYear, currentRate ?? '', baseYear, baseRate ?? '', currentRate === null || baseRate === null ? '' : currentRate - baseRate],
+            ['summary', 'transaction_count', '', currentYear, current.transactionCount, baseYear, comparison.transactionCount, current.transactionCount - comparison.transactionCount]
         ];
+        const currentCategories = summarizeCashFlowByCategory(entries.filter((entry) => entry.date.startsWith(currentYear)), 'all');
+        const comparisonCategories = summarizeCashFlowByCategory(entries.filter((entry) => entry.date.startsWith(baseYear)), 'all');
+        const categoryRows = new Map();
+        for (const item of currentCategories) {
+            categoryRows.set(item.category.toLocaleLowerCase('en-US'), {
+                category: item.category, currentIncome: item.income, currentExpenses: item.expenses,
+                baseIncome: 0, baseExpenses: 0
+            });
+        }
+        for (const item of comparisonCategories) {
+            const key = item.category.toLocaleLowerCase('en-US');
+            const existing = categoryRows.get(key);
+            if (existing) {
+                existing.baseIncome = item.income;
+                existing.baseExpenses = item.expenses;
+            } else {
+                categoryRows.set(key, {
+                    category: item.category, currentIncome: 0, currentExpenses: 0,
+                    baseIncome: item.income, baseExpenses: item.expenses
+                });
+            }
+        }
+        for (const item of categoryRows.values()) {
+            csvRows.push(['category', 'income', item.category, currentYear, item.currentIncome, baseYear, item.baseIncome, item.currentIncome - item.baseIncome]);
+            csvRows.push(['category', 'expenses', item.category, currentYear, item.currentExpenses, baseYear, item.baseExpenses, item.currentExpenses - item.baseExpenses]);
+        }
         if (csvRows.slice(1).some((row) => row.some((value) => typeof value === 'number' && !Number.isFinite(value)))) {
             message('Annual comparison contains a numeric difference outside the supported range; export is unavailable.', true);
             return;

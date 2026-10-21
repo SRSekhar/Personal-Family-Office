@@ -480,6 +480,16 @@
                         </table>
                     </div>
                     <p id="cash-flow-annual-comparison-empty" class="cash-flow-empty" hidden>Record transactions in at least one year to enable comparisons.</p>
+                    <h4 class="cash-flow-subheading">Category drivers</h4>
+                    <p class="cash-flow-intro">Category income and expense totals show which recorded categories changed between the selected years. Expense difference is selected year minus comparison year; categories appearing in only one year remain included.</p>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Income and expenses by category for the selected and comparison years, including expense difference</caption>
+                            <thead><tr><th scope="col">Category</th><th scope="col">Selected income</th><th scope="col">Selected expenses</th><th scope="col">Comparison income</th><th scope="col">Comparison expenses</th><th scope="col">Expense difference</th></tr></thead>
+                            <tbody id="cash-flow-annual-category-comparison-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-annual-category-comparison-empty" class="cash-flow-empty" hidden>No categories to compare for the selected years.</p>
                 </section>
                 <section class="cash-flow-category-panel" aria-labelledby="cash-flow-annual-category-heading">
                     <div class="panel-header"><div><p class="eyebrow">YEAR-END REVIEW</p><h3 id="cash-flow-annual-category-heading">Annual category breakdown</h3></div><div class="cash-flow-monthly-actions"><label class="field-label" for="cash-flow-annual-category-year">Year<select id="cash-flow-annual-category-year"></select></label><button class="button button-secondary button-small" id="cash-flow-export-annual-categories-csv" type="button">Export category CSV</button></div></div>
