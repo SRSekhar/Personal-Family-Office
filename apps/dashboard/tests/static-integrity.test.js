@@ -172,12 +172,18 @@ describe('all-period budget history export contract', () => {
     it('exports recorded budgets and expense-only categories in deterministic order with formula-safe category text', async () => {
         const [html, cashFlow] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('cashflow.js')]);
         expect(html).toContain('id="cash-flow-budget-export-history-csv"');
+        expect(html).toContain('id="cash-flow-budget-history-toggle"');
+        expect(html).toContain('id="cash-flow-budget-history-panel"');
+        expect(html).toContain('id="cash-flow-budget-history-rows"');
         expect(cashFlow).toContain("$('#cash-flow-budget-export-history-csv').addEventListener('click'");
+        expect(cashFlow).toContain("$('#cash-flow-budget-history-toggle').addEventListener('click'");
+        expect(cashFlow).toContain('function budgetHistoryRows()');
+        expect(cashFlow).toContain('function renderBudgetHistory()');
         expect(cashFlow).toContain('function budgetHistoryToCsv()');
         expect(cashFlow).toContain("entry.type !== 'expense'");
         expect(cashFlow).toContain('a.month.localeCompare(b.month)');
         expect(cashFlow).toContain('pfo-category-budget-history.csv');
-        expect(cashFlow).toContain('budget history export is unavailable');
+        expect(cashFlow).toContain('budget history is unavailable');
         expect(cashFlow).toContain('textField && /^[=+');
     });
 });
