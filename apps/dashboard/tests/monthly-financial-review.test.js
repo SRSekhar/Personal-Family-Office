@@ -72,6 +72,19 @@ describe('monthly financial review', () => {
         expect(review.budgetCoverage.unbudgetedExpenses).toBe(0);
     });
 
+    it('rejects impossible goal calendar dates while accepting valid leap days', () => {
+        expect(() => buildMonthlyFinancialReview({
+            entries: [], budgets: [], goals: [{ ...goals[0], targetDate: '2026-02-31' }], month: '2026-09'
+        })).toThrow(/Saved goal data failed validation/);
+        expect(() => buildMonthlyFinancialReview({
+            entries: [], budgets: [], goals: [{ ...goals[0], targetDate: '2026-04-31' }], month: '2026-09'
+        })).toThrow(/Saved goal data failed validation/);
+        expect(buildMonthlyFinancialReview({
+            entries: [], budgets: [], goals: [{ ...goals[0], targetDate: '2028-02-29' }],
+            month: '2026-09', generatedAt: new Date('2026-10-21T08:00:00.000Z')
+        }).goals[0].targetDate).toBe('2028-02-29');
+    });
+
     it('rejects malformed month, duplicate budgets, and invalid transactions without changing input', () => {
         expect(() => buildMonthlyFinancialReview({ entries, budgets, goals, month: '2026-13' })).toThrow(/YYYY-MM/);
         expect(() => buildMonthlyFinancialReview({ entries, budgets: [...budgets, budgets[0]], goals, month: '2026-09' })).toThrow(/duplicate month\/category/);
