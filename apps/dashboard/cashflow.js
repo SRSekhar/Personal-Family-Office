@@ -726,7 +726,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const rows = budgetHistoryRows();
         const csvField = (value, textField = false) => {
             let field = String(value ?? '');
-            if (textField && /^[=+\\-@\\t\\r]/u.test(field)) field = "'" + field;
+            if (textField && /^[=+\-@\t\r]/u.test(field)) field = "'" + field;
             return '"' + field.replaceAll('"', '""') + '"';
         };
         const lines = [['month', 'category', 'budget', 'actual_expenses', 'budget_used_percent', 'remaining', 'status']];
