@@ -443,6 +443,18 @@ describe('annual cash-flow trend table contract', () => {
     });
 });
 
+describe('budget performance trend contract', () => {
+    it('wires the monthly budget performance table to the trend renderer', async () => {
+        const [html, cashFlow] = await Promise.all([readDashboardFile('index.html'), readDashboardFile('cashflow.js')]);
+        expect(html).toContain('id="cash-flow-budget-performance-rows"');
+        expect(html).toContain('id="cash-flow-budget-performance-empty"');
+        expect(cashFlow).toContain('function budgetPerformanceTrendRows()');
+        expect(cashFlow).toContain('function renderBudgetPerformanceTrend()');
+        expect(cashFlow).toContain('renderBudgetPerformanceTrend();');
+        expect(cashFlow).toContain('Months with saved budgets');
+    });
+});
+
 describe('monthly budget utilization contract', () => {
     it('shows budget-used percentage and exports the same metric without inventing a budget', async () => {
         const [html, cashFlow] = await Promise.all([
