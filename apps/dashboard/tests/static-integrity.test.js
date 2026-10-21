@@ -687,3 +687,23 @@ describe('monthly financial review report contract', () => {
         expect(css).toContain('@media(max-width:700px){.monthly-review-launcher{grid-template-columns:1fr}');
     });
 });
+
+
+describe('full workspace backup contract', () => {
+    it('exports and restores validated records, goals, cash-flow transactions, and budgets as one local backup', async () => {
+        const [app, backup, cashflow] = await Promise.all([
+            readDashboardFile('app.js'),
+            readDashboardFile('backup.js'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(app).toContain('schemaVersion: isPrivateExport ? 3 : 1');
+        expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
+        expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
+        expect(app).toContain("'pfo-os-full-workspace-backup.json'");
+        expect(app).toContain("window.dispatchEvent(new Event('pfo:cashflow-restored'))");
+        expect(backup).toContain('includesCashFlow');
+        expect(backup).toContain('validateCashFlowEntries(payload.cashFlowEntries)');
+        expect(backup).toContain('validateCashFlowBudgets(payload.budgets)');
+        expect(cashflow).toContain("windowRef.addEventListener('pfo:cashflow-restored'");
+    });
+});
