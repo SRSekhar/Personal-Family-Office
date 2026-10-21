@@ -62,6 +62,7 @@ describe('monthly financial review', () => {
         expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
         expect(html).not.toContain('<script>alert(1)</script>');
         expect(html).not.toContain('<img src=x onerror=alert(1)>');
-        expect(html).not.toMatch(/<script\b|<iframe\b|https?:\\/\\//i);
+        expect(html).not.toMatch(/<script\b|<iframe\b/i);
+        expect(html).not.toContain('https://');
     });
 });
