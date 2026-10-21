@@ -143,9 +143,7 @@ describe('version 3 full workspace backup validation', () => {
     });
 
     it('rejects a full backup when either cash-flow transactions or budgets are missing', () => {
-        const { budgets, ...withoutBudgets } = version3;
-        expect(() => validateBackupPayload(withoutBudgets, 'INR')).toThrow('Unsupported backup format');
-        const { cashFlowEntries, ...withoutEntries } = version3;
-        expect(() => validateBackupPayload(withoutEntries, 'INR')).toThrow('Unsupported backup format');
+        expect(() => validateBackupPayload({ ...version3, budgets: undefined }, 'INR')).toThrow('Unsupported backup format');
+        expect(() => validateBackupPayload({ ...version3, cashFlowEntries: undefined }, 'INR')).toThrow('Unsupported backup format');
     });
 });
