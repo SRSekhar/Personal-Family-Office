@@ -1,7 +1,7 @@
 import {
     calculateCashFlowSavingsRate, findPotentialDuplicateCashFlowEntry, cashFlowAnnualSummaryToCsv, cashFlowCategorySummaryToCsv, cashFlowFilteredSummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
     sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
-    summarizeCashFlowByMonth, validateCashFlowEntries
+    summarizeCashFlowByMonth, summarizeCashFlowByYear, validateCashFlowEntries
 } from './cashflow-ledger.js';
 
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
@@ -287,6 +287,23 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 row.append(cell);
             }
             monthlyBody.append(row);
+        }
+        const annualBody = $('#cash-flow-annual-rows');
+        annualBody.replaceChildren();
+        const annualSummaries = summarizeCashFlowByYear(entries);
+        $('#cash-flow-annual-empty').hidden = annualSummaries.length !== 0;
+        for (const summary of annualSummaries) {
+            const row = documentRef.createElement('tr');
+            const savingsRate = calculateCashFlowSavingsRate(summary.income, summary.expenses);
+            const savingsRateLabel = savingsRate === null
+                ? '—'
+                : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(savingsRate) + '%';
+            for (const value of [summary.year, money(summary.income), money(summary.expenses), money(summary.net), savingsRateLabel, String(summary.transactionCount)]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            annualBody.append(row);
         }
         const body = $('#cash-flow-rows');
         body.replaceChildren();
