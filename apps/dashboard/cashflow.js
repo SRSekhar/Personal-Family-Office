@@ -214,6 +214,22 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-recurring-expenses').textContent = recurringTotalsAreFinite ? money(recurringExpenses) : '—';
         $('#cash-flow-recurring-net').textContent = recurringTotalsAreFinite ? money(recurringNet) : '—';
         $('#cash-flow-recurring-count').textContent = String(recurringEntries.length);
+        const recurringCategories = summarizeCashFlowByCategory(recurringEntries, 'all');
+        const recurringCategoryExpenses = recurringCategories.reduce((total, item) => total + item.expenses, 0);
+        const recurringCategoryBody = $('#cash-flow-recurring-category-rows');
+        recurringCategoryBody.replaceChildren();
+        $('#cash-flow-recurring-category-empty').hidden = recurringCategories.length !== 0;
+        for (const category of recurringCategories) {
+            const row = documentRef.createElement('tr');
+            const expenseShare = !Number.isFinite(recurringCategoryExpenses) || recurringCategoryExpenses === 0 ? '—'
+                : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format((category.expenses / recurringCategoryExpenses) * 100) + '%';
+            for (const value of [category.category, money(category.income), money(category.expenses), expenseShare, money(category.net), String(category.transactionCount)]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            recurringCategoryBody.append(row);
+        }
         const fromDate = $('#cash-flow-date-from').value;
         const toDate = $('#cash-flow-date-to').value;
         const invalidDateRange = Boolean(fromDate && toDate && fromDate > toDate);
@@ -1312,6 +1328,35 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             $('#cash-flow-budget-import-json').value = '';
         });
         reader.readAsText(file);
+    });
+    $('#cash-flow-export-recurring-category-csv').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            message('Use the local-only dashboard to export personal cash-flow data.', true);
+            return;
+        }
+        if (!storageHealthy) {
+            message('Recurring category export is unavailable because saved cash-flow data could not be validated.', true);
+            return;
+        }
+        try {
+            const period = $('#cash-flow-period').value || 'all';
+            const recurringEntries = entries.filter((entry) => entry.recurring
+                && (period === 'all' || entry.date.startsWith(period)));
+            if (recurringEntries.length === 0) {
+                message('No recurring-tagged transactions for the selected period. Nothing was exported.', true);
+                return;
+            }
+            const recurringExpenses = recurringEntries.filter((entry) => entry.type === 'expense')
+                .reduce((total, entry) => total + entry.amount, 0);
+            if (!Number.isFinite(recurringExpenses)) {
+                message('Recurring expense totals exceed the supported numeric range; export is unavailable.', true);
+                return;
+            }
+            download('pfo-cash-flow-recurring-categories.csv', cashFlowCategorySummaryToCsv(recurringEntries, 'all'), 'text/csv;charset=utf-8');
+            message('Recurring-tagged category summary exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export recurring category summary.', true);
+        }
     });
     $('#cash-flow-export-recurring-csv').addEventListener('click', () => {
         try {
