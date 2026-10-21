@@ -368,6 +368,29 @@ describe('monthly cash-flow comparison contract', () => {
     });
 });
 
+describe('annual cash-flow comparison contract', () => {
+    it('compares recorded years, shows percentage-point savings-rate changes, and restricts CSV export to the local workspace', async () => {
+        const [html, app] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-annual-comparison-heading"');
+        expect(html).toContain('id="cash-flow-comparison-current-year"');
+        expect(html).toContain('id="cash-flow-comparison-base-year"');
+        expect(html).toContain('id="cash-flow-annual-comparison-rows"');
+        expect(html).toContain('Difference means selected year minus comparison year.');
+        expect(html).toContain('id="cash-flow-export-annual-comparison-csv"');
+        expect(app).toContain('const comparisonYears = annualSummaries.map((item) => item.year)');
+        expect(app).toContain("calculateCashFlowSavingsRate(currentYearComparison.income, currentYearComparison.expenses)");
+        expect(app).toContain("differenceLabel = label === 'Savings rate'");
+        expect(app).toContain("$('#cash-flow-export-annual-comparison-csv').addEventListener('click'");
+        expect(app).toContain('Annual comparison export is unavailable because saved cash-flow data could not be validated.');
+        expect(app).toContain("['metric', 'selected_year', 'selected_value', 'comparison_year', 'comparison_value', 'difference']");
+        expect(app).toContain('Annual comparison contains a numeric difference outside the supported range; export is unavailable.');
+        expect(app).toContain("'pfo-cash-flow-annual-comparison.csv'");
+    });
+});
+
 describe('annual cash-flow summary export contract', () => {
     it('exposes an annual summary export backed by validated recorded transactions and local-only controls', async () => {
         const [html, app, ledger] = await Promise.all([
