@@ -440,6 +440,18 @@
                     </div>
                     <p id="cash-flow-annual-empty" class="cash-flow-empty">No recorded years yet.</p>
                 </section>
+                <section class="cash-flow-category-panel" aria-labelledby="cash-flow-annual-category-heading">
+                    <div class="panel-header"><div><p class="eyebrow">YEAR-END REVIEW</p><h3 id="cash-flow-annual-category-heading">Annual category breakdown</h3></div><div class="cash-flow-monthly-actions"><label class="field-label" for="cash-flow-annual-category-year">Year<select id="cash-flow-annual-category-year"></select></label><button class="button button-secondary button-small" id="cash-flow-export-annual-categories-csv" type="button">Export category CSV</button></div></div>
+                    <p class="cash-flow-intro">Category totals for the selected year, based only on recorded transactions. Expense share is each category's expenses divided by all recorded expenses in that year; it is unavailable when the year has no expenses.</p>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Annual income, expenses, share of recorded expenses, net cash flow, and transaction count by category</caption>
+                            <thead><tr><th scope="col">Category</th><th scope="col">Income</th><th scope="col">Expenses</th><th scope="col">Expense share</th><th scope="col">Net</th><th scope="col">Transactions</th></tr></thead>
+                            <tbody id="cash-flow-annual-category-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-annual-category-empty" class="cash-flow-empty">No recorded transactions for this year.</p>
+                </section>
                 <section class="cash-flow-category-panel cash-flow-budget-panel" aria-labelledby="cash-flow-budget-heading">
                     <div class="panel-header">
                         <div><p class="eyebrow">PLAN · TRACK · ADJUST</p><h3 id="cash-flow-budget-heading">Monthly category budgets</h3></div>
