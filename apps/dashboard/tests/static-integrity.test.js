@@ -299,6 +299,31 @@ describe('annual cash-flow category breakdown contract', () => {
     });
 });
 
+describe('monthly cash-flow category breakdown contract', () => {
+    it('renders a selected recorded month independently of transaction filters and guards the local CSV export', async () => {
+        const [html, app, ledger] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('cashflow-ledger.js')
+        ]);
+        expect(html).toContain('id="cash-flow-monthly-category-heading"');
+        expect(html).toContain('id="cash-flow-monthly-category-month"');
+        expect(html).toContain('id="cash-flow-monthly-category-rows"');
+        expect(html).toContain('id="cash-flow-monthly-category-empty"');
+        expect(html).toContain('id="cash-flow-export-monthly-categories-csv"');
+        expect(app).toContain("const categoryMonths = [...new Set(entries.map((entry) => entry.date.slice(0, 7)))].sort((a, b) => b.localeCompare(a))");
+        expect(app).toContain("const monthlyCategoryEntries = entries.filter((entry) => entry.date.startsWith(monthlyCategoryMonthFilter.value))");
+        expect(app).toContain("summarizeCashFlowByCategory(monthlyCategoryEntries, 'all')");
+        expect(app).toContain("$('#cash-flow-monthly-category-month').addEventListener('change', render)");
+        expect(app).toContain("$('#cash-flow-export-monthly-categories-csv').addEventListener('click'");
+        expect(app).toContain('Monthly category export is unavailable because saved cash-flow data could not be validated.');
+        expect(app).toContain("cashFlowCategorySummaryToCsv(monthEntries, 'all')");
+        expect(app).toContain('if (!Number.isFinite(monthExpenses))');
+        expect(app).toContain('Monthly expense totals exceed the supported numeric range; export is unavailable.');
+        expect(ledger).toContain("['category', 'income', 'expenses', 'expense_share_percent', 'net', 'transaction_count']");
+    });
+});
+
 describe('annual cash-flow summary export contract', () => {
     it('exposes an annual summary export backed by validated recorded transactions and local-only controls', async () => {
         const [html, app, ledger] = await Promise.all([
