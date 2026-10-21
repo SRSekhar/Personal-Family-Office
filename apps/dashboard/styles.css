@@ -200,3 +200,18 @@
 .cash-flow-budget-panel th:last-child,.cash-flow-budget-panel td:last-child{text-align:left;white-space:nowrap}
 .cash-flow-budget-panel .row-action{margin:2px 3px}
 @media(max-width:700px){.cash-flow-budget-controls{grid-template-columns:1fr}}
+
+
+/* Consolidated local financial health overview */
+.financial-health-panel{margin-top:18px;padding:20px}
+.financial-health-intro,.financial-health-note{color:var(--muted);font-size:11px;line-height:1.65}
+.financial-health-intro{margin:12px 0 14px}
+.financial-health-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.financial-health-card{display:flex;flex-direction:column;gap:8px;min-width:0;padding:13px;border:1px solid var(--line);border-radius:9px;background:#fbfcfb}
+.financial-health-card>span{font-size:10px;font-weight:650;color:var(--muted);line-height:1.45}
+.financial-health-card>strong{font-size:clamp(17px,1.8vw,23px);letter-spacing:-.45px;overflow-wrap:anywhere}
+.financial-health-card>small{font-size:10px;color:var(--muted);line-height:1.55;overflow-wrap:anywhere}
+.financial-health-note{margin:12px 0 0}
+.financial-health-empty{grid-column:1/-1;margin:0;padding:18px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:12px;line-height:1.6}
+@media(max-width:1050px){.financial-health-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.financial-health-panel{padding:15px}.financial-health-grid{grid-template-columns:1fr}.financial-health-card>strong{font-size:21px}}
