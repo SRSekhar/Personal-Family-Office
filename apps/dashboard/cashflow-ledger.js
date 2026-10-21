@@ -150,6 +150,31 @@ export function summarizeCashFlowByMonth(entries) {
         .sort((a, b) => b.month.localeCompare(a.month));
 }
 
+export function summarizeCashFlowByYear(entries) {
+    const years = new Map();
+    for (const summary of summarizeCashFlowByMonth(entries)) {
+        const year = summary.month.slice(0, 4);
+        let annual = years.get(year);
+        if (!annual) {
+            annual = { year, income: 0, expenses: 0, transactionCount: 0 };
+            years.set(year, annual);
+        }
+        annual.income += summary.income;
+        annual.expenses += summary.expenses;
+        annual.transactionCount += summary.transactionCount;
+        if (!Number.isFinite(annual.income) || !Number.isFinite(annual.expenses)) {
+            throw new RangeError('Annual cash flow totals exceed the supported numeric range.');
+        }
+    }
+    return [...years.values()].map((summary) => {
+        const net = summary.income - summary.expenses;
+        if (!Number.isFinite(net)) {
+            throw new RangeError('Annual net cash flow exceeds the supported numeric range.');
+        }
+        return { ...summary, net };
+    }).sort((a, b) => b.year.localeCompare(a.year));
+}
+
 function csvCell(value) {
     let text = String(value);
     // Numeric values are already validated data, so negative totals remain numeric in spreadsheet exports.
@@ -246,28 +271,7 @@ export function cashFlowMonthlySummaryToCsv(entries) {
 }
 
 export function cashFlowAnnualSummaryToCsv(entries) {
-    const years = new Map();
-    for (const summary of summarizeCashFlowByMonth(entries)) {
-        const year = summary.month.slice(0, 4);
-        let annual = years.get(year);
-        if (!annual) {
-            annual = { year, income: 0, expenses: 0, transactionCount: 0 };
-            years.set(year, annual);
-        }
-        annual.income += summary.income;
-        annual.expenses += summary.expenses;
-        annual.transactionCount += summary.transactionCount;
-        if (!Number.isFinite(annual.income) || !Number.isFinite(annual.expenses)) {
-            throw new RangeError('Annual cash flow totals exceed the supported numeric range.');
-        }
-    }
-    const summaries = [...years.values()].map((summary) => {
-        const net = summary.income - summary.expenses;
-        if (!Number.isFinite(net)) {
-            throw new RangeError('Annual net cash flow exceeds the supported numeric range.');
-        }
-        return { ...summary, net };
-    }).sort((a, b) => b.year.localeCompare(a.year));
+    const summaries = summarizeCashFlowByYear(entries);
     return [
         ['year', 'income', 'expenses', 'net', 'savings_rate_percent', 'transaction_count'],
         ...summaries.map((summary) => [
