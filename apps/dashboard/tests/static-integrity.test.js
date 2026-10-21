@@ -482,7 +482,7 @@ describe('dashboard export reliability', () => {
         const app = await readDashboardFile('app.js');
         const exportData = app.slice(app.indexOf('function exportData()'), app.indexOf('function exportCsv()'));
 
-        expect(exportData).toContain("link.download = 'pfo-os-financial-records.json';");
+        expect(exportData).toContain("link.download = 'pfo-os-full-workspace-backup.json';");
         expect(exportData).toContain('document.body.append(link);');
         expect(exportData).toContain('link.remove();');
         expect(exportData).toMatch(/setTimeout\(\(\) => URL\.revokeObjectURL\(url\), 1000\)/);
