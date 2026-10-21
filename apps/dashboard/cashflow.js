@@ -133,6 +133,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
         entries = validated;
         render();
+        windowRef.dispatchEvent(new Event('pfo:cashflow-updated'));
         return true;
     }
 
@@ -675,6 +676,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             windowRef.localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(validated));
             budgets = validated;
             renderBudgets();
+            windowRef.dispatchEvent(new Event('pfo:cashflow-updated'));
             return true;
         } catch (error) {
             budgetMessage(error instanceof Error ? error.message : 'Could not safely save budgets.', true);
