@@ -714,10 +714,12 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 2, 'private JSON backup should use the goal-aware schema version');
+    assert.equal(backup.schemaVersion, 3, 'private JSON backup should use the full-workspace schema version');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
+    assert.deepEqual(backup.cashFlowEntries, [], 'private JSON backup should include cash-flow transactions');
+    assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
