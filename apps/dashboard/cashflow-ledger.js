@@ -63,7 +63,7 @@ export function validateCashFlowBudgets(value) {
     const seen = new Set();
     return value.map((budget) => {
         if (!budget || typeof budget !== 'object'
-            || typeof budget.month !== 'string' || !/^\\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
+            || typeof budget.month !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
             || typeof budget.category !== 'string' || budget.category.trim().length < 1 || budget.category.trim().length > 60
             || typeof budget.amount !== 'number' || !Number.isFinite(budget.amount) || budget.amount <= 0) {
             throw new Error('Saved budgets contain an invalid month, category, or positive amount.');
