@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     calculateCashFlowSavingsRate,
+    cashFlowAnnualSummaryToCsv,
     cashFlowCategorySummaryToCsv,
     cashFlowFilteredSummaryToCsv,
     cashFlowMonthlySummaryToCsv,
@@ -219,6 +220,28 @@ describe('cash flow CSV export', () => {
         const csv = cashFlowToCsv([{ ...entries[0], description: '=IMPORTDATA("https://example.invalid")' }]);
         expect(csv).toContain('"date","type","category","description","amount","recurring"');
         expect(csv).toContain('"\'=IMPORTDATA(""https://example.invalid"")"');
+    });
+});
+
+describe('annual cash-flow summary CSV', () => {
+    it('aggregates recorded transactions by year in descending order and calculates annual savings rate', () => {
+        const csv = cashFlowAnnualSummaryToCsv([
+            ...entries,
+            { id: 'i-2', date: '2025-01-10', type: 'income', category: 'Salary', description: 'Prior year', amount: 50000, recurring: true },
+            { id: 'e-3', date: '2025-06-10', type: 'expense', category: 'Food', description: 'Prior year food', amount: 10000, recurring: false }
+        ]);
+        expect(csv).toBe(
+            '"year","income","expenses","net","savings_rate_percent","transaction_count"\\r\\n'
+            + '"2026","100000","22500","77500","77.5","3"\\r\\n'
+            + '"2025","50000","10000","40000","80","2"\\r\\n'
+        );
+    });
+
+    it('exports a header-only CSV when there are no transactions and leaves savings rate empty when income is zero', () => {
+        expect(cashFlowAnnualSummaryToCsv([])).toBe(
+            '"year","income","expenses","net","savings_rate_percent","transaction_count"\\r\\n'
+        );
+        expect(cashFlowAnnualSummaryToCsv([entries[1]])).toContain('"2026","0","20000","-20000","","1"');
     });
 });
 
