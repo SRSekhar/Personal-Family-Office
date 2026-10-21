@@ -116,12 +116,31 @@ export function buildMonthlyFinancialReview({ entries, budgets, goals, month, ge
         return { category: budget.category, budget: budget.amount, actual, remaining: budget.amount - actual,
             overrun: Math.max(0, actual - budget.amount), status: actual > budget.amount ? 'Over budget' : actual === 0 ? 'Not spent' : 'Within budget' };
     }).sort((a, b) => b.overrun - a.overrun || a.category.localeCompare(b.category));
-    const budgetedCategoryKeys = new Set(validatedBudgets.filter((budget) => budget.month === month)
-        .map((budget) => budget.category.toLocaleLowerCase('en-US')));
-    const unbudgetedExpenses = categories.filter((row) => row.expenses > 0
-        && !budgetedCategoryKeys.has(row.category.toLocaleLowerCase('en-US')))
+    const selectedBudgets = validatedBudgets.filter((budget) => budget.month === month);
+    const budgetedCategoryKeys = new Set(selectedBudgets.map((budget) => budget.category.toLocaleLowerCase('en-US')));
+    const expenseCategories = categories.filter((row) => row.expenses > 0);
+    const unbudgetedExpenses = expenseCategories.filter((row) => !budgetedCategoryKeys.has(row.category.toLocaleLowerCase('en-US')))
         .map((row) => ({ category: row.category, actual: row.expenses, transactionCount: row.transactionCount }))
         .sort((a, b) => b.actual - a.actual || a.category.localeCompare(b.category));
+    const unbudgetedExpenseTotal = unbudgetedExpenses.reduce((sum, row) => sum + row.actual, 0);
+    const budgetedActualExpenses = expenseCategories
+        .filter((row) => budgetedCategoryKeys.has(row.category.toLocaleLowerCase('en-US')))
+        .reduce((sum, row) => sum + row.expenses, 0);
+    if (![unbudgetedExpenseTotal, budgetedActualExpenses].every(Number.isFinite)) {
+        throw new RangeError('Budget coverage totals exceed the supported numeric range.');
+    }
+    const budgetCoverage = {
+        budgetedCategoryCount: selectedBudgets.length,
+        expenseCategoryCount: expenseCategories.length,
+        coveredExpenseCategoryCount: expenseCategories.length - unbudgetedExpenses.length,
+        budgetedActualExpenses,
+        unbudgetedExpenses: unbudgetedExpenseTotal,
+        totalExpenses: current.expenses,
+        expenseCoverageRate: current.expenses === 0 ? null : budgetedActualExpenses / current.expenses * 100
+    };
+    if (budgetCoverage.expenseCoverageRate !== null && !Number.isFinite(budgetCoverage.expenseCoverageRate)) {
+        throw new RangeError('Expense coverage rate exceeds the supported numeric range.');
+    }
     const reportGoals = validatedGoals.map((goal) => {
         const progress = Math.min(100, goal.currentAmount / goal.targetAmount * 100);
         return { ...goal, progress, remaining: Math.max(0, goal.targetAmount - goal.currentAmount),
@@ -129,7 +148,7 @@ export function buildMonthlyFinancialReview({ entries, budgets, goals, month, ge
     }).sort((a, b) => a.targetDate.localeCompare(b.targetDate) || a.name.localeCompare(b.name));
     return {
         month, monthLabel: monthLabel(month), priorMonth, priorMonthLabel: monthLabel(priorMonth),
-        generatedAt: generatedAt.toISOString(), current, prior, categories, categoryComparison, budgets: budgetRows, unbudgetedExpenses, goals: reportGoals,
+        generatedAt: generatedAt.toISOString(), current, prior, categories, categoryComparison, budgets: budgetRows, unbudgetedExpenses, budgetCoverage, goals: reportGoals,
         hasCurrentTransactions: current.transactionCount > 0, hasPriorTransactions: prior.transactionCount > 0
     };
 }
@@ -141,7 +160,7 @@ function tableRows(rows, columns, emptyText) {
 
 export function renderMonthlyFinancialReviewHtml(review) {
     if (!review || typeof review.month !== 'string' || !MONTH_PATTERN.test(review.month)
-        || !Array.isArray(review.categories) || !Array.isArray(review.categoryComparison) || !Array.isArray(review.budgets) || !Array.isArray(review.unbudgetedExpenses) || !Array.isArray(review.goals)
+        || !Array.isArray(review.categories) || !Array.isArray(review.categoryComparison) || !Array.isArray(review.budgets) || !Array.isArray(review.unbudgetedExpenses) || !review.budgetCoverage || !Array.isArray(review.goals)
         || !review.current || !review.prior || typeof review.generatedAt !== 'string') {
         throw new TypeError('Monthly financial review data is invalid.');
     }
@@ -163,6 +182,7 @@ export function renderMonthlyFinancialReviewHtml(review) {
 <section><h2>Category activity</h2><div class="table-wrap"><table><thead><tr><th>Category</th><th>Income</th><th>Expenses</th><th>Net</th><th>Transactions</th></tr></thead><tbody>${tableRows(review.categories,[['category',(v)=>v],['income',amount],['expenses',amount],['net',amount],['transactionCount',String]],'No recorded transactions for this month.')}</tbody></table></div></section>
 <section><h2>Category changes vs prior month</h2><p>Changes compare recorded transactions in ${escapeHtml(review.monthLabel)} with ${escapeHtml(review.priorMonthLabel)}. A category missing from either month is treated as zero for that month; this is a historical comparison, not a forecast.</p><div class="table-wrap"><table><thead><tr><th>Category</th><th>Current income</th><th>Current expenses</th><th>Prior income</th><th>Prior expenses</th><th>Income change</th><th>Expense change</th></tr></thead><tbody>${tableRows(review.categoryComparison,[["category",(v)=>v],["currentIncome",amount],["currentExpenses",amount],["priorIncome",amount],["priorExpenses",amount],["incomeChange",amount],["expenseChange",amount]],"No categories to compare.")}</tbody></table></div></section>
 <section><h2>Budget attention</h2><p>Only explicitly saved budgets for ${escapeHtml(review.monthLabel)} are included. Categories without budgets are not assigned a limit.</p><div class="table-wrap"><table><thead><tr><th>Category</th><th>Budget</th><th>Actual expenses</th><th>Remaining</th><th>Status</th></tr></thead><tbody>${tableRows(review.budgets,[['category',(v)=>v],['budget',amount],['actual',amount],['remaining',amount],['status',(v)=>v]],'No budgets saved for this month.')}</tbody></table></div><p>${budgetOverruns.length ? escapeHtml(budgetOverruns.length+' budgeted categories are over budget; total positive overrun: '+amount(budgetOverruns.reduce((sum,row)=>sum+row.overrun,0))+'.') : 'No positive overruns against saved budgets for this month.'}</p></section>
+<section><h2>Budget coverage</h2><p>Coverage is based only on saved budgets and recorded expenses for ${escapeHtml(review.monthLabel)}. It is not a rating or recommendation.</p><div class="grid"><article class="metric"><span>Expense coverage</span><strong>${review.budgetCoverage.expenseCoverageRate === null ? "Unavailable" : escapeHtml(review.budgetCoverage.expenseCoverageRate.toLocaleString("en-IN", { maximumFractionDigits: 1 }) + "%")}</strong><small>${escapeHtml(String(review.budgetCoverage.coveredExpenseCategoryCount) + " of " + String(review.budgetCoverage.expenseCategoryCount) + " expense categories budgeted")}</small></article><article class="metric"><span>Recorded expenses in budgeted categories</span><strong>${escapeHtml(amount(review.budgetCoverage.budgetedActualExpenses))}</strong><small>Actual expenses, not budget limits</small></article><article class="metric"><span>Recorded expenses without budget</span><strong>${escapeHtml(amount(review.budgetCoverage.unbudgetedExpenses))}</strong><small>Across categories without a saved budget</small></article><article class="metric"><span>Saved budget categories</span><strong>${escapeHtml(String(review.budgetCoverage.budgetedCategoryCount))}</strong><small>For the selected month</small></article></div></section>
 <section><h2>Expenses without a saved budget</h2><p>Recorded expense categories for ${escapeHtml(review.monthLabel)} that do not have an explicitly saved budget for this month. This is a coverage view, not a spending limit or recommendation.</p><div class="table-wrap"><table><thead><tr><th>Category</th><th>Recorded expenses</th><th>Transactions</th></tr></thead><tbody>${tableRows(review.unbudgetedExpenses,[["category",(v)=>v],["actual",amount],["transactionCount",String]],"All recorded expense categories have a saved budget, or no expenses were recorded.")}</tbody></table></div><p>${escapeHtml("Total expenses without a saved budget: "+amount(review.unbudgetedExpenses.reduce((sum,row)=>sum+row.actual,0))+".")}</p></section>
 <section><h2>Saved goal progress</h2><div class="table-wrap"><table><thead><tr><th>Goal</th><th>Current</th><th>Target</th><th>Progress</th><th>Remaining</th><th>Target date</th><th>Status</th></tr></thead><tbody>${tableRows(review.goals,[['name',(v)=>v],['currentAmount',amount],['targetAmount',amount],['progress',(v)=>v.toLocaleString('en-IN',{maximumFractionDigits:1})+'%'],['remaining',amount],['targetDate',(v)=>v],['status',(v)=>v]],'No saved goals.')}</tbody></table></div><p class="muted">Goal amounts and status reflect saved progress at report generation time.</p></section>
 <p class="privacy">Privacy: this is a self-contained HTML file and may contain sensitive financial information. Store it securely. It is generated in the browser and is not uploaded by PFO OS.</p></body></html>`;

@@ -303,3 +303,4 @@ No work should begin unless it has been added to the backlog.
 
 - Surface categories that exceed their explicit monthly budgets in at least two recorded months, showing over-budget month count, budgeted month count, cumulative overrun, and average overrun; derive only from saved budgets and recorded expenses.
 - In the monthly financial review, separately show recorded expense categories without an explicitly saved budget, with expense totals and transaction counts; do not infer budgets or assign thresholds (implemented in this change).
+- Summarize monthly budget coverage by budgeted expense amount, unbudgeted expense amount, category counts, and the percentage of recorded expenses in categories with an explicit saved budget; show coverage as unavailable when no expenses are recorded.
