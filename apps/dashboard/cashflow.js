@@ -1028,6 +1028,12 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                         throw new Error('Appending is unavailable because saved data could not be validated. Use Import CSV to replace the ledger with a valid file and recover safely.');
                     }
                     const imported = parseCashFlowCsv(String(reader.result), windowRef.crypto);
+                    const seenImported = [];
+                    let duplicateInFileCount = 0;
+                    for (const candidate of imported) {
+                        if (findPotentialDuplicateCashFlowEntry(seenImported, candidate) !== null) duplicateInFileCount += 1;
+                        else seenImported.push(candidate);
+                    }
                     const duplicateCount = appendMode
                         ? imported.filter((candidate) => findPotentialDuplicateCashFlowEntry(entries, candidate) !== null).length
                         : 0;
@@ -1041,6 +1047,10 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                         'Expenses after import: ' + money(preview.expenses),
                         'Net cash flow after import: ' + money(preview.net)
                     ];
+                    if (duplicateInFileCount > 0) {
+                        confirmLines.push('', 'Potential exact duplicates within the selected CSV: ' + duplicateInFileCount
+                            + '. They will be retained if you continue.');
+                    }
                     if (appendMode && duplicateCount > 0) {
                         confirmLines.push('', 'Potential exact duplicates against the existing ledger: ' + duplicateCount
                             + '. They will be retained if you continue.');
