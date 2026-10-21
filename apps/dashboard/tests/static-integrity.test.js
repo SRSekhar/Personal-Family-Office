@@ -277,6 +277,26 @@ describe('monthly budget overview contract', () => {
     });
 });
 
+describe('annual cash-flow category breakdown contract', () => {
+    it('renders selected-year category totals and provides a guarded CSV export', async () => {
+        const [html, app] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-annual-category-heading"');
+        expect(html).toContain('id="cash-flow-annual-category-year"');
+        expect(html).toContain('id="cash-flow-annual-category-rows"');
+        expect(html).toContain('id="cash-flow-annual-category-empty"');
+        expect(html).toContain('id="cash-flow-export-annual-categories-csv"');
+        expect(app).toContain("const annualCategoryEntries = entries.filter((entry) => entry.date.startsWith(annualCategoryYearFilter.value))");
+        expect(app).toContain('const annualCategories = summarizeCashFlowByCategory(annualCategoryEntries, \'all\')');
+        expect(app).toContain("$('#cash-flow-export-annual-categories-csv').addEventListener('click'");
+        expect(app).toContain('isLoopback(windowRef.location.hostname)');
+        expect(app).toContain('cashFlowCategorySummaryToCsv(yearEntries, \'all\')');
+        expect(app).toContain('!Number.isFinite(annualCategoryExpenses) || annualCategoryExpenses === 0');
+    });
+});
+
 describe('annual cash-flow summary export contract', () => {
     it('exposes an annual summary export backed by validated recorded transactions and local-only controls', async () => {
         const [html, app, ledger] = await Promise.all([
