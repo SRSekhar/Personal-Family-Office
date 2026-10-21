@@ -56,7 +56,8 @@ export function calculateFinancialHealth({ records, cashFlowEntries, budgets, go
     return {
         month, assets, liabilities, netWorth, income, expenses, netCashFlow, savingsRate,
         transactionCount: periodEntries.length, budgetTotal, actualInBudgetedCategories,
-        budgetedCategoryCount: monthBudgets.length, overBudgetCategoryCount, totalPositiveOverrun,\n        coveredExpenseCategoryCount, expenseCategoryCount: actualsByCategory.size, unbudgetedExpenses, expenseCoverageRate,
+        budgetedCategoryCount: monthBudgets.length, overBudgetCategoryCount, totalPositiveOverrun,
+        coveredExpenseCategoryCount, expenseCategoryCount: actualsByCategory.size, unbudgetedExpenses, expenseCoverageRate,
         goalCount: goals.length, completedGoals, goalTargetTotal, goalCurrentTotal, goalProgressPercent
     };
 }
