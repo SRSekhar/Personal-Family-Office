@@ -1,6 +1,6 @@
 import { calculateCashFlowSavingsRate, summarizeCashFlow, validateCashFlowEntries } from './cashflow-ledger.js';
 
-const MONTH_PATTERN = /^\\d{4}-(0[1-9]|1[0-2])$/;
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 function escapeHtml(value) {
     return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -38,7 +38,7 @@ function validateGoals(goals) {
             || typeof goal.name !== 'string' || !goal.name.trim()
             || typeof goal.targetAmount !== 'number' || !Number.isFinite(goal.targetAmount) || goal.targetAmount <= 0
             || typeof goal.currentAmount !== 'number' || !Number.isFinite(goal.currentAmount) || goal.currentAmount < 0
-            || typeof goal.targetDate !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(goal.targetDate)
+            || typeof goal.targetDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(goal.targetDate)
             || Number.isNaN(Date.parse(goal.targetDate + 'T00:00:00Z'))) {
             throw new TypeError('Saved goal data failed validation.');
         }
