@@ -428,6 +428,22 @@
                     </div>
                     <p id="cash-flow-monthly-empty" class="cash-flow-empty">No recorded months yet.</p>
                 </section>
+                <section class="cash-flow-category-panel" aria-labelledby="cash-flow-monthly-comparison-heading">
+                    <div class="panel-header"><div><p class="eyebrow">PERIOD COMPARISON</p><h3 id="cash-flow-monthly-comparison-heading">Compare two recorded months</h3></div><button class="button button-secondary button-small" id="cash-flow-export-monthly-comparison-csv" type="button">Export comparison CSV</button></div>
+                    <div class="cash-flow-toolbar">
+                        <label class="field-label" for="cash-flow-comparison-current-month">Selected month<select id="cash-flow-comparison-current-month"></select></label>
+                        <label class="field-label" for="cash-flow-comparison-base-month">Compare with<select id="cash-flow-comparison-base-month"></select></label>
+                    </div>
+                    <p class="cash-flow-intro">Compare totals from two months with recorded transactions. Difference means selected month minus comparison month. Savings-rate difference is shown in percentage points and is unavailable when either month has zero income. This is historical analysis, not a forecast.</p>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Comparison of recorded monthly income, expenses, net cash flow, savings rate, and transaction count</caption>
+                            <thead><tr><th scope="col">Metric</th><th scope="col">Selected month</th><th scope="col">Comparison month</th><th scope="col">Difference</th></tr></thead>
+                            <tbody id="cash-flow-monthly-comparison-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-monthly-comparison-empty" class="cash-flow-empty" hidden>Record transactions in at least one month to enable comparisons.</p>
+                </section>
                 <section class="cash-flow-category-panel" aria-labelledby="cash-flow-annual-heading">
                     <div class="panel-header"><div><p class="eyebrow">YEARLY OVERVIEW</p><h3 id="cash-flow-annual-heading">Annual cash-flow trend</h3></div><span class="panel-tag">All recorded years</span></div>
                     <p class="cash-flow-intro">Annual totals are aggregated from saved transaction dates. Savings rate is net cash flow divided by income and is unavailable when income is zero. This is a historical summary, not a forecast.</p>
