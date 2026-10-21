@@ -652,7 +652,7 @@ describe('FIRE goal gap analysis contract', () => {
         expect(app).toContain("['Required annual contribution'");
         expect(app).toContain("['Additional contribution equivalent'");
         expect(app).toContain('Math.max(0, required - input.annualContribution)');
-        expect(app).toContain('requiredAnnualContribution: input.annualContribution');
+        expect(app).toContain('const additionalAnnual = required === null ? null : Math.max(0, required - input.annualContribution)');
         expect(app).toContain('renderFireGapAnalysis(result, input, required)');
         expect(css).toContain('.fire-gap-grid');
         expect(css).toContain('@media(max-width:680px){.fire-gap-grid{grid-template-columns:minmax(0,1fr)}}');
