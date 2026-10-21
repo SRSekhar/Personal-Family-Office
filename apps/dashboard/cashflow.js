@@ -1,6 +1,6 @@
 import {
     calculateCashFlowSavingsRate, findPotentialDuplicateCashFlowEntry, cashFlowAnnualSummaryToCsv, cashFlowCategorySummaryToCsv, cashFlowFilteredSummaryToCsv, cashFlowMonthlySummaryToCsv, cashFlowToCsv, filterCashFlowEntries,
-    sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory,
+    sortCashFlowEntries, summarizeCashFlow, summarizeCashFlowByCategory, validateCashFlowBudgets,
     summarizeCashFlowByMonth, summarizeCashFlowByYear, validateCashFlowEntries
 } from './cashflow-ledger.js';
 
@@ -636,28 +636,10 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#cash-flow-budget-message').classList.toggle('fire-validation', isError);
     }
 
-    function validateBudgets(value) {
-        if (!Array.isArray(value)) throw new Error('Saved budgets must be a list.');
-        const seen = new Set();
-        return value.map((budget) => {
-            if (!budget || typeof budget !== 'object'
-                || typeof budget.month !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
-                || typeof budget.category !== 'string' || budget.category.trim().length < 1 || budget.category.trim().length > 60
-                || typeof budget.amount !== 'number' || !Number.isFinite(budget.amount) || budget.amount <= 0) {
-                throw new Error('Saved budgets contain an invalid month, category, or positive amount.');
-            }
-            const category = budget.category.trim();
-            const key = budget.month + '|' + category.toLocaleLowerCase('en-US');
-            if (seen.has(key)) throw new Error('Saved budgets contain duplicate month/category entries.');
-            seen.add(key);
-            return { month: budget.month, category, amount: budget.amount };
-        });
-    }
-
     function loadBudgets() {
         try {
             const raw = windowRef.localStorage.getItem(BUDGET_STORAGE_KEY);
-            budgets = raw === null ? [] : validateBudgets(JSON.parse(raw));
+            budgets = raw === null ? [] : validateCashFlowBudgets(JSON.parse(raw));
             budgetStorageHealthy = true;
         } catch {
             budgets = [];
@@ -672,7 +654,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             return false;
         }
         try {
-            const validated = validateBudgets(nextBudgets);
+            const validated = validateCashFlowBudgets(nextBudgets);
             windowRef.localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(validated));
             budgets = validated;
             renderBudgets();
@@ -1682,7 +1664,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                     || payload.currency !== CURRENCY || !Array.isArray(payload.budgets)) {
                     throw new Error('Unsupported budget backup. Expected schemaVersion 1, INR currency, and a budgets list.');
                 }
-                const imported = validateBudgets(payload.budgets);
+                const imported = validateCashFlowBudgets(payload.budgets);
                 const totalLimits = imported.reduce((total, item) => total + item.amount, 0);
                 if (!Number.isFinite(totalLimits)) throw new Error('Budget backup totals exceed the supported numeric range.');
                 const months = [...new Set(imported.map((item) => item.month))].sort();
@@ -1828,6 +1810,12 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         return;
     }
 
+    windowRef.addEventListener('pfo:cashflow-restored', () => {
+        load();
+        loadBudgets();
+        render();
+        renderBudgets();
+    });
     load();
     loadBudgets();
     resetForm();
