@@ -651,6 +651,7 @@ function renderFinancialHealth() {
             ['Recorded cash flow · ' + monthLabel, money(result.netCashFlow), 'Income ' + money(result.income) + ' · Expenses ' + money(result.expenses)],
             ['Savings rate · ' + monthLabel, percent(result.savingsRate), result.savingsRate === null ? 'No recorded income for this month' : 'Recorded net cash flow ÷ recorded income'],
             ['Monthly budget control', result.budgetedCategoryCount === 0 ? 'No budgets set' : result.overBudgetCategoryCount + ' over budget', result.budgetedCategoryCount === 0 ? 'Save monthly category budgets to compare' : money(result.totalPositiveOverrun) + ' positive overruns · ' + money(result.actualInBudgetedCategories) + ' spent in budgeted categories'],
+            ['Budget coverage · ' + monthLabel, result.expenseCoverageRate === null ? 'No expenses recorded' : percent(result.expenseCoverageRate), result.coveredExpenseCategoryCount + ' of ' + result.expenseCategoryCount + ' expense categories covered · ' + money(result.unbudgetedExpenses) + ' recorded expenses without a budget'],
             ['Saved goal progress', result.goalProgressPercent === null ? 'No goals saved' : percent(result.goalProgressPercent), result.goalCount === 0 ? 'Save a goal to track progress' : result.completedGoals + ' of ' + result.goalCount + ' goals reached · ' + money(result.goalCurrentTotal) + ' of ' + money(result.goalTargetTotal)]
         ];
         for (const [label, value, detail] of cards) {
