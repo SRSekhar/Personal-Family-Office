@@ -501,6 +501,13 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             body.append(row);
         }
         $('#cash-flow-budget-form').querySelectorAll('input, button').forEach((control) => { control.disabled = !budgetStorageHealthy; });
+        if (!$('#cash-flow-budget-history-panel').hidden) {
+            try {
+                renderBudgetHistory();
+            } catch (error) {
+                budgetMessage(error instanceof Error ? error.message : 'Could not refresh budget history.', true);
+            }
+        }
     }
 
     $('#cash-flow-budget-month').value = localMonthString();
@@ -666,7 +673,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
 
-    function budgetHistoryToCsv() {
+    function budgetHistoryRows() {
         const combined = new Map();
         const keyFor = (month, category) => month + '|' + category.trim().toLocaleLowerCase('en-US');
         for (const budget of budgets) {
@@ -681,23 +688,87 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             const key = keyFor(month, entry.category);
             const current = combined.get(key) ?? { month, category: entry.category.trim(), budget: null, actual: 0 };
             current.actual += entry.amount;
-            if (!Number.isFinite(current.actual)) throw new Error('Expense totals exceed the supported numeric range; budget history export is unavailable.');
+            if (!Number.isFinite(current.actual)) throw new Error('Expense totals exceed the supported numeric range; budget history is unavailable.');
             combined.set(key, current);
         }
+        return [...combined.values()]
+            .sort((a, b) => a.month.localeCompare(b.month) || a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }))
+            .map((item) => {
+                const remaining = item.budget === null ? null : item.budget - item.actual;
+                if (remaining !== null && !Number.isFinite(remaining)) {
+                    throw new Error('Budget history remaining amounts exceed the supported numeric range.');
+                }
+                return {
+                    ...item,
+                    utilization: budgetUtilizationPercent(item.budget, item.actual),
+                    remaining,
+                    status: item.budget === null ? 'No budget set' : remaining < 0 ? 'Over budget' : item.actual === 0 ? 'Not spent' : 'Within budget'
+                };
+            });
+    }
+
+    function renderBudgetHistory() {
+        const rows = budgetHistoryRows();
+        const body = $('#cash-flow-budget-history-rows');
+        body.replaceChildren();
+        $('#cash-flow-budget-history-empty').hidden = rows.length !== 0;
+        for (const item of rows) {
+            const utilization = item.utilization === null ? '—'
+                : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(item.utilization) + '%';
+            const values = [
+                item.month, item.category, item.budget === null ? '—' : money(item.budget),
+                money(item.actual), utilization, item.remaining === null ? '—' : money(item.remaining), item.status
+            ];
+            const row = documentRef.createElement('tr');
+            for (const value of values) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            body.append(row);
+        }
+    }
+
+    function budgetHistoryToCsv() {
+        const rows = budgetHistoryRows();
         const csvField = (value, textField = false) => {
             let field = String(value ?? '');
             if (textField && /^[=+\-@\t\r]/u.test(field)) field = "'" + field;
             return '"' + field.replaceAll('"', '""') + '"';
         };
-        const rows = [...combined.values()].sort((a, b) => a.month.localeCompare(b.month) || a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
         const lines = [['month', 'category', 'budget', 'actual_expenses', 'budget_used_percent', 'remaining', 'status']];
         for (const item of rows) {
-            const remaining = item.budget === null ? null : item.budget - item.actual;
-            const status = item.budget === null ? 'No budget set' : remaining < 0 ? 'Over budget' : item.actual === 0 ? 'Not spent' : 'Within budget';
-            lines.push([item.month, item.category, item.budget === null ? '' : item.budget, item.actual, budgetUtilizationPercent(item.budget, item.actual) ?? '', remaining === null ? '' : remaining, status]);
+            lines.push([
+                item.month, item.category, item.budget === null ? '' : item.budget, item.actual,
+                item.utilization ?? '', item.remaining === null ? '' : item.remaining, item.status
+            ]);
         }
         return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
+
+    $('#cash-flow-budget-history-toggle').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            budgetMessage('Use the local-only dashboard to view personal budget history.', true);
+            return;
+        }
+        if (!budgetStorageHealthy || !storageHealthy) {
+            budgetMessage('Budget history is unavailable because saved budget or cash-flow data could not be validated.', true);
+            return;
+        }
+        const panel = $('#cash-flow-budget-history-panel');
+        const shouldShow = panel.hidden;
+        if (shouldShow) {
+            try {
+                renderBudgetHistory();
+            } catch (error) {
+                budgetMessage(error instanceof Error ? error.message : 'Could not display budget history.', true);
+                return;
+            }
+        }
+        panel.hidden = !shouldShow;
+        $('#cash-flow-budget-history-toggle').textContent = shouldShow ? 'Hide budget history' : 'Show budget history';
+        $('#cash-flow-budget-history-toggle').setAttribute('aria-expanded', String(shouldShow));
+    });
 
     $('#cash-flow-budget-export-history-csv').addEventListener('click', () => {
         if (!isLoopback(windowRef.location.hostname)) { budgetMessage('Use the local-only dashboard to export personal budget data.', true); return; }

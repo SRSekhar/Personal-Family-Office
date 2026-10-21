@@ -443,7 +443,7 @@
                 <section class="cash-flow-category-panel cash-flow-budget-panel" aria-labelledby="cash-flow-budget-heading">
                     <div class="panel-header">
                         <div><p class="eyebrow">PLAN · TRACK · ADJUST</p><h3 id="cash-flow-budget-heading">Monthly category budgets</h3></div>
-                        <div class="cash-flow-monthly-actions"><span class="panel-tag">Explicit limits · INR</span><button class="button button-secondary button-small" id="cash-flow-budget-copy-previous" type="button">Copy previous month</button><button class="button button-secondary button-small" id="cash-flow-budget-export-csv" type="button">Export budget CSV</button><button class="button button-secondary button-small" id="cash-flow-budget-export-history-csv" type="button">Export budget history</button><button class="button button-secondary button-small" id="cash-flow-budget-export-json" type="button">Export budget backup</button><label class="button button-secondary button-small cash-flow-import-label" for="cash-flow-budget-import-json">Import budget backup</label><input id="cash-flow-budget-import-json" type="file" accept="application/json,.json" hidden></div>
+                        <div class="cash-flow-monthly-actions"><span class="panel-tag">Explicit limits · INR</span><button class="button button-secondary button-small" id="cash-flow-budget-copy-previous" type="button">Copy previous month</button><button class="button button-secondary button-small" id="cash-flow-budget-export-csv" type="button">Export budget CSV</button><button class="button button-secondary button-small" id="cash-flow-budget-export-history-csv" type="button">Export budget history</button><button class="button button-secondary button-small" id="cash-flow-budget-history-toggle" type="button" aria-expanded="false" aria-controls="cash-flow-budget-history-panel">Show budget history</button><button class="button button-secondary button-small" id="cash-flow-budget-export-json" type="button">Export budget backup</button><label class="button button-secondary button-small cash-flow-import-label" for="cash-flow-budget-import-json">Import budget backup</label><input id="cash-flow-budget-import-json" type="file" accept="application/json,.json" hidden></div>
                     </div>
                     <p class="cash-flow-intro">Set your own monthly spending limits by category and compare them with recorded expenses. Actuals come only from saved transactions for the selected month; no budget is inferred. Budgets are stored separately in this browser and are not included in cash-flow ledger backups.</p>
                     <div class="cash-flow-summary cash-flow-budget-summary" aria-live="polite" aria-atomic="true" aria-label="Monthly budget overview">
@@ -470,6 +470,18 @@
                         </table>
                     </div>
                     <p id="cash-flow-budget-empty" class="cash-flow-empty">Set a budget or record an expense to see the comparison.</p>
+                    <section id="cash-flow-budget-history-panel" class="cash-flow-category-panel" aria-labelledby="cash-flow-budget-history-heading" hidden>
+                        <div class="panel-header"><div><p class="eyebrow">ALL RECORDED MONTHS</p><h4 id="cash-flow-budget-history-heading">Budget history</h4></div><span class="panel-tag">Saved budgets vs recorded expenses</span></div>
+                        <p class="cash-flow-intro">Each row represents a month and category with a saved budget or recorded expense. Categories without an explicit budget remain visible; their utilization and remaining amount are unavailable.</p>
+                        <div class="table-wrap cash-flow-category-table-wrap">
+                            <table>
+                                <caption class="sr-only">Historical monthly category budgets compared with recorded expenses</caption>
+                                <thead><tr><th scope="col">Month</th><th scope="col">Category</th><th scope="col">Budget</th><th scope="col">Actual expenses</th><th scope="col">Budget used</th><th scope="col">Remaining</th><th scope="col">Status</th></tr></thead>
+                                <tbody id="cash-flow-budget-history-rows"></tbody>
+                            </table>
+                        </div>
+                        <p id="cash-flow-budget-history-empty" class="cash-flow-empty">No saved budgets or recorded expenses yet.</p>
+                    </section>
                 </section>
                 <form id="cash-flow-form" class="cash-flow-form">
                     <div class="cash-flow-input-grid">

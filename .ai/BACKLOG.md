@@ -84,7 +84,7 @@ Implemented
 - Monthly cash-flow trend table grouped from existing dated transactions; no separate snapshot persistence or forecasts (PR #239).
 - Monthly cash-flow trend shows each month's savings rate as net divided by income, with an unavailable marker for months with zero income; the monthly CSV export includes the same metric.
 - Local CSV export of monthly cash-flow trend totals and transaction counts (PR #240).
-- Annual cash-flow trend table grouped from saved transaction dates, with income, expenses, net, savings rate, transaction count, and an explicit empty state; historical only, no forecasts.
+- Annual cash-flow trend table grouped from saved transaction dates, with income, expenses, net, savings rate, transaction count, and an explicit empty state; historical only, no forecasts (delivered in PR #271).
 - Local CSV export of the selected-period cash-flow category breakdown, including income, expenses, net, and transaction counts; formula-like category text is neutralized.
 - Selected-period cash-flow category table shows each category's share of total recorded expenses, with an explicit unavailable state when the period has no expenses.
 - Selected-period cash-flow category CSV export includes the same expense-share metric as the dashboard table, using an empty field when total expenses are zero.
@@ -272,8 +272,10 @@ Future enhancements are added here and prioritized during sprint planning.
 
 No work should begin unless it has been added to the backlog.
 - Add a recurring-only cash-flow CSV export for the selected reporting period, retaining the standard transaction schema and spreadsheet formula neutralization (delivered in PR #264).
-- Add a separate re-importable `date,return_percent` CSV export for the validated return observations used in the risk analysis, invalidated with stale results. (delivered in this branch).
-- Add an all-period category budget history CSV export, including budgeted categories and expense-only categories, with deterministic month/category ordering and formula-safe text (delivered in PR #265).\n- Add an annual cash-flow summary CSV grouped by transaction year with income, expenses, net, savings rate, transaction count, deterministic ordering, and local-only export (delivered in this branch).
+- Add a separate re-importable `date,return_percent` CSV export for the validated return observations used in the risk analysis, invalidated with stale results (delivered in PR #266).
+- Add an all-period category budget history CSV export, including budgeted categories and expense-only categories, with deterministic month/category ordering and formula-safe text (delivered in PR #265).
+- Show expandable budget history in the dashboard, including explicit no-budget states, actual expenses, utilization, remaining amounts, and status; reuse the CSV aggregation and guard against invalid private storage.
+- Add an annual cash-flow summary CSV grouped by transaction year with income, expenses, net, savings rate, transaction count, deterministic ordering, and local-only export (delivered in PR #270).
 
 
 
