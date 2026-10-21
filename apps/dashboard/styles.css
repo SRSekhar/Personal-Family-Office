@@ -215,3 +215,15 @@
 .financial-health-empty{grid-column:1/-1;margin:0;padding:18px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:12px;line-height:1.6}
 @media(max-width:1050px){.financial-health-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.financial-health-panel{padding:15px}.financial-health-grid{grid-template-columns:1fr}.financial-health-card>strong{font-size:21px}}
+
+
+/* FIRE goal gap analysis */
+.fire-gap-analysis{margin-top:20px;padding-top:18px;border-top:1px solid #e8eee8}
+.fire-gap-analysis .fire-result-heading h3{font-size:15px}
+.fire-gap-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:13px}
+.fire-gap-card{display:grid;gap:8px;min-width:0;padding:13px;border:1px solid #e7ece7;border-radius:8px;background:#fbfcfb}
+.fire-gap-card>span{font-size:11px;color:#78857e;line-height:1.45}
+.fire-gap-card>strong{font-size:clamp(15px,1.6vw,21px);line-height:1.4;overflow-wrap:anywhere}
+.fire-gap-card>small{font-size:10px;line-height:1.55;color:#78857e;overflow-wrap:anywhere}
+@media(max-width:1150px){.fire-gap-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.fire-gap-grid{grid-template-columns:minmax(0,1fr)}}
