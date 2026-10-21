@@ -428,6 +428,18 @@
                     </div>
                     <p id="cash-flow-monthly-empty" class="cash-flow-empty">No recorded months yet.</p>
                 </section>
+                <section class="cash-flow-category-panel" aria-labelledby="cash-flow-annual-heading">
+                    <div class="panel-header"><div><p class="eyebrow">YEARLY OVERVIEW</p><h3 id="cash-flow-annual-heading">Annual cash-flow trend</h3></div><span class="panel-tag">All recorded years</span></div>
+                    <p class="cash-flow-intro">Annual totals are aggregated from saved transaction dates. Savings rate is net cash flow divided by income and is unavailable when income is zero. This is a historical summary, not a forecast.</p>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Annual income, expenses, net cash flow, savings rate, and transaction count from recorded transactions</caption>
+                            <thead><tr><th scope="col">Year</th><th scope="col">Income</th><th scope="col">Expenses</th><th scope="col">Net</th><th scope="col">Savings rate</th><th scope="col">Transactions</th></tr></thead>
+                            <tbody id="cash-flow-annual-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-annual-empty" class="cash-flow-empty">No recorded years yet.</p>
+                </section>
                 <section class="cash-flow-category-panel cash-flow-budget-panel" aria-labelledby="cash-flow-budget-heading">
                     <div class="panel-header">
                         <div><p class="eyebrow">PLAN · TRACK · ADJUST</p><h3 id="cash-flow-budget-heading">Monthly category budgets</h3></div>
