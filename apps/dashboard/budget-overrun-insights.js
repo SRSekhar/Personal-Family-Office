@@ -121,14 +121,11 @@ function render() {
 
 function initialize() {
     render();
-    const historyToggle = document.querySelector('#cash-flow-budget-history-toggle');
-    const budgetSave = document.querySelector('#cash-flow-budget-save');
-    const cashFlowSave = document.querySelector('#cash-flow-save');
-    for (const control of [historyToggle, budgetSave, cashFlowSave]) {
-        if (control) control.addEventListener('click', () => window.setTimeout(render, 0));
-    }
     const root = document.querySelector('#cash-flow');
-    if (root) root.addEventListener('submit', () => window.setTimeout(render, 0));
+    if (root) {
+        root.addEventListener('click', () => window.setTimeout(render, 0));
+        root.addEventListener('submit', () => window.setTimeout(render, 0));
+    }
 }
 
 if (typeof document !== 'undefined') {
