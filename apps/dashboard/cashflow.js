@@ -1039,9 +1039,18 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                         : 0;
                     const next = appendMode ? [...entries, ...imported] : imported;
                     const preview = summarizeCashFlow(next);
+                    const importedIncomeCount = imported.filter((item) => item.type === 'income').length;
+                    const importedExpenseCount = imported.length - importedIncomeCount;
+                    const importedDates = imported.map((item) => item.date).sort();
+                    const importedDateRange = importedDates.length === 0 ? '—'
+                        : importedDates[0] === importedDates[importedDates.length - 1]
+                            ? importedDates[0] : importedDates[0] + ' to ' + importedDates[importedDates.length - 1];
                     const confirmLines = [
                         (appendMode ? 'CSV append preview: ' : 'CSV replacement preview: ')
                             + imported.length + ' transaction' + (imported.length === 1 ? '' : 's'),
+                        'Imported income transactions: ' + importedIncomeCount,
+                        'Imported expense transactions: ' + importedExpenseCount,
+                        'Imported transaction date range: ' + importedDateRange,
                         'Total transactions after import: ' + next.length,
                         'Income after import: ' + money(preview.income),
                         'Expenses after import: ' + money(preview.expenses),
