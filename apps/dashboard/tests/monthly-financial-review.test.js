@@ -51,8 +51,15 @@ describe('monthly financial review', () => {
             budgets, goals: [], month: '2026-09', generatedAt: new Date('2026-10-21T08:00:00.000Z')
         });
         expect(review.unbudgetedExpenses).toEqual([{ category: 'Transport', actual: 12000, transactionCount: 1 }]);
+        expect(review.budgetCoverage).toEqual({
+            budgetedCategoryCount: 2, expenseCategoryCount: 3, coveredExpenseCategoryCount: 2,
+            budgetedActualExpenses: 50000, unbudgetedExpenses: 12000, totalExpenses: 62000,
+            expenseCoverageRate: 50000 / 62000 * 100
+        });
         const html = renderMonthlyFinancialReviewHtml(review);
         expect(html).toContain('Expenses without a saved budget');
+        expect(html).toContain('Budget coverage');
+        expect(html).toContain('80.6%');
         expect(html).toContain('Total expenses without a saved budget: ₹12,000.');
     });
 
@@ -61,6 +68,8 @@ describe('monthly financial review', () => {
         expect(review.current).toMatchObject({ income: 0, expenses: 0, net: 0, savingsRate: null, transactionCount: 0 });
         expect(review.hasCurrentTransactions).toBe(false);
         expect(review.hasPriorTransactions).toBe(false);
+        expect(review.budgetCoverage.expenseCoverageRate).toBeNull();
+        expect(review.budgetCoverage.unbudgetedExpenses).toBe(0);
     });
 
     it('rejects malformed month, duplicate budgets, and invalid transactions without changing input', () => {
