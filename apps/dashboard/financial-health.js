@@ -41,6 +41,11 @@ export function calculateFinancialHealth({ records, cashFlowEntries, budgets, go
         (actualsByCategory.get(item.category.trim().toLocaleLowerCase('en-US')) || 0) - item.amount));
     const totalPositiveOverrun = finiteTotal(overruns, 'Monthly budget overruns');
     const overBudgetCategoryCount = overruns.filter((amount) => amount > 0).length;
+    const budgetedCategoryKeys = new Set(monthBudgets.map((item) => item.category.trim().toLocaleLowerCase('en-US')));
+    const coveredExpenseCategoryCount = [...actualsByCategory.keys()].filter((key) => budgetedCategoryKeys.has(key)).length;
+    const unbudgetedExpenses = Math.max(0, expenses - actualInBudgetedCategories);
+    const expenseCoverageRate = expenses > 0 ? actualInBudgetedCategories / expenses * 100 : null;
+    if (expenseCoverageRate !== null && !Number.isFinite(expenseCoverageRate)) throw new Error('Budget coverage is unavailable.');
 
     const goalTargetTotal = finiteTotal(goals.map((goal) => goal.targetAmount), 'Goal target total');
     const goalCurrentTotal = finiteTotal(goals.map((goal) => Math.min(goal.currentAmount, goal.targetAmount)), 'Goal progress total');
@@ -52,6 +57,7 @@ export function calculateFinancialHealth({ records, cashFlowEntries, budgets, go
         month, assets, liabilities, netWorth, income, expenses, netCashFlow, savingsRate,
         transactionCount: periodEntries.length, budgetTotal, actualInBudgetedCategories,
         budgetedCategoryCount: monthBudgets.length, overBudgetCategoryCount, totalPositiveOverrun,
+        coveredExpenseCategoryCount, expenseCategoryCount: actualsByCategory.size, unbudgetedExpenses, expenseCoverageRate,
         goalCount: goals.length, completedGoals, goalTargetTotal, goalCurrentTotal, goalProgressPercent
     };
 }
