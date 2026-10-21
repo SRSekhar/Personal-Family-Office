@@ -584,7 +584,7 @@ function renderFinancialHealth() {
         if (!Array.isArray(budgets)) throw new Error('Saved budget data is not a valid list.');
         const budgetKeys = new Set();
         for (const budget of budgets) {
-            if (!budget || typeof budget.month !== 'string' || !/^\\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
+            if (!budget || typeof budget.month !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(budget.month)
                 || typeof budget.category !== 'string' || !budget.category.trim()
                 || typeof budget.amount !== 'number' || !Number.isFinite(budget.amount) || budget.amount <= 0) {
                 throw new Error('Saved budget data failed validation.');
