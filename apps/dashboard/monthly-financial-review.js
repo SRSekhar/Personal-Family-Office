@@ -74,18 +74,43 @@ export function buildMonthlyFinancialReview({ entries, budgets, goals, month, ge
     const current = summaryFor(validatedEntries, month);
     const prior = summaryFor(validatedEntries, priorMonth);
     const selectedEntries = validatedEntries.filter((entry) => entry.date.startsWith(month));
-    const categoryMap = new Map();
-    for (const entry of selectedEntries) {
-        const key = entry.category.toLocaleLowerCase('en-US');
-        const row = categoryMap.get(key) || { category: entry.category, income: 0, expenses: 0, transactionCount: 0 };
-        if (entry.type === 'income') row.income += entry.amount;
-        else row.expenses += entry.amount;
-        row.transactionCount += 1;
-        if (!Number.isFinite(row.income) || !Number.isFinite(row.expenses)) throw new RangeError('Category totals exceed the supported numeric range.');
-        categoryMap.set(key, row);
-    }
-    const categories = [...categoryMap.values()].map((row) => ({ ...row, net: row.income - row.expenses }))
+    const priorEntries = validatedEntries.filter((entry) => entry.date.startsWith(priorMonth));
+    const summarizeCategories = (periodEntries) => {
+        const categoryMap = new Map();
+        for (const entry of periodEntries) {
+            const key = entry.category.toLocaleLowerCase('en-US');
+            const row = categoryMap.get(key) || { category: entry.category, income: 0, expenses: 0, transactionCount: 0 };
+            if (entry.type === 'income') row.income += entry.amount;
+            else row.expenses += entry.amount;
+            row.transactionCount += 1;
+            if (!Number.isFinite(row.income) || !Number.isFinite(row.expenses)) {
+                throw new RangeError('Category totals exceed the supported numeric range.');
+            }
+            categoryMap.set(key, row);
+        }
+        return categoryMap;
+    };
+    const currentCategoryMap = summarizeCategories(selectedEntries);
+    const priorCategoryMap = summarizeCategories(priorEntries);
+    const categories = [...currentCategoryMap.values()].map((row) => ({ ...row, net: row.income - row.expenses }))
         .sort((a, b) => b.expenses - a.expenses || a.category.localeCompare(b.category));
+    const categoryKeys = new Set([...currentCategoryMap.keys(), ...priorCategoryMap.keys()]);
+    const categoryComparison = [...categoryKeys].map((key) => {
+        const currentCategory = currentCategoryMap.get(key);
+        const priorCategory = priorCategoryMap.get(key);
+        const category = currentCategory?.category ?? priorCategory.category;
+        const currentIncome = currentCategory?.income ?? 0;
+        const currentExpenses = currentCategory?.expenses ?? 0;
+        const priorIncome = priorCategory?.income ?? 0;
+        const priorExpenses = priorCategory?.expenses ?? 0;
+        const incomeChange = currentIncome - priorIncome;
+        const expenseChange = currentExpenses - priorExpenses;
+        if (![incomeChange, expenseChange].every(Number.isFinite)) {
+            throw new RangeError('Category comparison exceeds the supported numeric range.');
+        }
+        return { category, currentIncome, currentExpenses, priorIncome, priorExpenses, incomeChange, expenseChange };
+    }).sort((a, b) => b.currentExpenses - a.currentExpenses || b.priorExpenses - a.priorExpenses
+        || a.category.localeCompare(b.category));
     const budgetRows = validatedBudgets.filter((budget) => budget.month === month).map((budget) => {
         const actual = categories.find((row) => row.category.toLocaleLowerCase('en-US') === budget.category.toLocaleLowerCase('en-US'))?.expenses || 0;
         return { category: budget.category, budget: budget.amount, actual, remaining: budget.amount - actual,
@@ -98,7 +123,7 @@ export function buildMonthlyFinancialReview({ entries, budgets, goals, month, ge
     }).sort((a, b) => a.targetDate.localeCompare(b.targetDate) || a.name.localeCompare(b.name));
     return {
         month, monthLabel: monthLabel(month), priorMonth, priorMonthLabel: monthLabel(priorMonth),
-        generatedAt: generatedAt.toISOString(), current, prior, categories, budgets: budgetRows, goals: reportGoals,
+        generatedAt: generatedAt.toISOString(), current, prior, categories, categoryComparison, budgets: budgetRows, goals: reportGoals,
         hasCurrentTransactions: current.transactionCount > 0, hasPriorTransactions: prior.transactionCount > 0
     };
 }
@@ -110,7 +135,7 @@ function tableRows(rows, columns, emptyText) {
 
 export function renderMonthlyFinancialReviewHtml(review) {
     if (!review || typeof review.month !== 'string' || !MONTH_PATTERN.test(review.month)
-        || !Array.isArray(review.categories) || !Array.isArray(review.budgets) || !Array.isArray(review.goals)
+        || !Array.isArray(review.categories) || !Array.isArray(review.categoryComparison) || !Array.isArray(review.budgets) || !Array.isArray(review.goals)
         || !review.current || !review.prior || typeof review.generatedAt !== 'string') {
         throw new TypeError('Monthly financial review data is invalid.');
     }
@@ -130,6 +155,7 @@ export function renderMonthlyFinancialReviewHtml(review) {
 </style></head><body><header><p class="eyebrow">PFO OS · PRIVATE LOCAL REPORT</p><h1>Monthly financial review</h1><p><strong>${escapeHtml(review.monthLabel)}</strong> · Generated ${generatedLabel}</p><p>Recorded cash flow, saved category budgets, and saved goals only. No forecasts, inferred transactions, or recommendations.</p></header>
 <section><h2>Month at a glance</h2><div class="grid">${metrics.map(([label,value,change])=>'<article class="metric"><span>'+escapeHtml(label)+'</span><strong>'+escapeHtml(value)+'</strong><small>'+escapeHtml(change.direction)+': '+escapeHtml(typeof change.value === 'number' ? amount(change.value) : change.value)+'</small></article>').join('')}</div><p class="muted">Comparison: ${escapeHtml(review.priorMonthLabel)}. ${review.hasCurrentTransactions ? '' : 'No transactions were recorded for the selected month.'} ${review.hasPriorTransactions ? '' : 'No transactions were recorded for the comparison month.'}</p></section>
 <section><h2>Category activity</h2><div class="table-wrap"><table><thead><tr><th>Category</th><th>Income</th><th>Expenses</th><th>Net</th><th>Transactions</th></tr></thead><tbody>${tableRows(review.categories,[['category',(v)=>v],['income',amount],['expenses',amount],['net',amount],['transactionCount',String]],'No recorded transactions for this month.')}</tbody></table></div></section>
+<section><h2>Category changes vs prior month</h2><p>Changes compare recorded transactions in ${escapeHtml(review.monthLabel)} with ${escapeHtml(review.priorMonthLabel)}. A category missing from either month is treated as zero for that month; this is a historical comparison, not a forecast.</p><div class="table-wrap"><table><thead><tr><th>Category</th><th>Current income</th><th>Current expenses</th><th>Prior income</th><th>Prior expenses</th><th>Expense change</th></tr></thead><tbody>${tableRows(review.categoryComparison,[["category",(v)=>v],["currentIncome",amount],["currentExpenses",amount],["priorIncome",amount],["priorExpenses",amount],["expenseChange",amount]],"No categories to compare.")}</tbody></table></div></section>
 <section><h2>Budget attention</h2><p>Only explicitly saved budgets for ${escapeHtml(review.monthLabel)} are included. Categories without budgets are not assigned a limit.</p><div class="table-wrap"><table><thead><tr><th>Category</th><th>Budget</th><th>Actual expenses</th><th>Remaining</th><th>Status</th></tr></thead><tbody>${tableRows(review.budgets,[['category',(v)=>v],['budget',amount],['actual',amount],['remaining',amount],['status',(v)=>v]],'No budgets saved for this month.')}</tbody></table></div><p>${budgetOverruns.length ? escapeHtml(budgetOverruns.length+' budgeted categories are over budget; total positive overrun: '+amount(budgetOverruns.reduce((sum,row)=>sum+row.overrun,0))+'.') : 'No positive overruns against saved budgets for this month.'}</p></section>
 <section><h2>Saved goal progress</h2><div class="table-wrap"><table><thead><tr><th>Goal</th><th>Current</th><th>Target</th><th>Progress</th><th>Remaining</th><th>Target date</th><th>Status</th></tr></thead><tbody>${tableRows(review.goals,[['name',(v)=>v],['currentAmount',amount],['targetAmount',amount],['progress',(v)=>v.toLocaleString('en-IN',{maximumFractionDigits:1})+'%'],['remaining',amount],['targetDate',(v)=>v],['status',(v)=>v]],'No saved goals.')}</tbody></table></div><p class="muted">Goal amounts and status reflect saved progress at report generation time.</p></section>
 <p class="privacy">Privacy: this is a self-contained HTML file and may contain sensitive financial information. Store it securely. It is generated in the browser and is not uploaded by PFO OS.</p></body></html>`;
