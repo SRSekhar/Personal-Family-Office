@@ -1138,18 +1138,22 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
         const currentRate = calculateCashFlowSavingsRate(current.income, current.expenses);
         const baseRate = calculateCashFlowSavingsRate(comparison.income, comparison.expenses);
-        const rows = [
-            ['metric', 'selected_month', 'comparison_month', 'difference'],
-            ['income', currentMonth, baseMonth, current.income - comparison.income],
-            ['expenses', currentMonth, baseMonth, current.expenses - comparison.expenses],
-            ['net_cash_flow', currentMonth, baseMonth, current.net - comparison.net],
-            ['savings_rate_percent', currentMonth, baseMonth, currentRate === null || baseRate === null ? '' : currentRate - baseRate],
-            ['transaction_count', currentMonth, baseMonth, current.transactionCount - comparison.transactionCount]
+        const csvRows = [
+            ['metric', 'selected_month', 'selected_value', 'comparison_month', 'comparison_value', 'difference'],
+            ['income', currentMonth, current.income, baseMonth, comparison.income, current.income - comparison.income],
+            ['expenses', currentMonth, current.expenses, baseMonth, comparison.expenses, current.expenses - comparison.expenses],
+            ['net_cash_flow', currentMonth, current.net, baseMonth, comparison.net, current.net - comparison.net],
+            ['savings_rate_percent', currentMonth, currentRate ?? '', baseMonth, baseRate ?? '', currentRate === null || baseRate === null ? '' : currentRate - baseRate],
+            ['transaction_count', currentMonth, current.transactionCount, baseMonth, comparison.transactionCount, current.transactionCount - comparison.transactionCount]
         ];
-        const csv = rows.map((row) => row.map((value) => {
+        if (csvRows.slice(1).some((row) => row.some((value) => typeof value === 'number' && !Number.isFinite(value)))) {
+            message('Monthly comparison contains a numeric difference outside the supported range; export is unavailable.', true);
+            return;
+        }
+        const csv = csvRows.map((row) => row.map((value) => {
             const cell = String(value);
             return '"' + (typeof value !== 'number' && /^[=+@-]/.test(cell.trimStart()) ? "'" + cell : cell).replaceAll('"', '""') + '"';
-        }).join(',')).join('\r\n') + '\r\n';
+        }).join(',')).join('\\r\\n') + '\\r\\n';
         download('pfo-cash-flow-monthly-comparison-' + currentMonth + '-vs-' + baseMonth + '.csv', csv, 'text/csv;charset=utf-8');
         message('Monthly cash-flow comparison exported to this device.');
     });
