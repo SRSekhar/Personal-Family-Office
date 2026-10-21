@@ -273,6 +273,23 @@ describe('annual cash-flow summary export contract', () => {
     });
 });
 
+describe('annual cash-flow trend table contract', () => {
+    it('renders annual totals from the shared annual aggregator with explicit empty state and historical-only wording', async () => {
+        const [html, app, ledger] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('cashflow-ledger.js')
+        ]);
+        expect(html).toContain('id="cash-flow-annual-heading"');
+        expect(html).toContain('id="cash-flow-annual-rows"');
+        expect(html).toContain('id="cash-flow-annual-empty"');
+        expect(html).toContain('This is a historical summary, not a forecast.');
+        expect(app).toContain("const annualSummaries = summarizeCashFlowByYear(entries)");
+        expect(app).toContain("$('#cash-flow-annual-empty').hidden = annualSummaries.length !== 0");
+        expect(ledger).toContain('export function summarizeCashFlowByYear(entries)');
+    });
+});
+
 describe('monthly budget utilization contract', () => {
     it('shows budget-used percentage and exports the same metric without inventing a budget', async () => {
         const [html, cashFlow] = await Promise.all([
