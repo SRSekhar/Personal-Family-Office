@@ -246,7 +246,7 @@ describe('monthly budget backup contract', () => {
         expect(html).toContain('id="cash-flow-budget-import-json"');
         expect(cashFlow).toContain("schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), budgets");
         expect(cashFlow).toContain("payload.schemaVersion !== 1");
-        expect(cashFlow).toContain("const imported = validateBudgets(payload.budgets);");
+        expect(cashFlow).toContain("const imported = validateCashFlowBudgets(payload.budgets);");
         expect(cashFlow).toContain("if (!windowRef.confirm(preview))");
         expect(cashFlow).toContain("Cash-flow transactions will not be changed.");
         expect(cashFlow).toContain("if (!isLoopback(windowRef.location.hostname))");
@@ -482,7 +482,7 @@ describe('dashboard export reliability', () => {
         const app = await readDashboardFile('app.js');
         const exportData = app.slice(app.indexOf('function exportData()'), app.indexOf('function exportCsv()'));
 
-        expect(exportData).toContain("link.download = 'pfo-os-financial-records.json';");
+        expect(exportData).toContain("link.download = 'pfo-os-full-workspace-backup.json';");
         expect(exportData).toContain('document.body.append(link);');
         expect(exportData).toContain('link.remove();');
         expect(exportData).toMatch(/setTimeout\(\(\) => URL\.revokeObjectURL\(url\), 1000\)/);
@@ -685,5 +685,25 @@ describe('monthly financial review report contract', () => {
         expect(report).toContain('Expense change');
         expect(css).toContain('.monthly-review-launcher');
         expect(css).toContain('@media(max-width:700px){.monthly-review-launcher{grid-template-columns:1fr}');
+    });
+});
+
+
+describe('full workspace backup contract', () => {
+    it('exports and restores validated records, goals, cash-flow transactions, and budgets as one local backup', async () => {
+        const [app, backup, cashflow] = await Promise.all([
+            readDashboardFile('app.js'),
+            readDashboardFile('backup.js'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(app).toContain('schemaVersion: isPrivateExport ? 3 : 1');
+        expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
+        expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
+        expect(app).toContain("'pfo-os-full-workspace-backup.json'");
+        expect(app).toContain("window.dispatchEvent(new Event('pfo:cashflow-restored'))");
+        expect(backup).toContain('includesCashFlow');
+        expect(backup).toContain('validateCashFlowEntries(payload.cashFlowEntries)');
+        expect(backup).toContain('validateCashFlowBudgets(payload.budgets)');
+        expect(cashflow).toContain("windowRef.addEventListener('pfo:cashflow-restored'");
     });
 });

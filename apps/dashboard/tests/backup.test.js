@@ -21,7 +21,10 @@ describe('validateBackupPayload', () => {
         expect(validateBackupPayload(validBackup, 'INR')).toEqual({
             records: validRecords,
             goals: [],
-            includesGoals: false
+            cashFlowEntries: [],
+            budgets: [],
+            includesGoals: false,
+            includesCashFlow: false
         });
     });
 
@@ -31,7 +34,10 @@ describe('validateBackupPayload', () => {
         }, 'INR')).toEqual({
             records: validRecords,
             goals: [validGoal],
-            includesGoals: true
+            cashFlowEntries: [],
+            budgets: [],
+            includesGoals: true,
+            includesCashFlow: false
         });
     });
 
@@ -52,7 +58,7 @@ describe('validateBackupPayload', () => {
     });
 
     it('rejects unsupported schemas and malformed version 2 shape', () => {
-        expect(() => validateBackupPayload({ ...validBackup, schemaVersion: 3 }, 'INR'))
+        expect(() => validateBackupPayload({ ...validBackup, schemaVersion: 4 }, 'INR'))
             .toThrow('Unsupported backup format');
         expect(() => validateBackupPayload({ ...validBackup, schemaVersion: 2 }, 'INR'))
             .toThrow('Unsupported backup format');
@@ -101,5 +107,43 @@ describe('validateBackupPayload', () => {
             goals: [{ ...validGoal, unexpected: 'not persisted' }]
         }, 'INR');
         expect(result.goals[0]).not.toHaveProperty('unexpected');
+    });
+});
+
+const validCashFlowEntry = {
+    id: 'entry-1', date: '2026-10-01', type: 'expense', category: 'Food',
+    description: 'Groceries', amount: 25, recurring: false
+};
+const validBudget = { month: '2026-10', category: 'Food', amount: 200 };
+
+describe('version 3 full workspace backup validation', () => {
+    const version3 = {
+        schemaVersion: 3, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget]
+    };
+
+    it('validates all four persisted data collections', () => {
+        expect(validateBackupPayload(version3, 'INR')).toEqual({
+            records: validRecords,
+            goals: [validGoal],
+            cashFlowEntries: [validCashFlowEntry],
+            budgets: [validBudget],
+            includesGoals: true,
+            includesCashFlow: true
+        });
+    });
+
+    it('rejects invalid cash-flow entries and duplicate budget categories before restore', () => {
+        expect(() => validateBackupPayload({
+            ...version3, cashFlowEntries: [{ ...validCashFlowEntry, amount: -1 }]
+        }, 'INR')).toThrow('invalid or duplicate transaction');
+        expect(() => validateBackupPayload({
+            ...version3, budgets: [validBudget, { ...validBudget, category: ' food ' }]
+        }, 'INR')).toThrow('duplicate month/category');
+    });
+
+    it('rejects a full backup when either cash-flow transactions or budgets are missing', () => {
+        expect(() => validateBackupPayload({ ...version3, budgets: undefined }, 'INR')).toThrow('Unsupported backup format');
+        expect(() => validateBackupPayload({ ...version3, cashFlowEntries: undefined }, 'INR')).toThrow('Unsupported backup format');
     });
 });

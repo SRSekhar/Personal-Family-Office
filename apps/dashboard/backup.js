@@ -1,8 +1,10 @@
 import { isValidSavedGoal } from './goals-storage.js';
+import { validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
 
 export function validateBackupPayload(payload, expectedCurrency) {
-    if (!payload || ![1, 2].includes(payload.schemaVersion) || !Array.isArray(payload.records)
-        || (payload.schemaVersion === 2 && !Array.isArray(payload.goals))) {
+    if (!payload || ![1, 2, 3].includes(payload.schemaVersion) || !Array.isArray(payload.records)
+        || ([2, 3].includes(payload.schemaVersion) && !Array.isArray(payload.goals))
+        || (payload.schemaVersion === 3 && (!Array.isArray(payload.cashFlowEntries) || !Array.isArray(payload.budgets)))) {
         throw new Error('Unsupported backup format.');
     }
     if (payload.currency !== expectedCurrency) {
@@ -26,7 +28,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
 
     const goals = [];
     const seenGoalIds = new Set();
-    if (payload.schemaVersion === 2) {
+    if ([2, 3].includes(payload.schemaVersion)) {
         for (const goal of payload.goals) {
             if (!isValidSavedGoal(goal) || seenGoalIds.has(goal.id)) {
                 throw new Error('The backup contains an invalid financial goal.');
@@ -44,9 +46,16 @@ export function validateBackupPayload(payload, expectedCurrency) {
         }
     }
 
+    const includesCashFlow = payload.schemaVersion === 3;
+    const cashFlowEntries = includesCashFlow ? validateCashFlowEntries(payload.cashFlowEntries) : [];
+    const budgets = includesCashFlow ? validateCashFlowBudgets(payload.budgets) : [];
+
     return {
         records,
         goals,
-        includesGoals: payload.schemaVersion === 2
+        cashFlowEntries,
+        budgets,
+        includesGoals: [2, 3].includes(payload.schemaVersion),
+        includesCashFlow
     };
 }

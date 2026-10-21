@@ -710,14 +710,17 @@ try {
         page.waitForEvent('download'),
         page.locator('#export-button').click()
     ]);
-    assert.equal(backupDownload.suggestedFilename(), 'pfo-os-financial-records.json');
-    const backupPath = join(temporaryDirectory, 'pfo-os-financial-records.json');
+    assert.equal(backupDownload.suggestedFilename(), 'pfo-os-full-workspace-backup.json');
+    const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 2, 'private JSON backup should use the goal-aware schema version');
+    assert.equal(backup.schemaVersion, 3, 'private JSON backup should use the full-workspace schema version');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
+    assert.equal(backup.cashFlowEntries.length, 2, 'private JSON backup should include all cash-flow transactions');
+    assert.ok(backup.cashFlowEntries.some((entry) => entry.description === 'Browser test salary'), 'cash-flow backup should preserve transaction details');
+    assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
@@ -875,7 +878,7 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 2, 'private backup should include saved goals');
+    assert.equal(goalBackup.schemaVersion, 3, 'private backup should use the full-workspace schema and include saved goals');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
@@ -943,7 +946,7 @@ try {
         mimeType: 'application/json',
         buffer: await readFile(goalBackupPath)
     });
-    assert.match(await restoreGoalConfirmation, /replace all records and saved goals in your private workspace/i);
+    assert.match(await restoreGoalConfirmation, /replace financial records, saved goals, cash-flow transactions, and budgets in this browser/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
     );
