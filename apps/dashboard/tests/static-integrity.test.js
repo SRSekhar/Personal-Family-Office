@@ -403,7 +403,7 @@ describe('annual cash-flow comparison contract', () => {
         expect(app).toContain("differenceLabel = label === 'Savings rate'");
         expect(app).toContain("$('#cash-flow-export-annual-comparison-csv').addEventListener('click'");
         expect(app).toContain('Annual comparison export is unavailable because saved cash-flow data could not be validated.');
-        expect(app).toContain("['metric', 'selected_year', 'selected_value', 'comparison_year', 'comparison_value', 'difference']");
+        expect(app).toContain("['record_type', 'metric', 'category', 'selected_year', 'selected_value', 'comparison_year', 'comparison_value', 'difference']");
         expect(app).toContain('Annual comparison contains a numeric difference outside the supported range; export is unavailable.');
         expect(app).toContain("'pfo-cash-flow-annual-comparison.csv'");
     });
