@@ -13,6 +13,7 @@ import {
     summarizeCashFlow,
     summarizeCashFlowByCategory,
     summarizeCashFlowByMonth,
+    summarizeCashFlowByYear,
     validateCashFlowEntries
 } from '../cashflow-ledger.js';
 
@@ -157,6 +158,23 @@ describe('cash flow summaries', () => {
             { ...entries[0], amount: Number.MAX_VALUE },
             { ...entries[0], id: 'e-1', type: 'expense', amount: Number.MAX_VALUE }
         ])).toThrow('category totals');
+    });
+});
+
+describe('cash flow annual summaries', () => {
+    it('aggregates annual totals from recorded transactions and sorts years newest first', () => {
+        expect(summarizeCashFlowByYear([
+            ...entries,
+            { id: 'i-2', date: '2025-01-10', type: 'income', category: 'Salary', description: 'Prior year', amount: 50000, recurring: true },
+            { id: 'e-3', date: '2025-06-10', type: 'expense', category: 'Food', description: 'Prior year food', amount: 10000, recurring: false }
+        ])).toEqual([
+            { year: '2026', income: 100000, expenses: 22500, transactionCount: 3, net: 77500 },
+            { year: '2025', income: 50000, expenses: 10000, transactionCount: 2, net: 40000 }
+        ]);
+    });
+
+    it('returns no annual summaries for an empty ledger', () => {
+        expect(summarizeCashFlowByYear([])).toEqual([]);
     });
 });
 
