@@ -666,7 +666,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
 
-    function budgetHistoryToCsv() {
+    function budgetHistoryRows() {
         const combined = new Map();
         const keyFor = (month, category) => month + '|' + category.trim().toLocaleLowerCase('en-US');
         for (const budget of budgets) {
@@ -681,22 +681,40 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             const key = keyFor(month, entry.category);
             const current = combined.get(key) ?? { month, category: entry.category.trim(), budget: null, actual: 0 };
             current.actual += entry.amount;
-            if (!Number.isFinite(current.actual)) throw new Error('Expense totals exceed the supported numeric range; budget history export is unavailable.');
+            if (!Number.isFinite(current.actual)) throw new Error('Expense totals exceed the supported numeric range; budget history is unavailable.');
             combined.set(key, current);
         }
+        return [...combined.values()]
+            .sort((a, b) => a.month.localeCompare(b.month) || a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }))
+            .map((item) => {
+                const remaining = item.budget === null ? null : item.budget - item.actual;
+                if (remaining !== null && !Number.isFinite(remaining)) {
+                    throw new Error('Budget history remaining amounts exceed the supported numeric range.');
+                }
+                return {
+                    ...item,
+                    utilization: budgetUtilizationPercent(item.budget, item.actual),
+                    remaining,
+                    status: item.budget === null ? 'No budget set' : remaining < 0 ? 'Over budget' : item.actual === 0 ? 'Not spent' : 'Within budget'
+                };
+            });
+    }
+
+    function budgetHistoryToCsv() {
+        const rows = budgetHistoryRows();
         const csvField = (value, textField = false) => {
             let field = String(value ?? '');
-            if (textField && /^[=+\-@\t\r]/u.test(field)) field = "'" + field;
+            if (textField && /^[=+\\-@\\t\\r]/u.test(field)) field = "'" + field;
             return '"' + field.replaceAll('"', '""') + '"';
         };
-        const rows = [...combined.values()].sort((a, b) => a.month.localeCompare(b.month) || a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
         const lines = [['month', 'category', 'budget', 'actual_expenses', 'budget_used_percent', 'remaining', 'status']];
         for (const item of rows) {
-            const remaining = item.budget === null ? null : item.budget - item.actual;
-            const status = item.budget === null ? 'No budget set' : remaining < 0 ? 'Over budget' : item.actual === 0 ? 'Not spent' : 'Within budget';
-            lines.push([item.month, item.category, item.budget === null ? '' : item.budget, item.actual, budgetUtilizationPercent(item.budget, item.actual) ?? '', remaining === null ? '' : remaining, status]);
+            lines.push([
+                item.month, item.category, item.budget === null ? '' : item.budget, item.actual,
+                item.utilization ?? '', item.remaining === null ? '' : item.remaining, item.status
+            ]);
         }
-        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
+        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\\r\\n') + '\\r\\n';
     }
 
     $('#cash-flow-budget-export-history-csv').addEventListener('click', () => {
