@@ -442,6 +442,11 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const budgetedRows = [...combined.values()].filter((item) => item.budget !== null);
         const totalBudget = budgetedRows.reduce((total, item) => total + item.budget, 0);
         const actualAgainstBudget = budgetedRows.reduce((total, item) => total + item.actual, 0);
+        const overBudgetRows = budgetedRows.filter((item) => item.actual > item.budget);
+        const totalOverrun = overBudgetRows.reduce((total, item) => total + (item.actual - item.budget), 0);
+        const overrunIsFinite = Number.isFinite(totalOverrun);
+        $('#cash-flow-budget-overrun-count').textContent = String(overBudgetRows.length);
+        $('#cash-flow-budget-overrun-total').textContent = overrunIsFinite ? money(totalOverrun) : '—';
         const remainingAgainstBudget = totalBudget - actualAgainstBudget;
         const overviewIsFinite = Number.isFinite(totalBudget) && Number.isFinite(actualAgainstBudget)
             && Number.isFinite(remainingAgainstBudget);
