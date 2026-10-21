@@ -175,10 +175,18 @@ describe('all-period budget history export contract', () => {
         expect(html).toContain('id="cash-flow-budget-history-toggle"');
         expect(html).toContain('id="cash-flow-budget-history-panel"');
         expect(html).toContain('id="cash-flow-budget-history-rows"');
+        expect(html).toContain('id="cash-flow-budget-history-year-filter"');
+        expect(html).toContain('id="cash-flow-budget-history-category-filter"');
+        expect(html).toContain('id="cash-flow-budget-history-reset-filters"');
+        expect(html).toContain('id="cash-flow-budget-history-count"');
         expect(cashFlow).toContain("$('#cash-flow-budget-export-history-csv').addEventListener('click'");
         expect(cashFlow).toContain("$('#cash-flow-budget-history-toggle').addEventListener('click'");
         expect(cashFlow).toContain('function budgetHistoryRows()');
         expect(cashFlow).toContain('function renderBudgetHistory()');
+        expect(cashFlow).toContain("const years = [...new Set(rows.map((item) => item.month.slice(0, 4)))]");
+        expect(cashFlow).toContain("const visibleRows = rows.filter((item) =>");
+        expect(cashFlow).toContain("Showing ' + visibleRows.length + ' of ' + rows.length + ' rows");
+        expect(cashFlow).toContain("$('#cash-flow-budget-history-reset-filters').addEventListener('click'");
         expect(cashFlow).toContain('function budgetHistoryToCsv()');
         expect(cashFlow).toContain("entry.type !== 'expense'");
         expect(cashFlow).toContain('a.month.localeCompare(b.month)');

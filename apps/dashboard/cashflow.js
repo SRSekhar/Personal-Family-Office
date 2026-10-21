@@ -709,10 +709,41 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
 
     function renderBudgetHistory() {
         const rows = budgetHistoryRows();
+        const yearFilter = $('#cash-flow-budget-history-year-filter');
+        const categoryFilter = $('#cash-flow-budget-history-category-filter');
+        const selectedYear = yearFilter.value;
+        const selectedCategory = categoryFilter.value;
+        const years = [...new Set(rows.map((item) => item.month.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
+        const categories = [...new Map(rows.map((item) => [item.category.toLocaleLowerCase('en-US'), item.category])).values()]
+            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+        const fillOptions = (select, allLabel, values, selectedValue) => {
+            select.replaceChildren();
+            const allOption = documentRef.createElement('option');
+            allOption.value = '';
+            allOption.textContent = allLabel;
+            select.append(allOption);
+            for (const value of values) {
+                const option = documentRef.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                select.append(option);
+            }
+            select.value = values.includes(selectedValue) ? selectedValue : '';
+        };
+        fillOptions(yearFilter, 'All years', years, selectedYear);
+        fillOptions(categoryFilter, 'All categories', categories, selectedCategory);
+        const visibleRows = rows.filter((item) =>
+            (!yearFilter.value || item.month.startsWith(yearFilter.value))
+            && (!categoryFilter.value || item.category.toLocaleLowerCase('en-US') === categoryFilter.value.toLocaleLowerCase('en-US')));
         const body = $('#cash-flow-budget-history-rows');
         body.replaceChildren();
-        $('#cash-flow-budget-history-empty').hidden = rows.length !== 0;
-        for (const item of rows) {
+        $('#cash-flow-budget-history-count').textContent = 'Showing ' + visibleRows.length + ' of ' + rows.length + ' rows';
+        const empty = $('#cash-flow-budget-history-empty');
+        empty.textContent = rows.length === 0
+            ? 'No saved budgets or recorded expenses yet.'
+            : 'No budget history matches the selected filters.';
+        empty.hidden = visibleRows.length !== 0;
+        for (const item of visibleRows) {
             const utilization = item.utilization === null ? '—'
                 : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(item.utilization) + '%';
             const values = [
@@ -728,6 +759,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             body.append(row);
         }
     }
+
 
     function budgetHistoryToCsv() {
         const rows = budgetHistoryRows();
@@ -745,6 +777,25 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         }
         return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
+
+    for (const id of ['cash-flow-budget-history-year-filter', 'cash-flow-budget-history-category-filter']) {
+        $('#' + id).addEventListener('change', () => {
+            try {
+                renderBudgetHistory();
+            } catch (error) {
+                budgetMessage(error instanceof Error ? error.message : 'Could not filter budget history.', true);
+            }
+        });
+    }
+    $('#cash-flow-budget-history-reset-filters').addEventListener('click', () => {
+        $('#cash-flow-budget-history-year-filter').value = '';
+        $('#cash-flow-budget-history-category-filter').value = '';
+        try {
+            renderBudgetHistory();
+        } catch (error) {
+            budgetMessage(error instanceof Error ? error.message : 'Could not reset budget history filters.', true);
+        }
+    });
 
     $('#cash-flow-budget-history-toggle').addEventListener('click', () => {
         if (!isLoopback(windowRef.location.hostname)) {
