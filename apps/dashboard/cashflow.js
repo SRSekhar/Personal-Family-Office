@@ -305,6 +305,35 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             }
             annualBody.append(row);
         }
+        const annualCategoryYearFilter = $('#cash-flow-annual-category-year');
+        const priorCategoryYear = annualCategoryYearFilter.value;
+        const categoryYears = [...new Set(entries.map((entry) => entry.date.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
+        if (categoryYears.length === 0) categoryYears.push(localDateString().slice(0, 4));
+        annualCategoryYearFilter.replaceChildren();
+        for (const year of categoryYears) {
+            const option = documentRef.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            annualCategoryYearFilter.append(option);
+        }
+        annualCategoryYearFilter.value = categoryYears.includes(priorCategoryYear) ? priorCategoryYear : categoryYears[0];
+        const annualCategoryEntries = entries.filter((entry) => entry.date.startsWith(annualCategoryYearFilter.value));
+        const annualCategories = summarizeCashFlowByCategory(annualCategoryEntries, 'all');
+        const annualCategoryExpenses = annualCategories.reduce((total, item) => total + item.expenses, 0);
+        const annualCategoryBody = $('#cash-flow-annual-category-rows');
+        annualCategoryBody.replaceChildren();
+        $('#cash-flow-annual-category-empty').hidden = annualCategories.length !== 0;
+        for (const category of annualCategories) {
+            const row = documentRef.createElement('tr');
+            const expenseShare = annualCategoryExpenses === 0 ? '—'
+                : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format((category.expenses / annualCategoryExpenses) * 100) + '%';
+            for (const value of [category.category, money(category.income), money(category.expenses), expenseShare, money(category.net), String(category.transactionCount)]) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            annualCategoryBody.append(row);
+        }
         const body = $('#cash-flow-rows');
         body.replaceChildren();
         $('#cash-flow-empty').hidden = shown.length !== 0;
@@ -1005,6 +1034,30 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-export-all-csv').addEventListener('click', () => {
         exportCsv(entries, 'pfo-cash-flow.csv', 'All cash flow transactions exported to this device.');
     });
+    $('#cash-flow-annual-category-year').addEventListener('change', render);
+    $('#cash-flow-export-annual-categories-csv').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            message('Use the local-only dashboard to export personal cash-flow data.', true);
+            return;
+        }
+        if (!storageHealthy) {
+            message('Annual category export is unavailable because saved cash-flow data could not be validated.', true);
+            return;
+        }
+        try {
+            const year = $('#cash-flow-annual-category-year').value;
+            const yearEntries = entries.filter((entry) => entry.date.startsWith(year));
+            if (yearEntries.length === 0) {
+                message('No recorded transactions for ' + year + '. Nothing was exported.', true);
+                return;
+            }
+            download('pfo-cash-flow-category-summary-' + year + '.csv', cashFlowCategorySummaryToCsv(yearEntries, 'all'), 'text/csv;charset=utf-8');
+            message('Annual category summary for ' + year + ' exported to this device.');
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Could not export annual category summary.', true);
+        }
+    });
+
     $('#cash-flow-export-monthly-csv').addEventListener('click', () => {
         try {
             download('pfo-cash-flow-monthly-summary.csv', cashFlowMonthlySummaryToCsv(entries), 'text/csv;charset=utf-8');
