@@ -501,6 +501,13 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             body.append(row);
         }
         $('#cash-flow-budget-form').querySelectorAll('input, button').forEach((control) => { control.disabled = !budgetStorageHealthy; });
+        if (!$('#cash-flow-budget-history-panel').hidden) {
+            try {
+                renderBudgetHistory();
+            } catch (error) {
+                budgetMessage(error instanceof Error ? error.message : 'Could not refresh budget history.', true);
+            }
+        }
     }
 
     $('#cash-flow-budget-month').value = localMonthString();
