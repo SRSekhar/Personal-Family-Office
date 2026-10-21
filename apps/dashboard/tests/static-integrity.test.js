@@ -451,6 +451,12 @@ describe('budget performance trend contract', () => {
         expect(cashFlow).toContain('function budgetPerformanceTrendRows()');
         expect(cashFlow).toContain('function renderBudgetPerformanceTrend()');
         expect(cashFlow).toContain('renderBudgetPerformanceTrend();');
+        expect(cashFlow).toContain('function budgetPerformanceTrendToCsv()');
+        expect(cashFlow).toContain("addEventListener('click', () => {");
+        expect(cashFlow).toContain("'pfo-monthly-budget-performance.csv'");
+        expect(cashFlow).toContain("'budget_used_percent'");
+        expect(cashFlow).toContain('isLoopback(windowRef.location.hostname)');
+        expect(html).toContain('id="cash-flow-budget-performance-export-csv"');
         expect(html).toContain('Months with saved budgets');
     });
 });

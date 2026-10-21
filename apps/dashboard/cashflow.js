@@ -982,6 +982,22 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         });
     }
 
+    function budgetPerformanceTrendToCsv() {
+        const rows = budgetPerformanceTrendRows();
+        const csvField = (value) => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+        const lines = [[
+            'month', 'budgeted_total', 'actual_expenses_in_budgeted_categories', 'remaining',
+            'budget_used_percent', 'over_budget_category_count', 'positive_category_overruns'
+        ]];
+        for (const item of rows) {
+            lines.push([
+                item.month, item.totalBudget, item.actualAgainstBudget, item.remaining,
+                item.utilization ?? '', item.overBudgetCategories, item.totalOverrun
+            ]);
+        }
+        return lines.map((row) => row.map(csvField).join(',')).join('\r\n') + '\r\n';
+    }
+
     function renderBudgetPerformanceTrend() {
         const rows = budgetPerformanceTrendRows();
         const body = $('#cash-flow-budget-performance-rows');
@@ -1061,6 +1077,16 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         renderBudgetPerformanceTrend();
     }
 
+
+    $('#cash-flow-budget-performance-export-csv').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) { budgetMessage('Use the local-only dashboard to export personal budget data.', true); return; }
+        if (!budgetStorageHealthy || !storageHealthy) { budgetMessage('Budget performance export is unavailable because saved budget or cash-flow data could not be validated.', true); return; }
+        try {
+            if (budgets.length === 0) { budgetMessage('No saved monthly budgets are available for a performance trend export.'); return; }
+            download('pfo-monthly-budget-performance.csv', budgetPerformanceTrendToCsv(), 'text/csv;charset=utf-8');
+            budgetMessage('Monthly budget performance trend exported to this device.');
+        } catch (error) { budgetMessage(error instanceof Error ? error.message : 'Could not export budget performance.', true); }
+    });
 
     function budgetHistoryToCsv() {
         const rows = budgetHistoryRows();
