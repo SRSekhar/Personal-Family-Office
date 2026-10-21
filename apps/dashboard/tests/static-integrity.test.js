@@ -263,6 +263,13 @@ describe('monthly budget overview contract', () => {
         expect(html).toContain('id="cash-flow-budget-actual"');
         expect(html).toContain('id="cash-flow-budget-remaining"');
         expect(html).toContain('id="cash-flow-budget-utilization"');
+        expect(html).toContain('id="cash-flow-budget-overrun-count"');
+        expect(html).toContain('id="cash-flow-budget-overrun-total"');
+        expect(html).toContain('Positive category overruns only');
+        expect(cashFlow).toContain('const overBudgetRows = budgetedRows.filter((item) => item.actual > item.budget)');
+        expect(cashFlow).toContain('const totalOverrun = overBudgetRows.reduce((total, item) => total + (item.actual - item.budget), 0)');
+        expect(cashFlow).toContain('overrunIsFinite ? money(totalOverrun) :');
+
         expect(html).toContain('expenses in categories without a budget');
         expect(cashFlow).toContain("const budgetedRows = [...combined.values()].filter((item) => item.budget !== null);");
         expect(cashFlow).toContain("Number.isFinite(remainingAgainstBudget)");
