@@ -132,6 +132,13 @@ describe('cash flow summaries', () => {
             .toEqual(['i-1', 'e-2']);
         expect(filterCashFlowEntries(entries, { fromDate: '2026-10-01', toDate: '2026-10-01' }).map((entry) => entry.id))
             .toEqual(['i-1']);
+        expect(filterCashFlowEntries(entries, { minAmount: 1000 }).map((entry) => entry.id))
+            .toEqual(['e-1', 'i-1']);
+        expect(filterCashFlowEntries(entries, { maxAmount: 50 }).map((entry) => entry.id))
+            .toEqual(['e-2']);
+        expect(filterCashFlowEntries(entries, { minAmount: 50, maxAmount: 1000 }).map((entry) => entry.id))
+            .toEqual(['e-2', 'e-1', 'i-1']);
+        expect(filterCashFlowEntries(entries, { minAmount: 1001, maxAmount: 1000 })).toEqual([]);
         expect(filterCashFlowEntries(entries, { search: 'no match' })).toEqual([]);
     });
 
@@ -144,6 +151,10 @@ describe('cash flow summaries', () => {
         expect(() => filterCashFlowEntries(entries, { fromDate: '2026-02-29' })).toThrow('Start date must be');
         expect(() => filterCashFlowEntries(entries, { toDate: '2026-13-01' })).toThrow('End date must be');
         expect(() => filterCashFlowEntries(entries, { fromDate: '2026-10-03', toDate: '2026-10-01' })).toThrow('on or before');
+        expect(() => filterCashFlowEntries(entries, { minAmount: -1 })).toThrow('Minimum amount');
+        expect(() => filterCashFlowEntries(entries, { minAmount: Number.NaN })).toThrow('Minimum amount');
+        expect(() => filterCashFlowEntries(entries, { maxAmount: Number.POSITIVE_INFINITY })).toThrow('Maximum amount');
+        expect(() => filterCashFlowEntries(entries, { minAmount: 100, maxAmount: 99 })).toThrow('less than or equal');
         expect(() => filterCashFlowEntries(entries, { search: 12 })).toThrow('Search must be a string');
     });
 
