@@ -277,6 +277,7 @@ Future enhancements are added here and prioritized during sprint planning.
 No work should begin unless it has been added to the backlog.
 - Add a recurring-only cash-flow CSV export for the selected reporting period, retaining the standard transaction schema and spreadsheet formula neutralization (delivered in PR #264).
 - Warn before cash-flow CSV replacement or append when exact duplicate transactions occur within the selected file; preserve explicit user confirmation and do not silently drop rows (implemented in this change).
+- Improve cash-flow CSV import confirmation with imported income/expense counts and the date range, alongside post-import totals, before any data is replaced or appended (implemented in this change).
 - Add a separate re-importable `date,return_percent` CSV export for the validated return observations used in the risk analysis, invalidated with stale results (delivered in PR #266).
 - Add an all-period category budget history CSV export, including budgeted categories and expense-only categories, with deterministic month/category ordering and formula-safe text (delivered in PR #265).
 - Show expandable budget history in the dashboard, including explicit no-budget states, actual expenses, utilization, remaining amounts, and status; reuse the CSV aggregation and guard against invalid private storage. Year and category filters with a visible row count are included in the follow-up. Status filtering for over-budget, within-budget, not-spent, and no-budget rows is also included.
