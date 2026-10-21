@@ -492,3 +492,15 @@ describe('budget history status filter contract', () => {
         expect(cashFlow).toContain("'No budget set'");
     });
 });
+
+describe('cash-flow CSV import duplicate preview', () => {
+    it('warns about exact duplicate rows within the selected CSV before replacement or append', async () => {
+        const cashFlow = await readDashboardFile('cashflow.js');
+        expect(cashFlow).toContain('const seenImported = [];');
+        expect(cashFlow).toContain('let duplicateInFileCount = 0;');
+        expect(cashFlow).toContain('findPotentialDuplicateCashFlowEntry(seenImported, candidate)');
+        expect(cashFlow).toContain("'Potential exact duplicates within the selected CSV: ' + duplicateInFileCount");
+        expect(cashFlow).toContain("'Potential exact duplicates against the existing ledger: ' + duplicateCount");
+        expect(cashFlow).toContain('They will be retained if you continue.');
+    });
+});
