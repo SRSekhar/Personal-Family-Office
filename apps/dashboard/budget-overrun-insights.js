@@ -43,7 +43,7 @@ function readValidatedData(storage) {
     return { budgets, entries };
 }
 
-function summarizeRepeatedOverruns(budgets, entries) {
+export function summarizeRepeatedOverruns(budgets, entries) {
     const actuals = new Map();
     for (const entry of entries) {
         if (entry.type !== 'expense') continue;
@@ -131,5 +131,7 @@ function initialize() {
     if (root) root.addEventListener('submit', () => window.setTimeout(render, 0));
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
-else initialize();
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
+    else initialize();
+}
