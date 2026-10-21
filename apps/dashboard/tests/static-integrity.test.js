@@ -324,6 +324,27 @@ describe('monthly cash-flow category breakdown contract', () => {
     });
 });
 
+describe('recurring cash-flow category breakdown contract', () => {
+    it('groups explicitly recurring transactions by category and exports a guarded selected-period CSV', async () => {
+        const [html, app, ledger] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('cashflow-ledger.js')
+        ]);
+        expect(html).toContain('id="cash-flow-recurring-category-heading"');
+        expect(html).toContain('id="cash-flow-recurring-category-rows"');
+        expect(html).toContain('id="cash-flow-recurring-category-empty"');
+        expect(html).toContain('id="cash-flow-export-recurring-category-csv"');
+        expect(app).toContain("const recurringCategories = summarizeCashFlowByCategory(recurringEntries, 'all')");
+        expect(app).toContain("$('#cash-flow-export-recurring-category-csv').addEventListener('click'");
+        expect(app).toContain('Recurring category export is unavailable because saved cash-flow data could not be validated.');
+        expect(app).toContain("cashFlowCategorySummaryToCsv(recurringEntries, 'all')");
+        expect(app).toContain('if (!Number.isFinite(recurringExpenses))');
+        expect(app).toContain('Recurring expense totals exceed the supported numeric range; export is unavailable.');
+        expect(ledger).toContain("['category', 'income', 'expenses', 'expense_share_percent', 'net', 'transaction_count']");
+    });
+});
+
 describe('monthly cash-flow comparison contract', () => {
     it('compares two explicitly selected recorded months and guards a local-only CSV export', async () => {
         const [html, app] = await Promise.all([
