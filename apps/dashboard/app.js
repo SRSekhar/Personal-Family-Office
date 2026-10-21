@@ -730,6 +730,50 @@ function exportFinancialRatiosCsv() {
         showToast(error instanceof Error ? error.message : 'Could not create ratio CSV export.');
     }
 }
+function exportFinancialHealthCsv() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace !== 'private' || !privateStorageHealthy || !goalsStorageHealthy) {
+        showToast('Health export is available only after the private workspace data has been validated.');
+        return;
+    }
+    const status = $('#financial-health-status').textContent;
+    const cards = [...$('#financial-health-metrics').querySelectorAll('.financial-health-card')];
+    if (!status.startsWith('Local data · ') || cards.length === 0) {
+        showToast('Health export is unavailable because no validated local summary is displayed.');
+        return;
+    }
+    try {
+        const reportingPeriod = status.slice('Local data · '.length);
+        const cell = (value) => {
+            let text = String(value ?? '');
+            if (/^[=+@\\t\\r-]/u.test(text.trimStart())) text = "'" + text;
+            return '"' + text.replaceAll('"', '""') + '"';
+        };
+        const rows = [['metric', 'value', 'details', 'reporting_period', 'scope']];
+        for (const card of cards) {
+            const parts = [...card.children];
+            if (parts.length < 3) throw new Error('The displayed health summary is incomplete.');
+            rows.push([parts[0].textContent, parts[1].textContent, parts[2].textContent, reportingPeriod, 'Private local workspace']);
+        }
+        const csv = rows.map((row) => row.map(cell).join(',')).join('\\r\\n') + '\\r\\n';
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-financial-health.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Financial health summary exported to this device.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create financial health CSV export.');
+    }
+}
+
 function renderFinancialRatios(result) {
     const ratios = calculateFinancialRatios({
         currency: CURRENCY,
@@ -1335,7 +1379,7 @@ $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview);
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
-$('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
+$('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);\n$('#export-financial-health-csv').addEventListener('click', exportFinancialHealthCsv);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
