@@ -173,7 +173,7 @@ Implemented
 
 Planned
 
-- Manual assistive-technology and actual 400% browser-zoom verification of the planner and comparison UI (automated keyboard workflows, narrow comparison keyboard operation, and 320 CSS-pixel reflow regressions now exist; they do not replace manual validation)
+- FIRE Goal Gap Analysis: adds target-corpus funding percentage, absolute corpus surplus/shortfall, solved constant annual contribution, and additional annual contribution with a monthly equivalent; reuses the existing validated FIRE calculators, does not persist assumptions, and clearly labels the monthly figure as an arithmetic equivalent (implemented in feature/fire-goal-gap-analysis).\n- Manual assistive-technology and actual 400% browser-zoom verification of the planner and comparison UI (automated keyboard workflows, narrow comparison keyboard operation, and 320 CSS-pixel reflow regressions now exist; they do not replace manual validation)
 - End-to-end offline report workflow validation with prospective users
 - Safe-withdrawal research and explicit assumption handling; the current withdrawal-rate input is not a guarantee of safety
 - FIRE probability / Monte Carlo analysis, only after a separate requirements and validation plan

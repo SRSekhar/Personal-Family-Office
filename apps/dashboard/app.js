@@ -123,6 +123,52 @@ function fireError(message = '') {
     $('#fire-validation').textContent = message;
     $('#fire-validation').hidden = !message;
 }
+function renderFireGapAnalysis(result, input, requiredAnnualContribution = null) {
+    const body = $('#fire-gap-analysis-metrics');
+    body.replaceChildren();
+    const target = result.targetCorpusAtRetirement;
+    const projected = result.projectedPortfolioAtRetirement;
+    const coverage = target > 0 ? projected / target * 100 : null;
+    let required = requiredAnnualContribution;
+    let requiredError = '';
+    if (required === null) {
+        try {
+            required = calculateRequiredFireContribution({
+                currentPortfolio: input.currentPortfolio,
+                yearsToRetirement: input.yearsToRetirement,
+                expectedAnnualReturn: input.expectedAnnualReturn,
+                annualInflationRate: input.annualInflationRate,
+                annualRetirementSpendingToday: input.annualRetirementSpendingToday,
+                withdrawalRate: input.withdrawalRate,
+                contributionTiming: input.contributionTiming
+            }).requiredAnnualContribution;
+        } catch (error) {
+            requiredError = error instanceof Error ? error.message : 'Required contribution is unavailable under these assumptions.';
+        }
+    }
+    const additionalAnnual = required === null ? null : Math.max(0, required - input.annualContribution);
+    const percent = (value) => Number.isFinite(value) ? number(value) + '%' : 'Unavailable';
+    const cards = [
+        ['Target corpus funded', coverage === null ? 'Unavailable' : percent(coverage), target === 0 ? 'Enter annual retirement spending to calculate a corpus target.' : 'Projected portfolio ÷ target corpus'],
+        [result.surplusOrShortfall < 0 ? 'Corpus shortfall' : 'Corpus surplus', money(Math.abs(result.surplusOrShortfall)), result.surplusOrShortfall < 0 ? 'Additional corpus needed at retirement' : 'Projected amount above the target'],
+        ['Required annual contribution', required === null ? 'Unavailable' : money(required), required === null ? requiredError : 'Constant nominal contribution under the same assumptions'],
+        ['Additional contribution equivalent', additionalAnnual === null ? 'Unavailable' : money(additionalAnnual / 12) + ' / month', additionalAnnual === null ? 'Cannot solve with the current assumptions.' : additionalAnnual === 0 ? 'No additional contribution required under these assumptions.' : money(additionalAnnual) + ' / year above the entered annual plan']
+    ];
+    for (const [label, value, detail] of cards) {
+        const card = document.createElement('article');
+        card.className = 'fire-gap-card';
+        const heading = document.createElement('span');
+        heading.textContent = label;
+        const strong = document.createElement('strong');
+        strong.textContent = value;
+        const small = document.createElement('small');
+        small.textContent = detail;
+        card.append(heading, strong, small);
+        body.append(card);
+    }
+    $('#fire-gap-analysis-note').textContent = 'Gap analysis uses the same deterministic assumptions as the scenario above. Monthly equivalent is annual contribution divided by 12, not a monthly cash-flow simulation. Contributions remain constant in nominal terms; results are not forecasts or recommendations.';
+}
+
 function showFireResult(result, required = null, input = fireInput()) {
     const reportInput = { ...input, annualContribution: required === null ? input.annualContribution : required };
     lastFireReportScenarios = [{ id: 'current', name: required === null ? 'Current scenario' : 'Required contribution scenario', input: reportInput, result }];
@@ -133,6 +179,7 @@ function showFireResult(result, required = null, input = fireInput()) {
     $('#fire-target-corpus').textContent = money(result.targetCorpusAtRetirement);
     $('#fire-projected-spending').textContent = money(result.projectedAnnualRetirementSpending);
     $('#fire-gap').textContent = (result.surplusOrShortfall < 0 ? '−' : '+') + money(Math.abs(result.surplusOrShortfall));
+    renderFireGapAnalysis(result, input, required);
     const out = $('#fire-required-result');
     out.hidden = required === null;
     out.textContent = required === null ? '' : 'Required constant annual contribution: ' + money(required) + '. Mathematical scenario only; not a recommendation.';
@@ -271,7 +318,7 @@ function resetFire() {
     const form = $('#fire-planner-form');
     const defaults = {currentPortfolio:0,annualContribution:0,yearsToRetirement:10,expectedAnnualReturn:7,annualInflationRate:3,annualRetirementSpendingToday:0,withdrawalRate:4,contributionTiming:'end'};
     for (const [name,value] of Object.entries(defaults)) form.elements[name].value = String(value);
-    fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true; $('#fire-compare-results').hidden = true; setCompareValidation(); lastFireReportScenarios = []; lastComparisonReportScenarios = [];
+    fireError(); $('#fire-results').hidden = true; $('#fire-required-result').hidden = true; $('#fire-compare-results').hidden = true; $('#fire-gap-analysis-metrics').replaceChildren(); setCompareValidation(); lastFireReportScenarios = []; lastComparisonReportScenarios = [];
     for (const key of ['a', 'b', 'c']) {
         $(`#fire-compare-${key}-name`).value = `Scenario ${key.toUpperCase()}`;
         for (const field of ['contribution', 'return', 'inflation', 'withdrawal']) $(`#fire-compare-${key}-${field}`).value = '';

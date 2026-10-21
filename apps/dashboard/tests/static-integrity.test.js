@@ -635,3 +635,26 @@ describe('financial health dashboard contract', () => {
         expect(app).toContain("window.addEventListener('pfo:cashflow-updated', renderFinancialHealth)");
     });
 });
+
+
+describe('FIRE goal gap analysis contract', () => {
+    it('renders funding coverage, corpus gap, required contribution, and monthly equivalent', async () => {
+        const [html, app, css] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('app.js'),
+            readDashboardFile('styles.css')
+        ]);
+        expect(html).toContain('id="fire-gap-analysis-heading"');
+        expect(html).toContain('id="fire-gap-analysis-metrics"');
+        expect(html).toContain('id="fire-gap-analysis-note"');
+        expect(app).toContain('function renderFireGapAnalysis(result, input, requiredAnnualContribution = null)');
+        expect(app).toContain("['Target corpus funded'");
+        expect(app).toContain("['Required annual contribution'");
+        expect(app).toContain("['Additional contribution equivalent'");
+        expect(app).toContain('Math.max(0, required - input.annualContribution)');
+        expect(app).toContain('const additionalAnnual = required === null ? null : Math.max(0, required - input.annualContribution)');
+        expect(app).toContain('renderFireGapAnalysis(result, input, required)');
+        expect(css).toContain('.fire-gap-grid');
+        expect(css).toContain('@media(max-width:680px){.fire-gap-grid{grid-template-columns:minmax(0,1fr)}}');
+    });
+});
