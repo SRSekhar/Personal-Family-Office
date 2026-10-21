@@ -88,6 +88,7 @@ Implemented
 - Annual category breakdown for a selected recorded year, including income, expenses, expense share, net, transaction count, and local-only CSV export.
 - Monthly category breakdown for an explicitly selected recorded month, independent of transaction-list filters, with expense share, historical-only wording, and guarded local CSV export (implemented in this change).
 - Compare two explicitly selected months of recorded cash flow by income, expenses, net, savings rate, and transaction count, with difference calculations, zero-income handling, and local-only CSV export (implemented in PR for monthly comparison).
+- Annual cash-flow comparison includes category-level income and expense totals for both selected years, expense differences, and category rows in the local-only CSV export (implemented in this change).
 - Local CSV export of the selected-period cash-flow category breakdown, including income, expenses, net, and transaction counts; formula-like category text is neutralized.
 - Selected-period cash-flow category table shows each category's share of total recorded expenses, with an explicit unavailable state when the period has no expenses.
 - Selected-period cash-flow category CSV export includes the same expense-share metric as the dashboard table, using an empty field when total expenses are zero.
