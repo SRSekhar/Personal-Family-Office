@@ -202,7 +202,7 @@ export function sortCashFlowEntries(entries, order = 'date-newest') {
 
 export function filterCashFlowEntries(entries, {
     period = 'all', type = 'all', recurring = 'all', category = null,
-    fromDate = '', toDate = '', search = ''
+    fromDate = '', toDate = '', minAmount = null, maxAmount = null, search = ''
 } = {}) {
     if (period !== 'all' && (typeof period !== 'string' || !PERIOD_PATTERN.test(period))) {
         throw new RangeError('Period must be "all" or a valid YYYY-MM month.');
@@ -225,6 +225,15 @@ export function filterCashFlowEntries(entries, {
     if (fromDate && toDate && fromDate > toDate) {
         throw new RangeError('Start date must be on or before end date.');
     }
+    if (minAmount !== null && (typeof minAmount !== 'number' || !Number.isFinite(minAmount) || minAmount < 0)) {
+        throw new RangeError('Minimum amount must be empty or a finite number greater than or equal to zero.');
+    }
+    if (maxAmount !== null && (typeof maxAmount !== 'number' || !Number.isFinite(maxAmount) || maxAmount < 0)) {
+        throw new RangeError('Maximum amount must be empty or a finite number greater than or equal to zero.');
+    }
+    if (minAmount !== null && maxAmount !== null && minAmount > maxAmount) {
+        throw new RangeError('Minimum amount must be less than or equal to maximum amount.');
+    }
     if (typeof search !== 'string') throw new TypeError('Search must be a string.');
     const query = search.trim().toLowerCase();
     return validateCashFlowEntries(entries)
@@ -234,6 +243,8 @@ export function filterCashFlowEntries(entries, {
             && (category === null || entry.category === category)
             && (!fromDate || entry.date >= fromDate)
             && (!toDate || entry.date <= toDate)
+            && (minAmount === null || entry.amount >= minAmount)
+            && (maxAmount === null || entry.amount <= maxAmount)
             && (!query || [entry.date, entry.category, entry.description]
                 .some((value) => value.toLowerCase().includes(query))))
         .sort((a, b) => b.date.localeCompare(a.date)
