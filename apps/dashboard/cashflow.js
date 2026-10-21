@@ -947,6 +947,62 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             });
     }
 
+    function budgetPerformanceTrendRows() {
+        const months = [...new Set(budgets.map((budget) => budget.month))].sort((a, b) => b.localeCompare(a));
+        return months.map((month) => {
+            const monthBudgets = budgets.filter((budget) => budget.month === month);
+            let totalBudget = 0;
+            let actualAgainstBudget = 0;
+            let overBudgetCategories = 0;
+            let totalOverrun = 0;
+            for (const budget of monthBudgets) {
+                const key = budget.category.trim().toLocaleLowerCase('en-US');
+                let actual = 0;
+                for (const entry of entries) {
+                    if (entry.type !== 'expense' || entry.date.slice(0, 7) !== month
+                        || entry.category.trim().toLocaleLowerCase('en-US') !== key) continue;
+                    actual += entry.amount;
+                    if (!Number.isFinite(actual)) {
+                        throw new Error('Expense totals exceed the supported numeric range; budget performance is unavailable.');
+                    }
+                }
+                totalBudget += budget.amount;
+                actualAgainstBudget += actual;
+                if (actual > budget.amount) {
+                    overBudgetCategories += 1;
+                    totalOverrun += actual - budget.amount;
+                }
+            }
+            const remaining = totalBudget - actualAgainstBudget;
+            const utilization = totalBudget > 0 ? budgetUtilizationPercent(totalBudget, actualAgainstBudget) : null;
+            if (![totalBudget, actualAgainstBudget, remaining, totalOverrun].every(Number.isFinite)) {
+                throw new Error('Budget totals exceed the supported numeric range; budget performance is unavailable.');
+            }
+            return { month, totalBudget, actualAgainstBudget, remaining, utilization, overBudgetCategories, totalOverrun };
+        });
+    }
+
+    function renderBudgetPerformanceTrend() {
+        const rows = budgetPerformanceTrendRows();
+        const body = $('#cash-flow-budget-performance-rows');
+        body.replaceChildren();
+        $('#cash-flow-budget-performance-empty').hidden = rows.length !== 0;
+        for (const item of rows) {
+            const row = documentRef.createElement('tr');
+            const values = [
+                item.month, money(item.totalBudget), money(item.actualAgainstBudget), money(item.remaining),
+                item.utilization === null ? '—' : item.utilization.toFixed(1) + '%',
+                String(item.overBudgetCategories), money(item.totalOverrun)
+            ];
+            for (const value of values) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            body.append(row);
+        }
+    }
+
     function renderBudgetHistory() {
         const rows = budgetHistoryRows();
         const yearFilter = $('#cash-flow-budget-history-year-filter');
@@ -1002,6 +1058,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             }
             body.append(row);
         }
+        renderBudgetPerformanceTrend();
     }
 
 
