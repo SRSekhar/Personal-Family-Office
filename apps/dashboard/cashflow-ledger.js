@@ -278,7 +278,7 @@ export function cashFlowAnnualSummaryToCsv(entries) {
             calculateCashFlowSavingsRate(summary.income, summary.expenses) ?? '',
             summary.transactionCount
         ])
-    ].map((row) => row.map(csvCell).join(',')).join('\\r\\n') + '\\r\\n';
+    ].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
 
 export function cashFlowToCsv(entries) {
