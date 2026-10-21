@@ -1258,7 +1258,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             message('Annual comparison contains a numeric difference outside the supported range; export is unavailable.', true);
             return;
         }
-        const csv = csvRows.map((row) => row.map((value) => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(',')).join('\\r\\n') + '\\r\\n';
+        const csv = csvRows.map((row) => row.map((value) => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(',')).join('\r\n') + '\r\n';
         download('pfo-cash-flow-annual-comparison.csv', csv, 'text/csv;charset=utf-8');
         message('Annual cash-flow comparison exported to this device.');
     });
