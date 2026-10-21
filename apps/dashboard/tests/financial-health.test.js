@@ -54,6 +54,36 @@ describe('financial health aggregation', () => {
         expect(result.totalPositiveOverrun).toBe(50);
     });
 
+    it('reports budget coverage by recorded expense amount and category count', () => {
+        const result = calculateFinancialHealth({
+            ...base,
+            cashFlowEntries: [
+                { date: '2026-10-03', type: 'expense', amount: 120, category: 'Food' },
+                { date: '2026-10-04', type: 'expense', amount: 80, category: 'food' },
+                { date: '2026-10-05', type: 'expense', amount: 50, category: 'Transport' }
+            ]
+        });
+        expect(result).toMatchObject({
+            expenses: 250,
+            actualInBudgetedCategories: 200,
+            coveredExpenseCategoryCount: 1,
+            expenseCategoryCount: 2,
+            unbudgetedExpenses: 50,
+            expenseCoverageRate: 80
+        });
+    });
+
+    it('marks budget coverage unavailable when no expenses are recorded', () => {
+        const result = calculateFinancialHealth({
+            ...base,
+            cashFlowEntries: [{ date: '2026-10-02', type: 'income', amount: 500, category: 'Salary' }]
+        });
+        expect(result.expenseCoverageRate).toBeNull();
+        expect(result.unbudgetedExpenses).toBe(0);
+        expect(result.expenseCategoryCount).toBe(0);
+        expect(result.coveredExpenseCategoryCount).toBe(0);
+    });
+
     it('rejects invalid month values and non-finite aggregate totals', () => {
         expect(() => calculateFinancialHealth({ ...base, month: '2026-13' })).toThrow(/reporting month/);
         expect(() => calculateFinancialHealth({
