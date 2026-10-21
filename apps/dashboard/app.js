@@ -1379,7 +1379,8 @@ $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview);
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
-$('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);\n$('#export-financial-health-csv').addEventListener('click', exportFinancialHealthCsv);
+$('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
+$('#export-financial-health-csv').addEventListener('click', exportFinancialHealthCsv);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
