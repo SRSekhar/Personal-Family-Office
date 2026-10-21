@@ -291,3 +291,4 @@ No work should begin unless it has been added to the backlog.
 
 
 - Filter cash-flow transactions and filtered exports by an optional minimum and maximum amount; validate invalid or reversed ranges and reset both filters with the existing view controls (implemented in this change).
+- Compare two recorded cash-flow years side by side for income, expenses, net cash flow, savings rate, and transaction counts; show absolute differences and savings-rate percentage-point changes, with a local-only CSV export (implemented in this change).
