@@ -246,7 +246,7 @@ describe('monthly budget backup contract', () => {
         expect(html).toContain('id="cash-flow-budget-import-json"');
         expect(cashFlow).toContain("schemaVersion: 1, currency: CURRENCY, exportedAt: new Date().toISOString(), budgets");
         expect(cashFlow).toContain("payload.schemaVersion !== 1");
-        expect(cashFlow).toContain("const imported = validateBudgets(payload.budgets);");
+        expect(cashFlow).toContain("const imported = validateCashFlowBudgets(payload.budgets);");
         expect(cashFlow).toContain("if (!windowRef.confirm(preview))");
         expect(cashFlow).toContain("Cash-flow transactions will not be changed.");
         expect(cashFlow).toContain("if (!isLoopback(windowRef.location.hostname))");
