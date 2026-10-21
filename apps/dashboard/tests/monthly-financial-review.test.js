@@ -24,6 +24,16 @@ describe('monthly financial review', () => {
         expect(review.prior).toMatchObject({ income: 80000, expenses: 40000, net: 40000, savingsRate: 50, transactionCount: 2 });
         expect(review.hasCurrentTransactions).toBe(true);
         expect(review.hasPriorTransactions).toBe(true);
+        expect(review.categoryComparison.find((item) => item.category === 'Groceries')).toMatchObject({
+            currentIncome: 0, currentExpenses: 15000, priorIncome: 0, priorExpenses: 40000,
+            incomeChange: 0, expenseChange: -25000
+        });
+        expect(review.categoryComparison.find((item) => item.category === 'Utilities')).toMatchObject({
+            currentExpenses: 35000, priorExpenses: 0, expenseChange: 35000
+        });
+        expect(review.categoryComparison.find((item) => item.category === 'Salary')).toMatchObject({
+            currentIncome: 100000, priorIncome: 80000, incomeChange: 20000
+        });
     });
 
     it('uses only explicit budgets and saved goals, with positive overrun and bounded goal progress', () => {
@@ -58,6 +68,8 @@ describe('monthly financial review', () => {
         const html = renderMonthlyFinancialReviewHtml(review);
         expect(html).toContain('Monthly financial review');
         expect(html).toContain('prior month');
+        expect(html).toContain('Category changes vs prior month');
+        expect(html).toContain('Expense change');
         expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
         expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
         expect(html).not.toContain('<script>alert(1)</script>');
