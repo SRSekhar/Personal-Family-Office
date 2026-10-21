@@ -700,6 +700,28 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
             });
     }
 
+    function renderBudgetHistory() {
+        const rows = budgetHistoryRows();
+        const body = $('#cash-flow-budget-history-rows');
+        body.replaceChildren();
+        $('#cash-flow-budget-history-empty').hidden = rows.length !== 0;
+        for (const item of rows) {
+            const utilization = item.utilization === null ? '—'
+                : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(item.utilization) + '%';
+            const values = [
+                item.month, item.category, item.budget === null ? '—' : money(item.budget),
+                money(item.actual), utilization, item.remaining === null ? '—' : money(item.remaining), item.status
+            ];
+            const row = documentRef.createElement('tr');
+            for (const value of values) {
+                const cell = documentRef.createElement('td');
+                cell.textContent = value;
+                row.append(cell);
+            }
+            body.append(row);
+        }
+    }
+
     function budgetHistoryToCsv() {
         const rows = budgetHistoryRows();
         const csvField = (value, textField = false) => {
@@ -714,8 +736,32 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 item.utilization ?? '', item.remaining === null ? '' : item.remaining, item.status
             ]);
         }
-        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\\r\\n') + '\\r\\n';
+        return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
+
+    $('#cash-flow-budget-history-toggle').addEventListener('click', () => {
+        if (!isLoopback(windowRef.location.hostname)) {
+            budgetMessage('Use the local-only dashboard to view personal budget history.', true);
+            return;
+        }
+        if (!budgetStorageHealthy || !storageHealthy) {
+            budgetMessage('Budget history is unavailable because saved budget or cash-flow data could not be validated.', true);
+            return;
+        }
+        const panel = $('#cash-flow-budget-history-panel');
+        const shouldShow = panel.hidden;
+        if (shouldShow) {
+            try {
+                renderBudgetHistory();
+            } catch (error) {
+                budgetMessage(error instanceof Error ? error.message : 'Could not display budget history.', true);
+                return;
+            }
+        }
+        panel.hidden = !shouldShow;
+        $('#cash-flow-budget-history-toggle').textContent = shouldShow ? 'Hide budget history' : 'Show budget history';
+        $('#cash-flow-budget-history-toggle').setAttribute('aria-expanded', String(shouldShow));
+    });
 
     $('#cash-flow-budget-export-history-csv').addEventListener('click', () => {
         if (!isLoopback(windowRef.location.hostname)) { budgetMessage('Use the local-only dashboard to export personal budget data.', true); return; }
