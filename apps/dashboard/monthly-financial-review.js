@@ -2,6 +2,13 @@ import { calculateCashFlowSavingsRate, summarizeCashFlow, validateCashFlowEntrie
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
+function isCalendarDate(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
 function escapeHtml(value) {
     return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
@@ -38,8 +45,7 @@ function validateGoals(goals) {
             || typeof goal.name !== 'string' || !goal.name.trim()
             || typeof goal.targetAmount !== 'number' || !Number.isFinite(goal.targetAmount) || goal.targetAmount <= 0
             || typeof goal.currentAmount !== 'number' || !Number.isFinite(goal.currentAmount) || goal.currentAmount < 0
-            || typeof goal.targetDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(goal.targetDate)
-            || Number.isNaN(Date.parse(goal.targetDate + 'T00:00:00Z'))) {
+            || !isCalendarDate(goal.targetDate)) {
             throw new TypeError('Saved goal data failed validation.');
         }
         ids.add(goal.id);
