@@ -679,6 +679,10 @@ describe('monthly financial review report contract', () => {
         expect(report).toContain('function buildMonthlyFinancialReview');
         expect(report).toContain('function renderMonthlyFinancialReviewHtml');
         expect(report).toContain('No forecasts, inferred transactions, or recommendations.');
+        expect(report).toContain('categoryComparison');
+        expect(report).toContain('Category changes vs prior month');
+        expect(report).toContain('Income change');
+        expect(report).toContain('Expense change');
         expect(css).toContain('.monthly-review-launcher');
         expect(css).toContain('@media(max-width:700px){.monthly-review-launcher{grid-template-columns:1fr}');
     });
