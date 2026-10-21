@@ -451,7 +451,7 @@ describe('budget performance trend contract', () => {
         expect(cashFlow).toContain('function budgetPerformanceTrendRows()');
         expect(cashFlow).toContain('function renderBudgetPerformanceTrend()');
         expect(cashFlow).toContain('renderBudgetPerformanceTrend();');
-        expect(cashFlow).toContain('Months with saved budgets');
+        expect(html).toContain('Months with saved budgets');
     });
 });
 
