@@ -473,6 +473,12 @@
                     <section id="cash-flow-budget-history-panel" class="cash-flow-category-panel" aria-labelledby="cash-flow-budget-history-heading" hidden>
                         <div class="panel-header"><div><p class="eyebrow">ALL RECORDED MONTHS</p><h4 id="cash-flow-budget-history-heading">Budget history</h4></div><span class="panel-tag">Saved budgets vs recorded expenses</span></div>
                         <p class="cash-flow-intro">Each row represents a month and category with a saved budget or recorded expense. Categories without an explicit budget remain visible; their utilization and remaining amount are unavailable.</p>
+                        <div class="cash-flow-toolbar cash-flow-budget-history-filters">
+                            <label class="field-label" for="cash-flow-budget-history-year-filter">Year<select id="cash-flow-budget-history-year-filter"><option value="">All years</option></select></label>
+                            <label class="field-label" for="cash-flow-budget-history-category-filter">Category<select id="cash-flow-budget-history-category-filter"><option value="">All categories</option></select></label>
+                            <button class="button button-secondary button-small" id="cash-flow-budget-history-reset-filters" type="button">Reset filters</button>
+                            <span id="cash-flow-budget-history-count" class="panel-tag" aria-live="polite">Showing 0 of 0 rows</span>
+                        </div>
                         <div class="table-wrap cash-flow-category-table-wrap">
                             <table>
                                 <caption class="sr-only">Historical monthly category budgets compared with recorded expenses</caption>
