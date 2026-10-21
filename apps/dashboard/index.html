@@ -403,6 +403,15 @@
                         <article><span>Recurring-tagged entries</span><strong id="cash-flow-recurring-count">0</strong></article>
                     </div>
                     <p class="cash-flow-intro">Totals include only transactions explicitly marked recurring within the selected reporting period. They summarize recorded entries and do not estimate future payments, timing, or expected income.</p>
+                    <div class="panel-header"><div><h4 id="cash-flow-recurring-category-heading">Recurring-tagged transactions by category</h4></div><button class="button button-secondary button-small" id="cash-flow-export-recurring-category-csv" type="button">Export category CSV</button></div>
+                    <div class="table-wrap cash-flow-category-table-wrap">
+                        <table>
+                            <caption class="sr-only">Recurring-tagged income, expenses, expense share, net cash flow, and transaction count by category in the selected period</caption>
+                            <thead><tr><th scope="col">Category</th><th scope="col">Income</th><th scope="col">Expenses</th><th scope="col">Share of recurring expenses</th><th scope="col">Net</th><th scope="col">Transactions</th></tr></thead>
+                            <tbody id="cash-flow-recurring-category-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="cash-flow-recurring-category-empty" class="cash-flow-empty">No recurring-tagged transactions for this period.</p>
                 </section>
                 <section class="cash-flow-category-panel" aria-labelledby="cash-flow-category-heading">
                     <div class="panel-header"><div><p class="eyebrow">SPENDING &amp; EARNINGS</p><h3 id="cash-flow-category-heading">Cash flow by category</h3></div><div class="cash-flow-monthly-actions"><span class="panel-tag">Selected period</span><button class="button button-secondary button-small" id="cash-flow-export-category-csv" type="button">Export category CSV</button></div></div>
