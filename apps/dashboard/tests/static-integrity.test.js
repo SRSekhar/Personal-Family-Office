@@ -474,3 +474,21 @@ describe('dashboard accessibility contracts', () => {
         expect(html).toMatch(/<section\b[^>]*id=["']goal-tracker["'][^>]*aria-labelledby=["']goal-tracker-heading["']/);
     });
 });
+
+describe('budget history status filter contract', () => {
+    it('filters historical budget comparisons by the recorded budget status and resets all filters', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-budget-history-status-filter"');
+        expect(html).toContain('<option value="Over budget">Over budget</option>');
+        expect(html).toContain('<option value="Within budget">Within budget</option>');
+        expect(html).toContain('<option value="Not spent">Not spent</option>');
+        expect(html).toContain('<option value="No budget set">No budget set</option>');
+        expect(cashFlow).toContain("&& (!statusFilter.value || item.status === statusFilter.value)");
+        expect(cashFlow).toContain("'cash-flow-budget-history-status-filter'])");
+        expect(cashFlow).toContain("$('#cash-flow-budget-history-status-filter').value = '';");
+        expect(cashFlow).toContain("'No budget set'");
+    });
+});

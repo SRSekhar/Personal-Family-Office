@@ -844,8 +844,10 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         const rows = budgetHistoryRows();
         const yearFilter = $('#cash-flow-budget-history-year-filter');
         const categoryFilter = $('#cash-flow-budget-history-category-filter');
+        const statusFilter = $('#cash-flow-budget-history-status-filter');
         const selectedYear = yearFilter.value;
         const selectedCategory = categoryFilter.value;
+        const selectedStatus = statusFilter.value;
         const years = [...new Set(rows.map((item) => item.month.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
         const categories = [...new Map(rows.map((item) => [item.category.toLocaleLowerCase('en-US'), item.category])).values()]
             .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
@@ -865,9 +867,11 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         };
         fillOptions(yearFilter, 'All years', years, selectedYear);
         fillOptions(categoryFilter, 'All categories', categories, selectedCategory);
+        statusFilter.value = ['Over budget', 'Within budget', 'Not spent', 'No budget set'].includes(selectedStatus) ? selectedStatus : '';
         const visibleRows = rows.filter((item) =>
             (!yearFilter.value || item.month.startsWith(yearFilter.value))
-            && (!categoryFilter.value || item.category.toLocaleLowerCase('en-US') === categoryFilter.value.toLocaleLowerCase('en-US')));
+            && (!categoryFilter.value || item.category.toLocaleLowerCase('en-US') === categoryFilter.value.toLocaleLowerCase('en-US'))
+            && (!statusFilter.value || item.status === statusFilter.value));
         const body = $('#cash-flow-budget-history-rows');
         body.replaceChildren();
         $('#cash-flow-budget-history-count').textContent = 'Showing ' + visibleRows.length + ' of ' + rows.length + ' rows';
@@ -911,7 +915,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         return lines.map((row) => row.map((value, index) => csvField(value, index === 1)).join(',')).join('\r\n') + '\r\n';
     }
 
-    for (const id of ['cash-flow-budget-history-year-filter', 'cash-flow-budget-history-category-filter']) {
+    for (const id of ['cash-flow-budget-history-year-filter', 'cash-flow-budget-history-category-filter', 'cash-flow-budget-history-status-filter']) {
         $('#' + id).addEventListener('change', () => {
             try {
                 renderBudgetHistory();
@@ -923,6 +927,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-budget-history-reset-filters').addEventListener('click', () => {
         $('#cash-flow-budget-history-year-filter').value = '';
         $('#cash-flow-budget-history-category-filter').value = '';
+        $('#cash-flow-budget-history-status-filter').value = '';
         try {
             renderBudgetHistory();
         } catch (error) {
