@@ -995,7 +995,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
                 item.utilization ?? '', item.overBudgetCategories, item.totalOverrun
             ]);
         }
-        return lines.map((row) => row.map(csvField).join(',')).join('\\r\\n') + '\\r\\n';
+        return lines.map((row) => row.map(csvField).join(',')).join('\r\n') + '\r\n';
     }
 
     function renderBudgetPerformanceTrend() {
