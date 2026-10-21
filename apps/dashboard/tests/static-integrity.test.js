@@ -595,3 +595,24 @@ describe('cash-flow amount range filter contract', () => {
         expect(ledger).toContain('(maxAmount === null || entry.amount <= maxAmount)');
     });
 });
+
+
+describe('monthly category cash-flow comparison contract', () => {
+    it('compares selected months by category and offers a guarded formula-safe CSV export', async () => {
+        const [html, cashFlow] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js')
+        ]);
+        expect(html).toContain('id="cash-flow-monthly-category-comparison-heading"');
+        expect(html).toContain('id="cash-flow-monthly-category-comparison-rows"');
+        expect(html).toContain('id="cash-flow-monthly-category-comparison-empty"');
+        expect(html).toContain('id="cash-flow-export-monthly-category-comparison-csv"');
+        expect(cashFlow).toContain("$('#cash-flow-export-monthly-category-comparison-csv').addEventListener('click'");
+        expect(cashFlow).toContain('const currentMonthCategories = currentComparison');
+        expect(cashFlow).toContain('const baseMonthCategories = baseComparison');
+        expect(cashFlow).toContain("item.category.toLocaleLowerCase('en-US')");
+        expect(cashFlow).toContain('isLoopback(windowRef.location.hostname)');
+        expect(cashFlow).toContain('pfo-cash-flow-monthly-category-comparison-');
+        expect(cashFlow).toContain('Monthly category comparison export is unavailable because saved cash-flow data could not be validated.');
+    });
+});
