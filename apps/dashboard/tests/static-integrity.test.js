@@ -294,6 +294,8 @@ describe('annual cash-flow category breakdown contract', () => {
         expect(app).toContain('isLoopback(windowRef.location.hostname)');
         expect(app).toContain('cashFlowCategorySummaryToCsv(yearEntries, \'all\')');
         expect(app).toContain('!Number.isFinite(annualCategoryExpenses) || annualCategoryExpenses === 0');
+        expect(app).toContain('if (!Number.isFinite(annualExpenses))');
+        expect(app).toContain('Annual expense totals exceed the supported numeric range; export is unavailable.');
     });
 });
 
