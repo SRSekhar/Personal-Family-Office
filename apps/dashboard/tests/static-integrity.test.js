@@ -517,3 +517,22 @@ describe('cash-flow CSV import preview detail', () => {
         expect(cashFlow).toContain("'Total transactions after import: ' + next.length");
     });
 });
+
+describe('cash-flow amount range filter contract', () => {
+    it('exposes minimum and maximum amount filters and applies them to visible transactions and exports', async () => {
+        const [html, cashFlow, ledger] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('cashflow-ledger.js')
+        ]);
+        expect(html).toContain('id="cash-flow-amount-min"');
+        expect(html).toContain('id="cash-flow-amount-max"');
+        expect(cashFlow).toContain("minAmount: $('#cash-flow-amount-min').value === '' ? null : Number($('#cash-flow-amount-min').value)");
+        expect(cashFlow).toContain("maxAmount: $('#cash-flow-amount-max').value === '' ? null : Number($('#cash-flow-amount-max').value)");
+        expect(cashFlow).toContain('const invalidAmountRange =');
+        expect(cashFlow).toContain("$('#cash-flow-export-filtered-csv').disabled = invalidFilterRange;");
+        expect(cashFlow).toContain("$('#cash-flow-amount-min').value = '';");
+        expect(ledger).toContain('(minAmount === null || entry.amount >= minAmount)');
+        expect(ledger).toContain('(maxAmount === null || entry.amount <= maxAmount)');
+    });
+});
