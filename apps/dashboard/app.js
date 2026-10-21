@@ -128,7 +128,6 @@ function renderFireGapAnalysis(result, input, requiredAnnualContribution = null)
     body.replaceChildren();
     const target = result.targetCorpusAtRetirement;
     const projected = result.projectedPortfolioAtRetirement;
-    const shortfall = Math.max(0, target - projected);
     const coverage = target > 0 ? projected / target * 100 : null;
     let required = requiredAnnualContribution;
     let requiredError = '';
