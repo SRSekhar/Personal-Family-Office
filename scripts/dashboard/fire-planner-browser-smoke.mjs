@@ -730,11 +730,21 @@ try {
         exportedAt: new Date().toISOString(),
         records: [{ name: 'Imported browser asset', category: 'Investments', type: 'asset', value: 123456 }]
     };
+    const importPreviewDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
         name: 'valid-backup.json',
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(validBackup))
     });
+    const importPreviewDialog = await importPreviewDialogPromise;
+    assert.equal(importPreviewDialog.type(), 'confirm');
+    assert.match(importPreviewDialog.message(), /Backup import preview/);
+    assert.match(importPreviewDialog.message(), /Financial records: 1/);
+    assert.match(importPreviewDialog.message(), /Assets:/);
+    assert.match(importPreviewDialog.message(), /Net worth:/);
+    assert.match(importPreviewDialog.message(), /Saved goals: not included/);
+    assert.match(importPreviewDialog.message(), /cash flow and budgets: not included/i);
+    await importPreviewDialog.accept();
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#records-body')?.innerText.includes('Imported browser asset')
     );
