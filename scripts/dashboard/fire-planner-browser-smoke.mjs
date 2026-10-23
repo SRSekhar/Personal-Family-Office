@@ -786,7 +786,7 @@ try {
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(replacementBackup))
     });
-    assert.match(await dismissedConfirmation, /replace all financial records/i);
+    assert.match(await dismissedConfirmation, /Importing replaces financial records/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#toast')?.textContent.includes('Import cancelled.')
     );
@@ -808,7 +808,7 @@ try {
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(replacementBackup))
     });
-    assert.match(await acceptedConfirmation, /replace all financial records/i);
+    assert.match(await acceptedConfirmation, /Importing replaces financial records/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#records-body')?.innerText.includes('Replacement browser asset')
     );
