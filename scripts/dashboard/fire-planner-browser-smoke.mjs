@@ -956,7 +956,7 @@ try {
         mimeType: 'application/json',
         buffer: await readFile(goalBackupPath)
     });
-    assert.match(await restoreGoalConfirmation, /replace financial records, saved goals, cash-flow transactions, and budgets in this browser/i);
+    assert.match(await restoreGoalConfirmation, /Importing replaces records, goals, cash-flow transactions, and budgets in this browser/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
     );
