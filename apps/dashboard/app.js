@@ -1,4 +1,4 @@
-import { validateBackupPayload } from './backup.js';
+import { summarizeValidatedBackup, validateBackupPayload } from './backup.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
 import { renderFinancialReportHtml } from './financial-report.js';
@@ -1218,16 +1218,40 @@ function importData(file) {
             const backup = validateBackupPayload(parsed, CURRENCY);
             const validatedRecords = backup.records.map((item) => ({ id: crypto.randomUUID(), ...item }));
             if (workspace === 'demo') switchWorkspace('private');
-            const needsConfirmation = records.length > 0 || (backup.includesGoals && savedGoals.length > 0)
-                || (backup.includesCashFlow && (localStorage.getItem('pfo-os.cash-flow.v1') !== null
-                    || localStorage.getItem('pfo-os.cash-flow-budgets.v1') !== null));
-            const replacementConfirmed = !needsConfirmation || window.confirm(
+            const preview = summarizeValidatedBackup(backup);
+            const previewLines = [
+                'Backup import preview',
+                '',
+                'Financial records: ' + preview.recordCount,
+                'Assets: ' + money(preview.assets),
+                'Liabilities: ' + money(preview.liabilities),
+                'Net worth: ' + money(preview.netWorth)
+            ];
+            if (preview.includesGoals) previewLines.push('Saved goals: ' + preview.goalCount);
+            else previewLines.push('Saved goals: not included (existing goals will be preserved)');
+            if (preview.includesCashFlow) {
+                previewLines.push(
+                    'Cash-flow transactions: ' + preview.cashFlowTransactionCount,
+                    'Recorded income: ' + money(preview.cashFlowIncome),
+                    'Recorded expenses: ' + money(preview.cashFlowExpenses),
+                    'Net cash flow: ' + money(preview.cashFlowNet),
+                    'Category budgets: ' + preview.budgetCount
+                );
+            } else {
+                previewLines.push('Cash flow and budgets: not included (existing data will be preserved)');
+            }
+            previewLines.push(
+                '',
                 backup.includesCashFlow
-                    ? 'Importing this full workspace backup will replace financial records, saved goals, cash-flow transactions, and budgets in this browser. Export a backup first if you want to keep them. Continue?'
+                    ? 'Importing replaces records, goals, cash-flow transactions, and budgets in this browser.'
                     : backup.includesGoals
-                        ? 'Importing this backup will replace all records and saved goals in your private workspace. Export a backup first if you want to keep them. Continue?'
-                        : 'Importing this legacy backup will replace all financial records. Saved goals are not included and will be preserved. Continue?'
+                        ? 'Importing replaces financial records and saved goals in this browser.'
+                        : 'Importing replaces financial records in this browser; saved goals, cash flow, and budgets are preserved.',
+                'Export a backup first if you want to keep the current data.',
+                '',
+                'Import this backup now?'
             );
+            const replacementConfirmed = window.confirm(previewLines.join('\\n'));
             if (!replacementConfirmed) {
                 showToast('Import cancelled. Your existing data was not changed.');
                 return;

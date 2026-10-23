@@ -730,11 +730,21 @@ try {
         exportedAt: new Date().toISOString(),
         records: [{ name: 'Imported browser asset', category: 'Investments', type: 'asset', value: 123456 }]
     };
+    const importPreviewDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
         name: 'valid-backup.json',
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(validBackup))
     });
+    const importPreviewDialog = await importPreviewDialogPromise;
+    assert.equal(importPreviewDialog.type(), 'confirm');
+    assert.match(importPreviewDialog.message(), /Backup import preview/);
+    assert.match(importPreviewDialog.message(), /Financial records: 1/);
+    assert.match(importPreviewDialog.message(), /Assets:/);
+    assert.match(importPreviewDialog.message(), /Net worth:/);
+    assert.match(importPreviewDialog.message(), /Saved goals: not included/);
+    assert.match(importPreviewDialog.message(), /cash flow and budgets: not included/i);
+    await importPreviewDialog.accept();
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#records-body')?.innerText.includes('Imported browser asset')
     );
@@ -776,7 +786,7 @@ try {
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(replacementBackup))
     });
-    assert.match(await dismissedConfirmation, /replace all financial records/i);
+    assert.match(await dismissedConfirmation, /Importing replaces financial records/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#toast')?.textContent.includes('Import cancelled.')
     );
@@ -798,7 +808,7 @@ try {
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(replacementBackup))
     });
-    assert.match(await acceptedConfirmation, /replace all financial records/i);
+    assert.match(await acceptedConfirmation, /Importing replaces financial records/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#records-body')?.innerText.includes('Replacement browser asset')
     );
@@ -946,7 +956,7 @@ try {
         mimeType: 'application/json',
         buffer: await readFile(goalBackupPath)
     });
-    assert.match(await restoreGoalConfirmation, /replace financial records, saved goals, cash-flow transactions, and budgets in this browser/i);
+    assert.match(await restoreGoalConfirmation, /Importing replaces records, goals, cash-flow transactions, and budgets in this browser/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
     );
