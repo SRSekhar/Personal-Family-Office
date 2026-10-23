@@ -1,5 +1,6 @@
 import { isValidSavedGoal } from './goals-storage.js';
-import { validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
+import { summarizeCashFlow, validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
+import { calculateFinancialTotals } from './financial-totals.js';
 
 export function validateBackupPayload(payload, expectedCurrency) {
     if (!payload || ![1, 2, 3].includes(payload.schemaVersion) || !Array.isArray(payload.records)
@@ -57,5 +58,36 @@ export function validateBackupPayload(payload, expectedCurrency) {
         budgets,
         includesGoals: [2, 3].includes(payload.schemaVersion),
         includesCashFlow
+    };
+}
+
+
+/**
+ * Summarizes an already validated backup for a user-facing import preview.
+ * This function performs no persistence and never reads the current workspace.
+ */
+export function summarizeValidatedBackup(backup) {
+    if (!backup || !Array.isArray(backup.records)
+        || !Array.isArray(backup.goals)
+        || !Array.isArray(backup.cashFlowEntries)
+        || !Array.isArray(backup.budgets)
+        || typeof backup.includesGoals !== 'boolean'
+        || typeof backup.includesCashFlow !== 'boolean') {
+        throw new TypeError('A validated backup payload is required for preview.');
+    }
+
+    const totals = calculateFinancialTotals(backup.records);
+    const cashFlow = summarizeCashFlow(backup.cashFlowEntries);
+    return {
+        recordCount: backup.records.length,
+        ...totals,
+        includesGoals: backup.includesGoals,
+        goalCount: backup.includesGoals ? backup.goals.length : null,
+        includesCashFlow: backup.includesCashFlow,
+        cashFlowTransactionCount: backup.includesCashFlow ? cashFlow.transactionCount : null,
+        cashFlowIncome: backup.includesCashFlow ? cashFlow.income : null,
+        cashFlowExpenses: backup.includesCashFlow ? cashFlow.expenses : null,
+        cashFlowNet: backup.includesCashFlow ? cashFlow.net : null,
+        budgetCount: backup.includesCashFlow ? backup.budgets.length : null
     };
 }
