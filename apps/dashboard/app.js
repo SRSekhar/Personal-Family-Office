@@ -1251,7 +1251,7 @@ function importData(file) {
                 '',
                 'Import this backup now?'
             );
-            const replacementConfirmed = window.confirm(previewLines.join('\\n'));
+            const replacementConfirmed = window.confirm(previewLines.join('\n'));
             if (!replacementConfirmed) {
                 showToast('Import cancelled. Your existing data was not changed.');
                 return;
