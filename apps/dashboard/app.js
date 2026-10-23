@@ -1217,7 +1217,7 @@ function importData(file) {
             const parsed = JSON.parse(String(reader.result));
             const backup = validateBackupPayload(parsed, CURRENCY);
             const validatedRecords = backup.records.map((item) => ({ id: crypto.randomUUID(), ...item }));
-            if (workspace === 'demo') switchWorkspace('private');
+
             const preview = summarizeValidatedBackup(backup);
             const previewLines = [
                 'Backup import preview',
@@ -1256,6 +1256,8 @@ function importData(file) {
                 showToast('Import cancelled. Your existing data was not changed.');
                 return;
             }
+
+            if (workspace === 'demo') switchWorkspace('private');
 
             if (backup.includesCashFlow) {
                 const storageKeys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1'];

@@ -49,6 +49,24 @@ try {
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
+    const cancelledDemoImport = page.waitForEvent('dialog');
+    await page.locator('#import-file').setInputFiles({
+        name: 'cancelled-demo-import.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify({
+            schemaVersion: 1,
+            currency: 'INR',
+            records: [{ name: 'Must not import', category: 'Investments', type: 'asset', value: 100 }]
+        }))
+    });
+    const cancelledDemoImportDialog = await cancelledDemoImport;
+    assert.match(cancelledDemoImportDialog.message(), /Backup import preview/);
+    await cancelledDemoImportDialog.dismiss();
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Import cancelled.'));
+    assert.equal(await page.locator('#workspace-label').innerText(), 'SAMPLE WORKSPACE',
+        'cancelling a backup import must not switch away from the sample workspace');
+    assert.ok(!(await page.locator('#records-body').innerText()).includes('Must not import'),
+        'cancelling a backup import must not import any records');
     assert.equal(await page.locator('#ratio-liabilities-to-assets').innerText(), '18.6%',
         'dashboard should show liabilities as a share of sample assets');
     assert.equal(await page.locator('#ratio-net-worth-to-assets').innerText(), '81.4%',
