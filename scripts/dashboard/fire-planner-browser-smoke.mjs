@@ -739,6 +739,8 @@ try {
     const importPreviewDialog = await importPreviewDialogPromise;
     assert.equal(importPreviewDialog.type(), 'confirm');
     assert.match(importPreviewDialog.message(), /Backup import preview/);
+    assert.match(importPreviewDialog.message(), /\nFinancial records: 1/);
+    assert.doesNotMatch(importPreviewDialog.message(), /\\\\nFinancial records: 1/);
     assert.match(importPreviewDialog.message(), /Financial records: 1/);
     assert.match(importPreviewDialog.message(), /Assets:/);
     assert.match(importPreviewDialog.message(), /Net worth:/);
