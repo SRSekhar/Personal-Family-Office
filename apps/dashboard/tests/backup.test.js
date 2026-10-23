@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateBackupPayload } from '../backup.js';
+import { summarizeValidatedBackup, validateBackupPayload } from '../backup.js';
 
 const validRecords = [
     { name: 'Savings', category: 'Cash & deposits', type: 'asset', value: 1250 },
@@ -145,5 +145,56 @@ describe('version 3 full workspace backup validation', () => {
     it('rejects a full backup when either cash-flow transactions or budgets are missing', () => {
         expect(() => validateBackupPayload({ ...version3, budgets: undefined }, 'INR')).toThrow('Unsupported backup format');
         expect(() => validateBackupPayload({ ...version3, cashFlowEntries: undefined }, 'INR')).toThrow('Unsupported backup format');
+    });
+});
+
+
+describe('validated backup import preview', () => {
+    it('summarizes all collections and financial totals for a full workspace backup', () => {
+        const validated = validateBackupPayload({
+            schemaVersion: 3,
+            currency: 'INR',
+            records: validRecords,
+            goals: [validGoal],
+            cashFlowEntries: [validCashFlowEntry],
+            budgets: [validBudget]
+        }, 'INR');
+
+        expect(summarizeValidatedBackup(validated)).toEqual({
+            recordCount: 2,
+            assets: 1250,
+            liabilities: 500,
+            netWorth: 750,
+            includesGoals: true,
+            goalCount: 1,
+            includesCashFlow: true,
+            cashFlowTransactionCount: 1,
+            cashFlowIncome: 0,
+            cashFlowExpenses: 25,
+            cashFlowNet: -25,
+            budgetCount: 1
+        });
+    });
+
+    it('marks collections absent from legacy backups as not included rather than implying they will be replaced', () => {
+        const validated = validateBackupPayload(validBackup, 'INR');
+        expect(summarizeValidatedBackup(validated)).toEqual({
+            recordCount: 2,
+            assets: 1250,
+            liabilities: 500,
+            netWorth: 750,
+            includesGoals: false,
+            goalCount: null,
+            includesCashFlow: false,
+            cashFlowTransactionCount: null,
+            cashFlowIncome: null,
+            cashFlowExpenses: null,
+            cashFlowNet: null,
+            budgetCount: null
+        });
+    });
+
+    it('rejects an unvalidated preview input', () => {
+        expect(() => summarizeValidatedBackup({ records: [] })).toThrow('validated backup payload');
     });
 });
