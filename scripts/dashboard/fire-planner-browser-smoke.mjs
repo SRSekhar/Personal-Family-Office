@@ -49,6 +49,13 @@ try {
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
+    assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 3,
+        'local development sample workspace should show fictional multi-year history points only');
+    assert.equal(await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), null,
+        'fictional history fixtures must never be written to browser storage');
+    assert.ok(!(await page.locator('#historical-snapshot-rows').innerText()).includes('2023'),
+        'sample history must not invent a missing year');
     const cancelledDemoImport = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
         name: 'cancelled-demo-import.json',
@@ -771,6 +778,14 @@ try {
     ]);
     assert.equal(historyCsvDownload.suggestedFilename(), 'pfo-os-historical-snapshots.csv');
     process.stdout.write('PASS: explicit historical snapshot capture persists locally and exports to CSV.\n');
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
+    assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 3);
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'switching to sample mode must not replace saved private history');
+    await page.locator('#switch-private-button').click();
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'switching back must preserve the private historical snapshot');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -984,6 +999,48 @@ try {
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
     process.stdout.write('PASS: private backup includes saved goals and their current progress.\n');
+
+    const priorWorkspaceBeforeHistoryFailure = await page.evaluate(() => ({
+        records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
+    }));
+    await page.evaluate(() => {
+        const originalSetItem = globalThis.Storage.prototype.setItem;
+        globalThis.__pfoOriginalSetItem = originalSetItem;
+        let failHistoryWriteOnce = true;
+        globalThis.Storage.prototype.setItem = function (key, value) {
+            if (failHistoryWriteOnce && key === 'pfo-os.historical-snapshots.v1') {
+                failHistoryWriteOnce = false;
+                throw new globalThis.DOMException('Simulated history storage quota failure', 'QuotaExceededError');
+            }
+            return originalSetItem.call(this, key, value);
+        };
+    });
+    const failedHistoryRestoreConfirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-file').setInputFiles({
+        name: 'history-write-failure.json', mimeType: 'application/json', buffer: await readFile(goalBackupPath)
+    });
+    assert.match(await failedHistoryRestoreConfirmation, /historical snapshots/i);
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Could not save historical snapshots.'));
+    const afterFailedHistoryRestore = await page.evaluate(() => ({
+        records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
+    }));
+    assert.deepEqual(afterFailedHistoryRestore, priorWorkspaceBeforeHistoryFailure,
+        'failed history persistence must roll back records, goals, and historical snapshots together');
+    await page.evaluate(() => {
+        globalThis.Storage.prototype.setItem = globalThis.__pfoOriginalSetItem || globalThis.Storage.prototype.setItem;
+        delete globalThis.__pfoOriginalSetItem;
+    });
+    process.stdout.write('PASS: a history storage failure rolls back the complete workspace restore.\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
