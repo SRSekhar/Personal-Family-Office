@@ -70,6 +70,7 @@ try {
 
     await page.evaluate(() => {
         const originalSetItem = Storage.prototype.setItem;
+        globalThis.__pfoOriginalSetItem = originalSetItem;
         let failNextPrivateWrite = true;
         Storage.prototype.setItem = function (key, value) {
             if (failNextPrivateWrite && key === 'pfo-os.dashboard.private.v1') {
@@ -97,7 +98,10 @@ try {
         'a failed backup write must not switch the sample workspace to private');
     assert.ok(!(await page.locator('#records-body').innerText()).includes('Must not replace workspace'),
         'a failed backup write must not display unpersisted imported records');
-    await page.evaluate(() => { Storage.prototype.setItem = Storage.prototype.setItem; });
+    await page.evaluate(() => {
+        Storage.prototype.setItem = globalThis.__pfoOriginalSetItem;
+        delete globalThis.__pfoOriginalSetItem;
+    });
     assert.equal(await page.locator('#ratio-liabilities-to-assets').innerText(), '18.6%',
         'dashboard should show liabilities as a share of sample assets');
     assert.equal(await page.locator('#ratio-net-worth-to-assets').innerText(), '81.4%',
