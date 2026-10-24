@@ -752,3 +752,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Extended Chromium smoke coverage to verify the multi-year trend collapses to one column at 320 CSS pixels without internal horizontal overflow.
 - Verified the historical panel contains its content, snapshot detail totals stack in one column, and the detail panel remains usable at the narrow viewport.
 - Rechecked focus moving into the detail heading and returning to the exact trigger at the narrow viewport. These automated checks do not replace a manual screen-reader or browser-chrome 400% zoom review.
+
+
+## 2026-10-24 — Offline report opening regression coverage
+- Extended Chromium smoke coverage to open the financial summary, single-scenario FIRE report, and three-scenario comparison report directly from local file URLs.
+- The isolated report page blocks HTTP/HTTPS requests and asserts no external network requests occur while verifying essential report content renders.
+- Uses only existing fictional browser-test data. This verifies the tested HTML artifacts, not every report/export feature in the application.
