@@ -1257,8 +1257,6 @@ function importData(file) {
                 return;
             }
 
-            if (workspace === 'demo') switchWorkspace('private');
-
             if (backup.includesCashFlow) {
                 const storageKeys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1'];
                 let previousValues;
@@ -1285,6 +1283,7 @@ function importData(file) {
                     }
                     return;
                 }
+                if (workspace === 'demo') switchWorkspace('private');
                 records = validatedRecords;
                 savedGoals = backup.goals;
                 privateStorageHealthy = true;
@@ -1321,6 +1320,7 @@ function importData(file) {
                 return;
             }
 
+            if (workspace === 'demo') switchWorkspace('private');
             records = validatedRecords;
             if (backup.includesGoals) {
                 savedGoals = backup.goals;
