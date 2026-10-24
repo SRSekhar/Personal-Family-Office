@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     captureHistoricalSnapshot,
+    removeHistoricalSnapshot,
     summarizeHistoricalSnapshots,
     validateHistoricalSnapshots
 } from '../historical-snapshots.js';
@@ -36,6 +37,18 @@ describe('historical financial snapshots', () => {
         expect(() => captureHistoricalSnapshot({
             records: records2024, date: '2024-12-31', currency: 'INR', existingSnapshots: snapshots
         })).toThrow('already exists');
+    });
+
+    it('removes only the selected date and permits an explicitly corrected recapture', () => {
+        const removed = removeHistoricalSnapshot({ snapshots: [...snapshots].reverse(), date: '2022-12-31', currency: 'INR' });
+        expect(removed.map((snapshot) => snapshot.date)).toEqual(['2024-12-31']);
+        expect(() => removeHistoricalSnapshot({ snapshots, date: '2023-12-31', currency: 'INR' }))
+            .toThrow('No historical snapshot exists');
+        const corrected = captureHistoricalSnapshot({
+            records: records2024, date: '2022-12-31', currency: 'INR', existingSnapshots: removed
+        });
+        expect(corrected.map((snapshot) => snapshot.date)).toEqual(['2022-12-31', '2024-12-31']);
+        expect(corrected[0].totals.netWorth).toBe(120000);
     });
 
     it('calculates change from the previous available snapshot and leaves missing years absent', () => {
