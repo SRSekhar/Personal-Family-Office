@@ -58,7 +58,7 @@ describe('historical financial snapshots', () => {
         ['duplicate date', [snapshots[0], { ...snapshots[1], date: snapshots[0].date }]],
         ['currency mismatch', [{ ...snapshots[0], currency: 'USD' }]],
         ['duplicate record IDs', [{ ...snapshots[0], records: [records2022[0], records2022[0]] }]],
-        ['invalid record value', [{ ...snapshots[0], records: [{ ...records2022[0], value: -1 }] }]
+        ['invalid record value', [{ ...snapshots[0], records: [{ ...records2022[0], value: -1 }] }]]
     ])('rejects %s', (_label, invalid) => {
         expect(() => validateHistoricalSnapshots(invalid, 'INR')).toThrow();
     });
