@@ -690,3 +690,14 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added browser regression coverage against the sample portfolio and packaged the analytics module for the local dashboard.
 - No data persistence, network requests, inferred holdings, or recommendations were added.
 - Validation status: pending CI, Chromium smoke, dashboard packaging, and Secret Scan on the feature PR.
+
+
+## 2026-10-24 — Keep workspace selection stable when backup restore fails
+
+### Delivered
+- Defer switching from the sample workspace to the private workspace until backup data has been successfully persisted.
+- A failed local-storage write now leaves the user in the sample workspace rather than silently changing workspace state after a failed import.
+- Add a Chromium regression check that simulates a local-storage write failure during a legacy backup import and verifies that neither the workspace nor displayed records change.
+
+### Product and engineering lesson
+- A confirmed destructive action is not successful until persistence completes. UI workspace transitions must follow the transaction outcome, not precede it.
