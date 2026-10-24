@@ -22,6 +22,7 @@
             <nav>
                 <a class="nav-item active" href="#overview" aria-current="page"><span class="nav-icon">◫</span> Overview</a>
                 <a class="nav-item" href="#records"><span class="nav-icon">▤</span> Financial records</a>
+                <a class="nav-item" href="#historical-snapshots"><span class="nav-icon">↗</span> History</a>
                 <a class="nav-item" href="#fire-planner"><span class="nav-icon">◎</span> FIRE planner</a>
                 <a class="nav-item" href="#goal-tracker"><span class="nav-icon">◷</span> Goal tracker</a>
                 <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
@@ -56,6 +57,7 @@
                 </div>
                 <div class="intro-actions">
                     <span class="sample-pill" id="workspace-label">SAMPLE WORKSPACE</span>
+                    <button class="button button-secondary button-small" id="switch-demo-button" type="button" hidden>Preview sample data</button>
                     <button class="button button-primary" id="add-record-button" type="button"><span>＋</span> Add record</button>
                 </div>
             </section>
@@ -690,6 +692,32 @@
                 <div class="empty-state" id="empty-records" hidden><span class="empty-icon">▤</span><strong>No financial records yet</strong><p>Add your first asset or liability to start building your financial picture.</p><button class="button button-primary" id="empty-add-button" type="button">＋ Add your first record</button></div>
                 <div class="empty-state" id="no-matching-records" hidden><span class="empty-icon">⌕</span><strong>No matching records</strong><p>Try another search term or change the record type filter.</p></div>
                 <div class="table-footer"><span id="records-summary">Showing 0 records</span><span id="filtered-record-totals" class="filtered-record-totals" aria-live="polite" hidden></span><span>Values are user-entered and are not independently verified.</span></div>
+            </section>
+
+            <section class="panel historical-snapshots-panel" id="historical-snapshots" aria-labelledby="historical-snapshots-heading">
+                <div class="panel-header">
+                    <div><p class="eyebrow">MULTI-YEAR FINANCIAL HISTORY</p><h2 id="historical-snapshots-heading">Historical snapshots</h2>
+                        <p class="cash-flow-intro">Capture an explicit valuation date to preserve what you owned and owed at that point in time. Only recorded dates appear; missing years are never estimated.</p></div>
+                    <div class="historical-snapshot-actions"><span class="panel-tag" id="historical-snapshots-source">Saved locally in this browser</span><button class="button button-secondary button-small" id="export-historical-snapshots-csv" type="button">Export history CSV</button></div>
+                </div>
+                <div class="notice historical-demo-note" id="historical-demo-note" aria-live="polite">
+                    <span class="notice-icon">✳</span><div><strong>Development fixture — fictional history</strong><p>These dated balances exist only to test the history UI and calculations. They are never written into your private workspace or included in its records.</p></div>
+                </div>
+                <form id="historical-snapshot-form" class="historical-snapshot-capture">
+                    <div><h3>Capture current balance sheet</h3><p class="cash-flow-intro">Save a point-in-time copy of the current financial records. A date can be captured only once.</p></div>
+                    <label class="field-label" for="historical-snapshot-date">Valuation date<input id="historical-snapshot-date" name="date" type="date" required></label>
+                    <button class="button button-primary" id="capture-historical-snapshot-button" type="submit">Capture snapshot</button>
+                </form>
+                <p class="form-note">Private snapshots stay in this browser. Full workspace backup/restore support for snapshot details is being completed separately; the history CSV contains summary totals only. Snapshots do not reconstruct history from before the first capture.</p>
+                <p class="validation-message" id="historical-snapshots-error" role="alert" hidden></p>
+                <div class="table-wrap">
+                    <table>
+                        <caption class="sr-only">Historical balance-sheet snapshots, newest first</caption>
+                        <thead><tr><th scope="col">Valuation date</th><th scope="col" class="align-right">Records</th><th scope="col" class="align-right">Assets</th><th scope="col" class="align-right">Liabilities</th><th scope="col" class="align-right">Net worth</th><th scope="col" class="align-right">Change</th><th scope="col" class="align-right">Change %</th></tr></thead>
+                        <tbody id="historical-snapshot-rows"></tbody>
+                    </table>
+                </div>
+                <p class="empty-state" id="historical-snapshots-empty" hidden>No historical snapshots yet.</p>
             </section>
 
             <footer class="app-footer"><span>© PFO OS · Built for clarity and control.</span><span>Early development · Not financial advice</span></footer>
