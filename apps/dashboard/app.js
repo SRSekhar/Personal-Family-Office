@@ -802,6 +802,7 @@ function renderHistoricalSnapshotDetails(snapshot, trigger) {
         recordRows.append(row);
     }
     panel.hidden = false;
+    heading.focus();
     panel.scrollIntoView({ behavior: 'auto', block: 'nearest' });
 }
 

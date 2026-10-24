@@ -33,6 +33,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #310 — accessible net-worth trend visualization with one point per actual snapshot date.
 - PR #311 — per-snapshot record and category breakdown details with safe text rendering and focus restoration.
 - PR #312 — Chromium verification that historical snapshots survive page reloads.
+- Historical snapshot detail keyboard focus — opening details moves focus to the labelled heading; closing returns focus to the exact trigger, verified in Chromium smoke.
 
 ## In Progress
 
@@ -47,7 +48,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 1. Complete interactive browser and accessibility verification for FIRE planner, report exports, and Goal Tracker.
 2. Run the offline report workflow using fictional data, then confirm reports open without network access.
 3. Capture anonymized customer-discovery evidence and update the product log.
-4. Perform a dedicated keyboard, screen-reader, responsive-layout, and zoom review of the historical trend and snapshot-detail panels.
+4. Complete a broader manual screen-reader, responsive-layout, and 400% zoom review of the historical trend and snapshot-detail panels; the automated keyboard focus contract is covered.
 5. Review an explicit, confirmed correction/removal workflow for erroneous historical snapshots without permitting silent replacement.
 6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 

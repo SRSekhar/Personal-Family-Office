@@ -139,8 +139,11 @@ try {
         'activating the skip link should move focus to the main content landmark'
     );
     process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
-    await page.locator('[data-history-details="2025-12-31"]').click();
+    const historyDetailsTrigger = page.locator('[data-history-details="2025-12-31"]');
+    await historyDetailsTrigger.click();
     assert.equal(await page.locator('#historical-snapshot-detail').isVisible(), true);
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.id), 'historical-snapshot-detail-heading',
+        'opening snapshot details should move keyboard and screen-reader focus to the details heading');
     assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Investment portfolio/);
     assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Cash & deposits/);
     assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Residential property/);
@@ -148,6 +151,8 @@ try {
         'snapshot detail should group fictional records by category and asset/liability type');
     await page.locator('#close-historical-snapshot-detail').click();
     assert.equal(await page.locator('#historical-snapshot-detail').isVisible(), false);
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.getAttribute('data-history-details')), '2025-12-31',
+        'closing snapshot details should return focus to the exact triggering button');
 
     await page.goto(`${baseUrl}#fire-planner`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => globalThis.document.querySelector('.nav-item[href="#fire-planner"]')?.getAttribute('aria-current') === 'page');
