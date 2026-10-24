@@ -770,7 +770,7 @@ try {
         page.locator('#export-historical-snapshots-csv').click()
     ]);
     assert.equal(historyCsvDownload.suggestedFilename(), 'pfo-os-historical-snapshots.csv');
-    process.stdout.write('PASS: explicit historical snapshot capture persists locally and exports to CSV.\\n');
+    process.stdout.write('PASS: explicit historical snapshot capture persists locally and exports to CSV.\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
