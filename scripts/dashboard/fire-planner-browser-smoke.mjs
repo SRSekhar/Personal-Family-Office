@@ -58,6 +58,15 @@ try {
         'the trend chart should contain one point per actual sample snapshot');
     assert.ok(!(await page.locator('#historical-net-worth-chart').innerText()).includes('2023'),
         'sample history must not invent a missing year');
+    await page.locator('[data-history-details="2025-12-31"]').click();
+    assert.equal(await page.locator('#historical-snapshot-detail').isVisible(), true);
+    assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Investment portfolio/);
+    assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Cash & deposits/);
+    assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Residential property/);
+    assert.equal(await page.locator('#historical-snapshot-category-rows tr').count(), 4,
+        'snapshot detail should group fictional records by category and asset/liability type');
+    await page.locator('#close-historical-snapshot-detail').click();
+    assert.equal(await page.locator('#historical-snapshot-detail').isVisible(), false);
     const cancelledDemoImport = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
         name: 'cancelled-demo-import.json',
