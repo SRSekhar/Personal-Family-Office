@@ -139,6 +139,16 @@ try {
         'activating the skip link should move focus to the main content landmark'
     );
     process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
+    await page.locator('[data-history-details="2025-12-31"]').click();
+    assert.equal(await page.locator('#historical-snapshot-detail').isVisible(), true);
+    assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Investment portfolio/);
+    assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Cash & deposits/);
+    assert.match(await page.locator('#historical-snapshot-detail').innerText(), /Residential property/);
+    assert.equal(await page.locator('#historical-snapshot-category-rows tr').count(), 4,
+        'snapshot detail should group fictional records by category and asset/liability type');
+    await page.locator('#close-historical-snapshot-detail').click();
+    assert.equal(await page.locator('#historical-snapshot-detail').isVisible(), false);
+
     await page.goto(`${baseUrl}#fire-planner`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => globalThis.document.querySelector('.nav-item[href="#fire-planner"]')?.getAttribute('aria-current') === 'page');
     assert.equal(await page.locator('#page-breadcrumb').innerText(), 'FIRE planner',

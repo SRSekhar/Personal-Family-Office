@@ -727,3 +727,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a compact bar-style trend view based only on validated historical snapshot dates, alongside the exact-value table.
 - The chart has one entry per real snapshot, uses the recorded net-worth amount, labels each date/value in text, and does not create bars for missing years. The table remains the exact-value accessible reference.
 - Chromium regression coverage verifies the sample chart includes its three real fixture points and does not invent a 2023 point.
+
+
+## 2026-10-24 — Inspect snapshot details and category totals
+- Added a per-snapshot detail action that reveals the captured records, asset/liability totals, and grouped category breakdown for the selected valuation date.
+- Detail content is rendered with DOM text nodes, preserving user-entered text as text rather than HTML. The panel is keyboard-operable and returns focus to its triggering button when closed.
+- Browser smoke coverage opens a fictional 2025 snapshot and verifies its record and category detail rows.
