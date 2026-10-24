@@ -763,7 +763,7 @@ try {
     await page.locator('#capture-historical-snapshot-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('Dec 2023')
         || globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('31 Dec 2023'));
-    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'capturing a dated snapshot should persist it locally');
     const [historyCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
@@ -808,7 +808,7 @@ try {
     });
     assert.match(await legacyV3Confirmation, /existing history is preserved/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Legacy full backup asset'));
-    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'restoring a schema v3 backup should preserve historical snapshots');
     process.stdout.write('PASS: schema v3 full-workspace restore preserves history omitted by the legacy format.\n');
 
