@@ -739,3 +739,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Opening a snapshot's details now moves focus to the selected-date heading so keyboard and screen-reader users enter the newly revealed content directly.
 - The heading is programmatically focusable without adding it to the normal Tab sequence; closing the panel returns focus to the exact triggering button.
 - Chromium browser smoke asserts both focus transitions alongside the existing fictional snapshot detail checks. A manual screen-reader and 400% zoom review remains necessary before release.
+
+
+## 2026-10-24 — Confirmed historical snapshot correction workflow
+- Added a private-workspace-only Remove action for each dated snapshot. Confirmation names the selected date, explains that current records are not changed, and warns that removal cannot be undone locally without a prior full-workspace backup.
+- Removal validates the complete saved history before changing it and writes the remaining collection as one storage update. If storage fails, the old history and visible row remain intact.
+- After successful removal, the history view refreshes and focus moves to the history heading. The date can then be captured again with corrected current records; duplicate dates are still rejected unless the old snapshot was explicitly removed.
+- Unit and Chromium smoke coverage exercises selected-date removal, cancellation, persistence failure, and corrected re-capture using fictional test data only.

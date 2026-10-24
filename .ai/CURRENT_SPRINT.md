@@ -34,6 +34,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #311 — per-snapshot record and category breakdown details with safe text rendering and focus restoration.
 - PR #312 — Chromium verification that historical snapshots survive page reloads.
 - Historical snapshot detail keyboard focus — opening details moves focus to the labelled heading; closing returns focus to the exact trigger, verified in Chromium smoke.
+- Confirmed historical snapshot correction — private history rows expose removal with explicit confirmation and a backup warning; persistence is atomic, current records stay untouched, and the date can then be recaptured.
 
 ## In Progress
 
@@ -49,7 +50,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 2. Run the offline report workflow using fictional data, then confirm reports open without network access.
 3. Capture anonymized customer-discovery evidence and update the product log.
 4. Complete a broader manual screen-reader, responsive-layout, and 400% zoom review of the historical trend and snapshot-detail panels; the automated keyboard focus contract is covered.
-5. Review an explicit, confirmed correction/removal workflow for erroneous historical snapshots without permitting silent replacement.
+5. Test the confirmed snapshot correction/removal workflow under keyboard, screen-reader, and storage failure conditions; ensure full-workspace backups are available before destructive edits.
 6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
 ## Release Gates and Constraints

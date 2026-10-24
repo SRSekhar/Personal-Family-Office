@@ -82,6 +82,19 @@ export function captureHistoricalSnapshot({ records, date, currency, existingSna
     return [...existing, snapshot].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * Return a validated history without one explicitly selected date.
+ * The UI must ask for confirmation before persisting this change.
+ */
+export function removeHistoricalSnapshot({ snapshots, date, currency }) {
+    if (!isCalendarDate(date)) throw new RangeError('Snapshot removal requires a real calendar date.');
+    const validated = validateHistoricalSnapshots(snapshots, currency);
+    if (!validated.some((snapshot) => snapshot.date === date)) {
+        throw new RangeError('No historical snapshot exists for the selected date.');
+    }
+    return validated.filter((snapshot) => snapshot.date !== date);
+}
+
 /** Produce a chronological series using only snapshots that actually exist. */
 export function summarizeHistoricalSnapshots(snapshots, expectedCurrency) {
     const validated = validateHistoricalSnapshots(snapshots, expectedCurrency);

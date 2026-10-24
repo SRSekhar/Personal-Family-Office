@@ -18,7 +18,7 @@ Let a household understand how its financial position changes over multiple year
 ## Initial functional scope
 
 - Capture a snapshot of the current validated balance sheet for an explicitly selected valuation date.
-- Prevent accidental duplicate dates; if editing/replacing a date is supported, require an explicit confirmation and preview.
+- Prevent accidental duplicate dates. To correct a mistaken snapshot, require a clearly labelled removal action with explicit confirmation and a full-backup warning before re-capture; never silently replace a date.
 - Show a chronological history with assets, liabilities, net worth, and change from the previous available snapshot.
 - Provide a multi-year trend visualization and a readable table alternative for accessibility and exact values.
 - Allow a selected historical snapshot's record/category detail to be inspected without changing current records.
@@ -35,6 +35,7 @@ Let a household understand how its financial position changes over multiple year
 - v1/v2/v3 backups remain importable; collections absent from a legacy backup are preserved as indicated by the preview.
 - Invalid snapshots are rejected before any collection is changed.
 - A failed storage write cannot produce a partial snapshot or falsely report success.
+- Snapshot removal is private-workspace-only, explicitly confirmed, validated before persistence, leaves current records unchanged, and preserves the old history if persistence fails.
 - History views use only real snapshot dates and show missing periods honestly.
 - Keyboard users and screen-reader users can operate snapshot capture, inspect history, and access the same values without relying on a chart alone.
 - Browser tests use fictional data only; no household financial values are committed to the public repository.

@@ -789,6 +789,59 @@ try {
         || globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('31 Dec 2023'));
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'capturing a dated snapshot should persist it locally');
+    let cancelledRemovalMessage = '';
+    page.once('dialog', async (dialog) => {
+        cancelledRemovalMessage = dialog.message();
+        await dialog.dismiss();
+    });
+    await page.locator('[data-history-remove="2023-12-31"]').click();
+    assert.match(cancelledRemovalMessage, /export a full workspace backup first/i);
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'cancelling snapshot removal must preserve saved history');
+    let removalFailureMessage = '';
+    await page.evaluate(() => {
+        const originalSetItem = globalThis.Storage.prototype.setItem;
+        globalThis.__pfoHistoryOriginalSetItem = originalSetItem;
+        let failHistoryWriteOnce = true;
+        globalThis.Storage.prototype.setItem = function (key, value) {
+            if (failHistoryWriteOnce && key === 'pfo-os.historical-snapshots.v1') {
+                failHistoryWriteOnce = false;
+                throw new globalThis.DOMException('Simulated history removal storage failure', 'QuotaExceededError');
+            }
+            return originalSetItem.call(this, key, value);
+        };
+    });
+    page.once('dialog', async (dialog) => {
+        removalFailureMessage = dialog.message();
+        await dialog.accept();
+    });
+    await page.locator('[data-history-remove="2023-12-31"]').click();
+    assert.match(removalFailureMessage, /does not change current financial records/i);
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.innerText.includes('previous saved history was left unchanged'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'failed snapshot removal persistence must leave the original history intact');
+    assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
+        'failed snapshot removal must not remove the visible history row');
+    await page.evaluate(() => {
+        globalThis.Storage.prototype.setItem = globalThis.__pfoHistoryOriginalSetItem;
+        delete globalThis.__pfoHistoryOriginalSetItem;
+    });
+    let confirmedRemovalMessage = '';
+    page.once('dialog', async (dialog) => {
+        confirmedRemovalMessage = dialog.message();
+        await dialog.accept();
+    });
+    await page.locator('[data-history-remove="2023-12-31"]').click();
+    assert.match(confirmedRemovalMessage, /does not change current financial records/i);
+    await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.children.length === 0);
+    assert.deepEqual(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')), [],
+        'confirmed removal should persist an empty history collection');
+    await page.locator('#historical-snapshot-date').fill('2023-12-31');
+    await page.locator('#capture-historical-snapshot-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('Dec 2023')
+        || globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('31 Dec 2023'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'an explicitly removed snapshot date should be available for a corrected recapture');
     const [historyCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-historical-snapshots-csv').click()
