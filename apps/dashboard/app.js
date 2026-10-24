@@ -708,6 +708,18 @@ function renderHistoricalSnapshots() {
             if (index > 0) cell.className = 'align-right';
             row.append(cell);
         });
+        const detailsCell = document.createElement('td');
+        const detailsButton = document.createElement('button');
+        detailsButton.className = 'button button-secondary button-small';
+        detailsButton.type = 'button';
+        detailsButton.textContent = 'View details';
+        detailsButton.setAttribute('aria-label', 'View details for ' + fmtDate(point.date));
+        detailsButton.dataset.historyDetails = point.date;
+        detailsButton.addEventListener('click', () => renderHistoricalSnapshotDetails(
+            snapshots.find((snapshot) => snapshot.date === point.date), detailsButton
+        ));
+        detailsCell.append(detailsButton);
+        row.append(detailsCell);
         body.append(row);
     }
     const captureAllowedAfterValidation = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname)
@@ -715,6 +727,88 @@ function renderHistoricalSnapshots() {
     $('#historical-snapshot-date').disabled = !captureAllowedAfterValidation;
     $('#capture-historical-snapshot-button').disabled = !captureAllowedAfterValidation;
     captureForm.hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
+}
+
+let lastHistoricalDetailsTrigger = null;
+
+function renderHistoricalSnapshotDetails(snapshot, trigger) {
+    if (!snapshot) return;
+    lastHistoricalDetailsTrigger = trigger;
+    const panel = $('#historical-snapshot-detail');
+    const heading = $('#historical-snapshot-detail-heading');
+    const totals = $('#historical-snapshot-detail-totals');
+    const categoryRows = $('#historical-snapshot-category-rows');
+    const recordRows = $('#historical-snapshot-record-rows');
+    const dateLabel = new Intl.DateTimeFormat('en-IN', { dateStyle: 'long', timeZone: 'UTC' })
+        .format(new Date(snapshot.date + 'T00:00:00Z'));
+    heading.textContent = 'Valuation date · ' + dateLabel;
+    totals.replaceChildren();
+    for (const [label, value] of [
+        ['Assets', snapshot.totals.assets],
+        ['Liabilities', snapshot.totals.liabilities],
+        ['Net worth', snapshot.totals.netWorth]
+    ]) {
+        const card = document.createElement('article');
+        const name = document.createElement('span');
+        name.textContent = label;
+        const amount = document.createElement('strong');
+        amount.textContent = money(value);
+        card.append(name, amount);
+        totals.append(card);
+    }
+    const categories = new Map();
+    for (const record of snapshot.records) {
+        const key = record.type + '\\u0000' + record.category;
+        categories.set(key, (categories.get(key) || 0) + record.value);
+    }
+    categoryRows.replaceChildren();
+    const sortedCategories = [...categories.entries()].sort(([a], [b]) => a.localeCompare(b, 'en'));
+    for (const [key, amount] of sortedCategories) {
+        const [type, category] = key.split('\\u0000');
+        const row = document.createElement('tr');
+        for (const value of [type === 'asset' ? 'Asset' : 'Liability', category, money(amount)]) {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.append(cell);
+        }
+        row.lastElementChild.className = 'align-right';
+        categoryRows.append(row);
+    }
+    if (sortedCategories.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 3;
+        cell.textContent = 'No records were captured in this snapshot.';
+        row.append(cell);
+        categoryRows.append(row);
+    }
+    recordRows.replaceChildren();
+    for (const record of snapshot.records) {
+        const row = document.createElement('tr');
+        for (const value of [record.name, record.category, record.type === 'asset' ? 'Asset' : 'Liability', money(record.value)]) {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.append(cell);
+        }
+        row.lastElementChild.className = 'align-right';
+        recordRows.append(row);
+    }
+    if (snapshot.records.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 4;
+        cell.textContent = 'No financial records were present on this valuation date.';
+        row.append(cell);
+        recordRows.append(row);
+    }
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+}
+
+function closeHistoricalSnapshotDetails() {
+    $('#historical-snapshot-detail').hidden = true;
+    if (lastHistoricalDetailsTrigger?.isConnected) lastHistoricalDetailsTrigger.focus();
+    lastHistoricalDetailsTrigger = null;
 }
 
 function captureCurrentHistoricalSnapshot(event) {
@@ -1662,6 +1756,7 @@ $('#export-button').addEventListener('click', exportData);
 $('#switch-demo-button').addEventListener('click', () => switchWorkspace('demo'));
 $('#historical-snapshot-form').addEventListener('submit', captureCurrentHistoricalSnapshot);
 $('#export-historical-snapshots-csv').addEventListener('click', exportHistoricalSnapshotsCsv);
+$('#close-historical-snapshot-detail').addEventListener('click', closeHistoricalSnapshotDetails);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview);
 $('#print-report-button').addEventListener('click', printFinancialReport);
