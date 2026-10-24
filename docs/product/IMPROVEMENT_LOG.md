@@ -733,3 +733,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a per-snapshot detail action that reveals the captured records, asset/liability totals, and grouped category breakdown for the selected valuation date.
 - Detail content is rendered with DOM text nodes, preserving user-entered text as text rather than HTML. The panel is keyboard-operable and returns focus to its triggering button when closed.
 - Browser smoke coverage opens a fictional 2025 snapshot and verifies its record and category detail rows.
+
+
+## 2026-10-24 — Keyboard focus for historical snapshot details
+- Opening a snapshot's details now moves focus to the selected-date heading so keyboard and screen-reader users enter the newly revealed content directly.
+- The heading is programmatically focusable without adding it to the normal Tab sequence; closing the panel returns focus to the exact triggering button.
+- Chromium browser smoke asserts both focus transitions alongside the existing fictional snapshot detail checks. A manual screen-reader and 400% zoom review remains necessary before release.
