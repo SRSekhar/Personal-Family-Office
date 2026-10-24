@@ -36,8 +36,9 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 1. Complete interactive browser and accessibility verification for FIRE planner, report exports, and Goal Tracker.
 2. Run the offline report workflow using fictional data, then confirm reports open without network access.
 3. Capture anonymized customer-discovery evidence and update the product log.
-4. Deliver local-first historical financial snapshots and multi-year trend views with explicit valuation dates, recoverable backups, and no fabricated history.
-5. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
+4. Integrate historical snapshots into full workspace backup/restore schema v4, preserving saved history when older backups omit it, then validate restore rollback.
+5. Validate the historical snapshot UI end to end in a real browser using only fictional local-development fixtures.
+6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
 ## Release Gates and Constraints
 
