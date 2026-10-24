@@ -54,7 +54,9 @@ try {
         'local development sample workspace should show fictional multi-year history points only');
     assert.equal(await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), null,
         'fictional history fixtures must never be written to browser storage');
-    assert.ok(!(await page.locator('#historical-snapshot-rows').innerText()).includes('2023'),
+    assert.equal(await page.locator('#historical-net-worth-chart li').count(), 3,
+        'the trend chart should contain one point per actual sample snapshot');
+    assert.ok(!(await page.locator('#historical-net-worth-chart').innerText()).includes('2023'),
         'sample history must not invent a missing year');
     const cancelledDemoImport = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
@@ -781,6 +783,7 @@ try {
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 3);
+    assert.equal(await page.locator('#historical-net-worth-chart li').count(), 3);
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'switching to sample mode must not replace saved private history');
     await page.locator('#switch-private-button').click();
