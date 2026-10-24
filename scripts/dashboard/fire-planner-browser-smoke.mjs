@@ -791,6 +791,27 @@ try {
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
+    const legacyV3Backup = {
+        schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
+        records: [{ name: 'Legacy full backup asset', category: 'Investments', type: 'asset', value: 321000 }],
+        goals: [], cashFlowEntries: [], budgets: []
+    };
+    const legacyV3Confirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-file').setInputFiles({
+        name: 'legacy-v3-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacyV3Backup))
+    });
+    assert.match(await legacyV3Confirmation, /existing history is preserved/i);
+    await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Legacy full backup asset'));
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'restoring a schema v3 backup should preserve historical snapshots');
+    process.stdout.write('PASS: schema v3 full-workspace restore preserves history omitted by the legacy format.\n');
+
     const validBackup = {
         schemaVersion: 1,
         currency: 'INR',
