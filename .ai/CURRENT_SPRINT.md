@@ -40,6 +40,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 
 - Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.
 - Interactive browser validation of FIRE calculation actions, Goal Tracker progress/reset/validation, invalid-input messaging, report downloads, and keyboard-only use remains open.
+- Historical trend and detail panels now have Chromium regression checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and preserved focus; this is a narrow-viewport test, not a full browser-zoom or manual screen-reader audit.
 - Verify responsive layout and usability at 400% zoom.
 - Validate the local dashboard-to-offline-report workflow end to end; do not use real household data in the public repository or test fixtures.
 - Customer demand remains unvalidated; plan the documented 8–10 anonymized interviews and seek two paid-pilot commitments.
@@ -49,7 +50,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 1. Complete interactive browser and accessibility verification for FIRE planner, report exports, and Goal Tracker.
 2. Run the offline report workflow using fictional data, then confirm reports open without network access.
 3. Capture anonymized customer-discovery evidence and update the product log.
-4. Complete a broader manual screen-reader, responsive-layout, and 400% zoom review of the historical trend and snapshot-detail panels; the automated keyboard focus contract is covered.
+4. Complete a broader manual screen-reader and real-browser 400% zoom review of the historical trend and snapshot-detail panels; automated keyboard focus and 320 CSS-pixel responsive checks are covered.
 5. Test the confirmed snapshot correction/removal workflow under keyboard, screen-reader, and storage failure conditions; ensure full-workspace backups are available before destructive edits.
 6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
