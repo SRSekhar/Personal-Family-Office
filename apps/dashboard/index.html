@@ -696,7 +696,7 @@
 
             <section class="panel historical-snapshots-panel" id="historical-snapshots" aria-labelledby="historical-snapshots-heading">
                 <div class="panel-header">
-                    <div><p class="eyebrow">MULTI-YEAR FINANCIAL HISTORY</p><h2 id="historical-snapshots-heading">Historical snapshots</h2>
+                    <div><p class="eyebrow">MULTI-YEAR FINANCIAL HISTORY</p><h2 id="historical-snapshots-heading" tabindex="-1">Historical snapshots</h2>
                         <p class="cash-flow-intro">Capture an explicit valuation date to preserve what you owned and owed at that point in time. Only recorded dates appear; missing years are never estimated.</p></div>
                     <div class="historical-snapshot-actions"><span class="panel-tag" id="historical-snapshots-source">Saved locally in this browser</span><button class="button button-secondary button-small" id="export-historical-snapshots-csv" type="button">Export history CSV</button></div>
                 </div>
@@ -709,6 +709,7 @@
                     <button class="button button-primary" id="capture-historical-snapshot-button" type="submit">Capture snapshot</button>
                 </form>
                 <p class="form-note">Private snapshots stay in this browser and are included in full workspace backup/restore. The history CSV contains summary totals only. Snapshots do not reconstruct history from before the first capture.</p>
+                <p class="form-note">To correct an erroneous date, export a full workspace backup first, remove that snapshot with explicit confirmation, then capture the corrected balance sheet for the same date. Removal does not change current records.</p>
                 <p class="validation-message" id="historical-snapshots-error" role="alert" hidden></p>
                 <section class="historical-trend" aria-labelledby="historical-trend-heading">
                     <div><h3 id="historical-trend-heading">Net-worth trend</h3><p class="form-note">Each bar represents one saved valuation date. Gaps are not interpolated.</p></div>
@@ -718,7 +719,7 @@
                 <div class="table-wrap">
                     <table>
                         <caption class="sr-only">Historical balance-sheet snapshots, newest first</caption>
-                        <thead><tr><th scope="col">Valuation date</th><th scope="col" class="align-right">Records</th><th scope="col" class="align-right">Assets</th><th scope="col" class="align-right">Liabilities</th><th scope="col" class="align-right">Net worth</th><th scope="col" class="align-right">Change</th><th scope="col" class="align-right">Change %</th><th scope="col">Details</th></tr></thead>
+                        <thead><tr><th scope="col">Valuation date</th><th scope="col" class="align-right">Records</th><th scope="col" class="align-right">Assets</th><th scope="col" class="align-right">Liabilities</th><th scope="col" class="align-right">Net worth</th><th scope="col" class="align-right">Change</th><th scope="col" class="align-right">Change %</th><th scope="col">Actions</th></tr></thead>
                         <tbody id="historical-snapshot-rows"></tbody>
                     </table>
                 </div>
