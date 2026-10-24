@@ -701,3 +701,10 @@ Do not record personal financial values or claim customer demand without evidenc
 
 ### Product and engineering lesson
 - A confirmed destructive action is not successful until persistence completes. UI workspace transitions must follow the transaction outcome, not precede it.
+
+
+## Historical snapshot UI and development fixture (2026-10-24)
+- Added an explicit historical snapshot section with valuation-date capture, chronological totals/change table, and CSV export.
+- Added fictional multi-year snapshots only to the local development sample workspace. The fixture is read-only, never persisted, and never mixed with the private workspace's saved history; it is disabled outside loopback development.
+- Added a local-only switch back to sample mode so developers can verify the UI without changing private records. Private history is read only on loopback hosts; malformed history disables capture rather than overwriting it.
+- The UI displays only actual snapshot dates and calculates change against the previous available snapshot; it does not fill missing years.
