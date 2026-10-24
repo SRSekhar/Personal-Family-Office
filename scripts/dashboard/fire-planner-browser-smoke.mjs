@@ -154,6 +154,29 @@ try {
     assert.equal(await page.evaluate(() => globalThis.document.activeElement?.getAttribute('data-history-details')), '2025-12-31',
         'closing snapshot details should return focus to the exact triggering button');
 
+    await page.setViewportSize({ width: 320, height: 900 });
+    const historyChart = page.locator('#historical-net-worth-chart');
+    assert.equal(await historyChart.evaluate((element) => element.ownerDocument.defaultView.getComputedStyle(element).gridTemplateColumns.split(' ').length), 1,
+        'historical trend should collapse to a single column at a 320 CSS-pixel viewport');
+    assert.ok(await historyChart.evaluate((element) => element.scrollWidth <= element.clientWidth),
+        'historical trend should not introduce internal horizontal overflow at a 320 CSS-pixel viewport');
+    assert.ok(await page.locator('.historical-snapshots-panel').evaluate((element) => element.scrollWidth <= element.clientWidth),
+        'history panel should contain its content at a 320 CSS-pixel viewport');
+    await page.locator('[data-history-details="2025-12-31"]').click();
+    const mobileDetail = page.locator('#historical-snapshot-detail');
+    assert.ok(await mobileDetail.isVisible(), 'snapshot details should remain available at a narrow viewport');
+    assert.equal(await mobileDetail.evaluate((element) => element.ownerDocument.defaultView.getComputedStyle(element.querySelector('.historical-detail-totals')).gridTemplateColumns.split(' ').length), 1,
+        'snapshot detail totals should stack in one column at a 320 CSS-pixel viewport');
+    assert.ok(await mobileDetail.evaluate((element) => element.scrollWidth <= element.clientWidth),
+        'snapshot detail should contain its content at a 320 CSS-pixel viewport');
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.id), 'historical-snapshot-detail-heading',
+        'opening details at a narrow viewport should still move focus to the detail heading');
+    await page.locator('#close-historical-snapshot-detail').click();
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.getAttribute('data-history-details')), '2025-12-31',
+        'closing narrow-viewport details should restore focus to the trigger');
+    await page.setViewportSize({ width: 1280, height: 900 });
+    process.stdout.write('PASS: historical trend and snapshot details reflow and retain focus at a 320 CSS-pixel viewport.\\n');
+
     await page.goto(`${baseUrl}#fire-planner`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => globalThis.document.querySelector('.nav-item[href="#fire-planner"]')?.getAttribute('aria-current') === 'page');
     assert.equal(await page.locator('#page-breadcrumb').innerText(), 'FIRE planner',

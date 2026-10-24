@@ -746,3 +746,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Removal validates the complete saved history before changing it and writes the remaining collection as one storage update. If storage fails, the old history and visible row remain intact.
 - After successful removal, the history view refreshes and focus moves to the history heading. The date can then be captured again with corrected current records; duplicate dates are still rejected unless the old snapshot was explicitly removed.
 - Unit and Chromium smoke coverage exercises selected-date removal, cancellation, persistence failure, and corrected re-capture using fictional test data only.
+
+
+## 2026-10-24 — Narrow-viewport checks for historical views
+- Extended Chromium smoke coverage to verify the multi-year trend collapses to one column at 320 CSS pixels without internal horizontal overflow.
+- Verified the historical panel contains its content, snapshot detail totals stack in one column, and the detail panel remains usable at the narrow viewport.
+- Rechecked focus moving into the detail heading and returning to the exact trigger at the narrow viewport. These automated checks do not replace a manual screen-reader or browser-chrome 400% zoom review.
