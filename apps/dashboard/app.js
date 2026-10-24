@@ -664,6 +664,33 @@ function renderHistoricalSnapshots() {
         }
     }
     const summary = summarizeHistoricalSnapshots(snapshots, CURRENCY);
+    const trend = $('#historical-net-worth-chart');
+    const trendEmpty = $('#historical-trend-empty');
+    trend.replaceChildren();
+    trendEmpty.hidden = summary.length > 0;
+    const maxAbsoluteNetWorth = Math.max(1, ...summary.map((point) => Math.abs(point.netWorth)));
+    const trendDate = (value) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' })
+        .format(new Date(value + 'T00:00:00Z'));
+    for (const point of summary) {
+        const item = document.createElement('li');
+        item.className = 'historical-trend-point';
+        const heading = document.createElement('div');
+        heading.className = 'historical-trend-point-heading';
+        const date = document.createElement('span');
+        date.textContent = trendDate(point.date);
+        const value = document.createElement('strong');
+        value.textContent = money(point.netWorth);
+        heading.append(date, value);
+        const track = document.createElement('div');
+        track.className = 'historical-trend-track';
+        track.setAttribute('aria-hidden', 'true');
+        const bar = document.createElement('span');
+        bar.className = point.netWorth < 0 ? 'historical-trend-bar negative' : 'historical-trend-bar';
+        bar.style.width = Math.max(2, Math.abs(point.netWorth) / maxAbsoluteNetWorth * 100) + '%';
+        track.append(bar);
+        item.append(heading, track);
+        trend.append(item);
+    }
     empty.hidden = summary.length > 0;
     empty.textContent = workspace === 'demo'
         ? (showDevelopmentFixture ? 'The development fixture has no dated snapshots.' : 'Historical development fixtures are available only in the local development workspace.')
