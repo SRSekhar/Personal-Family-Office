@@ -1002,11 +1002,12 @@ try {
 
     const priorWorkspaceBeforeHistoryFailure = await page.evaluate(() => ({
         records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
-        goals: globalThis.localStorage.getItem('pfo-os.saved-goals.v1'),
+        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
         history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
     }));
     await page.evaluate(() => {
         const originalSetItem = globalThis.Storage.prototype.setItem;
+        globalThis.__pfoOriginalSetItem = originalSetItem;
         let failHistoryWriteOnce = true;
         globalThis.Storage.prototype.setItem = function (key, value) {
             if (failHistoryWriteOnce && key === 'pfo-os.historical-snapshots.v1') {
