@@ -721,3 +721,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Schema v4 imports validate every historical date, currency, record ID, and value before persistence; restore uses the existing transaction/rollback approach and rolls history back with the other workspace collections.
 - Legacy v1–v3 backups omit historical snapshots by design. Import preview states that existing history will be preserved, and restore leaves the history storage key untouched.
 - Browser smoke coverage verifies capture, CSV export, schema v4 round-trip, and preservation when restoring schema v1 and v3 backups. All fixtures are fictional.
+
+
+## 2026-10-24 — Accessible multi-year net-worth trend
+- Added a compact bar-style trend view based only on validated historical snapshot dates, alongside the exact-value table.
+- The chart has one entry per real snapshot, uses the recorded net-worth amount, labels each date/value in text, and does not create bars for missing years. The table remains the exact-value accessible reference.
+- Chromium regression coverage verifies the sample chart includes its three real fixture points and does not invent a 2023 point.

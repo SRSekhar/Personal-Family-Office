@@ -710,6 +710,11 @@
                 </form>
                 <p class="form-note">Private snapshots stay in this browser and are included in full workspace backup/restore. The history CSV contains summary totals only. Snapshots do not reconstruct history from before the first capture.</p>
                 <p class="validation-message" id="historical-snapshots-error" role="alert" hidden></p>
+                <section class="historical-trend" aria-labelledby="historical-trend-heading">
+                    <div><h3 id="historical-trend-heading">Net-worth trend</h3><p class="form-note">Each bar represents one saved valuation date. Gaps are not interpolated.</p></div>
+                    <ol class="historical-trend-chart" id="historical-net-worth-chart" aria-label="Net-worth trend for actual snapshot dates"></ol>
+                    <p class="empty-state" id="historical-trend-empty" hidden>No dated points to chart yet.</p>
+                </section>
                 <div class="table-wrap">
                     <table>
                         <caption class="sr-only">Historical balance-sheet snapshots, newest first</caption>
