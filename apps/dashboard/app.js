@@ -683,6 +683,10 @@ function renderHistoricalSnapshots() {
         });
         body.append(row);
     }
+    const captureAllowedAfterValidation = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname)
+        && privateStorageHealthy && historicalStorageHealthy;
+    $('#historical-snapshot-date').disabled = !captureAllowedAfterValidation;
+    $('#capture-historical-snapshot-button').disabled = !captureAllowedAfterValidation;
     captureForm.hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
 }
 
