@@ -758,13 +758,13 @@ function renderHistoricalSnapshotDetails(snapshot, trigger) {
     }
     const categories = new Map();
     for (const record of snapshot.records) {
-        const key = record.type + '\\u0000' + record.category;
+        const key = JSON.stringify([record.type, record.category]);
         categories.set(key, (categories.get(key) || 0) + record.value);
     }
     categoryRows.replaceChildren();
     const sortedCategories = [...categories.entries()].sort(([a], [b]) => a.localeCompare(b, 'en'));
     for (const [key, amount] of sortedCategories) {
-        const [type, category] = key.split('\\u0000');
+        const [type, category] = JSON.parse(key);
         const row = document.createElement('tr');
         for (const value of [type === 'asset' ? 'Asset' : 'Liability', category, money(amount)]) {
             const cell = document.createElement('td');
