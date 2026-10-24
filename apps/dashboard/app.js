@@ -641,14 +641,18 @@ function renderHistoricalSnapshots() {
         && privateStorageHealthy && historicalStorageHealthy;
     $('#historical-snapshot-date').disabled = !canCapture;
     $('#capture-historical-snapshot-button').disabled = !canCapture;
-    $('#historical-demo-note').hidden = workspace !== 'demo';
-    $('#historical-snapshots-source').textContent = workspace === 'demo'
-        ? 'Fictional development fixture · not saved' : 'Saved locally in this browser';
+    const showDevelopmentFixture = workspace === 'demo' && isPrivateWorkspaceAllowed(window.location.hostname);
+    $('#historical-demo-note').hidden = !showDevelopmentFixture;
+    $('#historical-snapshots-source').textContent = showDevelopmentFixture
+        ? 'Fictional development fixture · not saved'
+        : workspace === 'demo' ? 'Sample history disabled outside local development' : 'Saved locally in this browser';
     body.replaceChildren();
     error.hidden = true;
     let snapshots = [];
-    if (workspace === 'demo') {
+    if (showDevelopmentFixture) {
         snapshots = validateHistoricalSnapshots(demoHistoricalSnapshots, CURRENCY);
+    } else if (workspace === 'demo') {
+        snapshots = [];
     } else if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         error.textContent = 'Private history is disabled outside the loopback-only dashboard.';
         error.hidden = false;
@@ -662,7 +666,7 @@ function renderHistoricalSnapshots() {
     const summary = summarizeHistoricalSnapshots(snapshots, CURRENCY);
     empty.hidden = summary.length > 0;
     empty.textContent = workspace === 'demo'
-        ? 'The development fixture has no dated snapshots.'
+        ? (showDevelopmentFixture ? 'The development fixture has no dated snapshots.' : 'Historical development fixtures are available only in the local development workspace.')
         : 'No historical snapshots yet. Choose a valuation date and capture your current balance sheet.';
     const fmtDate = (value) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' })
         .format(new Date(value + 'T00:00:00Z'));
@@ -710,7 +714,13 @@ function captureCurrentHistoricalSnapshot(event) {
 
 function exportHistoricalSnapshotsCsv() {
     let snapshots;
-    if (workspace === 'demo') snapshots = validateHistoricalSnapshots(demoHistoricalSnapshots, CURRENCY);
+    if (workspace === 'demo') {
+        if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+            showLocalWorkspaceRequired();
+            return;
+        }
+        snapshots = validateHistoricalSnapshots(demoHistoricalSnapshots, CURRENCY);
+    }
     else {
         if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
             showLocalWorkspaceRequired();
