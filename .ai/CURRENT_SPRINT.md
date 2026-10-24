@@ -23,6 +23,17 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #149 — corrected Goal Tracker progress indicator's accessible value wording to report the percentage of target, including when the accumulated amount exceeds 100%; CI, Secret Scan, and dashboard packaging passed.
 - Product improvement log is maintained in `docs/product/IMPROVEMENT_LOG.md`.
 
+## Completed Historical Data Deliverables
+
+- PR #304 — documented multi-year historical financial data requirements, local-first privacy, explicit valuation dates, and no fabricated gaps.
+- PR #305 — validated historical snapshot domain model with duplicate-date protection, chronological summaries, and regression tests.
+- PR #307 — local development-only fictional history, private snapshot capture, history table, and CSV export.
+- PR #308 — schema v4 full-workspace backup/restore with validated snapshots and transactional rollback; legacy v1–v3 imports preserve history.
+- PR #309 — browser regressions for fake-data isolation, sample/private switching, and restore rollback on snapshot storage failure.
+- PR #310 — accessible net-worth trend visualization with one point per actual snapshot date.
+- PR #311 — per-snapshot record and category breakdown details with safe text rendering and focus restoration.
+- PR #312 — Chromium verification that historical snapshots survive page reloads.
+
 ## In Progress
 
 - Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.
@@ -36,8 +47,8 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 1. Complete interactive browser and accessibility verification for FIRE planner, report exports, and Goal Tracker.
 2. Run the offline report workflow using fictional data, then confirm reports open without network access.
 3. Capture anonymized customer-discovery evidence and update the product log.
-4. Add a multi-year net-worth trend visualization with exact-value accessible table, explicit dates, and no fabricated gaps.
-5. Keep improving browser regression coverage for sample/private data isolation and schema v4 restore rollback.
+4. Perform a dedicated keyboard, screen-reader, responsive-layout, and zoom review of the historical trend and snapshot-detail panels.
+5. Review an explicit, confirmed correction/removal workflow for erroneous historical snapshots without permitting silent replacement.
 6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
 ## Release Gates and Constraints
