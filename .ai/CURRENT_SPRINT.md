@@ -36,7 +36,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 1. Complete interactive browser and accessibility verification for FIRE planner, report exports, and Goal Tracker.
 2. Run the offline report workflow using fictional data, then confirm reports open without network access.
 3. Capture anonymized customer-discovery evidence and update the product log.
-4. Define valuation-date and recovery requirements before selecting historical snapshot persistence.
+4. Deliver local-first historical financial snapshots and multi-year trend views with explicit valuation dates, recoverable backups, and no fabricated history.
 5. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
 ## Release Gates and Constraints
@@ -45,5 +45,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - The repository is public and has no valid open-source license yet. Do not change visibility or license automatically.
 - Historical repository content and commit metadata require a separate credential-exposure review.
 - Dependency licensing/distribution disposition remains open.
+- Historical net-worth trends must come from explicitly dated user-captured snapshots. Never reconstruct or imply historical balances from today's records.
+- Preserve a multi-year history in local storage and full-workspace backups; validate migration and rollback behavior before release.
 - Do not add automatic FIRE persistence, external financial data, telemetry, AI calls, investment recommendations, or Monte Carlo analysis without a separately reviewed decision.
 - Autonomous engineering workflow improvements are intentionally deprioritized until core product functionality and customer validation are substantially further along.

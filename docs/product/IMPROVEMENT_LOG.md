@@ -701,3 +701,16 @@ Do not record personal financial values or claim customer demand without evidenc
 
 ### Product and engineering lesson
 - A confirmed destructive action is not successful until persistence completes. UI workspace transitions must follow the transaction outcome, not precede it.
+
+
+## 2026-10-24 — Multi-year financial history is a core requirement
+
+### Requirement captured
+- PFO OS must let users inspect financial history across multiple years, rather than showing only a current balance sheet.
+- Historical points must be explicitly dated user-captured snapshots; past values must never be fabricated from current records.
+- Historical snapshots must survive reloads and full-workspace backup/restore, with legacy backup compatibility and transactional failure handling.
+- Trends must expose gaps honestly and provide a table for accessible exact-value review.
+
+### Product decision
+- Keep historical data local-first by default. Do not silently introduce cloud storage, Google Sheets synchronization, external financial data, or automatic snapshot capture.
+- Detailed scope and acceptance criteria are maintained in `docs/product/HISTORICAL_FINANCIAL_DATA.md`.
