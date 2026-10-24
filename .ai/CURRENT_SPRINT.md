@@ -23,7 +23,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #149 — corrected Goal Tracker progress indicator's accessible value wording to report the percentage of target, including when the accumulated amount exceeds 100%; CI, Secret Scan, and dashboard packaging passed.
 - Product improvement log is maintained in `docs/product/IMPROVEMENT_LOG.md`.
 
-## Completed Historical History Deliverables
+## Completed Historical Data Deliverables
 
 - PR #304 — documented multi-year historical financial data requirements, local-first privacy, explicit valuation dates, and no fabricated gaps.
 - PR #305 — validated historical snapshot domain model with duplicate-date protection, chronological summaries, and regression tests.
