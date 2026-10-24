@@ -1058,6 +1058,10 @@ try {
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
+    assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
+        'historical snapshot should persist across page reloads');
+    assert.ok((await page.locator('#historical-snapshot-rows').innerText()).includes('31 Dec 2023'),
+        'reloaded history should retain the explicitly captured valuation date');
     assert.match(await page.locator('#saved-goals-list').innerText(), /1,25,000 saved/,
         'saved goal progress should persist across reloads');
     await page.locator('[data-goal-edit]').click();
