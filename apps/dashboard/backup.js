@@ -1,11 +1,13 @@
 import { isValidSavedGoal } from './goals-storage.js';
 import { summarizeCashFlow, validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
 import { calculateFinancialTotals } from './financial-totals.js';
+import { validateHistoricalSnapshots } from './historical-snapshots.js';
 
 export function validateBackupPayload(payload, expectedCurrency) {
-    if (!payload || ![1, 2, 3].includes(payload.schemaVersion) || !Array.isArray(payload.records)
-        || ([2, 3].includes(payload.schemaVersion) && !Array.isArray(payload.goals))
-        || (payload.schemaVersion === 3 && (!Array.isArray(payload.cashFlowEntries) || !Array.isArray(payload.budgets)))) {
+    if (!payload || ![1, 2, 3, 4].includes(payload.schemaVersion) || !Array.isArray(payload.records)
+        || ([2, 3, 4].includes(payload.schemaVersion) && !Array.isArray(payload.goals))
+        || ([3, 4].includes(payload.schemaVersion) && (!Array.isArray(payload.cashFlowEntries) || !Array.isArray(payload.budgets)))
+        || (payload.schemaVersion === 4 && !Array.isArray(payload.historicalSnapshots))) {
         throw new Error('Unsupported backup format.');
     }
     if (payload.currency !== expectedCurrency) {
@@ -47,17 +49,21 @@ export function validateBackupPayload(payload, expectedCurrency) {
         }
     }
 
-    const includesCashFlow = payload.schemaVersion === 3;
+    const includesCashFlow = [3, 4].includes(payload.schemaVersion);
+    const includesHistoricalSnapshots = payload.schemaVersion === 4;
     const cashFlowEntries = includesCashFlow ? validateCashFlowEntries(payload.cashFlowEntries) : [];
     const budgets = includesCashFlow ? validateCashFlowBudgets(payload.budgets) : [];
+    const historicalSnapshots = includesHistoricalSnapshots ? validateHistoricalSnapshots(payload.historicalSnapshots, expectedCurrency) : [];
 
     return {
         records,
         goals,
         cashFlowEntries,
         budgets,
-        includesGoals: [2, 3].includes(payload.schemaVersion),
-        includesCashFlow
+        historicalSnapshots,
+        includesGoals: [2, 3, 4].includes(payload.schemaVersion),
+        includesCashFlow,
+        includesHistoricalSnapshots
     };
 }
 
@@ -71,6 +77,8 @@ export function summarizeValidatedBackup(backup) {
         || !Array.isArray(backup.goals)
         || !Array.isArray(backup.cashFlowEntries)
         || !Array.isArray(backup.budgets)
+        || !Array.isArray(backup.historicalSnapshots)
+        || typeof backup.includesHistoricalSnapshots !== 'boolean'
         || typeof backup.includesGoals !== 'boolean'
         || typeof backup.includesCashFlow !== 'boolean') {
         throw new TypeError('A validated backup payload is required for preview.');
@@ -88,6 +96,8 @@ export function summarizeValidatedBackup(backup) {
         cashFlowIncome: backup.includesCashFlow ? cashFlow.income : null,
         cashFlowExpenses: backup.includesCashFlow ? cashFlow.expenses : null,
         cashFlowNet: backup.includesCashFlow ? cashFlow.net : null,
-        budgetCount: backup.includesCashFlow ? backup.budgets.length : null
+        budgetCount: backup.includesCashFlow ? backup.budgets.length : null,
+        includesHistoricalSnapshots: backup.includesHistoricalSnapshots,
+        historicalSnapshotCount: backup.includesHistoricalSnapshots ? backup.historicalSnapshots.length : null
     };
 }
