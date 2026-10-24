@@ -1031,7 +1031,7 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Could not save historical snapshots.'));
     const afterFailedHistoryRestore = await page.evaluate(() => ({
         records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
-        goals: globalThis.localStorage.getItem('pfo-os.saved-goals.v1'),
+        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
         history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
     }));
     assert.deepEqual(afterFailedHistoryRestore, priorWorkspaceBeforeHistoryFailure,
