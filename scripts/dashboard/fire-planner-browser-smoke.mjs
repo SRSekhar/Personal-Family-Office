@@ -156,7 +156,7 @@ try {
 
     await page.setViewportSize({ width: 320, height: 900 });
     const historyChart = page.locator('#historical-net-worth-chart');
-    assert.equal(await historyChart.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1,
+    assert.equal(await historyChart.evaluate((element) => element.ownerDocument.defaultView.getComputedStyle(element).gridTemplateColumns.split(' ').length), 1,
         'historical trend should collapse to a single column at a 320 CSS-pixel viewport');
     assert.ok(await historyChart.evaluate((element) => element.scrollWidth <= element.clientWidth),
         'historical trend should not introduce internal horizontal overflow at a 320 CSS-pixel viewport');
@@ -165,7 +165,7 @@ try {
     await page.locator('[data-history-details="2025-12-31"]').click();
     const mobileDetail = page.locator('#historical-snapshot-detail');
     assert.ok(await mobileDetail.isVisible(), 'snapshot details should remain available at a narrow viewport');
-    assert.equal(await mobileDetail.evaluate((element) => getComputedStyle(element.querySelector('.historical-detail-totals')).gridTemplateColumns.split(' ').length), 1,
+    assert.equal(await mobileDetail.evaluate((element) => element.ownerDocument.defaultView.getComputedStyle(element.querySelector('.historical-detail-totals')).gridTemplateColumns.split(' ').length), 1,
         'snapshot detail totals should stack in one column at a 320 CSS-pixel viewport');
     assert.ok(await mobileDetail.evaluate((element) => element.scrollWidth <= element.clientWidth),
         'snapshot detail should contain its content at a 320 CSS-pixel viewport');
