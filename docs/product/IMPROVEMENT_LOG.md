@@ -714,3 +714,10 @@ Do not record personal financial values or claim customer demand without evidenc
 ### Product decision
 - Keep historical data local-first by default. Do not silently introduce cloud storage, Google Sheets synchronization, external financial data, or automatic snapshot capture.
 - Detailed scope and acceptance criteria are maintained in `docs/product/HISTORICAL_FINANCIAL_DATA.md`.
+
+
+## 2026-10-24 — Historical snapshots in full workspace backup v4
+- Private full-workspace exports now use schema v4 and include validated historical snapshots alongside records, goals, cash-flow transactions, and budgets.
+- Schema v4 imports validate every historical date, currency, record ID, and value before persistence; restore uses the existing transaction/rollback approach and rolls history back with the other workspace collections.
+- Legacy v1–v3 backups omit historical snapshots by design. Import preview states that existing history will be preserved, and restore leaves the history storage key untouched.
+- Browser smoke coverage verifies capture, CSV export, schema v4 round-trip, and preservation when restoring schema v1 and v3 backups. All fixtures are fictional.

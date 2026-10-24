@@ -759,6 +759,18 @@ try {
 
     // Cash-flow tests do not depend on the asset/liability workspace; switch back explicitly for its backup assertions.
     await page.locator('#switch-private-button').click();
+    await page.locator('#historical-snapshot-date').fill('2023-12-31');
+    await page.locator('#capture-historical-snapshot-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('Dec 2023')
+        || globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('31 Dec 2023'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'capturing a dated snapshot should persist it locally');
+    const [historyCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-historical-snapshots-csv').click()
+    ]);
+    assert.equal(historyCsvDownload.suggestedFilename(), 'pfo-os-historical-snapshots.csv');
+    process.stdout.write('PASS: explicit historical snapshot capture persists locally and exports to CSV.\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -767,15 +779,38 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 3, 'private JSON backup should use the full-workspace schema version');
+    assert.equal(backup.schemaVersion, 4, 'private JSON backup should use schema version 4 with historical snapshots');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
     assert.equal(backup.cashFlowEntries.length, 2, 'private JSON backup should include all cash-flow transactions');
     assert.ok(backup.cashFlowEntries.some((entry) => entry.description === 'Browser test salary'), 'cash-flow backup should preserve transaction details');
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
+    assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
+    assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
+
+    const legacyV3Backup = {
+        schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
+        records: [{ name: 'Legacy full backup asset', category: 'Investments', type: 'asset', value: 321000 }],
+        goals: [], cashFlowEntries: [], budgets: []
+    };
+    const legacyV3Confirmation = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.accept();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-file').setInputFiles({
+        name: 'legacy-v3-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacyV3Backup))
+    });
+    assert.match(await legacyV3Confirmation, /existing history is preserved/i);
+    await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Legacy full backup asset'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'restoring a schema v3 backup should preserve historical snapshots');
+    process.stdout.write('PASS: schema v3 full-workspace restore preserves history omitted by the legacy format.\n');
 
     const validBackup = {
         schemaVersion: 1,
@@ -943,10 +978,11 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 3, 'private backup should use the full-workspace schema and include saved goals');
+    assert.equal(goalBackup.schemaVersion, 4, 'private backup should use schema v4 and include saved goals and history');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
+    assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
     process.stdout.write('PASS: private backup includes saved goals and their current progress.\n');
 
     await page.reload({ waitUntil: 'networkidle' });
@@ -1011,7 +1047,7 @@ try {
         mimeType: 'application/json',
         buffer: await readFile(goalBackupPath)
     });
-    assert.match(await restoreGoalConfirmation, /Importing replaces records, goals, cash-flow transactions, and budgets in this browser/i);
+    assert.match(await restoreGoalConfirmation, /Importing replaces records, goals, cash-flow transactions, budgets, and historical snapshots in this browser/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
     );

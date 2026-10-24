@@ -23,8 +23,10 @@ describe('validateBackupPayload', () => {
             goals: [],
             cashFlowEntries: [],
             budgets: [],
+            historicalSnapshots: [],
             includesGoals: false,
-            includesCashFlow: false
+            includesCashFlow: false,
+            includesHistoricalSnapshots: false
         });
     });
 
@@ -36,8 +38,10 @@ describe('validateBackupPayload', () => {
             goals: [validGoal],
             cashFlowEntries: [],
             budgets: [],
+            historicalSnapshots: [],
             includesGoals: true,
-            includesCashFlow: false
+            includesCashFlow: false,
+            includesHistoricalSnapshots: false
         });
     });
 
@@ -58,7 +62,7 @@ describe('validateBackupPayload', () => {
     });
 
     it('rejects unsupported schemas and malformed version 2 shape', () => {
-        expect(() => validateBackupPayload({ ...validBackup, schemaVersion: 4 }, 'INR'))
+        expect(() => validateBackupPayload({ ...validBackup, schemaVersion: 5 }, 'INR'))
             .toThrow('Unsupported backup format');
         expect(() => validateBackupPayload({ ...validBackup, schemaVersion: 2 }, 'INR'))
             .toThrow('Unsupported backup format');
@@ -122,14 +126,16 @@ describe('version 3 full workspace backup validation', () => {
         cashFlowEntries: [validCashFlowEntry], budgets: [validBudget]
     };
 
-    it('validates all four persisted data collections', () => {
+    it('validates all persisted data collections in schema version 3 and preserves compatibility', () => {
         expect(validateBackupPayload(version3, 'INR')).toEqual({
             records: validRecords,
             goals: [validGoal],
             cashFlowEntries: [validCashFlowEntry],
             budgets: [validBudget],
+            historicalSnapshots: [],
             includesGoals: true,
-            includesCashFlow: true
+            includesCashFlow: true,
+            includesHistoricalSnapshots: false
         });
     });
 
@@ -172,7 +178,9 @@ describe('validated backup import preview', () => {
             cashFlowIncome: 0,
             cashFlowExpenses: 25,
             cashFlowNet: -25,
-            budgetCount: 1
+            budgetCount: 1,
+            includesHistoricalSnapshots: false,
+            historicalSnapshotCount: null
         });
     });
 
@@ -190,7 +198,9 @@ describe('validated backup import preview', () => {
             cashFlowIncome: null,
             cashFlowExpenses: null,
             cashFlowNet: null,
-            budgetCount: null
+            budgetCount: null,
+            includesHistoricalSnapshots: false,
+            historicalSnapshotCount: null
         });
     });
 
@@ -198,3 +208,49 @@ describe('validated backup import preview', () => {
         expect(() => summarizeValidatedBackup({ records: [] })).toThrow('validated backup payload');
     });
 });
+
+const validHistoricalSnapshot = {
+    date: '2024-12-31',
+    currency: 'INR',
+    records: [
+        { id: 'snapshot-cash-1', name: 'Savings', category: 'Cash & deposits', type: 'asset', value: 1250 },
+        { id: 'snapshot-loan-1', name: 'Home loan', category: 'Home loan', type: 'liability', value: 500 }
+    ]
+};
+
+describe('version 4 historical full workspace backup validation', () => {
+    const version4 = {
+        schemaVersion: 4, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot]
+    };
+
+    it('validates and normalizes historical snapshots as part of a full workspace backup', () => {
+        const validated = validateBackupPayload(version4, 'INR');
+        expect(validated.includesHistoricalSnapshots).toBe(true);
+        expect(validated.historicalSnapshots).toHaveLength(1);
+        expect(validated.historicalSnapshots[0]).toMatchObject({
+            date: '2024-12-31', currency: 'INR',
+            totals: { assets: 1250, liabilities: 500, netWorth: 750 }
+        });
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesHistoricalSnapshots: true, historicalSnapshotCount: 1
+        });
+    });
+
+    it('rejects malformed history before import', () => {
+        expect(() => validateBackupPayload({
+            ...version4, historicalSnapshots: [{ ...validHistoricalSnapshot, date: '2024-02-30' }]
+        }, 'INR')).toThrow('Historical snapshots contain an invalid date');
+        expect(() => validateBackupPayload({ ...version4, historicalSnapshots: undefined }, 'INR'))
+            .toThrow('Unsupported backup format');
+    });
+
+    it('requires the history collection for schema v4 while old schemas omit it', () => {
+        const legacy = validateBackupPayload({
+            schemaVersion: 3, currency: 'INR', records: validRecords, goals: [], cashFlowEntries: [], budgets: []
+        }, 'INR');
+        expect(legacy.includesHistoricalSnapshots).toBe(false);
+        expect(legacy.historicalSnapshots).toEqual([]);
+    });
+});
+
