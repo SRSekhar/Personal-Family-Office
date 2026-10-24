@@ -272,3 +272,5 @@
 .historical-detail-totals strong{font-size:15px;color:#172b24;overflow-wrap:anywhere}
 .historical-snapshot-detail td{overflow-wrap:anywhere}
 @media(max-width:700px){.historical-snapshot-detail-heading{align-items:flex-start;flex-direction:column}.historical-detail-totals{grid-template-columns:1fr}}
+
+.historical-snapshot-remove{margin-left:6px}
