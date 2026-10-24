@@ -3,7 +3,7 @@ import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
 import { renderFinancialReportHtml } from './financial-report.js';
 import { calculateFinancialTotals } from './financial-totals.js';
-import { captureHistoricalSnapshot, summarizeHistoricalSnapshots, validateHistoricalSnapshots } from './historical-snapshots.js';
+import { captureHistoricalSnapshot, removeHistoricalSnapshot, summarizeHistoricalSnapshots, validateHistoricalSnapshots } from './historical-snapshots.js';
 import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
@@ -719,6 +719,16 @@ function renderHistoricalSnapshots() {
             snapshots.find((snapshot) => snapshot.date === point.date), detailsButton
         ));
         detailsCell.append(detailsButton);
+        if (workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname)) {
+            const removeButton = document.createElement('button');
+            removeButton.className = 'button button-secondary button-small historical-snapshot-remove';
+            removeButton.type = 'button';
+            removeButton.textContent = 'Remove';
+            removeButton.setAttribute('aria-label', 'Remove snapshot for ' + fmtDate(point.date));
+            removeButton.dataset.historyRemove = point.date;
+            removeButton.addEventListener('click', () => removeHistoricalSnapshotFromHistory(point.date));
+            detailsCell.append(removeButton);
+        }
         row.append(detailsCell);
         body.append(row);
     }
@@ -810,6 +820,43 @@ function closeHistoricalSnapshotDetails() {
     $('#historical-snapshot-detail').hidden = true;
     if (lastHistoricalDetailsTrigger?.isConnected) lastHistoricalDetailsTrigger.focus();
     lastHistoricalDetailsTrigger = null;
+}
+
+function removeHistoricalSnapshotFromHistory(date) {
+    if (workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (!historicalStorageHealthy) {
+        showToast('Snapshot removal is paused because saved history could not be validated. Existing data was left untouched.');
+        return;
+    }
+    const dateLabel = new Intl.DateTimeFormat('en-IN', { dateStyle: 'long', timeZone: 'UTC' })
+        .format(new Date(date + 'T00:00:00Z'));
+    const confirmed = window.confirm(
+        'Remove the historical snapshot for ' + dateLabel + ' from this browser? This does not change current financial records. ' +
+        'The removal cannot be undone here; export a full workspace backup first if you may need this snapshot later.'
+    );
+    if (!confirmed) {
+        showToast('Historical snapshot removal cancelled.');
+        return;
+    }
+    try {
+        const existing = readHistoricalSnapshots();
+        if (existing === null) throw new Error('Saved history could not be validated; nothing was changed.');
+        const next = removeHistoricalSnapshot({ snapshots: existing, date, currency: CURRENCY });
+        if (!persistJson(localStorage, HISTORICAL_STORAGE_KEY, next)) {
+            throw new Error('Could not save the removal. Your previous saved history was left unchanged.');
+        }
+        historicalStorageHealthy = true;
+        $('#historical-snapshot-detail').hidden = true;
+        lastHistoricalDetailsTrigger = null;
+        renderHistoricalSnapshots();
+        $('#historical-snapshots-heading').focus();
+        showToast('Historical snapshot removed for ' + date + '. Current financial records were not changed.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not remove the historical snapshot.');
+    }
 }
 
 function captureCurrentHistoricalSnapshot(event) {
