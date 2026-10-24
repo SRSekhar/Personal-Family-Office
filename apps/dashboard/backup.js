@@ -31,7 +31,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
 
     const goals = [];
     const seenGoalIds = new Set();
-    if ([2, 3].includes(payload.schemaVersion)) {
+    if ([2, 3, 4].includes(payload.schemaVersion)) {
         for (const goal of payload.goals) {
             if (!isValidSavedGoal(goal) || seenGoalIds.has(goal.id)) {
                 throw new Error('The backup contains an invalid financial goal.');
