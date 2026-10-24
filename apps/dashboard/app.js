@@ -3,6 +3,7 @@ import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
 import { renderFinancialReportHtml } from './financial-report.js';
 import { calculateFinancialTotals } from './financial-totals.js';
+import { captureHistoricalSnapshot, summarizeHistoricalSnapshots, validateHistoricalSnapshots } from './historical-snapshots.js';
 import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
@@ -28,6 +29,7 @@ import { calculateFinancialHealth } from './financial-health.js';
 import { buildMonthlyFinancialReview, renderMonthlyFinancialReviewHtml } from './monthly-financial-review.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
+const HISTORICAL_STORAGE_KEY = 'pfo-os.historical-snapshots.v1';
 const CURRENCY = 'INR';
 const COLORS = ['#176b4d', '#4d8b70', '#9dbb9f', '#c4a15d', '#7898b6', '#a18cb5', '#d18b70', '#7c8a82'];
 const ASSET_CATEGORIES = ['Cash & deposits', 'Investments', 'Property', 'Retirement', 'Insurance', 'Other assets'];
@@ -40,9 +42,39 @@ const demoRecords = [
     { id: 'demo-5', name: 'Other investments', category: 'Investments', type: 'asset', value: 385000 },
     { id: 'demo-6', name: 'Home loan', category: 'Home loan', type: 'liability', value: 1450000 }
 ];
+const demoHistoricalSnapshots = [
+    {
+        date: '2022-12-31', currency: CURRENCY,
+        records: [
+            { id: 'demo-history-cash-2022', name: 'Savings account', category: 'Cash & deposits', type: 'asset', value: 240000 },
+            { id: 'demo-history-investments-2022', name: 'Investment portfolio', category: 'Investments', type: 'asset', value: 780000 },
+            { id: 'demo-history-home-2022', name: 'Residential property', category: 'Property', type: 'asset', value: 3500000 },
+            { id: 'demo-history-loan-2022', name: 'Home loan', category: 'Home loan', type: 'liability', value: 2100000 }
+        ]
+    },
+    {
+        date: '2024-12-31', currency: CURRENCY,
+        records: [
+            { id: 'demo-history-cash-2024', name: 'Savings account', category: 'Cash & deposits', type: 'asset', value: 320000 },
+            { id: 'demo-history-investments-2024', name: 'Investment portfolio', category: 'Investments', type: 'asset', value: 1250000 },
+            { id: 'demo-history-home-2024', name: 'Residential property', category: 'Property', type: 'asset', value: 3900000 },
+            { id: 'demo-history-loan-2024', name: 'Home loan', category: 'Home loan', type: 'liability', value: 1750000 }
+        ]
+    },
+    {
+        date: '2025-12-31', currency: CURRENCY,
+        records: [
+            { id: 'demo-history-cash-2025', name: 'Savings account', category: 'Cash & deposits', type: 'asset', value: 375000 },
+            { id: 'demo-history-investments-2025', name: 'Investment portfolio', category: 'Investments', type: 'asset', value: 1580000 },
+            { id: 'demo-history-home-2025', name: 'Residential property', category: 'Property', type: 'asset', value: 4100000 },
+            { id: 'demo-history-loan-2025', name: 'Home loan', category: 'Home loan', type: 'liability', value: 1580000 }
+        ]
+    }
+];
 let records = [];
 let workspace = 'demo';
 let privateStorageHealthy = true;
+let historicalStorageHealthy = true;
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -591,8 +623,145 @@ function switchWorkspace(nextWorkspace) {
     loadSavedGoals();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
+    $('#switch-demo-button').hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
     render();
+}
+
+
+function readHistoricalSnapshots() {
+    try {
+        const serialized = localStorage.getItem(HISTORICAL_STORAGE_KEY);
+        const parsed = serialized === null ? [] : JSON.parse(serialized);
+        const snapshots = validateHistoricalSnapshots(parsed, CURRENCY);
+        historicalStorageHealthy = true;
+        return snapshots;
+    } catch {
+        historicalStorageHealthy = false;
+        return null;
+    }
+}
+
+function renderHistoricalSnapshots() {
+    const body = $('#historical-snapshot-rows');
+    const empty = $('#historical-snapshots-empty');
+    const error = $('#historical-snapshots-error');
+    const source = $('#historical-snapshots-source');
+    const captureForm = $('#historical-snapshot-form');
+    const canCapture = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname)
+        && privateStorageHealthy && historicalStorageHealthy;
+    $('#historical-snapshot-date').disabled = !canCapture;
+    $('#capture-historical-snapshot-button').disabled = !canCapture;
+    $('#export-historical-snapshots-csv').disabled = false;
+    $('#historical-demo-note').hidden = workspace !== 'demo';
+    source.textContent = workspace === 'demo' ? 'Fictional development fixture · not saved' : 'Saved locally in this browser';
+    body.replaceChildren();
+    error.hidden = true;
+    let snapshots;
+    if (workspace === 'demo') {
+        snapshots = validateHistoricalSnapshots(demoHistoricalSnapshots, CURRENCY);
+    } else if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        snapshots = [];
+        error.textContent = 'Private history is disabled outside the loopback-only dashboard.';
+        error.hidden = false;
+    } else {
+        snapshots = readHistoricalSnapshots();
+        if (snapshots === null) {
+            error.textContent = 'Saved history could not be validated. Existing data was left untouched; capture and export are paused until you restore a valid backup.';
+            error.hidden = false;
+            snapshots = [];
+        }
+    }
+    const summary = summarizeHistoricalSnapshots(snapshots, CURRENCY);
+    empty.hidden = summary.length > 0;
+    empty.textContent = workspace === 'demo'
+        ? 'The development fixture has no dated snapshots.'
+        : 'No historical snapshots yet. Choose a valuation date and capture your current balance sheet.';
+    const fmtDate = (value) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' })
+        .format(new Date(value + 'T00:00:00Z'));
+    for (const point of [...summary].reverse()) {
+        const row = document.createElement('tr');
+        const values = [
+            fmtDate(point.date), String(point.recordCount), money(point.assets), money(point.liabilities),
+            money(point.netWorth),
+            point.netWorthChange === null ? '—' : (point.netWorthChange >= 0 ? '+' : '−') + money(Math.abs(point.netWorthChange)),
+            point.netWorthChangePercent === null ? '—' : number(point.netWorthChangePercent) + '%'
+        ];
+        for (const [index, value] of values.entries()) {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            if (index >= 2) cell.className = 'align-right';
+            row.append(cell);
+        }
+        body.append(row);
+    }
+    captureForm.hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
+}
+
+function captureCurrentHistoricalSnapshot(event) {
+    event.preventDefault();
+    if (workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (!privateStorageHealthy || !historicalStorageHealthy) {
+        showToast('Snapshot capture is paused because current records or saved history could not be validated.');
+        return;
+    }
+    try {
+        const existing = readHistoricalSnapshots();
+        if (existing === null) throw new Error('Saved history could not be validated; nothing was changed.');
+        const date = $('#historical-snapshot-date').value;
+        const next = captureHistoricalSnapshot({ records, date, currency: CURRENCY, existingSnapshots: existing });
+        if (!persistJson(localStorage, HISTORICAL_STORAGE_KEY, next)) {
+            historicalStorageHealthy = false;
+            throw new Error('Could not save the snapshot locally. Existing history was not intentionally replaced; check browser storage availability.');
+        }
+        historicalStorageHealthy = true;
+        renderHistoricalSnapshots();
+        showToast('Historical snapshot saved for ' + date + '.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not capture the historical snapshot.');
+    }
+}
+
+function exportHistoricalSnapshotsCsv() {
+    let snapshots;
+    if (workspace === 'demo') {
+        snapshots = validateHistoricalSnapshots(demoHistoricalSnapshots, CURRENCY);
+    } else {
+        if (!isPrivateWorkspaceAllowed(window.location.hostname) || !historicalStorageHealthy) {
+            showToast('History export is paused until saved history can be validated in the local workspace.');
+            return;
+        }
+        snapshots = readHistoricalSnapshots();
+        if (snapshots === null) {
+            showToast('Saved history could not be validated. Nothing was exported.');
+            return;
+        }
+    }
+    const points = summarizeHistoricalSnapshots(snapshots, CURRENCY);
+    const rows = [
+        ['valuation_date', 'currency', 'record_count', 'assets', 'liabilities', 'net_worth', 'net_worth_change', 'net_worth_change_percent'],
+        ...points.map((point) => [
+            point.date, point.currency, point.recordCount, point.assets, point.liabilities, point.netWorth,
+            point.netWorthChange ?? '', point.netWorthChangePercent ?? ''
+        ])
+    ];
+    const csv = rows.map((row) => row.map((value) => {
+        const text = String(value ?? '');
+        return '"' + text.replaceAll('"', '""') + '"';
+    }).join(',')).join('\r\n') + '\r\n';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = workspace === 'demo' ? 'pfo-os-sample-historical-snapshots.csv' : 'pfo-os-historical-snapshots.csv';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast(workspace === 'demo' ? 'Exported fictional development history.' : 'Exported saved historical snapshots.');
 }
 
 function totals() {
@@ -684,6 +853,7 @@ function render() {
     $('#net-worth-caption').textContent = result.netWorth < 0 ? 'Liabilities exceed assets' : 'Assets minus liabilities';
     renderFinancialRatios(result);
     renderFinancialHealth();
+    renderHistoricalSnapshots();
     renderAllocation(result.assets);
     renderRecords();
 }
@@ -1459,6 +1629,9 @@ $('#view-all-button').addEventListener('click', () => {
     renderRecords();
 });
 $('#export-button').addEventListener('click', exportData);
+$('#switch-demo-button').addEventListener('click', () => switchWorkspace('demo'));
+$('#historical-snapshot-form').addEventListener('submit', captureCurrentHistoricalSnapshot);
+$('#export-historical-snapshots-csv').addEventListener('click', exportHistoricalSnapshotsCsv);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview);
 $('#print-report-button').addEventListener('click', printFinancialReport);
@@ -1529,6 +1702,7 @@ if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
     $('#goal-tracker-form').querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
 }
 const reviewNow = new Date();
+$('#historical-snapshot-date').value = reviewNow.getFullYear() + '-' + String(reviewNow.getMonth() + 1).padStart(2, '0') + '-' + String(reviewNow.getDate()).padStart(2, '0');
 $('#monthly-review-month').value = reviewNow.getFullYear() + '-' + String(reviewNow.getMonth() + 1).padStart(2, '0');
 initializeCashFlowTracker();
 initializeTaxEstimator();
