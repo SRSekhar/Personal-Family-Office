@@ -1417,6 +1417,24 @@ try {
     assert.ok(cagrCsv.includes('Ending value,1331'), 'CAGR CSV should include ending value');
     assert.ok(cagrCsv.includes('Elapsed years,3'), 'CAGR CSV should include elapsed years');
     assert.ok(cagrCsv.includes('Compound annual growth rate (%),10'), 'CAGR CSV should include annualized rate');
+
+    // Keyboard submission must respect native required-field validation and never leave stale results visible.
+    await page.locator('#cagr-beginning-value').fill('');
+    assert.equal(await page.locator('#cagr-results').isHidden(), true,
+        'editing the required beginning value should clear stale CAGR results');
+    const calculateCagrButton = page.getByRole('button', { name: 'Calculate CAGR' });
+    await calculateCagrButton.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(
+        await page.locator('#cagr-beginning-value').evaluate((input) => input === globalThis.document.activeElement),
+        true,
+        'keyboard submission should focus the invalid required beginning value'
+    );
+    assert.equal(await page.locator('#cagr-results').isHidden(), true,
+        'invalid keyboard submission must not restore stale CAGR results');
+    await page.locator('#cagr-beginning-value').fill('1000');
+    process.stdout.write('PASS: invalid keyboard-submitted CAGR assumptions clear stale results and focus the required beginning value.\n');
+
     await page.locator('#cagr-ending-value').fill('1400');
     assert.equal(await page.locator('#cagr-results').isHidden(), true,
         'editing CAGR inputs should invalidate the previous result');
