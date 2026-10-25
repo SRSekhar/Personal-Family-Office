@@ -39,12 +39,12 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #323 — duplicate-date capture rejection without replacing or duplicating history.
 - PR #324–#325 — malformed-history fail-closed behavior and recovery through full-workspace backup import.
 - PR #326 — keyboard activation of FIRE readiness and Goal Tracker calculations.
-- Current follow-up verifies keyboard submission of invalid FIRE contribution assumptions clears stale results and moves focus to the invalid required field.
+- PR #331 — Chromium keyboard submission of invalid FIRE contribution assumptions clears stale results and moves focus to the invalid required field.
 
 ## In Progress
 
 - Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.
-- Chromium smoke now covers FIRE calculations/reset, Goal Tracker progress and validation, report downloads, keyboard activation, and over-target progress semantics. The current follow-up adds keyboard submission coverage for invalid FIRE contribution assumptions, stale-result clearing, and focus on the invalid required field. Manual screen-reader review and real browser-chrome 400% zoom verification remain open.
+- Chromium smoke now covers FIRE calculations/reset, Goal Tracker progress and validation, report downloads, keyboard activation, and over-target progress semantics. PR #331 added keyboard submission coverage for invalid FIRE contribution assumptions, stale-result clearing, and focus on the invalid required field. The next follow-up covers equivalent invalid Goal Tracker submission. Manual screen-reader review and real browser-chrome 400% zoom verification remain open.
 - Historical trend and detail panels now have Chromium regression checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and preserved focus; this is a narrow-viewport test, not a full browser-zoom or manual screen-reader audit.
 - Verify responsive layout and usability at 400% zoom.
 - Browser smoke opens the financial summary, single-scenario FIRE report, three-scenario comparison report, and monthly financial review from local file URLs with HTTP/HTTPS requests blocked. PRs #320–#321 verify escaped user-controlled goal and category text; fictional data only.
@@ -69,3 +69,9 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Preserve a multi-year history in local storage and full-workspace backups; validate migration and rollback behavior before release.
 - Do not add automatic FIRE persistence, external financial data, telemetry, AI calls, investment recommendations, or Monte Carlo analysis without a separately reviewed decision.
 - Autonomous engineering workflow improvements are intentionally deprioritized until core product functionality and customer validation are substantially further along.
+
+
+## 2026-10-25 — Follow-up in progress
+- Add a Chromium regression for keyboard-submitting an invalid Goal Tracker target after valid results exist.
+- Verify normal edits clear stale results and native required-field validation moves focus to the missing target; fictional values only.
+- Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
