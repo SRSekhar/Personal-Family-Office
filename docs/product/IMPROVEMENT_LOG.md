@@ -685,7 +685,7 @@ Do not record personal financial values or claim customer demand without evidenc
 - The export includes category, income, expenses, net cash flow, and transaction count; it reuses the ledger's existing deterministic category aggregation and CSV quoting/formula-neutralization rules.
 - Added unit coverage for selected-period totals, empty output, and formula-like category names, plus a Chromium download regression comparing exported values with the visible category summary.
 - Privacy and scope: export is generated in-browser from the local ledger; no network calls, persistence changes, forecasts, or financial advice.
-- Validation: PR #320 merged after CI (including Chromium browser smoke) and Secret Scan passed.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
 
 
 ### Local return-series risk analysis — implementation
@@ -783,7 +783,7 @@ Do not record personal financial values or claim customer demand without evidenc
 - Extended the real-Chromium monthly review export path with a fictional goal name containing an HTML image element and event-handler payload.
 - The exported report must encode the supplied text and must not emit an image element from user-controlled goal content; the existing offline opening checks continue to verify no scripts or network requests.
 - This is regression coverage only; no product behavior or saved-data format changes.
-- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+- Validation: PR #320 merged after CI (including Chromium browser smoke) and Secret Scan passed.
 
 
 ## 2026-10-25 — Monthly review category HTML safety regression
