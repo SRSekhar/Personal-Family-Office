@@ -486,7 +486,8 @@ try {
         `FIRE planner should not create page-level horizontal overflow at a 400%-zoom-equivalent viewport: ${JSON.stringify(zoomEquivalentViewport)}`);
     await page.getByLabel('Current investable portfolio (₹)').fill('10000000');
     await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
-    await page.getByRole('button', { name: 'Calculate readiness' }).click();
+    await page.getByRole('button', { name: 'Calculate readiness' }).focus();
+    await page.keyboard.press('Enter');
     assert.equal(await page.locator('#fire-results').isVisible(), true,
         'FIRE readiness should remain operable at a 400%-zoom-equivalent viewport');
     assert.equal(await page.locator('#fire-projected-portfolio').isVisible(), true,
