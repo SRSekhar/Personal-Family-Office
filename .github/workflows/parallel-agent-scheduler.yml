@@ -1,0 +1,38 @@
+name: PFO Parallel Agent Scheduler
+
+on:
+  # The Claude Code action does not support push/schedule events directly.
+  # Dispatch the worker workflow so its event type is workflow_dispatch.
+  schedule:
+    - cron: "7 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/parallel-agents.yml
+      - .github/workflows/parallel-agent-scheduler.yml
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: pfo-parallel-agent-scheduler
+  cancel-in-progress: false
+
+jobs:
+  dispatch-workers:
+    name: Dispatch parallel engineering workers
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Start workflow-dispatch worker run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run parallel-agents.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Dispatched PFO Parallel Engineering Agents on main."
