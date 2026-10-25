@@ -1650,6 +1650,12 @@ try {
     process.stdout.write('PASS: monthly category budgets persist, aggregate recorded expenses, and flag overspending.\n');
 
 
+    await page.locator('#goal-name').fill('Monthly review goal');
+    await page.locator('#goal-target').fill('500000');
+    await page.locator('#goal-current').fill('200000');
+    await page.locator('#goal-date').fill('2027-12-31');
+    await page.locator('#goal-save-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Monthly review goal'));
     await page.locator('#monthly-review-month').fill('2026-10');
     const [monthlyReviewDownload] = await Promise.all([
         page.waitForEvent('download'),
@@ -1664,7 +1670,7 @@ try {
     assert.ok(monthlyReviewHtml.includes('October 2026'), 'monthly review should disclose the selected month');
     assert.ok(monthlyReviewHtml.includes('Groceries'), 'monthly review should include the recorded budget category');
     assert.ok(monthlyReviewHtml.includes('Over budget'), 'monthly review should report the explicit budget overrun');
-    assert.ok(monthlyReviewHtml.includes('Browser test emergency fund'), 'monthly review should include the saved goal');
+    assert.ok(monthlyReviewHtml.includes('Monthly review goal'), 'monthly review should include the saved goal');
     await assertOfflineReport(monthlyReviewDownload, 'pfo-os-monthly-financial-review-2026-10.html', 'Monthly financial review');
     await assertOpensWithoutNetwork(browser, monthlyReviewPath, 'Monthly financial review');
     process.stdout.write('PASS: monthly financial review opens offline and reconciles saved cash flow, budget, and goal data.\\n');
