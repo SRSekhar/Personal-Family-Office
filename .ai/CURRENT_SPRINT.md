@@ -33,6 +33,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #310 — accessible net-worth trend visualization with one point per actual snapshot date.
 - PR #311 — per-snapshot record and category breakdown details with safe text rendering and focus restoration.
 - PR #312 — Chromium verification that historical snapshots survive page reloads.
+- Current follow-up adds Chromium coverage that a duplicate snapshot date is rejected without replacing or duplicating saved history.
 - Historical snapshot detail keyboard focus — opening details moves focus to the labelled heading; closing returns focus to the exact trigger, verified in Chromium smoke.
 - Confirmed historical snapshot correction — private history rows expose removal with explicit confirmation and a backup warning; persistence is atomic, current records stay untouched, and the date can then be recaptured.
 
