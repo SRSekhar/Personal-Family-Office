@@ -1673,7 +1673,7 @@ try {
     await page.locator('#goal-current').fill('200000');
     await page.locator('#goal-date').fill('2027-12-31');
     await page.locator('#goal-save-button').click();
-    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Monthly review goal'));
+    await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Monthly review <img src=x onerror=alert(1)> goal'));
     await page.locator('#monthly-review-month').fill('2026-10');
     const [monthlyReviewDownload] = await Promise.all([
         page.waitForEvent('download'),
