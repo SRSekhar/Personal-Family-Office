@@ -83,20 +83,20 @@ export function investmentPerformanceToHtml({ cashFlows, result }) {
         + (flow.amount < 0 ? 'Contribution' : 'Receipt / terminal value') + '</td></tr>').join('');
     const start = dateLabel(new Date(result.startDate));
     const end = dateLabel(new Date(result.endDate));
-    return \`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PFO OS — Investment Performance Report</title><style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#24382c;background:#f5f7f4}body{max-width:960px;margin:0 auto;padding:28px 18px 50px;line-height:1.55}header,section,footer{background:#fff;border:1px solid #e2e9e2;border-radius:12px;padding:20px;margin:0 0 16px}h1{margin:0;font-size:clamp(24px,4vw,36px)}h2{font-size:19px;margin:0 0 12px}p,.muted{color:#69796e;font-size:13px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.metric{background:#f8faf8;border:1px solid #e8eee8;border-radius:9px;padding:13px;min-width:0}.metric strong{display:block;font-size:clamp(17px,2.5vw,24px);overflow-wrap:anywhere}.metric span{display:block;color:#6a796f;font-size:11px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #e8eee8}th{background:#f7f9f7;color:#526257}td:nth-child(2),th:nth-child(2){text-align:right;font-variant-numeric:tabular-nums}.privacy{border-left:4px solid #c4a15d;background:#fffbf1;padding:12px;font-size:12px}@media(max-width:600px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}body{padding:12px}header,section,footer{padding:14px}.table-wrap{overflow-x:auto}table{min-width:400px}}@media print{body{background:#fff;padding:0;max-width:none}header,section{break-inside:avoid}}
-</style></head><body><header><p class="muted">PFO OS · PRIVATE LOCAL REPORT</p><h1>Investment performance</h1><p>Measurement period: \${start} – \${end}. Currency: INR. \${result.cashFlowCount} dated cash flows.</p><p>Calculated from the exact signed cash flows entered by the user. No market value is fetched or inferred.</p></header>
+</style></head><body><header><p class="muted">PFO OS · PRIVATE LOCAL REPORT</p><h1>Investment performance</h1><p>Measurement period: ${start} – ${end}. Currency: INR. ${result.cashFlowCount} dated cash flows.</p><p>Calculated from the exact signed cash flows entered by the user. No market value is fetched or inferred.</p></header>
 <section><h2>Performance summary</h2><div class="grid">
-<article class="metric"><span>Gross contributions</span><strong>\${money(result.grossContributions)}</strong></article>
-<article class="metric"><span>Gross proceeds</span><strong>\${money(result.grossProceeds)}</strong></article>
-<article class="metric"><span>Net gain / loss</span><strong>\${money(result.netGain)}</strong></article>
-<article class="metric"><span>Simple net return on contributions</span><strong>\${percent(result.netReturnOnContributionsPercentage)}</strong></article>
-<article class="metric"><span>Annualized money-weighted return (XIRR)</span><strong>\${percent(result.annualizedMoneyWeightedReturn * 100)}</strong></article>
-<article class="metric"><span>Cash flows</span><strong>\${result.cashFlowCount}</strong></article>
+<article class="metric"><span>Gross contributions</span><strong>${money(result.grossContributions)}</strong></article>
+<article class="metric"><span>Gross proceeds</span><strong>${money(result.grossProceeds)}</strong></article>
+<article class="metric"><span>Net gain / loss</span><strong>${money(result.netGain)}</strong></article>
+<article class="metric"><span>Simple net return on contributions</span><strong>${percent(result.netReturnOnContributionsPercentage)}</strong></article>
+<article class="metric"><span>Annualized money-weighted return (XIRR)</span><strong>${percent(result.annualizedMoneyWeightedReturn * 100)}</strong></article>
+<article class="metric"><span>Cash flows</span><strong>${result.cashFlowCount}</strong></article>
 </div></section>
-<section><h2>Cash flows used</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Signed amount (INR)</th><th>Interpretation</th></tr></thead><tbody>\${rows}</tbody></table></div><p>Negative amounts represent contributions; positive amounts represent receipts. Include an explicit positive terminal valuation on the measurement date if the investment is still held.</p></section>
-<footer class="privacy"><strong>Limitations and privacy</strong><p>XIRR is an annualized money-weighted return based on the supplied dated cash flows. Simple net return is net gain divided by gross contributions. Neither metric is a guarantee, forecast, or investment recommendation. This self-contained report may contain sensitive financial information. Keep it private; it is generated locally and uses no scripts, remote assets, or network requests.</p></footer></body></html>\`;
+<section><h2>Cash flows used</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Signed amount (INR)</th><th>Interpretation</th></tr></thead><tbody>${rows}</tbody></table></div><p>Negative amounts represent contributions; positive amounts represent receipts. Include an explicit positive terminal valuation on the measurement date if the investment is still held.</p></section>
+<footer class="privacy"><strong>Limitations and privacy</strong><p>XIRR is an annualized money-weighted return based on the supplied dated cash flows. Simple net return is net gain divided by gross contributions. Neither metric is a guarantee, forecast, or investment recommendation. This self-contained report may contain sensitive financial information. Keep it private; it is generated locally and uses no scripts, remote assets, or network requests.</p></footer></body></html>`;
 }
 
 /**
