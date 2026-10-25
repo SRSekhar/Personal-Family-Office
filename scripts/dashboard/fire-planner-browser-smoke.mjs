@@ -855,10 +855,13 @@ try {
         cancelledRemovalMessage = dialog.message();
         await dialog.dismiss();
     });
-    await page.locator('[data-history-remove="2023-12-31"]').click();
+    await page.locator('[data-history-remove="2023-12-31"]').focus();
+    await page.keyboard.press('Enter');
     assert.match(cancelledRemovalMessage, /export a full workspace backup first/i);
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'cancelling snapshot removal must preserve saved history');
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.getAttribute('data-history-remove')), '2023-12-31',
+        'cancelling keyboard-initiated removal should return focus to its trigger');
     let removalFailureMessage = '';
     await page.evaluate(() => {
         const originalSetItem = globalThis.Storage.prototype.setItem;
@@ -876,13 +879,16 @@ try {
         removalFailureMessage = dialog.message();
         await dialog.accept();
     });
-    await page.locator('[data-history-remove="2023-12-31"]').click();
+    await page.locator('[data-history-remove="2023-12-31"]').focus();
+    await page.keyboard.press('Enter');
     assert.match(removalFailureMessage, /does not change current financial records/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.innerText.includes('previous saved history was left unchanged'));
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'failed snapshot removal persistence must leave the original history intact');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
         'failed snapshot removal must not remove the visible history row');
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.getAttribute('data-history-remove')), '2023-12-31',
+        'failed keyboard-initiated removal should retain focus on its trigger');
     await page.evaluate(() => {
         globalThis.Storage.prototype.setItem = globalThis.__pfoHistoryOriginalSetItem;
         delete globalThis.__pfoHistoryOriginalSetItem;
@@ -892,11 +898,14 @@ try {
         confirmedRemovalMessage = dialog.message();
         await dialog.accept();
     });
-    await page.locator('[data-history-remove="2023-12-31"]').click();
+    await page.locator('[data-history-remove="2023-12-31"]').focus();
+    await page.keyboard.press('Enter');
     assert.match(confirmedRemovalMessage, /does not change current financial records/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.children.length === 0);
     assert.deepEqual(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')), [],
         'confirmed removal should persist an empty history collection');
+    assert.equal(await page.evaluate(() => globalThis.document.activeElement?.id), 'historical-snapshots-heading',
+        'successful keyboard-initiated removal should move focus to the history heading');
     await page.locator('#historical-snapshot-date').fill('2023-12-31');
     await page.locator('#capture-historical-snapshot-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('Dec 2023')
