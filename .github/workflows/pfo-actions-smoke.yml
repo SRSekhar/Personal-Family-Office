@@ -13,11 +13,16 @@ permissions:
 
 jobs:
   smoke:
-    name: Verify GitHub-hosted runner startup
+    name: Verify runner and lint agent workflow
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 8
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Confirm runner starts
+        run: echo "GitHub Actions runner started successfully."
+
+      - name: Lint GitHub Actions workflow definitions
         run: |
-          echo "GitHub Actions runner started successfully."
-          echo "No repository secrets or application files are accessed."
+          go run github.com/rhysd/actionlint/cmd/actionlint@latest .github/workflows/parallel-agents.yml .github/workflows/autonomous-development.yml
