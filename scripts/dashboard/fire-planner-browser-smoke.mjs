@@ -1650,6 +1650,25 @@ try {
     process.stdout.write('PASS: monthly category budgets persist, aggregate recorded expenses, and flag overspending.\n');
 
 
+    await page.locator('#monthly-review-month').fill('2026-10');
+    const [monthlyReviewDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#monthly-review-export-button').click()
+    ]);
+    assert.equal(monthlyReviewDownload.suggestedFilename(), 'pfo-os-monthly-financial-review-2026-10.html',
+        'monthly review export should include the explicitly selected reporting month');
+    const monthlyReviewPath = join(temporaryDirectory, monthlyReviewDownload.suggestedFilename());
+    await monthlyReviewDownload.saveAs(monthlyReviewPath);
+    const monthlyReviewHtml = await readFile(monthlyReviewPath, 'utf8');
+    assert.ok(monthlyReviewHtml.includes('Monthly financial review'), 'monthly review should include its report title');
+    assert.ok(monthlyReviewHtml.includes('October 2026'), 'monthly review should disclose the selected month');
+    assert.ok(monthlyReviewHtml.includes('Groceries'), 'monthly review should include the recorded budget category');
+    assert.ok(monthlyReviewHtml.includes('Over budget'), 'monthly review should report the explicit budget overrun');
+    assert.ok(monthlyReviewHtml.includes('Browser test emergency fund'), 'monthly review should include the saved goal');
+    await assertOfflineReport(monthlyReviewDownload, 'pfo-os-monthly-financial-review-2026-10.html', 'Monthly financial review');
+    await assertOpensWithoutNetwork(browser, monthlyReviewPath, 'Monthly financial review');
+    process.stdout.write('PASS: monthly financial review opens offline and reconciles saved cash flow, budget, and goal data.\\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
