@@ -817,4 +817,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Extended the malformed-history browser scenario to import a valid full-workspace backup through the normal confirmation workflow.
 - Verified the backup restores the snapshot collection and re-enables capture after malformed history was detected without overwriting it automatically.
 - Uses fictional local browser data; no runtime or schema changes.
+- Validation: PR #325 merged after CI (including Chromium browser smoke) and Secret Scan passed.
+
+
+## 2026-10-25 — Keyboard activation for FIRE and Goal Tracker calculations
+- Extended Chromium coverage to invoke FIRE readiness and Goal Tracker calculations through focused native buttons and Enter, instead of relying only on pointer clicks.
+- Existing assertions continue to verify result values and responsive operation; no application runtime changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
