@@ -1433,7 +1433,7 @@ try {
     assert.equal(await page.locator('#cagr-results').isHidden(), true,
         'invalid keyboard submission must not restore stale CAGR results');
     await page.locator('#cagr-beginning-value').fill('1000');
-    process.stdout.write('PASS: invalid keyboard-submitted CAGR assumptions clear stale results and focus the required beginning value.\\n');
+    process.stdout.write('PASS: invalid keyboard-submitted CAGR assumptions clear stale results and focus the required beginning value.\n');
 
     await page.locator('#cagr-ending-value').fill('1400');
     assert.equal(await page.locator('#cagr-results').isHidden(), true,
