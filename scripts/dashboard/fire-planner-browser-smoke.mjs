@@ -325,7 +325,7 @@ try {
         'an invalid required-contribution solve must clear stale results');
     assert.equal(await page.locator('#fire-required-result').isHidden(), true,
         'an invalid solve must clear the previous required-contribution message');
-    process.stdout.write('PASS: keyboard-submitted invalid contribution solve clears stale results and retains focus.\\n');
+    process.stdout.write('PASS: keyboard-submitted invalid contribution solve clears stale results and retains focus.\n');
 
     await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
     await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
