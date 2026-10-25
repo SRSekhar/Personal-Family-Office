@@ -317,9 +317,9 @@ try {
     await solveContributionButton.focus();
     await page.keyboard.press('Enter');
     assert.equal(
-        await solveContributionButton.evaluate((button) => button === globalThis.document.activeElement),
+        await page.locator('#fire-spending').evaluate((input) => input === globalThis.document.activeElement),
         true,
-        'keyboard submission should retain focus on the required-contribution action'
+        'keyboard submission should move focus to the invalid required spending field'
     );
     assert.equal(await page.locator('#fire-results').isHidden(), true,
         'an invalid required-contribution solve must clear stale results');
