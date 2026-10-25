@@ -1,0 +1,23 @@
+name: PFO Actions Smoke Test
+
+on:
+  push:
+    branches:
+      - diagnostic/pfo-actions-smoke
+    paths:
+      - .github/workflows/pfo-actions-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Verify GitHub-hosted runner startup
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Confirm runner starts
+        run: |
+          echo "GitHub Actions runner started successfully."
+          echo "No repository secrets or application files are accessed."
