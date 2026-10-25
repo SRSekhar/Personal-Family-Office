@@ -74,7 +74,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Investment review
 - Self-contained HTML financial summary with deterministic semantic timestamps, XSS-safe rendering, net-worth and analysis-total consistency checks, malformed-payload and currency-code guards, nested currency consistency, and allocation value/weight reconciliation
 - Validated self-contained FIRE scenario HTML reports with explicit download, assumption disclosure, no scripts/remote assets, and XSS-safe scenario names (PR #142)
-- PDF, DOCX, and Excel exports remain planned; define the application/CLI boundary before implementing file-export commands
+- Monthly financial review HTML export is verified as self-contained and offline-openable in Chromium (PR #318). PDF, DOCX, and Excel exports remain planned; define the application/CLI boundary before implementing file-export commands
 
 ---
 
@@ -89,7 +89,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Persistent multi-goal tracker with create/edit/confirmed-delete, deadline and progress status, and an approximate monthly savings pace that assumes no investment returns (PRs #169, #175)
 - Goal-aware private backup/restore with schema v2 and backward compatibility for legacy record-only schema v1 backups (PR #173)
 - Remaining: interactive browser verification, accessibility/400% zoom validation, and customer feedback
-- Charts, historical timelines, portfolio explorer, and additional KPIs remain deferred until snapshot requirements and customer needs are validated
+- Multi-year historical snapshots, trend chart, snapshot detail view, CSV export, and schema v4 backup/restore are implemented (PRs #304–#316). Portfolio explorer and additional KPIs remain deferred until customer needs are validated
 
 ---
 
