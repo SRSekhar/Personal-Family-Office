@@ -777,3 +777,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - The regression asserts the displayed percentage remains uncapped (150%), the native progress element remains capped at 100, its accessible value says “150 percent of target,” the goal is marked reached, and the remaining amount is zero rather than negative.
 - This tests an existing behavior contract; it does not change calculation or persistence logic. Fictional browser data only.
 - Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+
+
+## 2026-10-25 — Monthly review user-text HTML safety regression
+- Extended the real-Chromium monthly review export path with a fictional goal name containing an HTML image element and event-handler payload.
+- The exported report must encode the supplied text and must not emit an image element from user-controlled goal content; the existing offline opening checks continue to verify no scripts or network requests.
+- This is regression coverage only; no product behavior or saved-data format changes.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
