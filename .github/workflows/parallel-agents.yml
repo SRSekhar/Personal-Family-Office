@@ -1,15 +1,6 @@
 name: PFO Parallel Engineering Agents
 
 'on':
-  # Run a validation batch when this workflow itself changes on main.
-  # The path filter avoids running the agent team for ordinary application commits.
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/parallel-agents.yml
-  schedule:
-    - cron: "7 * * * *"
   workflow_dispatch:
 
 permissions:
