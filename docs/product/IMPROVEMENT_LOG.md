@@ -828,6 +828,6 @@ Do not record personal financial values or claim customer demand without evidenc
 
 ## 2026-10-25 — Keyboard validation for invalid FIRE contribution solve
 - Extended Chromium smoke coverage to submit invalid FIRE spending assumptions with Enter rather than a pointer click.
-- Verified the invalid submission clears prior readiness and required-contribution results and keeps keyboard focus on the action button.
+- Verified the invalid submission clears prior readiness and required-contribution results and moves keyboard focus to the invalid required spending field, as expected from native constraint validation.
 - Regression-only change using fictional browser inputs; no calculation, persistence, or network behavior changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
