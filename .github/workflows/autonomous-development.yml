@@ -1,9 +1,7 @@
 name: PFO Autonomous Development
 
 on:
-  schedule:
-    # Two bounded cycles per hour; concurrency prevents overlapping engineering runs.
-    - cron: "17,47 * * * *"
+  # Retained for manual fallback; scheduled development is handled by the parallel agent team.
   workflow_dispatch:
 
 permissions:
