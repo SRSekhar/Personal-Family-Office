@@ -1657,8 +1657,22 @@ try {
     await page.locator('#cash-flow-description').fill('Budget smoke expense');
     await page.locator('#cash-flow-amount').fill('12000');
     await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-budget-rows')?.innerText.includes('₹12,000'));
     assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\s\S]*₹10,000[\s\S]*₹12,000[\s\S]*-₹2,000[\s\S]*Over budget/,
         'budget comparison should aggregate category actuals case-insensitively and flag overspending');
+    await page.locator('#cash-flow-budget-category').fill('Review <img src=x> category');
+    await page.locator('#cash-flow-budget-amount').fill('10000');
+    await page.locator('#cash-flow-budget-save').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-budget-message')?.innerText.includes('Monthly category budget saved'));
+    await page.locator('#cash-flow-date').fill('2026-10-21');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Review <img src=x> category');
+    await page.locator('#cash-flow-description').fill('HTML escaping regression expense');
+    await page.locator('#cash-flow-amount').fill('12000');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-budget-rows')?.innerText.includes('Review <img src=x> category'));
+    assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Over budget/,
+        'HTML-looking category text should still participate in normal budget calculations');
     await page.reload({ waitUntil: 'networkidle' });
     assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\s\S]*Over budget/,
         'budget and ledger values should remain available after reload');
@@ -1690,8 +1704,10 @@ try {
     assert.ok(monthlyReviewHtml.includes('Over budget'), 'monthly review should report the explicit budget overrun');
     assert.ok(monthlyReviewHtml.includes('Monthly review &lt;img src=x onerror=alert(1)&gt; goal'),
         'monthly review should render user-entered goal names as escaped text');
+    assert.ok(monthlyReviewHtml.includes('Review &lt;img src=x&gt; category'),
+        'monthly review should render user-entered budget and transaction categories as escaped text');
     assert.doesNotMatch(monthlyReviewHtml, /<img\b/i,
-        'monthly review must not turn a user-entered goal name into an HTML element');
+        'monthly review must not turn user-entered goal or category text into an HTML element');
     await assertOfflineReport(monthlyReviewDownload, 'pfo-os-monthly-financial-review-2026-10.html', 'Monthly financial review');
     await assertOpensWithoutNetwork(browser, monthlyReviewPath, 'Monthly financial review');
     process.stdout.write('PASS: monthly financial review opens offline and reconciles saved cash flow, budget, and goal data.\\n');
