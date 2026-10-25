@@ -25,27 +25,28 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 
 ## Completed Historical Data Deliverables
 
-- PR #304 — documented multi-year historical financial data requirements, local-first privacy, explicit valuation dates, and no fabricated gaps.
-- PR #305 — validated historical snapshot domain model with duplicate-date protection, chronological summaries, and regression tests.
-- PR #307 — local development-only fictional history, private snapshot capture, history table, and CSV export.
-- PR #308 — schema v4 full-workspace backup/restore with validated snapshots and transactional rollback; legacy v1–v3 imports preserve history.
-- PR #309 — browser regressions for fake-data isolation, sample/private switching, and restore rollback on snapshot storage failure.
-- PR #310 — accessible net-worth trend visualization with one point per actual snapshot date.
-- PR #311 — per-snapshot record and category breakdown details with safe text rendering and focus restoration.
-- PR #312 — Chromium verification that historical snapshots survive page reloads.
-- PR #323 — Chromium verification that duplicate snapshot dates are rejected without replacing or duplicating saved history.
-- PR #324 verifies malformed-history detection, paused capture, and preservation of the invalid storage value. PR #325 verifies recovery through the normal full-workspace backup import workflow. Current follow-up activates FIRE readiness and Goal Tracker calculations with the keyboard.
-- Current follow-up adds Chromium coverage that a duplicate snapshot date is rejected without replacing or duplicating saved history.
-- Historical snapshot detail keyboard focus — opening details moves focus to the labelled heading; closing returns focus to the exact trigger, verified in Chromium smoke.
-- Confirmed historical snapshot correction — private history rows expose removal with explicit confirmation and a backup warning; persistence is atomic, current records stay untouched, and the date can then be recaptured.
+- PR #304 — documented multi-year historical financial data requirements and local-first privacy rules.
+- PR #305 — validated snapshot domain model, chronological summaries, and duplicate-date protection.
+- PR #307 — private snapshot capture, fictional development-only history, accessible history table, and CSV export.
+- PR #308 — schema v4 full-workspace backup/restore with validated history, legacy v1–v3 compatibility, and transactional rollback.
+- PR #309–#312 — browser checks for sample/private isolation, restore rollback, trend rendering, detail inspection, and reload persistence.
+- PR #313 — synchronized historical-data milestone status.
+- PR #314–#316 — snapshot-detail focus restoration, confirmed removal workflow, and 320 CSS-pixel responsive/focus checks.
+- PR #317–#318 — offline browser verification for financial summary, FIRE reports, comparison reports, and monthly financial review.
+- PR #319 — over-target Goal Tracker progress and accessible native progress semantics.
+- PR #320–#321 — monthly-review HTML escaping checks for user-controlled goal names and budget/transaction categories.
+- PR #322 — keyboard activation and focus restoration for snapshot removal, cancellation, and storage failures.
+- PR #323 — duplicate-date capture rejection without replacing or duplicating history.
+- PR #324–#325 — malformed-history fail-closed behavior and recovery through full-workspace backup import.
+- PR #326 — keyboard activation of FIRE readiness and Goal Tracker calculations.
 
 ## In Progress
 
 - Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.
-- Interactive browser validation of FIRE calculation actions, Goal Tracker progress/reset/validation, invalid-input messaging, report downloads, and keyboard-only use remains open. The current follow-up adds an explicit Chromium regression for progress above 100%, capped native progress semantics, accessible percentage wording, completion status, and non-negative remaining amount.
+- Chromium smoke now covers FIRE calculations/reset, Goal Tracker progress and validation, report downloads, keyboard activation, and over-target progress semantics. Manual screen-reader review and real browser-chrome 400% zoom verification remain open.
 - Historical trend and detail panels now have Chromium regression checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and preserved focus; this is a narrow-viewport test, not a full browser-zoom or manual screen-reader audit.
 - Verify responsive layout and usability at 400% zoom.
-- Browser smoke opens the financial summary, single-scenario FIRE report, three-scenario comparison report, and monthly financial review from local file URLs with HTTP/HTTPS requests blocked; fictional data only. PR #320 adds passing Chromium coverage for HTML escaping of user-controlled goal names; the current follow-up also checks user-controlled budget and transaction category text.
+- Browser smoke opens the financial summary, single-scenario FIRE report, three-scenario comparison report, and monthly financial review from local file URLs with HTTP/HTTPS requests blocked. PRs #320–#321 verify escaped user-controlled goal and category text; fictional data only.
 - Customer demand remains unvalidated; plan the documented 8–10 anonymized interviews and seek two paid-pilot commitments.
 
 ## Next Deliverables
@@ -54,7 +55,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 2. Extend offline report checks to remaining report types and verify downloads stay self-contained under browser file-opening restrictions.
 3. Capture anonymized customer-discovery evidence and update the product log.
 4. Complete a broader manual screen-reader and real-browser 400% zoom review of the historical trend and snapshot-detail panels; automated keyboard focus and 320 CSS-pixel responsive checks are covered.
-5. Chromium now exercises keyboard activation and focus restoration for confirmed snapshot removal, cancellation, and storage failure. Complete a broader manual screen-reader review and ensure full-workspace backups are available before destructive edits.
+5. Automated keyboard checks cover snapshot removal, cancellation, and storage failure. Complete a broader manual screen-reader review and ensure full-workspace backups are available before destructive edits.
 6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
 ## Release Gates and Constraints
