@@ -1650,6 +1650,9 @@ try {
     process.stdout.write('PASS: monthly category budgets persist, aggregate recorded expenses, and flag overspending.\n');
 
 
+    if (await page.locator('#switch-private-button').isVisible()) {
+        await page.locator('#switch-private-button').click();
+    }
     await page.locator('#goal-name').fill('Monthly review goal');
     await page.locator('#goal-target').fill('500000');
     await page.locator('#goal-current').fill('200000');
