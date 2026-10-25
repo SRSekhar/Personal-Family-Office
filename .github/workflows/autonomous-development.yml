@@ -127,7 +127,7 @@ jobs:
             - Do not modify this workflow or its permissions unless needed to fix a demonstrable defect; explain any such change in the PR.
             - Keep scope narrow and preserve existing architecture. If a task requires an unresolved product/legal/architecture decision, stop that task and record the decision needed.
           claude_args: |
-            ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'DeepSeek-V4-Pro') || '' }}
+            ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'kimi-k3') || '' }}
             --max-turns 60
             --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
 
