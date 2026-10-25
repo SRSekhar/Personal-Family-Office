@@ -517,6 +517,23 @@ try {
     assert.ok((await page.locator('#goal-monthly-pace-result').innerText()).includes('62,500'),
         'goal results should show an approximate monthly savings pace');
 
+    // A normal input event must invalidate stale results before native keyboard validation runs.
+    await page.locator('#goal-target').fill('');
+    assert.equal(await page.locator('#goal-results').isHidden(), true,
+        'editing the required target amount should clear stale goal results');
+    const calculateGoalButton = page.getByRole('button', { name: 'Calculate goal progress' });
+    await calculateGoalButton.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(
+        await page.locator('#goal-target').evaluate((input) => input === globalThis.document.activeElement),
+        true,
+        'keyboard submission should focus the invalid required goal target field'
+    );
+    assert.equal(await page.locator('#goal-results').isHidden(), true,
+        'invalid keyboard submission must not restore stale goal results');
+    await page.locator('#goal-target').fill('1000000');
+    process.stdout.write('PASS: invalid keyboard-submitted goal assumptions clear stale results and focus the required target field.\\n');
+
     await page.locator('#goal-current').fill('1500000');
     await page.getByRole('button', { name: 'Calculate goal progress' }).focus();
     await page.keyboard.press('Enter');
