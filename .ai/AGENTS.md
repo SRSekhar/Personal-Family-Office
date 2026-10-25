@@ -20,4 +20,4 @@
 - Never merge or deploy automatically. Required CI, Secret Scan, and review remain mandatory.
 - If no safe scoped task is ready, do not create an empty change; report the blocker.
 - Model credentials and the repository-scoped automation token must come from GitHub Actions secrets and must never be printed.
-- Parallel workers increase model/API usage. The scheduled batch runs once every three hours; manual dispatch can start an additional batch.
+- Parallel workers increase model/API usage. The scheduled batch runs once every hour; manual dispatch can start an additional batch. Workflow concurrency prevents overlapping batches.
