@@ -798,3 +798,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Verified cancellation and simulated storage failure preserve focus on the trigger, while successful removal moves focus to the history heading after the row disappears.
 - Uses a fictional local snapshot; no runtime behavior or persistence format changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
+
+
+## 2026-10-25 — Duplicate snapshot capture regression
+- Added a browser check that a second capture for the same date is rejected and the original saved history remains unchanged.
+- Uses fictional test data; no application runtime or storage format changes.
+- Validation status: pending CI, browser smoke, and Secret Scan on the feature PR.

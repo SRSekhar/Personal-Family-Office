@@ -850,6 +850,10 @@ try {
         || globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('31 Dec 2023'));
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'capturing a dated snapshot should persist it locally');
+    await page.locator('#capture-historical-snapshot-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.innerText.includes('A historical snapshot already exists for this date.'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'a duplicate capture must leave the original saved snapshot unchanged');
     let cancelledRemovalMessage = '';
     page.once('dialog', async (dialog) => {
         cancelledRemovalMessage = dialog.message();
