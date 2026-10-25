@@ -791,3 +791,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - The exported report must encode the category as text and must not create an image element; budget calculations and existing report/offline checks remain in the same browser path.
 - Regression-only change using synthetic data; no application runtime, persistence schema, or network behavior changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
+
+
+## 2026-10-25 — Keyboard access for historical snapshot removal
+- Extended Chromium smoke coverage to activate the date-specific Remove action with Enter rather than a pointer click.
+- Verified cancellation and simulated storage failure preserve focus on the trigger, while successful removal moves focus to the history heading after the row disappears.
+- Uses a fictional local snapshot; no runtime behavior or persistence format changes.
+- Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
