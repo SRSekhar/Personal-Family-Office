@@ -317,8 +317,8 @@ try {
     await solveContributionButton.focus();
     await page.keyboard.press('Enter');
     assert.equal(
-        await page.evaluate(() => globalThis.document.activeElement?.textContent?.trim()),
-        'Solve required annual contribution',
+        await solveContributionButton.evaluate((button) => button === globalThis.document.activeElement),
+        true,
         'keyboard submission should retain focus on the required-contribution action'
     );
     assert.equal(await page.locator('#fire-results').isHidden(), true,
