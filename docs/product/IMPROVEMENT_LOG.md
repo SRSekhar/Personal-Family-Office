@@ -838,3 +838,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Verified stale results are cleared and native validation moves focus to the invalid required target field before restoring a valid assumption for the remaining checks.
 - Uses fictional browser inputs only; no runtime, persistence, or network changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
+
+
+## 2026-10-25 — Keyboard validation for invalid CAGR input
+- Extend Chromium smoke coverage to calculate a valid CAGR, clear the required beginning value, and submit with Enter.
+- Verify stale results are cleared and native browser validation moves focus to the invalid required field before restoring the valid input for remaining checks.
+- Uses fictional values only; no runtime, persistence, or network changes.
+- Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
