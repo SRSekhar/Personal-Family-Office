@@ -91,6 +91,9 @@ jobs:
           anthropic_api_key: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
           claude_code_oauth_token: ${{ needs.preflight.outputs.auth_mode == 'claude' && secrets.CLAUDE_CODE_OAUTH_TOKEN || '' }}
           github_token: ${{ github.token }}
+          # The scheduler dispatches this workflow as github-actions[bot].
+          # Allow only that repository-owned dispatcher, not arbitrary bots.
+          allowed_bots: "github-actions"
           prompt: |
             You are the ${{ matrix.label }} for PFO OS. Work independently in the assigned area only.
 
