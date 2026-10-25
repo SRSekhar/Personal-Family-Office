@@ -75,14 +75,6 @@ jobs:
             label: Reports & Data Integrity Agent
             scope: "packages/models/**, packages/reports/**, apps/cli/**, and their direct tests"
             mission: "Find and fix one concrete import/export, backup/restore, validation, or offline-report correctness gap. Use synthetic fixtures and preserve existing schemas unless a documented migration is required."
-    env:
-      AGENT_ROLE: ${{ matrix.role }}
-      AGENT_SCOPE: ${{ matrix.scope }}
-      AGENT_MISSION: ${{ matrix.mission }}
-      PFO_PR_TITLE_FILE: ${{ runner.temp }}/pfo-pr-title-${{ matrix.role }}.txt
-      PFO_PR_BODY_FILE: ${{ runner.temp }}/pfo-pr-body-${{ matrix.role }}.md
-      ANTHROPIC_BASE_URL: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && 'https://api.hcnsec.cn' || '' }}
-      ANTHROPIC_AUTH_TOKEN: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
