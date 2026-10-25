@@ -313,12 +313,19 @@ try {
 
     // Bypass the input event intentionally so this specifically exercises the invalid-submit stale-result guard.
     await page.locator('#fire-spending').evaluate((element) => { element.value = ''; });
-    await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
+    const solveContributionButton = page.getByRole('button', { name: 'Solve required annual contribution' });
+    await solveContributionButton.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(
+        await page.locator('#fire-spending').evaluate((input) => input === globalThis.document.activeElement),
+        true,
+        'keyboard submission should move focus to the invalid required spending field'
+    );
     assert.equal(await page.locator('#fire-results').isHidden(), true,
         'an invalid required-contribution solve must clear stale results');
     assert.equal(await page.locator('#fire-required-result').isHidden(), true,
         'an invalid solve must clear the previous required-contribution message');
-    process.stdout.write('PASS: invalid required-contribution submission clears stale results.\n');
+    process.stdout.write('PASS: keyboard-submitted invalid contribution solve clears stale results and retains focus.\n');
 
     await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
     await page.getByRole('button', { name: 'Solve required annual contribution' }).click();
