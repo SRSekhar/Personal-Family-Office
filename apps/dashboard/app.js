@@ -27,6 +27,7 @@ import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js
 import { validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
 import { calculateFinancialHealth } from './financial-health.js';
 import { buildMonthlyFinancialReview, renderMonthlyFinancialReviewHtml } from './monthly-financial-review.js';
+import { buildAnnualFinancialReview, renderAnnualFinancialReviewHtml } from './annual-financial-review.js';
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const HISTORICAL_STORAGE_KEY = 'pfo-os.historical-snapshots.v1';
@@ -1365,6 +1366,45 @@ function exportMonthlyFinancialReview() {
     }
 }
 
+function exportAnnualFinancialReview() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace !== 'private') {
+        showToast('Switch to your local private workspace before generating an annual financial review.');
+        return;
+    }
+    if (!privateStorageHealthy || !goalsStorageHealthy) {
+        showToast('Annual review is unavailable until saved financial records and goals can be validated safely.');
+        return;
+    }
+    const year = $('#annual-review-year').value;
+    if (!/^\d{4}$/.test(year)) {
+        showToast('Choose a valid reporting year.');
+        return;
+    }
+    try {
+        const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
+        const entries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw));
+        const budgetsRaw = localStorage.getItem('pfo-os.cash-flow-budgets.v1');
+        const budgets = budgetsRaw === null ? [] : JSON.parse(budgetsRaw);
+        const review = buildAnnualFinancialReview({ entries, budgets, goals: savedGoals, year, generatedAt: new Date() });
+        const blob = new Blob([renderAnnualFinancialReviewHtml(review)], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-annual-financial-review-' + year + '.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Downloaded the offline annual financial review. Keep the report private; it contains financial details.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not safely create the annual financial review.');
+    }
+}
+
 function exportFinancialReport() {
     if (workspace === 'private' && (!isPrivateWorkspaceAllowed(window.location.hostname) || !privateStorageHealthy)) {
         showToast('Financial report export is unavailable until the local private workspace can be read safely.');
@@ -1807,6 +1847,7 @@ $('#export-historical-snapshots-csv').addEventListener('click', exportHistorical
 $('#close-historical-snapshot-detail').addEventListener('click', closeHistoricalSnapshotDetails);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview);
+$('#annual-review-export-button').addEventListener('click', exportAnnualFinancialReview);
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
 $('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
@@ -1877,6 +1918,7 @@ if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
 const reviewNow = new Date();
 $('#historical-snapshot-date').value = reviewNow.getFullYear() + '-' + String(reviewNow.getMonth() + 1).padStart(2, '0') + '-' + String(reviewNow.getDate()).padStart(2, '0');
 $('#monthly-review-month').value = reviewNow.getFullYear() + '-' + String(reviewNow.getMonth() + 1).padStart(2, '0');
+$('#annual-review-year').value = String(reviewNow.getFullYear());
 initializeCashFlowTracker();
 initializeTaxEstimator();
 initializeLoanAmortizationCalculator();
