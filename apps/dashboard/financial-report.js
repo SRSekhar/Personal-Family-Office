@@ -57,6 +57,14 @@ export function renderFinancialReportHtml({ records, currency = 'INR', generated
     const allocationRows = categories.length
         ? categories.map(([category, value]) => `<tr><th scope="row">${escapeHtml(category)}</th><td class="numeric">${escapeHtml(formatMoney.format(value))}</td><td class="numeric">${totalAssets > 0 ? (value / totalAssets * 100).toFixed(1) : '0.0'}%</td></tr>`).join('')
         : '<tr><td colspan="3">No assets recorded.</td></tr>';
+    const liabilityCategoryTotals = new Map();
+    for (const record of liabilities) {
+        liabilityCategoryTotals.set(record.category, (liabilityCategoryTotals.get(record.category) || 0) + record.value);
+    }
+    const liabilityCategories = [...liabilityCategoryTotals.entries()].sort((a, b) => a[0].localeCompare(b[0], 'en'));
+    const liabilityRows = liabilityCategories.length
+        ? liabilityCategories.map(([category, value]) => `<tr><th scope="row">${escapeHtml(category)}</th><td class="numeric">${escapeHtml(formatMoney.format(value))}</td><td class="numeric">${totalLiabilities > 0 ? (value / totalLiabilities * 100).toFixed(1) : '0.0'}%</td></tr>`).join('')
+        : '<tr><td colspan="3">No liabilities recorded.</td></tr>';
     const recordRows = [...records]
         .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name, 'en'))
         .map((record) => `<tr><td>${escapeHtml(record.name)}</td><td>${escapeHtml(record.category)}</td><td>${record.type === 'asset' ? 'Asset' : 'Liability'}</td><td class="numeric">${escapeHtml(formatMoney.format(record.value))}</td></tr>`)
@@ -107,6 +115,7 @@ footer{font-size:8pt}
 <div class="metric"><span>Net worth</span><strong>${escapeHtml(formatMoney.format(netWorth))}</strong></div>
 </div></section>
 <section aria-labelledby="allocation-heading"><h2 id="allocation-heading">Asset allocation</h2><div class="table-scroll"><table><thead><tr><th scope="col">Category</th><th scope="col" class="numeric">Value</th><th scope="col" class="numeric">Share of assets</th></tr></thead><tbody>${allocationRows}</tbody></table></div></section>
+<section aria-labelledby="liability-allocation-heading"><h2 id="liability-allocation-heading">Liability breakdown</h2><p class="muted">Liabilities are grouped by the categories entered in the dashboard. Shares use total liabilities as the denominator.</p><div class="table-scroll"><table><thead><tr><th scope="col">Category</th><th scope="col" class="numeric">Value</th><th scope="col" class="numeric">Share of liabilities</th></tr></thead><tbody>${liabilityRows}</tbody></table></div><p class="muted">Reconciliation: ${escapeHtml(formatMoney.format(totalAssets))} assets − ${escapeHtml(formatMoney.format(totalLiabilities))} liabilities = ${escapeHtml(formatMoney.format(netWorth))} net worth.</p></section>
 <section aria-labelledby="records-heading"><h2 id="records-heading">Financial records</h2><div class="table-scroll"><table><thead><tr><th scope="col">Name</th><th scope="col">Category</th><th scope="col">Type</th><th scope="col" class="numeric">Value</th></tr></thead><tbody>${recordRows || '<tr><td colspan="4">No financial records.</td></tr>'}</tbody></table></div></section>
 <footer><p><strong>Important limitations</strong></p><p>This report reflects the values currently entered in the dashboard. PFO OS does not track valuation dates for these records, so the generation timestamp is not a valuation date. Review source values and keep this file private; it may contain sensitive financial information.</p><p>Generated locally in your browser. This report is self-contained and does not use scripts, remote assets, or network requests.</p></footer>
 </main></body></html>`;
