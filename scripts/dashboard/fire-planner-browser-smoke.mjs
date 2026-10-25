@@ -3,6 +3,7 @@ import { Buffer } from 'node:buffer';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 import { createRequire } from 'node:module';
 import { once } from 'node:events';
@@ -26,6 +27,22 @@ async function assertOfflineReport(download, expectedFilename, expectedText) {
     assert.doesNotMatch(html, /<(?:script|link|img)\b[^>]*(?:src|href)=["']https?:\/\//i,
         'offline report must not depend on remote assets');
     return html;
+}
+
+async function assertOpensWithoutNetwork(browserInstance, reportPath, expectedText) {
+    const offlineContext = await browserInstance.newContext();
+    const offlinePage = await offlineContext.newPage();
+    const externalRequests = [];
+    offlinePage.on('request', (request) => {
+        if (/^https?:\/\//i.test(request.url())) externalRequests.push(request.url());
+    });
+    await offlinePage.route(/^https?:\/\//i, (route) => route.abort());
+    await offlinePage.goto(pathToFileURL(reportPath).href);
+    assert.ok((await offlinePage.locator('body').innerText()).includes(expectedText),
+        'standalone report should render its essential content when opened from a local file');
+    assert.deepEqual(externalRequests, [],
+        'opening a standalone report must not attempt any HTTP or HTTPS requests');
+    await offlineContext.close();
 }
 
 try {
@@ -242,6 +259,8 @@ try {
     assert.ok(financialReportHtml.includes('Net worth'), 'financial report should include a net-worth summary');
     assert.ok(financialReportHtml.includes('@page{margin:14mm}'), 'financial report should define printable page margins');
     assert.ok(financialReportHtml.includes('thead{display:table-header-group}'), 'printed report should repeat table headings');
+    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-financial-summary.html'), 'Financial overview');
+    process.stdout.write('PASS: financial summary opens from a local file without network access.\\n');
     const [printReportPage] = await Promise.all([
         page.waitForEvent('popup'),
         page.locator('#print-report-button').click()
@@ -324,6 +343,8 @@ try {
         page.keyboard.press('Enter')
     ]);
     await assertOfflineReport(singleDownload, 'pfo-fire-scenario-report.html', 'Annual spending today:');
+    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-fire-scenario-report.html'), 'Annual spending today:');
+    process.stdout.write('PASS: single-scenario FIRE report opens from a local file without network access.\\n');
     process.stdout.write('PASS: single-scenario report downloads as standalone, script-free HTML.\n');
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -388,6 +409,8 @@ try {
     const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
     assert.ok(comparisonHtml.includes('Baseline') && comparisonHtml.includes('Higher saving'),
         'comparison report should include all three scenario names');
+    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'Conservative');
+    process.stdout.write('PASS: comparison FIRE report opens from a local file without network access.\\n');
     process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\n');
 
     await page.locator('#fire-compare-a-contribution').fill('250000');

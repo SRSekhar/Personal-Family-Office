@@ -42,13 +42,13 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Interactive browser validation of FIRE calculation actions, Goal Tracker progress/reset/validation, invalid-input messaging, report downloads, and keyboard-only use remains open.
 - Historical trend and detail panels now have Chromium regression checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and preserved focus; this is a narrow-viewport test, not a full browser-zoom or manual screen-reader audit.
 - Verify responsive layout and usability at 400% zoom.
-- Validate the local dashboard-to-offline-report workflow end to end; do not use real household data in the public repository or test fixtures.
+- Browser smoke now opens the financial summary, single-scenario FIRE report, and three-scenario comparison report from local file URLs with HTTP/HTTPS requests blocked; fictional data only.
 - Customer demand remains unvalidated; plan the documented 8–10 anonymized interviews and seek two paid-pilot commitments.
 
 ## Next Deliverables
 
 1. Complete interactive browser and accessibility verification for FIRE planner, report exports, and Goal Tracker.
-2. Run the offline report workflow using fictional data, then confirm reports open without network access.
+2. Extend offline report checks to remaining report types and verify downloads stay self-contained under browser file-opening restrictions.
 3. Capture anonymized customer-discovery evidence and update the product log.
 4. Complete a broader manual screen-reader and real-browser 400% zoom review of the historical trend and snapshot-detail panels; automated keyboard focus and 320 CSS-pixel responsive checks are covered.
 5. Test the confirmed snapshot correction/removal workflow under keyboard, screen-reader, and storage failure conditions; ensure full-workspace backups are available before destructive edits.
