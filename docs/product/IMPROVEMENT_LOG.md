@@ -810,4 +810,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a Chromium scenario that corrupts the saved history JSON, reloads the dashboard, and verifies an explicit warning appears while capture is disabled.
 - Asserted the malformed storage value is not silently cleared or overwritten, then restored the prior valid test data and verified history and capture recover.
 - Uses fictional browser data only; no runtime behavior or storage schema changes.
+- Validation: PR #324 merged after CI (including Chromium browser smoke) and Secret Scan passed.
+
+
+## 2026-10-25 — Recover malformed history from a full-workspace backup
+- Extended the malformed-history browser scenario to import a valid full-workspace backup through the normal confirmation workflow.
+- Verified the backup restores the snapshot collection and re-enables capture after malformed history was detected without overwriting it automatically.
+- Uses fictional local browser data; no runtime or schema changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
