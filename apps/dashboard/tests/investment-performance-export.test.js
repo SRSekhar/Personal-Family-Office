@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { investmentCashFlowsToCsv, investmentPerformanceToCsv } from '../investment-performance-export.js';
+import { investmentCashFlowsToCsv, investmentPerformanceToCsv, investmentPerformanceToHtml } from '../investment-performance-export.js';
 
 const cashFlows = [
     { date: new Date('2025-01-01T00:00:00.000Z'), amount: -1000 },
@@ -56,5 +56,26 @@ describe('investmentPerformanceToCsv', () => {
         ['summary mismatch', { cashFlows, result: { ...result, grossContributions: 999 } }]
     ])('rejects invalid export data: %s', (_description, input) => {
         expect(() => investmentPerformanceToCsv(input)).toThrow();
+    });
+});
+
+
+describe('investmentPerformanceToHtml', () => {
+    it('renders a self-contained offline report from the validated summary and exact cash flows', () => {
+        const html = investmentPerformanceToHtml({ cashFlows, result });
+        expect(html).toContain('Investment performance');
+        expect(html).toContain('Gross contributions');
+        expect(html).toContain('₹1,000.00');
+        expect(html).toContain('Annualized money-weighted return (XIRR)');
+        expect(html).toContain('2025-01-01');
+        expect(html).toContain('2026-01-01');
+        expect(html).toContain('Include an explicit positive terminal valuation');
+        expect(html).not.toMatch(/<script\\b|<iframe\\b|https?:\\/\\//i);
+    });
+
+    it('rejects a summary that does not match the supplied cash flows', () => {
+        expect(() => investmentPerformanceToHtml({
+            cashFlows, result: { ...result, grossProceeds: 999 }
+        })).toThrow(/does not match/);
     });
 });
