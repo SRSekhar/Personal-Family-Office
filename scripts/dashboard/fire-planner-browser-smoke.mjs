@@ -257,6 +257,8 @@ try {
     assert.ok(financialReportHtml.includes('does not track valuation dates'),
         'financial report must disclose that records have no valuation dates');
     assert.ok(financialReportHtml.includes('Net worth'), 'financial report should include a net-worth summary');
+    assert.ok(financialReportHtml.includes('Liability breakdown'), 'financial report should include liabilities grouped by category');
+    assert.ok(financialReportHtml.includes('Reconciliation:'), 'financial report should explicitly reconcile assets, liabilities, and net worth');
     assert.ok(financialReportHtml.includes('@page{margin:14mm}'), 'financial report should define printable page margins');
     assert.ok(financialReportHtml.includes('thead{display:table-header-group}'), 'printed report should repeat table headings');
     await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-financial-summary.html'), 'Financial overview');

@@ -22,6 +22,9 @@ describe('renderFinancialReportHtml', () => {
         expect(html).toContain('Home loan');
         expect(html).toContain('Cash &amp; deposits');
         expect(html).toContain('75.0%');
+        expect(html).toContain('Liability breakdown');
+        expect(html).toContain('Share of liabilities');
+        expect(html).toContain('Reconciliation: ₹5,00,000 assets − ₹80,000 liabilities = ₹4,20,000 net worth.');
         expect(html).toContain('does not track valuation dates');
         expect(html).toContain('@page{margin:14mm}');
         expect(html).toContain('thead{display:table-header-group}');
@@ -45,6 +48,7 @@ describe('renderFinancialReportHtml', () => {
     it('renders empty records without invalid allocation percentages', () => {
         const html = renderFinancialReportHtml({ records: [], generatedAt });
         expect(html).toContain('No assets recorded.');
+        expect(html).toContain('No liabilities recorded.');
         expect(html).toContain('No financial records.');
         expect(html).not.toContain('NaN%');
     });
