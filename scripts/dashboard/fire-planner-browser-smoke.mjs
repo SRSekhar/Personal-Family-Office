@@ -1519,6 +1519,24 @@ try {
     assert.ok(investmentCsv.includes('Annualized money-weighted return (XIRR %),10'), 'investment CSV should include annualized return');
     assert.ok(investmentCsv.includes('2025-01-01,-1000'), 'investment CSV should preserve dated contribution signs');
     assert.ok(investmentCsv.includes('2026-01-01,1100'), 'investment CSV should preserve dated receipt signs');
+    const [investmentHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-performance-export-html').click()
+    ]);
+    assert.equal(investmentHtmlDownload.suggestedFilename(), 'pfo-investment-performance.html');
+    const investmentHtmlPath = join(temporaryDirectory, 'pfo-investment-performance.html');
+    await investmentHtmlDownload.saveAs(investmentHtmlPath);
+    const investmentHtml = await readFile(investmentHtmlPath, 'utf8');
+    assert.ok(investmentHtml.includes('Investment performance'), 'HTML report should include the performance summary');
+    assert.ok(investmentHtml.includes('Gross contributions'), 'HTML report should include contributions');
+    assert.ok(investmentHtml.includes('2025-01-01'), 'HTML report should include the first dated cash flow');
+    assert.ok(investmentHtml.includes('2026-01-01'), 'HTML report should include the terminal cash flow date');
+    assert.doesNotMatch(investmentHtml, /<script\\b|<iframe\\b|https?:\\/\\//i,
+        'HTML report must be self-contained and script-free');
+    await assertOfflineReport(investmentHtmlDownload, 'pfo-investment-performance.html', 'Investment performance');
+    await assertOpensWithoutNetwork(browser, investmentHtmlPath, 'Investment performance');
+    process.stdout.write('PASS: investment performance HTML report opens offline with the exact signed cash flows.\\n');
+
     const [investmentCashFlowsDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#investment-cash-flows-export-csv').click()
