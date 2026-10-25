@@ -501,7 +501,8 @@ try {
     await page.locator('#goal-target').fill('1000000');
     await page.locator('#goal-current').fill('250000');
     await page.locator('#goal-date').fill(futureDate.toISOString().slice(0, 10));
-    await page.getByRole('button', { name: 'Calculate goal progress' }).click();
+    await page.getByRole('button', { name: 'Calculate goal progress' }).focus();
+    await page.keyboard.press('Enter');
     assert.equal(await page.locator('#goal-results').isVisible(), true, 'goal progress results should appear');
     assert.equal((await page.locator('#goal-progress-percent').innerText()).trim(), '25%',
         'goal progress should reflect accumulated amount divided by target');
@@ -510,7 +511,8 @@ try {
         'goal results should show an approximate monthly savings pace');
 
     await page.locator('#goal-current').fill('1500000');
-    await page.getByRole('button', { name: 'Calculate goal progress' }).click();
+    await page.getByRole('button', { name: 'Calculate goal progress' }).focus();
+    await page.keyboard.press('Enter');
     assert.equal((await page.locator('#goal-progress-percent').innerText()).trim(), '150%',
         'goal progress should show the full accumulated amount when it exceeds the target');
     assert.equal(await page.locator('#goal-progress-bar').getAttribute('value'), '100',
@@ -1330,7 +1332,8 @@ try {
     await page.getByLabel('Annual inflation (%)').fill('3');
     await page.getByLabel("Annual spending in today's money (₹)").fill('600000');
     await page.getByLabel('Initial withdrawal rate (%)').fill('4');
-    await page.getByRole('button', { name: 'Calculate readiness' }).click();
+    await page.getByRole('button', { name: 'Calculate readiness' }).focus();
+    await page.keyboard.press('Enter');
     assert.equal(await page.locator('#fire-results').isVisible(), true,
         'zero years until retirement should be a valid boundary scenario');
     assert.equal((await page.locator('#fire-projected-portfolio').innerText()).replaceAll('₹', '').replaceAll(',', '').trim(), '10000000',
