@@ -1771,6 +1771,27 @@ try {
     await assertOpensWithoutNetwork(browser, monthlyReviewPath, 'Monthly financial review');
     process.stdout.write('PASS: monthly financial review opens offline and reconciles saved cash flow, budget, and goal data.\\n');
 
+    await page.locator('#annual-review-year').fill('2026');
+    const [annualReviewDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#annual-review-export-button').click()
+    ]);
+    assert.equal(annualReviewDownload.suggestedFilename(), 'pfo-os-annual-financial-review-2026.html',
+        'annual review export should include the explicitly selected reporting year');
+    const annualReviewPath = join(temporaryDirectory, annualReviewDownload.suggestedFilename());
+    await annualReviewDownload.saveAs(annualReviewPath);
+    const annualReviewHtml = await readFile(annualReviewPath, 'utf8');
+    assert.ok(annualReviewHtml.includes('Annual financial review'), 'annual review should include its report title');
+    assert.ok(annualReviewHtml.includes('Month-by-month cash flow'), 'annual review should include monthly totals');
+    assert.ok(annualReviewHtml.includes('Groceries'), 'annual review should include recorded categories');
+    assert.ok(annualReviewHtml.includes('Monthly review &lt;img src=x onerror=alert(1)&gt; goal'),
+        'annual review should escape user-entered goal names');
+    assert.doesNotMatch(annualReviewHtml, /<script\b|<iframe\b|<img\b/i,
+        'annual review must not create executable or user-injected HTML elements');
+    await assertOfflineReport(annualReviewDownload, 'pfo-os-annual-financial-review-2026.html', 'Annual financial review');
+    await assertOpensWithoutNetwork(browser, annualReviewPath, 'Annual financial review');
+    process.stdout.write('PASS: annual financial review opens offline and aggregates only recorded annual data.\n');
+
     const validHistoryBeforeCorruption = await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'));
     assert.ok(validHistoryBeforeCorruption, 'private history should be available before the malformed-storage check');
     await page.evaluate(() => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', '{invalid'));
