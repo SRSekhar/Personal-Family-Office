@@ -34,7 +34,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #311 — per-snapshot record and category breakdown details with safe text rendering and focus restoration.
 - PR #312 — Chromium verification that historical snapshots survive page reloads.
 - PR #323 — Chromium verification that duplicate snapshot dates are rejected without replacing or duplicating saved history.
-- PR #324 verifies malformed-history detection, paused capture, and preservation of the invalid storage value. Current follow-up verifies recovery through the normal full-workspace backup import workflow.
+- PR #324 verifies malformed-history detection, paused capture, and preservation of the invalid storage value. PR #325 verifies recovery through the normal full-workspace backup import workflow. Current follow-up activates FIRE readiness and Goal Tracker calculations with the keyboard.
 - Current follow-up adds Chromium coverage that a duplicate snapshot date is rejected without replacing or duplicating saved history.
 - Historical snapshot detail keyboard focus — opening details moves focus to the labelled heading; closing returns focus to the exact trigger, verified in Chromium smoke.
 - Confirmed historical snapshot correction — private history rows expose removal with explicit confirmation and a backup warning; persistence is atomic, current records stay untouched, and the date can then be recaptured.
