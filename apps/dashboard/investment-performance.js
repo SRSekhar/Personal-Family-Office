@@ -1,5 +1,5 @@
 import { analyzeInvestmentPerformanceMath } from './calculators-runtime/InvestmentPerformanceMath.js';
-import { investmentCashFlowsToCsv, investmentPerformanceToCsv } from './investment-performance-export.js';
+import { investmentCashFlowsToCsv, investmentPerformanceToCsv, investmentPerformanceToHtml } from './investment-performance-export.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -97,6 +97,7 @@ export function initializeInvestmentPerformanceCalculator() {
         latestPerformance = null;
         $('#investment-performance-export-csv').disabled = true;
         $('#investment-cash-flows-export-csv').disabled = true;
+        $('#investment-performance-export-html').disabled = true;
         $('#investment-performance-results').hidden = true;
     };
     rows.append(createCashFlowRow({ onRemove: invalidatePerformance }));
@@ -150,6 +151,7 @@ export function initializeInvestmentPerformanceCalculator() {
         event.preventDefault();
         latestPerformance = null;
         $('#investment-performance-export-csv').disabled = true;
+        $('#investment-performance-export-html').disabled = true;
         $('#investment-performance-validation').hidden = true;
         try {
             const cashFlows = [...rows.querySelectorAll('.investment-flow-row')].map((row) => {
@@ -163,10 +165,12 @@ export function initializeInvestmentPerformanceCalculator() {
             renderPerformance(result);
             latestPerformance = { cashFlows, result };
             $('#investment-performance-export-csv').disabled = false;
+            $('#investment-performance-export-html').disabled = false;
             $('#investment-cash-flows-export-csv').disabled = false;
         } catch (error) {
             latestPerformance = null;
             $('#investment-performance-export-csv').disabled = true;
+            $('#investment-performance-export-html').disabled = true;
             $('#investment-cash-flows-export-csv').disabled = true;
             $('#investment-performance-results').hidden = true;
             $('#investment-performance-validation').textContent = error instanceof Error ? error.message : 'Could not calculate investment performance.';
@@ -180,6 +184,18 @@ export function initializeInvestmentPerformanceCalculator() {
         const link = document.createElement('a');
         link.href = url;
         link.download = 'pfo-investment-performance.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
+    $('#investment-performance-export-html').addEventListener('click', () => {
+        if (!latestPerformance) return;
+        const blob = new Blob([investmentPerformanceToHtml(latestPerformance)], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-investment-performance.html';
         document.body.append(link);
         link.click();
         link.remove();
