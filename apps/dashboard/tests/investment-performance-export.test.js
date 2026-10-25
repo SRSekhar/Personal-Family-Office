@@ -70,7 +70,7 @@ describe('investmentPerformanceToHtml', () => {
         expect(html).toContain('2025-01-01');
         expect(html).toContain('2026-01-01');
         expect(html).toContain('Include an explicit positive terminal valuation');
-        expect(html).not.toMatch(/<script\\b|<iframe\\b|https?:\\/\\//i);
+        expect(html).not.toMatch(/<script\b|<iframe\b|https?:\/\//i);
     });
 
     it('rejects a summary that does not match the supplied cash flows', () => {
