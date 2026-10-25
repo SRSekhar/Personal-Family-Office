@@ -507,6 +507,21 @@ try {
     assert.equal(await page.locator('#goal-progress-bar').getAttribute('aria-valuetext'), '25 percent of target');
     assert.ok((await page.locator('#goal-monthly-pace-result').innerText()).includes('62,500'),
         'goal results should show an approximate monthly savings pace');
+
+    await page.locator('#goal-current').fill('1500000');
+    await page.getByRole('button', { name: 'Calculate goal progress' }).click();
+    assert.equal((await page.locator('#goal-progress-percent').innerText()).trim(), '150%',
+        'goal progress should show the full accumulated amount when it exceeds the target');
+    assert.equal(await page.locator('#goal-progress-bar').getAttribute('value'), '100',
+        'the native progress element should cap its visual value at its maximum');
+    assert.equal(await page.locator('#goal-progress-bar').getAttribute('aria-valuetext'), '150 percent of target',
+        'assistive technology should receive the uncapped percentage-of-target wording');
+    assert.match(await page.locator('#goal-status').innerText(), /Goal reached/,
+        'a goal above its target should be marked as reached');
+    assert.equal((await page.locator('#goal-remaining-result').innerText()).replace(/[^0-9]/g, ''), '0',
+        'amount remaining should not become negative after exceeding the target');
+    process.stdout.write('PASS: over-target goal progress stays accurate while the native progress bar and accessible value remain valid.\\n');
+
     await page.getByRole('button', { name: 'Clear form' }).click();
     assert.equal(await page.locator('#goal-results').isHidden(), true, 'reset should clear goal results');
     process.stdout.write('PASS: goal tracker calculates accessible progress and reset clears its results.\n');
