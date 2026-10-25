@@ -1690,7 +1690,7 @@ try {
     assert.ok(monthlyReviewHtml.includes('Over budget'), 'monthly review should report the explicit budget overrun');
     assert.ok(monthlyReviewHtml.includes('Monthly review &lt;img src=x onerror=alert(1)&gt; goal'),
         'monthly review should render user-entered goal names as escaped text');
-    assert.doesNotMatch(monthlyReviewHtml, /<img\\b/i,
+    assert.doesNotMatch(monthlyReviewHtml, /<img\b/i,
         'monthly review must not turn a user-entered goal name into an HTML element');
     await assertOfflineReport(monthlyReviewDownload, 'pfo-os-monthly-financial-review-2026-10.html', 'Monthly financial review');
     await assertOpensWithoutNetwork(browser, monthlyReviewPath, 'Monthly financial review');
