@@ -1725,7 +1725,27 @@ try {
     await assertOpensWithoutNetwork(browser, monthlyReviewPath, 'Monthly financial review');
     process.stdout.write('PASS: monthly financial review opens offline and reconciles saved cash flow, budget, and goal data.\\n');
 
-    assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
+    const validHistoryBeforeCorruption = await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'));
+    assert.ok(validHistoryBeforeCorruption, 'private history should be available before the malformed-storage check');
+    await page.evaluate(() => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', '{invalid'));
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#historical-snapshots-error').isVisible(), true,
+        'malformed saved history should produce an explicit recovery message');
+    assert.match(await page.locator('#historical-snapshots-error').innerText(), /Saved history could not be validated/);
+    assert.equal(await page.locator('#capture-historical-snapshot-button').isDisabled(), true,
+        'snapshot capture should be paused while saved history is invalid');
+    assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 0,
+        'malformed history should not be presented as valid snapshot data');
+    assert.equal(await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), '{invalid',
+        'reading malformed history must not overwrite or silently clear the original storage value');
+    await page.evaluate((raw) => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', raw), validHistoryBeforeCorruption);
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
+        'restoring the prior valid history should recover the saved snapshot');
+    assert.equal(await page.locator('#capture-historical-snapshot-button').isDisabled(), false,
+        'snapshot capture should resume after valid history is restored');
+
+        assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
 } catch (error) {
