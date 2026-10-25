@@ -43,10 +43,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Run interactive browser validation of the FIRE planner, comparison controls, Goal Tracker, validation/status messaging, keyboard operation, responsive layout, and 400% zoom. Static accessibility-contract regression checks were added, but do not replace browser validation.
-2. Validate the complete local dashboard-to-offline-report workflow, including single-scenario and comparison downloads opened without network access.
+1. Complete remaining interactive browser review for FIRE scenario comparison and report controls, then perform a manual screen-reader audit and real browser-chrome 400% zoom review. Chromium smoke already covers FIRE calculations/reset, Goal Tracker progress/validation, report downloads, keyboard activation, and narrow viewport behavior.
+2. Continue offline report checks for any remaining report types; the financial summary, single-scenario FIRE report, three-scenario comparison report, and monthly financial review have been opened from local file URLs with network access blocked in Chromium.
 3. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
-4. Define the source of truth, valuation-date semantics, and recovery requirements before implementing historical snapshot persistence.
+4. Historical snapshot persistence, explicit valuation dates, multi-year trend/detail views, CSV export, schema v4 backup/restore, duplicate-date protection, and malformed-storage recovery are implemented. Preserve the no-fabricated-history and local-first constraints.
 5. Manually review historical repository content and commit metadata for accidental secrets; finish software distribution/legal review and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
 
 ## Blockers and Risks
@@ -86,3 +86,14 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 - PR #116 added a main-push trigger, but its first run failed immediately with `Unsupported event type: push` before the agent executed. PR #117 removed that unsupported trigger and changed the schedule to twice hourly at minutes 17 and 47 UTC; PR CI and Secret Scan passed.
 - End-to-end autonomous delivery remains unverified. The next scheduled/manual run must reach the agent, create a focused commit, publish a PR, and pass PR CI before the workflow is considered operational.
+
+
+## Latest Follow-up (2026-10-25)
+
+- PRs #304–#316 delivered historical snapshot requirements, validated snapshot model, local capture/table/trend/detail/CSV, schema v4 backup and rollback, duplicate-date protection, explicit removal, keyboard focus handling, and narrow-viewport checks.
+- PRs #317–#321 added offline browser verification for the financial summary, FIRE reports, scenario comparison, monthly financial review, and HTML escaping of user-controlled goal/category text.
+- PRs #322–#325 added keyboard removal coverage, duplicate-date capture rejection, malformed-history fail-closed behavior, and full-workspace backup recovery from malformed history.
+- PR #326 added keyboard activation coverage for FIRE readiness and Goal Tracker calculations. CI and Secret Scan passed before merge for these PRs.
+- Remaining: manual screen-reader and browser zoom review.
+- Remaining: anonymized customer discovery.
+- Release gates: review repository history for exposed credentials, decide distribution/licensing, and complete owner-side Pages configuration.
