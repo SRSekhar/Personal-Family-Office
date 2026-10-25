@@ -1,6 +1,6 @@
 import { buildMonthlyFinancialReview } from './monthly-financial-review.js';
 
-const YEAR_PATTERN = /^\\d{4}$/;
+const YEAR_PATTERN = /^\d{4}$/;
 
 function escapeHtml(value) {
     return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
