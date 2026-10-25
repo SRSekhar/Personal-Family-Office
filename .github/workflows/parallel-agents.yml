@@ -124,7 +124,7 @@ jobs:
             - Do not use destructive commands, rewrite history, force-push, or bypass CI/security checks.
             - Keep changes narrow. If an unresolved product/legal/architecture decision blocks the task, stop and report it.
           claude_args: |
-            ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'DeepSeek-V4-Pro') || '' }}
+            ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'kimi-k3') || '' }}
             --max-turns 35
             --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
 
