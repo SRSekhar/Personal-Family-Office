@@ -770,3 +770,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Extended Chromium smoke coverage to open the financial summary, single-scenario FIRE report, and three-scenario comparison report directly from local file URLs.
 - The isolated report page blocks HTTP/HTTPS requests and asserts no external network requests occur while verifying essential report content renders.
 - Uses only existing fictional browser-test data. This verifies the tested HTML artifacts, not every report/export feature in the application.
+
+
+## 2026-10-25 — Goal progress above target remains accessible
+- Extended the existing real-Chromium Goal Tracker smoke path with a case where accumulated funds exceed the target.
+- The regression asserts the displayed percentage remains uncapped (150%), the native progress element remains capped at 100, its accessible value says “150 percent of target,” the goal is marked reached, and the remaining amount is zero rather than negative.
+- This tests an existing behavior contract; it does not change calculation or persistence logic. Fictional browser data only.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
