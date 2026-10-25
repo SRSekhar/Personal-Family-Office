@@ -34,5 +34,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          active_runs="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow parallel-agents.yml \
+            --limit 20 \
+            --json status,databaseId \
+            --jq '[.[] | select(.status == "in_progress" or .status == "queued" or .status == "pending")] | length')"
+
+          if [[ "$active_runs" =~ ^[0-9]+$ ]] && (( active_runs > 0 )); then
+            echo "An agent batch is already queued or running; skipping duplicate dispatch."
+            exit 0
+          fi
+
           gh workflow run parallel-agents.yml --repo "$GITHUB_REPOSITORY" --ref main
           echo "Dispatched PFO Parallel Engineering Agents on main."
