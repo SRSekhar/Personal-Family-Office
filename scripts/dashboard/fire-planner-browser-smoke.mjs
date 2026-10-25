@@ -1739,15 +1739,21 @@ try {
         'malformed history should not be presented as valid snapshot data');
     assert.equal(await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), '{invalid',
         'reading malformed history must not overwrite or silently clear the original storage value');
-    await page.evaluate((raw) => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', raw), validHistoryBeforeCorruption);
-    await page.reload({ waitUntil: 'networkidle' });
-    if (await page.locator('#switch-private-button').isVisible()) await page.locator('#switch-private-button').click();
+    const historyRecoveryDialogPromise = page.waitForEvent('dialog');
+    await page.locator('#import-file').setInputFiles(backupPath);
+    const historyRecoveryDialog = await historyRecoveryDialogPromise;
+    assert.match(historyRecoveryDialog.message(), /Backup import preview/);
+    assert.match(historyRecoveryDialog.message(), /Historical snapshots: 1/);
+    await historyRecoveryDialog.accept();
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.innerText.includes('Restored full workspace:'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+        'restoring a valid full-workspace backup should recover history after malformed storage');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
-        'restoring the prior valid history should recover the saved snapshot');
+        'backup recovery should restore the historical snapshot row');
     assert.equal(await page.locator('#capture-historical-snapshot-button').isDisabled(), false,
         'snapshot capture should resume after valid history is restored');
 
-        assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
+    assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
 } catch (error) {
