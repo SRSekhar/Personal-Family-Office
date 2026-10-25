@@ -804,3 +804,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added a browser check that a second capture for the same date is rejected and the original saved history remains unchanged.
 - Uses fictional test data; no application runtime or storage format changes.
 - Validation status: pending CI, browser smoke, and Secret Scan on the feature PR.
+
+
+## 2026-10-25 — Malformed historical storage recovery regression
+- Added a Chromium scenario that corrupts the saved history JSON, reloads the dashboard, and verifies an explicit warning appears while capture is disabled.
+- Asserted the malformed storage value is not silently cleared or overwritten, then restored the prior valid test data and verified history and capture recover.
+- Uses fictional browser data only; no runtime behavior or storage schema changes.
+- Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
