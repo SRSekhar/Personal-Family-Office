@@ -1729,6 +1729,7 @@ try {
     assert.ok(validHistoryBeforeCorruption, 'private history should be available before the malformed-storage check');
     await page.evaluate(() => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', '{invalid'));
     await page.reload({ waitUntil: 'networkidle' });
+    if (await page.locator('#switch-private-button').isVisible()) await page.locator('#switch-private-button').click();
     assert.equal(await page.locator('#historical-snapshots-error').isVisible(), true,
         'malformed saved history should produce an explicit recovery message');
     assert.match(await page.locator('#historical-snapshots-error').innerText(), /Saved history could not be validated/);
@@ -1740,6 +1741,7 @@ try {
         'reading malformed history must not overwrite or silently clear the original storage value');
     await page.evaluate((raw) => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', raw), validHistoryBeforeCorruption);
     await page.reload({ waitUntil: 'networkidle' });
+    if (await page.locator('#switch-private-button').isVisible()) await page.locator('#switch-private-button').click();
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
         'restoring the prior valid history should recover the saved snapshot');
     assert.equal(await page.locator('#capture-historical-snapshot-button').isDisabled(), false,
