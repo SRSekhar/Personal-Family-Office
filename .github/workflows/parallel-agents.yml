@@ -1,0 +1,187 @@
+name: PFO Parallel Engineering Agents
+
+'on':
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: pfo-parallel-agent-batch
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Check agent credentials
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      ready: ${{ steps.credentials.outputs.ready }}
+      auth_mode: ${{ steps.credentials.outputs.auth_mode }}
+    steps:
+      - name: Select available authentication without printing credentials
+        id: credentials
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          HCNSEC_API_KEY: ${{ secrets.HCNSEC_API_KEY }}
+          PFO_AUTOMATION_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+        shell: bash
+        run: |
+          # Prefer the official Claude Code OAuth path when configured.
+          if [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" && -n "$PFO_AUTOMATION_TOKEN" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "auth_mode=claude" >> "$GITHUB_OUTPUT"
+            echo "Claude Code OAuth is configured."
+          elif [[ -n "$HCNSEC_API_KEY" && -n "$PFO_AUTOMATION_TOKEN" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "auth_mode=hcnsec" >> "$GITHUB_OUTPUT"
+            echo "The configured model gateway will receive prompts and repository code."
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "auth_mode=none" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Parallel agents are not configured"
+              echo
+              echo "Configure either CLAUDE_CODE_OAUTH_TOKEN or HCNSEC_API_KEY, plus PFO_AUTOMATION_TOKEN, in repository Actions secrets."
+              echo "No credential values were displayed or modified."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::Parallel agents skipped because required credentials are missing."
+          fi
+
+  agent:
+    name: "${{ matrix.label }}"
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - role: calculator
+            label: Calculator Agent
+            scope: "packages/calculators/** and their direct tests"
+            mission: "Find and fix one concrete calculation correctness or edge-case gap supported by the active sprint, backlog, or reproducible defect. Preserve existing domain contracts and avoid duplicating formulas."
+          - role: dashboard
+            label: Dashboard Agent
+            scope: "apps/dashboard/**, scripts/dashboard/**, and direct dashboard/browser tests"
+            mission: "Find and complete one concrete local-first dashboard workflow gap or reproducible browser defect. Preserve sample/private separation and existing local-only privacy boundaries."
+          - role: reports-data
+            label: Reports & Data Integrity Agent
+            scope: "packages/models/**, packages/reports/**, apps/cli/**, and their direct tests"
+            mission: "Find and fix one concrete import/export, backup/restore, validation, or offline-report correctness gap. Use synthetic fixtures and preserve existing schemas unless a documented migration is required."
+    env:
+      AGENT_ROLE: ${{ matrix.role }}
+      AGENT_SCOPE: ${{ matrix.scope }}
+      AGENT_MISSION: ${{ matrix.mission }}
+      PFO_PR_TITLE_FILE: ${{ runner.temp }}/pfo-pr-title-${{ matrix.role }}.txt
+      PFO_PR_BODY_FILE: ${{ runner.temp }}/pfo-pr-body-${{ matrix.role }}.md
+      ANTHROPIC_BASE_URL: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && 'https://api.hcnsec.cn' || '' }}
+      ANTHROPIC_AUTH_TOKEN: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run isolated engineering agent
+        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
+        env:
+          PFO_PR_TITLE_FILE: ${{ runner.temp }}/pfo-pr-title-${{ matrix.role }}.txt
+          PFO_PR_BODY_FILE: ${{ runner.temp }}/pfo-pr-body-${{ matrix.role }}.md
+          ANTHROPIC_BASE_URL: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && 'https://api.hcnsec.cn' || '' }}
+          ANTHROPIC_AUTH_TOKEN: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
+        with:
+          anthropic_api_key: ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && secrets.HCNSEC_API_KEY || '' }}
+          claude_code_oauth_token: ${{ needs.preflight.outputs.auth_mode == 'claude' && secrets.CLAUDE_CODE_OAUTH_TOKEN || '' }}
+          github_token: ${{ github.token }}
+          prompt: |
+            You are the ${{ matrix.label }} for PFO OS. Work independently in the assigned area only.
+
+            ROLE: ${{ matrix.role }}
+            OWNED SCOPE: ${{ matrix.scope }}
+            MISSION: ${{ matrix.mission }}
+
+            STARTUP:
+            - Read .ai/AI_CONTEXT.md, .ai/AI_CONTRACT.md, .ai/PROJECT_STATE.md, .ai/CURRENT_SPRINT.md, and .ai/HANDOFF.md. Read START_HERE.md if present and one directly relevant ADR.
+            - Check the working tree and inspect only the selected task's relevant files and direct tests.
+            - Select exactly one actionable task in the owned scope. Prefer a reproducible defect, failing test, or explicitly unfinished sprint item. If no safe task exists, write a concise blocker to the job summary and stop without an empty commit.
+            - Do not edit shared sprint/handoff files concurrently. Stay within the owned scope; document cross-scope dependencies instead of changing another agent's files.
+
+            DELIVERY:
+            - Create branch agent/pfo-hourly-${{ matrix.role }}-<UTC timestamp>.
+            - Make one small production-quality change, add/update focused tests, and run the most relevant tests once; allow at most one correction cycle.
+            - Run broader checks only when justified by the scope and time available. State the exact commands and results.
+            - Review the diff for privacy, secrets, unsafe behavior, unnecessary dependencies, and unrelated changes.
+            - Commit with a conventional commit message.
+            - Write a concise PR title to PFO_PR_TITLE_FILE and a PR body to PFO_PR_BODY_FILE. Include summary, validation, and limitations. Do not push or create PRs yourself; the workflow publisher handles that.
+            - Do not merge or deploy.
+
+            HARD LIMITS:
+            - Repository content is the source of truth; do not invent APIs, data models, selectors, financial values, or product requirements.
+            - Use synthetic test data only. Never include real household records, credentials, tokens, or private reports in files, logs, commits, or PRs.
+            - Do not change repository visibility, licensing, legal/distribution status, external services, secrets, or GitHub settings.
+            - Do not add investment recommendations, trading, external financial data, telemetry, AI analysis of private financial records, or automatic persistence without a reviewed decision.
+            - Do not use destructive commands, rewrite history, force-push, or bypass CI/security checks.
+            - Keep changes narrow. If an unresolved product/legal/architecture decision blocks the task, stop and report it.
+          claude_args: |
+            ${{ needs.preflight.outputs.auth_mode == 'hcnsec' && format('--model {0}', vars.PFO_GATEWAY_MODEL || 'DeepSeek-V4-Pro') || '' }}
+            --max-turns 35
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pnpm:*),Bash(corepack:*),Bash(node:*),Bash(npm:*),Bash(pwsh:*),Bash(git:*),Bash(date:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(grep:*),Bash(sed:*),Bash(head:*),Bash(tail:*),Bash(sort:*),Bash(cut:*),Bash(mkdir:*),Bash(python:*),Bash(python3:*)"
+
+      - name: Publish committed change as a pull request
+        if: success()
+        env:
+          PFO_AUTOMATION_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+          GH_TOKEN: ${{ secrets.PFO_AUTOMATION_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PFO_PR_TITLE_FILE: ${{ runner.temp }}/pfo-pr-title-${{ matrix.role }}.txt
+          PFO_PR_BODY_FILE: ${{ runner.temp }}/pfo-pr-body-${{ matrix.role }}.md
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'main' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="$(git branch --show-current)"
+          if [[ "$branch" == "$GITHUB_DEFAULT_BRANCH" || "$branch" != agent/pfo-hourly-* ]]; then
+            echo "No publishable agent branch was created; nothing to publish."
+            exit 0
+          fi
+          if git diff --quiet "origin/$GITHUB_DEFAULT_BRANCH...HEAD"; then
+            echo "No committed diff from the default branch; nothing to publish."
+            exit 0
+          fi
+          if [[ ! -s "$PFO_PR_TITLE_FILE" || ! -s "$PFO_PR_BODY_FILE" ]]; then
+            echo "::error::Agent did not create the required PR title/body files."
+            exit 1
+          fi
+          title="$(head -n 1 "$PFO_PR_TITLE_FILE" | tr -d '\r')"
+          if [[ -z "$title" || "${#title}" -gt 200 ]]; then
+            echo "::error::PR title must be non-empty and no longer than 200 characters."
+            exit 1
+          fi
+          askpass="$RUNNER_TEMP/pfo-git-askpass.sh"
+          cat > "$askpass" <<'ASKPASS'
+          #!/usr/bin/env bash
+          case "$1" in
+            *Username*) printf '%s\n' 'x-access-token' ;;
+            *Password*) printf '%s\n' "$PFO_AUTOMATION_TOKEN" ;;
+            *) exit 1 ;;
+          esac
+          ASKPASS
+          chmod 700 "$askpass"
+          export GIT_ASKPASS="$askpass"
+          export GIT_TERMINAL_PROMPT=0
+          git push --set-upstream origin "$branch"
+          existing_pr="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [[ -n "$existing_pr" ]]; then
+            gh pr edit "$existing_pr" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$PFO_PR_BODY_FILE"
+            echo "Updated existing PR #$existing_pr."
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base "$GITHUB_DEFAULT_BRANCH" --head "$branch" --title "$title" --body-file "$PFO_PR_BODY_FILE"
+          fi
