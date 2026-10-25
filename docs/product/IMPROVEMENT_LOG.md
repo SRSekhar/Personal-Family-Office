@@ -831,3 +831,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Verified the invalid submission clears prior readiness and required-contribution results and moves keyboard focus to the invalid required spending field, as expected from native constraint validation.
 - Regression-only change using fictional browser inputs; no calculation, persistence, or network behavior changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
+
+
+## 2026-10-25 — Keyboard validation for invalid Goal Tracker input
+- Extended the existing Chromium smoke path to create valid goal results, clear the required target amount through a normal input event, and submit with Enter.
+- Verified stale results are cleared and native validation moves focus to the invalid required target field before restoring a valid assumption for the remaining checks.
+- Uses fictional browser inputs only; no runtime, persistence, or network changes.
+- Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
