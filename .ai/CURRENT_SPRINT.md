@@ -39,7 +39,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 ## In Progress
 
 - Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.
-- Interactive browser validation of FIRE calculation actions, Goal Tracker progress/reset/validation, invalid-input messaging, report downloads, and keyboard-only use remains open.
+- Interactive browser validation of FIRE calculation actions, Goal Tracker progress/reset/validation, invalid-input messaging, report downloads, and keyboard-only use remains open. The current follow-up adds an explicit Chromium regression for progress above 100%, capped native progress semantics, accessible percentage wording, completion status, and non-negative remaining amount.
 - Historical trend and detail panels now have Chromium regression checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and preserved focus; this is a narrow-viewport test, not a full browser-zoom or manual screen-reader audit.
 - Verify responsive layout and usability at 400% zoom.
 - Browser smoke opens the financial summary, single-scenario FIRE report, three-scenario comparison report, and monthly financial review from local file URLs with HTTP/HTTPS requests blocked; fictional data only.
