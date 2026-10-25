@@ -1531,7 +1531,7 @@ try {
     assert.ok(investmentHtml.includes('Gross contributions'), 'HTML report should include contributions');
     assert.ok(investmentHtml.includes('2025-01-01'), 'HTML report should include the first dated cash flow');
     assert.ok(investmentHtml.includes('2026-01-01'), 'HTML report should include the terminal cash flow date');
-    assert.doesNotMatch(investmentHtml, /<script\\b|<iframe\\b|https?:\\/\\//i,
+    assert.doesNotMatch(investmentHtml, /<script\b|<iframe\b|https?:\/\//i,
         'HTML report must be self-contained and script-free');
     await assertOfflineReport(investmentHtmlDownload, 'pfo-investment-performance.html', 'Investment performance');
     await assertOpensWithoutNetwork(browser, investmentHtmlPath, 'Investment performance');
