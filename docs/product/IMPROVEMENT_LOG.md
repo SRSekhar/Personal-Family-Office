@@ -1,3 +1,15 @@
+## 2026-10-25 — Offline monthly financial review verification
+
+### Delivered in feature branch
+- Extended Chromium browser smoke coverage for the monthly financial review download using fictional saved transactions, a saved category budget, and a saved goal.
+- Verified the downloaded report filename includes the explicitly selected month and that the report includes its month, budget overrun, and saved goal.
+- Opened the generated HTML directly from a local file URL with HTTP/HTTPS requests blocked and verified its essential content still renders without network requests.
+- This adds coverage for the monthly review only; it does not claim every export type has been tested offline.
+
+### Product and engineering lessons
+- Reports that combine several saved data sources need end-to-end reconciliation checks, not only renderer unit tests.
+- Keep offline-opening checks explicit and scoped to the report types actually exercised.
+
 ## 2026-10-20 — Monthly cash-flow category budgets
 
 ### Delivered in feature branch
