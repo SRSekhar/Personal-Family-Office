@@ -51,7 +51,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 2. Extend offline report checks to remaining report types and verify downloads stay self-contained under browser file-opening restrictions.
 3. Capture anonymized customer-discovery evidence and update the product log.
 4. Complete a broader manual screen-reader and real-browser 400% zoom review of the historical trend and snapshot-detail panels; automated keyboard focus and 320 CSS-pixel responsive checks are covered.
-5. Test the confirmed snapshot correction/removal workflow under keyboard, screen-reader, and storage failure conditions; ensure full-workspace backups are available before destructive edits.
+5. Chromium now exercises keyboard activation and focus restoration for confirmed snapshot removal, cancellation, and storage failure. Complete a broader manual screen-reader review and ensure full-workspace backups are available before destructive edits.
 6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
 
 ## Release Gates and Constraints
