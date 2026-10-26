@@ -1694,6 +1694,8 @@ try {
         'editing tax inputs should invalidate the previously calculated result');
     assert.equal(await page.locator('#tax-export-csv').isDisabled(), true,
         'editing tax inputs should disable stale CSV export');
+    assert.equal(await page.locator('#tax-export-html').isDisabled(), true,
+        'editing tax inputs should disable stale HTML export');
     await page.locator('#tax-estimator-form button[type="submit"]').click();
     assert.equal(await page.locator('#tax-validation').isVisible(), true,
         'tax estimator should reject non-increasing bracket thresholds');
@@ -1701,7 +1703,9 @@ try {
     assert.equal(await page.locator('#tax-estimate-results').isHidden(), true,
         'tax reset should clear previous results');
     assert.equal(await page.locator('#tax-export-csv').isDisabled(), true,
-        'tax reset should disable export until another valid estimate');
+        'tax reset should disable CSV export until another valid estimate');
+    assert.equal(await page.locator('#tax-export-html').isDisabled(), true,
+        'tax reset should disable HTML export until another valid estimate');
     assert.equal(await page.locator('#tax-brackets .tax-bracket-row').count(), 1,
         'tax reset should restore a single final bracket');
     process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\n');

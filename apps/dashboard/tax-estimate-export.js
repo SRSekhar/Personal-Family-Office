@@ -73,7 +73,7 @@ export function taxEstimateToHtml(input) {
     const percent = (value) => new Intl.NumberFormat('en-IN', {
         maximumFractionDigits: 2
     }).format(value) + '%';
-    const bracketRows = brackets.map((bracket, index) => `<tr><td>${index + 1}</td><td>${bracket.upperBound === null ? 'No upper limit' : money(bracket.upperBound)}</td><td>${percent(bracket.marginalRatePercent)}</td></tr>`).join('\\n');
+    const bracketRows = brackets.map((bracket, index) => `<tr><td>${index + 1}</td><td>${bracket.upperBound === null ? 'No upper limit' : money(bracket.upperBound)}</td><td>${percent(bracket.marginalRatePercent)}</td></tr>`).join('\n');
     return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PFO OS — Tax Estimate Report</title><style>

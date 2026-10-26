@@ -53,6 +53,7 @@ export function initializeTaxEstimator() {
     const invalidateEstimate = () => {
         latestEstimate = null;
         $('#tax-export-csv').disabled = true;
+        $('#tax-export-html').disabled = true;
         $('#tax-estimate-results').hidden = true;
     };
     form.addEventListener('input', invalidateEstimate);
@@ -103,10 +104,12 @@ export function initializeTaxEstimator() {
             const result = estimateProgressiveTaxMath(taxableIncome, brackets);
             renderTaxResult(result);
             latestEstimate = { taxableIncome, brackets, result };
-                        $('#tax-export-html').disabled = false;
+            $('#tax-export-csv').disabled = false;
+            $('#tax-export-html').disabled = false;
         } catch (error) {
             latestEstimate = null;
             $('#tax-export-csv').disabled = true;
+            $('#tax-export-html').disabled = true;
             $('#tax-estimate-results').hidden = true;
             $('#tax-validation').textContent = error instanceof Error ? error.message : 'Could not calculate the tax estimate.';
             $('#tax-validation').hidden = false;
