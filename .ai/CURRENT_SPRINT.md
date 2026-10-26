@@ -73,5 +73,5 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 
 
 ## 2026-10-25 — Follow-up in progress
-- Chromium regression for keyboard-submitting an invalid CAGR beginning value after a valid result exists is present in the main browser-smoke suite; it verifies stale-result clearing and focus on the missing required beginning value using fictional values.
-- Follow-up: extend keyboard-submit coverage to the investment-performance calculator and verify its result summary appears when submitted from the keyboard.
+- Chromium browser smoke covers keyboard submission for the FIRE planner, Goal Tracker, CAGR, and investment-performance calculator; invalid required fields clear stale results and return focus to the missing field where applicable.
+- Follow-up: extend keyboard-submit coverage to return-risk analysis and verify its result summary appears when submitted from the keyboard.
