@@ -58,8 +58,10 @@ describe('taxEstimateToHtml', () => {
         expect(html).toContain('₹25,000');
         expect(html).toContain('No upper limit');
         expect(html).toContain('not tax advice');
-        expect(html).not.toMatch(/<script\\b/i);
-        expect(html).not.toMatch(/<(?:script|link|img)\\b[^>]*(?:src|href)=[\"']https?:\\/\\//i);
+        expect(html).not.toContain('<script');
+        expect(html).not.toContain('<img');
+        expect(html).not.toContain('https://');
+        expect(html).not.toContain('http://');
     });
 
     it('renders a missing effective rate as unavailable for zero income', () => {

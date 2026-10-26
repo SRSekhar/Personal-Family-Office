@@ -1685,8 +1685,9 @@ try {
     assert.ok(taxHtml.includes('₹12,500'), 'HTML report should include the estimated tax');
     assert.ok(taxHtml.includes('No upper limit'), 'HTML report should include supplied open-ended bracket');
     assert.ok(taxHtml.includes('not tax advice'), 'HTML report should state its limitations');
-    assert.doesNotMatch(taxHtml, /<script\\b|<iframe\\b|https?:\\/\\//i,
-        'tax HTML report must be self-contained and script-free');
+    assert.ok(!taxHtml.includes('<script') && !taxHtml.includes('<iframe')
+        && !taxHtml.includes('https://') && !taxHtml.includes('http://'),
+    'tax HTML report must be self-contained and script-free');
     await assertOfflineReport(taxHtmlDownload, 'pfo-tax-estimate.html', 'Progressive tax estimate');
     await assertOpensWithoutNetwork(browser, taxHtmlPath, 'Progressive tax estimate');
     await secondTaxBracket.locator('.tax-bracket-bound').fill('10000');
