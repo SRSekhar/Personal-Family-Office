@@ -1677,17 +1677,37 @@ try {
     const loanScheduleCsv = await readFile(loanSchedulePath, 'utf8');
     assert.ok(loanScheduleCsv.includes('2026-01-31T00:00:00.000Z'), 'loan CSV should preserve the first payment date');
     assert.ok(loanScheduleCsv.includes('"200"'), 'loan CSV should include the capped final payment');
+    const [loanHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#loan-export-html').click()
+    ]);
+    assert.equal(loanHtmlDownload.suggestedFilename(), 'pfo-loan-amortization.html');
+    const loanHtmlPath = join(temporaryDirectory, loanHtmlDownload.suggestedFilename());
+    await loanHtmlDownload.saveAs(loanHtmlPath);
+    const loanHtml = await readFile(loanHtmlPath, 'utf8');
+    assert.ok(loanHtml.includes('Loan amortization report'));
+    assert.ok(loanHtml.includes('2026-01-31'));
+    assert.ok(loanHtml.includes('2026-03-31'));
+    assert.ok(loanHtml.includes('Assumptions and limitations'));
+    assert.equal((loanHtml.match(/<tr>/g) || []).length, 9,
+        'loan report should include six assumptions/outcome rows, one schedule header, and three payments');
+    await assertOfflineReport(loanHtmlDownload, 'pfo-loan-amortization.html', 'Loan amortization report');
+    await assertOpensWithoutNetwork(browser, loanHtmlPath, 'Loan amortization report');
     await page.locator('#loan-monthly-payment').fill('0');
     assert.equal(await page.locator('#loan-estimate-results').isHidden(), true,
         'editing a loan assumption must hide the stale amortization summary');
     assert.equal(await page.locator('#loan-export-schedule').isHidden(), true,
         'editing a loan assumption must hide the stale schedule export');
+    assert.equal(await page.locator('#loan-export-html').isHidden(), true,
+        'editing a loan assumption must hide the stale HTML report export');
     await page.locator('#loan-amortization-form button[type="submit"]').click();
     assert.equal(await page.locator('#loan-validation').isVisible(), true,
         'loan calculator should reject a payment that cannot amortize a non-zero balance');
     await page.locator('#loan-reset').click();
     assert.equal(await page.locator('#loan-estimate-results').isHidden(), true,
         'loan reset should clear prior results');
+    assert.equal(await page.locator('#loan-export-html').isHidden(), true,
+        'loan reset should hide the stale HTML report export');
 
     await page.locator('#taxable-income').fill('100000');
     await page.locator('#tax-add-bracket').click();
