@@ -1689,7 +1689,7 @@ try {
     assert.ok(loanHtml.includes('2026-01-31'));
     assert.ok(loanHtml.includes('2026-03-31'));
     assert.ok(loanHtml.includes('Assumptions and limitations'));
-    assert.equal((loanHtml.match(/<tr>/g) || []).length, 9,
+    assert.equal((loanHtml.match(/<tr>/g) || []).length, 10,
         'loan report should include six assumptions/outcome rows, one schedule header, and three payments');
     await assertOfflineReport(loanHtmlDownload, 'pfo-loan-amortization.html', 'Loan amortization report');
     await assertOpensWithoutNetwork(browser, loanHtmlPath, 'Loan amortization report');
