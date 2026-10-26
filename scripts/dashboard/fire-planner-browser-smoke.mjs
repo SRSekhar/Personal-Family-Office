@@ -1498,7 +1498,11 @@ try {
     const investmentFlow1 = page.locator('#investment-cash-flows .investment-flow-row').nth(1);
     await investmentFlow1.locator('.investment-flow-date').fill('2026-01-01');
     await investmentFlow1.locator('.investment-flow-amount').fill('1100');
-    await page.locator('#investment-performance-form button[type="submit"]').click();
+    const calculateInvestmentPerformanceButton = page.getByRole('button', { name: 'Calculate performance' });
+    await calculateInvestmentPerformanceButton.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#investment-performance-results').isVisible(), true,
+        'keyboard submission should display the calculated investment-performance results');
     assert.equal((await page.locator('#investment-gross-contributions').innerText()).replace(/[^0-9]/g, ''), '1000',
         'investment performance should total negative cash flows as contributions');
     assert.equal((await page.locator('#investment-gross-proceeds').innerText()).replace(/[^0-9]/g, ''), '1100',
