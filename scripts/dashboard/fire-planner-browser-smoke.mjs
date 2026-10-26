@@ -1492,6 +1492,11 @@ try {
     const growthCsv = await readFile(growthCsvPath, 'utf8');
     assert.equal(growthCsv.trim().split(/\r?\n/).length, 12,
         'growth schedule CSV should include a header and 11 annual rows');
+    await page.locator('#growth-annual-rate').fill('8');
+    assert.equal(await page.locator('#growth-results').isHidden(), true,
+        'editing a growth assumption must hide stale projection results');
+    assert.equal(await page.locator('#growth-export-csv').isDisabled(), true,
+        'editing a growth assumption must disable stale projection export');
     assert.ok(growthCsv.includes('Year,Projected value,Total contributed capital,Estimated growth'),
         'growth schedule CSV should have stable column headings');
     await page.locator('#growth-contribution-timing').selectOption('beginning');
@@ -1654,6 +1659,10 @@ try {
     assert.ok(loanScheduleCsv.includes('2026-01-31T00:00:00.000Z'), 'loan CSV should preserve the first payment date');
     assert.ok(loanScheduleCsv.includes('"200"'), 'loan CSV should include the capped final payment');
     await page.locator('#loan-monthly-payment').fill('0');
+    assert.equal(await page.locator('#loan-estimate-results').isHidden(), true,
+        'editing a loan assumption must hide the stale amortization summary');
+    assert.equal(await page.locator('#loan-export-schedule').isHidden(), true,
+        'editing a loan assumption must hide the stale schedule export');
     await page.locator('#loan-amortization-form button[type="submit"]').click();
     assert.equal(await page.locator('#loan-validation').isVisible(), true,
         'loan calculator should reject a payment that cannot amortize a non-zero balance');
