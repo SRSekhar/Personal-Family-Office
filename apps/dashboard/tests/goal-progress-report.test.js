@@ -26,7 +26,7 @@ describe('saved goal progress HTML report', () => {
         expect(html).toContain('Past target date');
         expect(html).toContain('₹1,50,000');
         expect(html).toContain('₹75,000');
-        expect(html).toContain('Accumulated across goals');
+        expect(html).toContain('Combined accumulated');
         expect(html).toContain('no returns assumed');
         expect(html).not.toContain('25 days overdue');
         expect(html).toContain('Keep this file private');
