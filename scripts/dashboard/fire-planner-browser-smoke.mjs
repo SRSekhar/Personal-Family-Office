@@ -143,7 +143,7 @@ try {
     assert.ok(ratiosHtml.includes('18.64%'), 'ratio report should reconcile the liabilities-to-assets ratio');
     assert.ok(ratiosHtml.includes('do not measure liquidity'), 'ratio report should disclose interpretation limits');
     await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-balance-sheet-ratios.html'), 'Balance-sheet ratios');
-    process.stdout.write('PASS: balance-sheet ratios report reconciles sample totals and opens offline.\\n');
+    process.stdout.write('PASS: balance-sheet ratios report reconciles sample totals and opens offline.\n');
     assert.equal(await page.locator('#allocation-concentration').isVisible(), true,
         'overview should show category concentration metrics for sample assets');
     assert.equal(await page.locator('#allocation-concentration .concentration-metrics article').count(), 3,
@@ -152,6 +152,7 @@ try {
         'largest category share should reconcile to the sample allocation');
     assert.match(await page.locator('#allocation-concentration').innerText(), /does not measure holding-level diversification/);
 
+    await page.evaluate(() => globalThis.document.activeElement?.blur());
     await page.keyboard.press('Tab');
     assert.equal(
         await page.evaluate(() => globalThis.document.activeElement?.classList.contains('skip-link')),
