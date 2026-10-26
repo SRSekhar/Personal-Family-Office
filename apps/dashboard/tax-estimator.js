@@ -1,5 +1,5 @@
 import { estimateProgressiveTaxMath } from './calculators-runtime/ProgressiveTaxMath.js';
-import { taxEstimateToCsv } from './tax-estimate-export.js';
+import { taxEstimateToCsv, taxEstimateToHtml } from './tax-estimate-export.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -39,6 +39,7 @@ export function initializeTaxEstimator() {
         rows.replaceChildren(createBracketRow({ final: true }));
         latestEstimate = null;
         $('#tax-export-csv').disabled = true;
+        $('#tax-export-html').disabled = true;
         $('#tax-estimate-results').hidden = true;
         $('#tax-validation').hidden = true;
         $('#tax-validation').textContent = '';
@@ -52,6 +53,7 @@ export function initializeTaxEstimator() {
     const invalidateEstimate = () => {
         latestEstimate = null;
         $('#tax-export-csv').disabled = true;
+        $('#tax-export-html').disabled = true;
         $('#tax-estimate-results').hidden = true;
     };
     form.addEventListener('input', invalidateEstimate);
@@ -63,6 +65,18 @@ export function initializeTaxEstimator() {
         const link = document.createElement('a');
         link.href = url;
         link.download = 'pfo-tax-estimate.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
+    $('#tax-export-html').addEventListener('click', () => {
+        if (!latestEstimate) return;
+        const blob = new Blob([taxEstimateToHtml(latestEstimate)], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-tax-estimate.html';
         document.body.append(link);
         link.click();
         link.remove();
@@ -91,9 +105,11 @@ export function initializeTaxEstimator() {
             renderTaxResult(result);
             latestEstimate = { taxableIncome, brackets, result };
             $('#tax-export-csv').disabled = false;
+            $('#tax-export-html').disabled = false;
         } catch (error) {
             latestEstimate = null;
             $('#tax-export-csv').disabled = true;
+            $('#tax-export-html').disabled = true;
             $('#tax-estimate-results').hidden = true;
             $('#tax-validation').textContent = error instanceof Error ? error.message : 'Could not calculate the tax estimate.';
             $('#tax-validation').hidden = false;
