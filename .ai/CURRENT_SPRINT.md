@@ -120,3 +120,10 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Recalculates ratios with the existing analytics function and rejects mismatched totals or stale ratios before export.
 - Preserves the existing CSV export; the report opens from a local file without scripts or network requests.
 - Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #360.
+
+
+## 2026-10-26 — Asset allocation offline HTML report (in progress)
+- Add a standalone report for the existing category allocation with recorded amounts, category shares, HHI, effective category count, and largest-category share.
+- Recalculate concentration using the existing analytics function and escape user-controlled category names.
+- Preserve CSV export and verify the downloaded report opens offline without scripts or remote requests.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
