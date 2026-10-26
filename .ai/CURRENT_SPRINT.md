@@ -108,8 +108,8 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #356.
 
 
-## 2026-10-26 — CAGR offline HTML report (in progress)
-- Add a standalone HTML report to the existing CAGR calculator with the exact beginning value, ending value, elapsed years, annualized result, and the existing limitations around interim cash flows.
-- Recalculate the rate with the canonical CAGR calculator and reject a mismatched supplied result.
-- Preserve the CSV export; disable both exports when assumptions change. Verify the HTML download opens from a local file without scripts or network dependencies.
-- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+## 2026-10-26 — CAGR offline HTML report
+- Added a standalone HTML report to the existing CAGR calculator with the exact beginning value, ending value, elapsed years, annualized result, and limitations around interim cash flows.
+- Recalculates the rate with the canonical CAGR calculator and rejects a mismatched supplied result.
+- Preserves the CSV export; both exports are disabled when assumptions change. The HTML report opens from a local file without scripts or network dependencies.
+- Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #358.
