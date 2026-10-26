@@ -26,6 +26,7 @@ import { analyzeDiversification } from './analytics-runtime/DiversificationAnaly
 import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js';
 import { validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
 import { calculateFinancialHealth } from './financial-health.js';
+import { renderFinancialHealthReportHtml } from './financial-health-report.js';
 import { buildMonthlyFinancialReview, renderMonthlyFinancialReviewHtml } from './monthly-financial-review.js';
 import { buildAnnualFinancialReview, renderAnnualFinancialReviewHtml } from './annual-financial-review.js';
 
@@ -1106,6 +1107,47 @@ function exportFinancialHealthCsv() {
     }
 }
 
+function exportFinancialHealthHtml() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace !== 'private' || !privateStorageHealthy || !goalsStorageHealthy) {
+        showToast('Health report is available only after the private workspace data has been validated.');
+        return;
+    }
+    const status = $('#financial-health-status').textContent;
+    const cards = [...$('#financial-health-metrics').querySelectorAll('.financial-health-card')];
+    if (!status.startsWith('Local data · ') || cards.length === 0) {
+        showToast('Health report is unavailable because no validated local summary is displayed.');
+        return;
+    }
+    try {
+        const metrics = cards.map((card) => {
+            const parts = [...card.children];
+            if (parts.length < 3) throw new Error('The displayed health summary is incomplete.');
+            return { label: parts[0].textContent, value: parts[1].textContent, detail: parts[2].textContent };
+        });
+        const report = renderFinancialHealthReportHtml({
+            reportingPeriod: status.slice('Local data · '.length),
+            generatedAt: new Date().toISOString(),
+            metrics
+        });
+        const blob = new Blob([report], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-financial-health.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Standalone financial health report exported to this device.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create financial health report.');
+    }
+}
+
 function renderFinancialRatios(result) {
     const ratios = calculateFinancialRatios({
         currency: CURRENCY,
@@ -1852,6 +1894,7 @@ $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
 $('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
 $('#export-financial-health-csv').addEventListener('click', exportFinancialHealthCsv);
+$('#export-financial-health-html').addEventListener('click', exportFinancialHealthHtml);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
