@@ -161,10 +161,10 @@ try {
         page.locator('#export-allocation-html').click()
     ]);
     const allocationHtml = await assertOfflineReport(allocationHtmlDownload, 'pfo-os-asset-allocation.html', 'Asset allocation by category');
-    assert.ok(allocationHtml.includes('54.0%'), 'allocation report should reconcile the largest category share');
+    assert.ok(allocationHtml.includes('53.98%'), 'allocation report should reconcile the largest category share');
     assert.ok(allocationHtml.includes('does not measure holding-level diversification'), 'allocation report should disclose concentration limitations');
     await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-asset-allocation.html'), 'Asset allocation by category');
-    process.stdout.write('PASS: asset allocation report includes category totals and opens offline without network dependencies.\\n');
+    process.stdout.write('PASS: asset allocation report includes category totals and opens offline without network dependencies.\n');
     const [ratiosHtmlDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-financial-ratios-html').click()
