@@ -25,6 +25,7 @@ import { initializeCagrCalculator } from './cagr.js';
 import { initializeReturnRiskCalculator } from './return-risk.js';
 import { analyzeDiversification } from './analytics-runtime/DiversificationAnalysis.js';
 import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js';
+import { renderFinancialRatiosReportHtml } from './financial-ratios-report.js';
 import { validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
 import { calculateFinancialHealth } from './financial-health.js';
 import { renderFinancialHealthReportHtml } from './financial-health-report.js';
@@ -1117,6 +1118,42 @@ function exportFinancialRatiosCsv() {
         showToast(error instanceof Error ? error.message : 'Could not create ratio CSV export.');
     }
 }
+function exportFinancialRatiosHtml() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Ratio report is paused because saved financial data could not be read safely. Existing storage remains untouched.');
+        return;
+    }
+    try {
+        const result = totals();
+        const ratios = calculateFinancialRatios({
+            currency: CURRENCY,
+            totalAssets: { amount: result.assets, currency: CURRENCY },
+            totalLiabilities: { amount: result.liabilities, currency: CURRENCY },
+            netWorth: { amount: result.netWorth, currency: CURRENCY }
+        });
+        const report = renderFinancialRatiosReportHtml({
+            assets: result.assets, liabilities: result.liabilities, netWorth: result.netWorth,
+            ratios, generatedAt: new Date().toISOString()
+        });
+        const blob = new Blob([report], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-balance-sheet-ratios.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Standalone balance-sheet ratios report exported to this device.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create balance-sheet ratios report.');
+    }
+}
+
 function exportFinancialHealthCsv() {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
@@ -1948,6 +1985,7 @@ $('#annual-review-export-button').addEventListener('click', exportAnnualFinancia
 $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
 $('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
+$('#export-financial-ratios-html').addEventListener('click', exportFinancialRatiosHtml);
 $('#export-financial-health-csv').addEventListener('click', exportFinancialHealthCsv);
 $('#export-financial-health-html').addEventListener('click', exportFinancialHealthHtml);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);

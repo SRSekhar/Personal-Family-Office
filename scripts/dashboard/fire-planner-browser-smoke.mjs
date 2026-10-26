@@ -156,6 +156,15 @@ try {
         'activating the skip link should move focus to the main content landmark'
     );
     process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
+    const [ratiosHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-financial-ratios-html').click()
+    ]);
+    const ratiosHtml = await assertOfflineReport(ratiosHtmlDownload, 'pfo-os-balance-sheet-ratios.html', 'Balance-sheet ratios');
+    assert.ok(ratiosHtml.includes('18.64%'), 'ratio report should reconcile the liabilities-to-assets ratio');
+    assert.ok(ratiosHtml.includes('do not measure liquidity'), 'ratio report should disclose interpretation limits');
+    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-balance-sheet-ratios.html'), 'Balance-sheet ratios');
+    process.stdout.write('PASS: balance-sheet ratios report reconciles sample totals and opens offline.\n');
     const historyDetailsTrigger = page.locator('[data-history-details="2025-12-31"]');
     await historyDetailsTrigger.click();
     assert.equal(await page.locator('#historical-snapshot-detail').isVisible(), true);

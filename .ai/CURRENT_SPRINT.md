@@ -113,3 +113,10 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Recalculates the rate with the canonical CAGR calculator and rejects a mismatched supplied result.
 - Preserves the CSV export; both exports are disabled when assumptions change. The HTML report opens from a local file without scripts or network dependencies.
 - Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #358.
+
+
+## 2026-10-26 — Balance-sheet ratios offline HTML report (in progress)
+- Add a standalone HTML report for the three existing balance-sheet ratios, with reconciled assets, liabilities, net worth, numerator/denominator values, and explicit interpretation limits.
+- Recalculate ratios with the existing analytics function and reject mismatched totals or stale ratios before export.
+- Preserve the existing CSV export and verify local-file opening without scripts or network requests.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
