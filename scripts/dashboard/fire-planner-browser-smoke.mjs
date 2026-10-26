@@ -135,6 +135,15 @@ try {
     assert.equal(await page.locator('#ratio-assets-to-liabilities').innerText(), '5.37×',
         'dashboard should show assets per unit of sample liabilities');
     assert.match(await page.locator('#financial-ratios').innerText(), /no benchmarks, forecasts, or recommendations/);
+    const [ratiosHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-financial-ratios-html').click()
+    ]);
+    const ratiosHtml = await assertOfflineReport(ratiosHtmlDownload, 'pfo-os-balance-sheet-ratios.html', 'Balance-sheet ratios');
+    assert.ok(ratiosHtml.includes('18.64%'), 'ratio report should reconcile the liabilities-to-assets ratio');
+    assert.ok(ratiosHtml.includes('does not measure liquidity'), 'ratio report should disclose interpretation limits');
+    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-balance-sheet-ratios.html'), 'Balance-sheet ratios');
+    process.stdout.write('PASS: balance-sheet ratios report reconciles sample totals and opens offline.\\n');
     assert.equal(await page.locator('#allocation-concentration').isVisible(), true,
         'overview should show category concentration metrics for sample assets');
     assert.equal(await page.locator('#allocation-concentration .concentration-metrics article').count(), 3,
