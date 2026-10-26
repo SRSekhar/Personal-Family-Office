@@ -61,7 +61,7 @@ export function renderGoalProgressReportHtml({ asOfDate, generatedAt, goals }) {
 <p class="value">${percent(goal.progressPercent)} complete</p><div class="track" role="img" aria-label="${escapeHtml(percent(goal.progressPercent))} complete"><span style="width:${boundedProgress}%"></span></div>
 <dl><div><dt>Target</dt><dd>${escapeHtml(money(goal.targetAmount))}</dd></div><div><dt>Accumulated</dt><dd>${escapeHtml(money(goal.currentAmount))}</dd></div><div><dt>Remaining</dt><dd>${escapeHtml(money(goal.amountRemaining))}</dd></div><div><dt>Target date</dt><dd>${escapeHtml(goal.targetDate)}</dd></div><div><dt>Time</dt><dd>${escapeHtml(timeRemaining)}</dd></div></dl>
 <p class="pace">Suggested arithmetic pace: ${escapeHtml(monthlyPace)}</p></article>`;
-    }).join('\\n');
+    }).join('\n');
     const generatedLabel = new Intl.DateTimeFormat('en-IN', {
         dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata'
     }).format(new Date(generatedAt));
