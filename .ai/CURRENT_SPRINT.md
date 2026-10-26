@@ -98,4 +98,11 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Added a standalone HTML report with the exact caller-supplied annual return, contribution amount, duration, timing, and full annual schedule.
 - Recalculates the supplied assumptions and rejects a schedule that does not exactly reconcile before rendering.
 - Report is script-free and self-contained; no forecasts, external market data, or network requests.
+- Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #355.
+
+
+## 2026-10-26 — Loan amortization offline report (in progress)
+- Add a standalone HTML download for the existing loan amortization calculator, including assumptions, summary totals, payoff status, and the full monthly schedule.
+- Recalculate with the existing deterministic calculator and reject stale or mismatched result summaries before export.
+- Keep the report script-free and offline-capable; preserve the existing CSV export and local-only assumptions.
 - Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
