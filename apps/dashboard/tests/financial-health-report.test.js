@@ -36,7 +36,7 @@ describe('financial health standalone HTML report', () => {
     it('rejects missing or malformed report data', () => {
         expect(() => renderFinancialHealthReportHtml({ ...report, reportingPeriod: '' })).toThrow(/reporting period/);
         expect(() => renderFinancialHealthReportHtml({ ...report, generatedAt: 'not-a-date' })).toThrow(/timestamp/);
-        expect(() => renderFinancialHealthReportHtml({ ...report, metrics: [] })).toThrow(/at least one/);
+        expect(() => renderFinancialHealthReportHtml({ ...report, metrics: [] })).toThrow(/at least one/i);
         expect(() => renderFinancialHealthReportHtml({ ...report, metrics: [{ label: 'Net worth' }] })).toThrow(/label, value, and detail/);
     });
 });
