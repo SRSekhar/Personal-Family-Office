@@ -1,13 +1,13 @@
-## 2026-10-26 — CAGR offline HTML report (in progress)
+## 2026-10-26 — CAGR offline HTML report (PR #358 merged)
 
-### Scope
-- Add a standalone HTML report to the existing CAGR calculator with the exact beginning value, ending value, elapsed years, annualized result, and limitations around interim cash flows.
-- Recalculate with the canonical CAGR calculator and reject a mismatched supplied result.
-- Preserve the CSV export and invalidate both export actions when assumptions change.
-- Add unit and Chromium browser coverage for the report, invalid/mismatched assumptions, and offline opening.
+### Delivered
+- Added a standalone HTML report to the existing CAGR calculator with the exact beginning value, ending value, elapsed years, annualized result, and limitations around interim cash flows.
+- Recalculates with the canonical CAGR calculator and rejects a mismatched supplied result.
+- Preserves the CSV export and invalidates both export actions when assumptions change.
+- Added unit and Chromium browser coverage for the report, invalid/mismatched assumptions, and offline opening.
 
 ### Validation
-- Pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+- CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed before merge.
 - Uses fictional test inputs only; no personal financial assumptions are stored in the repository.
 
 ## 2026-10-26 — Loan amortization offline report (PR #356 merged)
