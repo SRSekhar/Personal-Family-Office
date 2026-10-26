@@ -74,7 +74,7 @@ jobs:
           persist-credentials: false
 
       - name: Run bounded autonomous development cycle
-        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
+        uses: anthropics/claude-code-action@16f9f71ab9c490faf367f94dd294897edc25be33 # v1.0.261
         env:
           PFO_PR_TITLE_FILE: ${{ runner.temp }}/pfo-pr-title.txt
           PFO_PR_BODY_FILE: ${{ runner.temp }}/pfo-pr-body.md
