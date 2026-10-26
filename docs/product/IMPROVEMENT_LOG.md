@@ -1,12 +1,12 @@
-## 2026-10-26 — Asset allocation offline HTML report (in progress)
+## 2026-10-26 — Asset allocation offline HTML report (PR #362 merged)
 
-### Scope
-- Add a standalone report for the existing category allocation with recorded amounts, category shares, HHI, effective category count, and largest-category share.
-- Recalculate concentration using the existing analytics function and escape category names before rendering.
-- Preserve CSV export and add unit and Chromium coverage for invalid values, HTML escaping, and offline opening.
+### Delivered
+- Added a standalone report for the existing category allocation with recorded amounts, category shares, HHI, effective category count, and largest-category share.
+- Recalculates concentration using the existing analytics function and escapes category names before rendering.
+- Preserves CSV export and includes unit and Chromium coverage for invalid values, HTML escaping, and offline opening.
 
 ### Validation
-- Pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+- CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed before merge.
 - Uses existing sample data in browser tests; no personal financial values are committed.
 
 ## 2026-10-26 — Balance-sheet ratios offline HTML report (PR #360 merged)
