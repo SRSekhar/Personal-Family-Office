@@ -1682,7 +1682,7 @@ try {
     await taxHtmlDownload.saveAs(taxHtmlPath);
     const taxHtml = await readFile(taxHtmlPath, 'utf8');
     assert.ok(taxHtml.includes('Progressive tax estimate'), 'HTML report should include its title');
-    assert.ok(taxHtml.includes('\\u20b912,500'), 'HTML report should include the estimated tax');
+    assert.ok(taxHtml.includes('\u20b912,500'), 'HTML report should include the estimated tax');
     assert.ok(taxHtml.includes('No upper limit'), 'HTML report should include supplied open-ended bracket');
     assert.ok(taxHtml.includes('not tax advice'), 'HTML report should state its limitations');
     assert.ok(!taxHtml.includes('<script') && !taxHtml.includes('<iframe')

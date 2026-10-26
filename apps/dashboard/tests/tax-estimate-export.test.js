@@ -52,10 +52,10 @@ describe('taxEstimateToHtml', () => {
         const html = taxEstimateToHtml({ taxableIncome: 100000, brackets, result });
         expect(html).toContain('<!doctype html>');
         expect(html).toContain('Progressive tax estimate');
-        expect(html).toContain('\\u20b91,00,000');
-        expect(html).toContain('\\u20b912,500');
+        expect(html).toContain('\u20b91,00,000');
+        expect(html).toContain('\u20b912,500');
         expect(html).toContain('12.5%');
-        expect(html).toContain('\\u20b925,000');
+        expect(html).toContain('\u20b925,000');
         expect(html).toContain('No upper limit');
         expect(html).toContain('not tax advice');
         expect(html).not.toContain('<script');
