@@ -526,6 +526,10 @@ function renderSavedGoals() {
         && isPrivateWorkspaceAllowed(window.location.hostname)
         && goalsStorageHealthy
         && savedGoals.length > 0);
+    $('#saved-goals-export-html').disabled = !(workspace === 'private'
+        && isPrivateWorkspaceAllowed(window.location.hostname)
+        && privateStorageHealthy && goalsStorageHealthy
+        && savedGoals.length > 0);
 }
 
 function loadSavedGoals() {
