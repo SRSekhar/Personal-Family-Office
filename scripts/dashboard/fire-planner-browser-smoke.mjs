@@ -1812,6 +1812,29 @@ try {
     await assertOpensWithoutNetwork(browser, annualReviewPath, 'Annual financial review');
     process.stdout.write('PASS: annual financial review opens offline and aggregates only recorded annual data.\n');
 
+    assert.match(await page.locator('#financial-health-status').innerText(), /^Local data · /,
+        'financial health HTML export should only be available after validated private data is displayed');
+    const [financialHealthDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-financial-health-html').click()
+    ]);
+    const financialHealthPath = join(temporaryDirectory, financialHealthDownload.suggestedFilename());
+    assert.equal(financialHealthDownload.suggestedFilename(), 'pfo-os-financial-health.html',
+        'financial health export should use a stable HTML filename');
+    await financialHealthDownload.saveAs(financialHealthPath);
+    const financialHealthHtml = await readFile(financialHealthPath, 'utf8');
+    assert.ok(financialHealthHtml.includes('Financial health overview'),
+        'financial health report should include its title');
+    assert.ok(financialHealthHtml.includes('Net worth'), 'financial health report should include balance-sheet summary');
+    assert.ok(financialHealthHtml.includes('Savings rate'), 'financial health report should include recorded cash-flow metrics');
+    assert.ok(financialHealthHtml.includes('Keep this file private'),
+        'financial health report should include a privacy warning');
+    assert.doesNotMatch(financialHealthHtml, /<script\\b|<iframe\\b|<img\\b/i,
+        'financial health report must not contain executable scripts or injected elements');
+    await assertOfflineReport(financialHealthDownload, 'pfo-os-financial-health.html', 'Financial health overview');
+    await assertOpensWithoutNetwork(browser, financialHealthPath, 'Financial health overview');
+    process.stdout.write('PASS: financial health HTML report exports validated private metrics and opens offline.\\n');
+
     const validHistoryBeforeCorruption = await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'));
     assert.ok(validHistoryBeforeCorruption, 'private history should be available before the malformed-storage check');
     await page.evaluate(() => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', '{invalid'));
