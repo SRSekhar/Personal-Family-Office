@@ -583,6 +583,22 @@ try {
     const riskCsvText = await readFile(riskCsvPath, 'utf8');
     assert.match(riskCsvText, /"maximum_drawdown","0\.199999/,
         'risk CSV should export the calculated maximum drawdown');
+    const [riskHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#return-risk-export-html').click()
+    ]);
+    assert.equal(riskHtmlDownload.suggestedFilename(), 'pfo-return-risk-analysis.html');
+    const riskHtmlPath = join(temporaryDirectory, riskHtmlDownload.suggestedFilename());
+    await riskHtmlDownload.saveAs(riskHtmlPath);
+    const riskHtml = await readFile(riskHtmlPath, 'utf8');
+    assert.ok(riskHtml.includes('Return risk analysis'), 'HTML report should include its title');
+    assert.ok(riskHtml.includes('Maximum drawdown'), 'HTML report should include the drawdown metric');
+    assert.ok(riskHtml.includes('2026-02-28'), 'HTML report should include the supplied observation dates');
+    assert.ok(!riskHtml.includes('<script') && !riskHtml.includes('<iframe')
+        && !riskHtml.includes('https://') && !riskHtml.includes('http://'),
+    'risk HTML report must be self-contained and script-free');
+    await assertOfflineReport(riskHtmlDownload, 'pfo-return-risk-analysis.html', 'Return risk analysis');
+    await assertOpensWithoutNetwork(browser, riskHtmlPath, 'Return risk analysis');
     await page.locator('#return-risk-observations').fill('2026-02-30,3');
     assert.equal(await page.locator('#return-risk-export-csv').isDisabled(), true,
         'editing risk observations should invalidate stale metric exports');

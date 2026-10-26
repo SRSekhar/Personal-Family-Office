@@ -79,4 +79,9 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 ## 2026-10-26 — Tax estimate report
 - Added a self-contained offline HTML report for the caller-defined progressive tax estimate; the report reuses the CSV validation contract and includes the exact supplied brackets and explicit limitations.
 - Added browser smoke coverage for the download, report content, script/remote-asset absence, and opening the report without network access.
+- Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #352.
+
+## 2026-10-26 — Return risk report
+- Add a self-contained offline HTML report for the existing descriptive return-risk calculator, revalidating the exact observation series and metrics before export.
+- Include supplied assumptions and dated returns; no market data, forecasts, risk rating, or investment recommendation.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
