@@ -1,4 +1,5 @@
 import { calculateLoanAmortizationMath } from './calculators-runtime/LoanAmortizationMath.js';
+import { renderLoanAmortizationReportHtml } from './loan-amortization-report.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -33,8 +34,12 @@ export function initializeLoanAmortizationCalculator() {
     const form = $('#loan-amortization-form');
     if (!form) return;
     let lastSchedule = [];
+    let latestReport = null;
+    const htmlExport = $('#loan-export-html');
     const invalidateResults = () => {
         lastSchedule = [];
+        latestReport = null;
+        htmlExport.hidden = true;
         $('#loan-estimate-results').hidden = true;
         $('#loan-export-schedule').hidden = true;
         $('#loan-schedule-rows').replaceChildren();
@@ -50,14 +55,16 @@ export function initializeLoanAmortizationCalculator() {
         try {
             const dateValue = $('#loan-first-payment-date').value;
             if (!dateValue) throw new RangeError('Enter the first payment date.');
-            const result = calculateLoanAmortizationMath({
+            const input = {
                 outstandingPrincipal: Number($('#loan-outstanding-principal').value),
                 annualInterestRatePercent: Number($('#loan-annual-rate').value),
                 monthlyPayment: Number($('#loan-monthly-payment').value),
-                firstPaymentDate: new Date(dateValue + 'T00:00:00.000Z'),
+                firstPaymentDate: dateValue,
                 maximumPayments: 1200
-            });
+            };
+            const result = calculateLoanAmortizationMath({ ...input, firstPaymentDate: new Date(dateValue + 'T00:00:00.000Z') });
             lastSchedule = result.schedule;
+            latestReport = { input, result };
             $('#loan-total-interest').textContent = money(result.totalInterest);
             $('#loan-total-payments').textContent = money(result.totalPayments);
             $('#loan-principal-paid').textContent = money(result.totalPrincipalPaid);
@@ -66,9 +73,12 @@ export function initializeLoanAmortizationCalculator() {
             $('#loan-payment-count').textContent = String(result.schedule.length);
             $('#loan-estimate-results').hidden = false;
             $('#loan-export-schedule').hidden = result.schedule.length === 0;
+            htmlExport.hidden = false;
             renderSchedule(result.schedule);
         } catch (error) {
             lastSchedule = [];
+            latestReport = null;
+            htmlExport.hidden = true;
             $('#loan-export-schedule').hidden = true;
             $('#loan-estimate-results').hidden = true;
             $('#loan-validation').textContent = error instanceof Error ? error.message : 'Could not calculate the loan schedule.';
@@ -78,8 +88,20 @@ export function initializeLoanAmortizationCalculator() {
     $('#loan-export-schedule').addEventListener('click', () => {
         if (lastSchedule.length > 0) exportSchedule(lastSchedule);
     });
+    htmlExport.addEventListener('click', () => {
+        if (!latestReport) return;
+        const html = renderLoanAmortizationReportHtml(latestReport);
+        const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-loan-amortization.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
     $('#loan-reset').addEventListener('click', () => {
-        form.reset(); lastSchedule = []; $('#loan-estimate-results').hidden = true; $('#loan-export-schedule').hidden = true; $('#loan-validation').hidden = true; $('#loan-validation').textContent = '';
+        form.reset(); lastSchedule = []; latestReport = null; htmlExport.hidden = true; $('#loan-estimate-results').hidden = true; $('#loan-export-schedule').hidden = true; $('#loan-validation').hidden = true; $('#loan-validation').textContent = '';
         $('#loan-schedule-rows').replaceChildren(); $('#loan-schedule-empty').hidden = false;
     });
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
