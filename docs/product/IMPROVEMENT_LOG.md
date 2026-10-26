@@ -1,12 +1,13 @@
-## 2026-10-26 — Balance-sheet ratios offline HTML report (in progress)
+## 2026-10-26 — Balance-sheet ratios offline HTML report (PR #360 merged)
 
-### Scope
-- Add a standalone HTML report for the three existing balance-sheet ratios with reconciled totals, numerator/denominator values, and explicit interpretation limits.
-- Recalculate ratios with the existing analytics function and reject mismatched totals or stale ratios before export.
-- Preserve the existing CSV export; add unit and Chromium coverage for zero denominators, reconciliation, and offline opening.
+### Delivered
+- Added a standalone HTML report for the three existing balance-sheet ratios with reconciled totals, numerator/denominator values, and explicit interpretation limits.
+- Recalculates ratios with the existing analytics function and rejects mismatched totals or stale ratios before export.
+- Preserves the existing CSV export; the report opens from a local file without scripts or network requests.
+- Added unit and Chromium browser coverage for zero denominators, reconciliation, and offline opening.
 
 ### Validation
-- Pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+- CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed before merge.
 - Uses existing sample data in browser tests; no personal financial values are committed.
 
 ## 2026-10-26 — CAGR offline HTML report (PR #358 merged)
