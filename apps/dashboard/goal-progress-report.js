@@ -27,7 +27,6 @@ export function renderGoalProgressReportHtml({ asOfDate, generatedAt, goals }) {
         throw new RangeError('A valid report generation timestamp is required.');
     }
     if (!Array.isArray(goals) || goals.length === 0) throw new TypeError('At least one saved goal is required.');
-    const ids = new Set();
     for (const goal of goals) {
         if (!goal || typeof goal.name !== 'string' || !goal.name.trim() || goal.name.length > 80) {
             throw new TypeError('Every goal must have a valid name.');
