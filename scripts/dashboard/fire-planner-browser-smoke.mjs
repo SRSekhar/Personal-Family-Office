@@ -1492,7 +1492,26 @@ try {
     const growthCsv = await readFile(growthCsvPath, 'utf8');
     assert.equal(growthCsv.trim().split(/\r?\n/).length, 12,
         'growth schedule CSV should include a header and 11 annual rows');
+    const [growthHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#growth-export-html').click()
+    ]);
+    assert.equal(growthHtmlDownload.suggestedFilename(), 'pfo-growth-projection.html');
+    const growthHtmlPath = join(temporaryDirectory, growthHtmlDownload.suggestedFilename());
+    await growthHtmlDownload.saveAs(growthHtmlPath);
+    const growthHtml = await readFile(growthHtmlPath, 'utf8');
+    assert.ok(growthHtml.includes('Compound growth projection'), 'growth report should include its title');
+    assert.ok(growthHtml.includes('7%'), 'growth report should preserve the supplied return assumption');
+    assert.ok(growthHtml.includes('End of year'), 'growth report should disclose contribution timing');
+    assert.equal((growthHtml.match(/<tr>/g) || []).length, 16,
+        'growth report should include five assumption rows and all 11 annual schedule rows');
+    await assertOfflineReport(growthHtmlDownload, 'pfo-growth-projection.html', 'Compound growth projection');
+    await assertOpensWithoutNetwork(browser, growthHtmlPath, 'Compound growth projection');
+    assert.equal(await page.locator('#growth-export-html').isEnabled(), true,
+        'HTML export should be enabled after a valid calculation');
     await page.locator('#growth-annual-rate').fill('8');
+    assert.equal(await page.locator('#growth-export-html').isDisabled(), true,
+        'editing assumptions must disable stale HTML report export');
     assert.equal(await page.locator('#growth-results').isHidden(), true,
         'editing a growth assumption must hide stale projection results');
     assert.equal(await page.locator('#growth-export-csv').isDisabled(), true,
