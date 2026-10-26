@@ -1503,8 +1503,8 @@ try {
     assert.ok(growthHtml.includes('Compound growth projection'), 'growth report should include its title');
     assert.ok(growthHtml.includes('7%'), 'growth report should preserve the supplied return assumption');
     assert.ok(growthHtml.includes('End of year'), 'growth report should disclose contribution timing');
-    assert.equal((growthHtml.match(/<tr>/g) || []).length, 16,
-        'growth report should include five assumption rows and all 11 annual schedule rows');
+    assert.equal((growthHtml.match(/<tr>/g) || []).length, 17,
+        'growth report should include five assumption rows, the schedule header, and all 11 annual schedule rows');
     await assertOfflineReport(growthHtmlDownload, 'pfo-growth-projection.html', 'Compound growth projection');
     await assertOpensWithoutNetwork(browser, growthHtmlPath, 'Compound growth projection');
     assert.equal(await page.locator('#growth-export-html').isEnabled(), true,
