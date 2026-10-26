@@ -1439,6 +1439,15 @@ try {
     assert.ok(cagrCsv.includes('Ending value,1331'), 'CAGR CSV should include ending value');
     assert.ok(cagrCsv.includes('Elapsed years,3'), 'CAGR CSV should include elapsed years');
     assert.ok(cagrCsv.includes('Compound annual growth rate (%),10'), 'CAGR CSV should include annualized rate');
+    const [cagrHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cagr-export-html').click()
+    ]);
+    const cagrHtml = await assertOfflineReport(cagrHtmlDownload, 'pfo-cagr-report.html', 'Annualized growth rate');
+    assert.ok(cagrHtml.includes('10%'), 'CAGR HTML report should include the annualized rate');
+    assert.ok(cagrHtml.includes('interim cash flows'), 'CAGR HTML report should disclose its cash-flow limitation');
+    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-cagr-report.html'), 'Annualized growth rate');
+    process.stdout.write('PASS: CAGR HTML report reconciles assumptions and opens offline without network dependencies.\\n');
 
     // Keyboard submission must respect native required-field validation and never leave stale results visible.
     await page.locator('#cagr-beginning-value').fill('');
@@ -1462,6 +1471,8 @@ try {
         'editing CAGR inputs should invalidate the previous result');
     assert.equal(await page.locator('#cagr-export-csv').isDisabled(), true,
         'editing CAGR inputs should disable stale CSV export');
+    assert.equal(await page.locator('#cagr-export-html').isDisabled(), true,
+        'editing CAGR inputs should disable stale HTML export');
     await page.locator('#cagr-reset').click();
     assert.equal(await page.locator('#cagr-results').isHidden(), true,
         'CAGR reset should clear previous results');

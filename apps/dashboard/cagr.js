@@ -1,5 +1,6 @@
 import { calculateCagr } from './calculators-runtime/Cagr.js';
 import { cagrToCsv } from './cagr-export.js';
+import { renderCagrHtmlReport } from './cagr-report.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -13,12 +14,14 @@ export function initializeCagrCalculator() {
     const invalidateCagr = () => {
         latestCagr = null;
         $('#cagr-export-csv').disabled = true;
+        $('#cagr-export-html').disabled = true;
         $('#cagr-results').hidden = true;
     };
     form.addEventListener('submit', (event) => {
         event.preventDefault();
         latestCagr = null;
         $('#cagr-export-csv').disabled = true;
+        $('#cagr-export-html').disabled = true;
         $('#cagr-validation').hidden = true;
         try {
             const beginningValue = Number($('#cagr-beginning-value').value);
@@ -30,10 +33,12 @@ export function initializeCagrCalculator() {
             $('#cagr-ending-result').textContent = money(endingValue);
             $('#cagr-rate-result').textContent = percent(rate * 100);
             $('#cagr-export-csv').disabled = false;
+            $('#cagr-export-html').disabled = false;
             $('#cagr-results').hidden = false;
         } catch (error) {
             latestCagr = null;
             $('#cagr-export-csv').disabled = true;
+            $('#cagr-export-html').disabled = true;
             $('#cagr-results').hidden = true;
             $('#cagr-validation').textContent = error instanceof Error ? error.message : 'Could not calculate CAGR.';
             $('#cagr-validation').hidden = false;
@@ -62,4 +67,17 @@ export function initializeCagrCalculator() {
         link.remove();
         window.setTimeout(() => URL.revokeObjectURL(url), 0);
     });
+    $('#cagr-export-html').addEventListener('click', () => {
+        if (!latestCagr) return;
+        const blob = new Blob([renderCagrHtmlReport(latestCagr)], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-cagr-report.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
+
 }
