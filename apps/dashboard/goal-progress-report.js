@@ -63,6 +63,8 @@ export function renderGoalProgressReportHtml({ asOfDate, generatedAt, goals }) {
     const generatedLabel = new Intl.DateTimeFormat('en-IN', {
         dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata'
     }).format(new Date(generatedAt));
+    const completedGoals = goals.filter((goal) => goal.status === 'Goal reached').length;
+    const overdueGoals = goals.filter((goal) => goal.status === 'Past target date').length;
     const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
     const totalCurrent = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
     if (!Number.isFinite(totalTarget) || !Number.isFinite(totalCurrent)) throw new RangeError('Goal totals exceed the supported numeric range.');
@@ -79,6 +81,6 @@ h1{font-size:2rem;margin:.25rem 0}p{margin:.5rem 0;color:var(--muted)}.summary{d
 .track{height:.6rem;border-radius:999px;background:#e3eae5;overflow:hidden}.track span{display:block;height:100%;background:var(--accent)}dl{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin:1rem 0}dl div{min-width:0}dt{margin-bottom:.1rem}dd{margin:0;font-weight:650;overflow-wrap:anywhere}.pace{border-top:1px solid var(--line);padding-top:.7rem}
 footer{margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem;font-size:.9rem}@media print{body{padding:0}.summary article,.goal{background:#fff}}@media(max-width:600px){body{padding:1rem}h1{font-size:1.5rem}}
 </style></head><body><main><header><p class="eyebrow">Personal Family Office · Goals</p><h1>Saved goal progress</h1><p>As of <strong>${escapeHtml(asOfDate)}</strong> · Generated locally ${escapeHtml(generatedLabel)}</p></header>
-<section class="summary" aria-label="Combined goal summary"><article><span>Saved goals</span><strong>${goals.length}</strong></article><article><span>Combined target</span><strong>${escapeHtml(money(totalTarget))}</strong></article><article><span>Combined accumulated</span><strong>${escapeHtml(money(totalCurrent))}</strong></article><article><span>Combined progress</span><strong>${escapeHtml(percent(totalProgress))}</strong></article></section>
+<section class="summary" aria-label="Combined goal summary"><article><span>Saved goals</span><strong>${goals.length}</strong></article><article><span>Combined target</span><strong>${escapeHtml(money(totalTarget))}</strong></article><article><span>Combined accumulated</span><strong>${escapeHtml(money(totalCurrent))}</strong></article><article><span>Combined progress</span><strong>${escapeHtml(percent(totalProgress))}</strong></article><article><span>Goals reached</span><strong>${completedGoals}</strong></article><article><span>Past target date</span><strong>${overdueGoals}</strong></article></section>
 <div class="goals">${cards}</div><footer><p><strong>Scope and limitations</strong></p><p>This report reflects saved goal data in the private local workspace at export time. It does not predict investment returns, adjust for inflation, or connect to accounts or external services. Monthly pace is arithmetic only and assumes no returns. Progress above 100% is shown as recorded in the percentage; the visual bar is capped at 100%.</p><p>Keep this file private: it may contain sensitive household financial information.</p></footer></main></body></html>`;
 }
