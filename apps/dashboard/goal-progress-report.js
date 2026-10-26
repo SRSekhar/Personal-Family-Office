@@ -52,9 +52,11 @@ export function renderGoalProgressReportHtml({ asOfDate, generatedAt, goals }) {
         const monthlyPace = goal.monthlyContributionNeeded === null
             ? 'No monthly pace available for this target date.'
             : money(goal.monthlyContributionNeeded) + ' per month (no returns assumed).';
-        const timeRemaining = goal.daysRemaining < 0
-            ? Math.abs(goal.daysRemaining) + ' days overdue'
-            : goal.daysRemaining + ' days remaining';
+        const timeRemaining = goal.status === 'Goal reached'
+            ? 'Goal reached'
+            : goal.daysRemaining < 0
+                ? Math.abs(goal.daysRemaining) + ' days overdue'
+                : goal.daysRemaining + ' days remaining';
         return `<article class="goal"><div class="goal-heading"><h2>${escapeHtml(goal.name)}</h2><span class="status">${escapeHtml(goal.status)}</span></div>
 <p class="value">${percent(goal.progressPercent)} complete</p><div class="track" role="img" aria-label="${escapeHtml(percent(goal.progressPercent))} complete"><span style="width:${boundedProgress}%"></span></div>
 <dl><div><dt>Target</dt><dd>${escapeHtml(money(goal.targetAmount))}</dd></div><div><dt>Accumulated</dt><dd>${escapeHtml(money(goal.currentAmount))}</dd></div><div><dt>Remaining</dt><dd>${escapeHtml(money(goal.amountRemaining))}</dd></div><div><dt>Target date</dt><dd>${escapeHtml(goal.targetDate)}</dd></div><div><dt>Time</dt><dd>${escapeHtml(timeRemaining)}</dd></div></dl>
