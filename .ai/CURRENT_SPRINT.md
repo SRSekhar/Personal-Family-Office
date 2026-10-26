@@ -91,4 +91,11 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Editing any loan amortization input now invalidates the prior schedule and hides its CSV export until recalculation; failed submissions cannot leave an old schedule exportable.
 - Editing any growth projection input now clears prior results and disables CSV export until recalculation.
 - Chromium regression checks verify both calculators invalidate stale outputs immediately after input changes.
+- Validation: CI, Chromium browser smoke, dashboard packaging, and push-triggered Secret Scan passed on main.
+
+
+## 2026-10-26 — Compound growth offline report
+- Added a standalone HTML report with the exact caller-supplied annual return, contribution amount, duration, timing, and full annual schedule.
+- Recalculates the supplied assumptions and rejects a schedule that does not exactly reconcile before rendering.
+- Report is script-free and self-contained; no forecasts, external market data, or network requests.
 - Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.

@@ -1,4 +1,5 @@
 import { projectCompoundGrowthSchedule } from './calculators-runtime/CompoundGrowth.js';
+import { renderGrowthProjectionReportHtml } from './growth-projection-report.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -8,9 +9,13 @@ export function initializeGrowthProjectionCalculator() {
     const form = $('#growth-projection-form');
     if (!form) return;
     let scheduleRows = [];
+    let latestProjection = null;
+    const htmlExport = $('#growth-export-html');
     const invalidateResults = () => {
         scheduleRows = [];
+        latestProjection = null;
         $('#growth-export-csv').disabled = true;
+        htmlExport.disabled = true;
         $('#growth-results').hidden = true;
         $('#growth-schedule-rows').replaceChildren();
         $('#growth-validation').hidden = true;
@@ -26,9 +31,9 @@ export function initializeGrowthProjectionCalculator() {
             const annualRate = Number($('#growth-annual-rate').value) / 100;
             const periods = Number($('#growth-years').value);
             const contributionTiming = $('#growth-contribution-timing').value;
-            scheduleRows = projectCompoundGrowthSchedule({
-                initialValue, annualRate, periods, contributionPerPeriod: annualContribution, contributionTiming
-            });
+            const input = { initialValue, annualRate, periods, contributionPerPeriod: annualContribution, contributionTiming };
+            scheduleRows = projectCompoundGrowthSchedule(input);
+            latestProjection = { input, rows: scheduleRows };
             const finalRow = scheduleRows[scheduleRows.length - 1];
             $('#growth-projected-value').textContent = money(finalRow.projectedValue);
             $('#growth-total-contributions').textContent = money(finalRow.totalContributions);
@@ -45,10 +50,13 @@ export function initializeGrowthProjectionCalculator() {
                 return tr;
             }));
             $('#growth-export-csv').disabled = false;
+            htmlExport.disabled = false;
             $('#growth-results').hidden = false;
         } catch (error) {
             scheduleRows = [];
+            latestProjection = null;
             $('#growth-export-csv').disabled = true;
+            htmlExport.disabled = true;
             $('#growth-schedule-rows').replaceChildren();
             $('#growth-results').hidden = true;
             $('#growth-validation').textContent = error instanceof Error ? error.message : 'Could not calculate the growth projection.';
@@ -73,10 +81,24 @@ export function initializeGrowthProjectionCalculator() {
         link.remove();
         window.setTimeout(() => URL.revokeObjectURL(url), 0);
     });
+    htmlExport.addEventListener('click', () => {
+        if (!latestProjection) return;
+        const report = renderGrowthProjectionReportHtml(latestProjection);
+        const blob = new Blob([report], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-growth-projection.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
     $('#growth-reset').addEventListener('click', () => {
         form.reset(); scheduleRows = [];
         $('#growth-schedule-rows').replaceChildren();
         $('#growth-export-csv').disabled = true;
+        htmlExport.disabled = true;
         $('#growth-results').hidden = true; $('#growth-validation').hidden = true; $('#growth-validation').textContent = '';
     });
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
