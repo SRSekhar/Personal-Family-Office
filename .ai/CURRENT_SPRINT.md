@@ -73,6 +73,5 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 
 
 ## 2026-10-25 — Follow-up in progress
-- Add a Chromium regression for keyboard-submitting an invalid CAGR beginning value after a valid result exists.
-- Verify normal edits clear stale results and native required-field validation moves focus to the missing beginning value; fictional values only.
-- Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
+- Chromium regression for keyboard-submitting an invalid CAGR beginning value after a valid result exists is present in the main browser-smoke suite; it verifies stale-result clearing and focus on the missing required beginning value using fictional values.
+- Follow-up: extend keyboard-submit coverage to the investment-performance calculator and verify its result summary appears when submitted from the keyboard.
