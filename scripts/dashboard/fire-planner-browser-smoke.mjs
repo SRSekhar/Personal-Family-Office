@@ -1835,6 +1835,29 @@ try {
     await assertOpensWithoutNetwork(browser, financialHealthPath, 'Financial health overview');
     process.stdout.write('PASS: financial health HTML report exports validated private metrics and opens offline.\\n');
 
+    assert.equal(await page.locator('#saved-goals-export-html').isEnabled(), true,
+        'saved goal HTML export should be enabled for validated saved goals in the private workspace');
+    const [goalReportDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#saved-goals-export-html').click()
+    ]);
+    assert.equal(goalReportDownload.suggestedFilename(), 'pfo-saved-goal-progress.html',
+        'saved goal report should use a stable filename');
+    const goalReportPath = join(temporaryDirectory, goalReportDownload.suggestedFilename());
+    await goalReportDownload.saveAs(goalReportPath);
+    const goalReportHtml = await readFile(goalReportPath, 'utf8');
+    assert.ok(goalReportHtml.includes('Saved goal progress'), 'goal report should include its title');
+    assert.ok(goalReportHtml.includes('Combined target'), 'goal report should include combined target totals');
+    assert.ok(goalReportHtml.includes('Monthly review &lt;img src=x onerror=alert(1)&gt; goal'),
+        'goal report should escape user-entered goal names');
+    assert.ok(goalReportHtml.includes('no returns assumed'),
+        'goal report should state the monthly pace does not assume returns');
+    assert.doesNotMatch(goalReportHtml, /<script\b|<iframe\b|<img\b/i,
+        'goal report must not include executable or injected elements');
+    await assertOfflineReport(goalReportDownload, 'pfo-saved-goal-progress.html', 'Saved goal progress');
+    await assertOpensWithoutNetwork(browser, goalReportPath, 'Saved goal progress');
+    process.stdout.write('PASS: saved goal progress HTML report reconciles goals and opens offline.\n');
+
     const validHistoryBeforeCorruption = await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'));
     assert.ok(validHistoryBeforeCorruption, 'private history should be available before the malformed-storage check');
     await page.evaluate(() => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', '{invalid'));
