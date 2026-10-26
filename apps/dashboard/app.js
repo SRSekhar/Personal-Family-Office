@@ -24,6 +24,7 @@ import { initializeGrowthProjectionCalculator } from './growth-projection.js';
 import { initializeCagrCalculator } from './cagr.js';
 import { initializeReturnRiskCalculator } from './return-risk.js';
 import { analyzeDiversification } from './analytics-runtime/DiversificationAnalysis.js';
+import { renderAssetAllocationReportHtml } from './asset-allocation-report.js';
 import { calculateFinancialRatios } from './analytics-runtime/FinancialRatios.js';
 import { renderFinancialRatiosReportHtml } from './financial-ratios-report.js';
 import { validateCashFlowEntries, validateCashFlowBudgets } from './cashflow-ledger.js';
@@ -1645,6 +1646,39 @@ function exportAllocationCsv() {
         showToast(error instanceof Error ? error.message : 'Could not create allocation CSV export.');
     }
 }
+function exportAllocationHtml() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace === 'private' && !privateStorageHealthy) {
+        showToast('Allocation report is paused because saved financial data could not be read safely. Existing storage remains untouched.');
+        return;
+    }
+    try {
+        const grouped = new Map();
+        records.filter((item) => item.type === 'asset').forEach((item) => {
+            grouped.set(item.category, (grouped.get(item.category) || 0) + item.value);
+        });
+        const report = renderAssetAllocationReportHtml({
+            entries: [...grouped.entries()].map(([category, value]) => ({ category, value })),
+            generatedAt: new Date().toISOString()
+        });
+        const blob = new Blob([report], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-os-asset-allocation.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Standalone asset allocation report exported to this device.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create asset allocation report.');
+    }
+}
+
 function exportCsv() {
     if (workspace === 'private' && !privateStorageHealthy) {
         showToast('Export is paused because saved data could not be read. Existing storage remains untouched; import a valid backup to recover.');
@@ -1989,6 +2023,7 @@ $('#export-financial-ratios-html').addEventListener('click', exportFinancialRati
 $('#export-financial-health-csv').addEventListener('click', exportFinancialHealthCsv);
 $('#export-financial-health-html').addEventListener('click', exportFinancialHealthHtml);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
+$('#export-allocation-html').addEventListener('click', exportAllocationHtml);
 $('#export-view-csv-button').addEventListener('click', exportViewCsv);
 $('#import-button').addEventListener('click', () => {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
