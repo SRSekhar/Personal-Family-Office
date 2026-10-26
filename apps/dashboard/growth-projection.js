@@ -98,6 +98,7 @@ export function initializeGrowthProjectionCalculator() {
         form.reset(); scheduleRows = [];
         $('#growth-schedule-rows').replaceChildren();
         $('#growth-export-csv').disabled = true;
+        htmlExport.disabled = true;
         $('#growth-results').hidden = true; $('#growth-validation').hidden = true; $('#growth-validation').textContent = '';
     });
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
