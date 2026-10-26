@@ -1,3 +1,16 @@
+## 2026-10-26 — Loan amortization offline report (in progress)
+
+### Delivered in feature branch
+- Added a standalone HTML report for the existing deterministic loan amortization calculator.
+- The report includes supplied assumptions, summary totals, payoff status, and the complete monthly schedule.
+- Recalculates the schedule from the exact input assumptions and rejects mismatched summary or payment rows before export.
+- Added a distinct HTML download while preserving the existing CSV export; the HTML is self-contained and contains no scripts or remote dependencies.
+- Added unit and Chromium coverage for report content, canonical-result reconciliation, download, offline opening, and stale-export invalidation.
+
+### Validation
+- CI, browser smoke, dashboard packaging, and Secret Scan are pending for the pull request.
+- Uses fictional test inputs only; no real household financial data is stored in repository files.
+
 ## 2026-10-25 — Offline monthly financial review verification
 
 ### Delivered in feature branch
