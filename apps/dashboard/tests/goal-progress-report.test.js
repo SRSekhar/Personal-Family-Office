@@ -22,6 +22,8 @@ describe('saved goal progress HTML report', () => {
         expect(html).toContain('Emergency fund');
         expect(html).toContain('Debt payoff');
         expect(html).toContain('Combined target');
+        expect(html).toContain('Goals reached');
+        expect(html).toContain('Past target date');
         expect(html).toContain('₹1,50,000');
         expect(html).toContain('₹75,000');
         expect(html).toContain('no returns assumed');
