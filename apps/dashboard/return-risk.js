@@ -1,4 +1,5 @@
 import { analyzeReturnSeries } from './analytics-runtime/RiskAnalysis.js';
+import { renderReturnRiskReportHtml } from './return-risk-report.js';
 import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -31,6 +32,7 @@ export function initializeReturnRiskCalculator() {
     const validation = $('#return-risk-validation');
     const exportButton = $('#return-risk-export-csv');
     const observationsExportButton = $('#return-risk-export-observations-csv');
+    const htmlExportButton = $('#return-risk-export-html');
     let latest = null;
 
     const invalidate = () => {
@@ -38,6 +40,7 @@ export function initializeReturnRiskCalculator() {
         results.hidden = true;
         exportButton.disabled = true;
         observationsExportButton.disabled = true;
+        htmlExportButton.disabled = true;
         validation.hidden = true;
         validation.textContent = '';
     };
@@ -112,11 +115,26 @@ export function initializeReturnRiskCalculator() {
             results.hidden = false;
             exportButton.disabled = false;
             observationsExportButton.disabled = false;
+            htmlExportButton.disabled = false;
         } catch (error) {
             latest = null;
             validation.textContent = error instanceof Error ? error.message : 'Check the return observations and assumptions.';
             validation.hidden = false;
         }
+    });
+
+    htmlExportButton.addEventListener('click', () => {
+        if (!latest) return;
+        const report = renderReturnRiskReportHtml(latest);
+        const blob = new Blob([report], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pfo-return-risk-analysis.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
     });
 
     observationsExportButton.addEventListener('click', () => {
