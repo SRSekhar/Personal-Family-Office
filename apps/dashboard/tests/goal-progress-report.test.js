@@ -27,6 +27,7 @@ describe('saved goal progress HTML report', () => {
         expect(html).toContain('₹1,50,000');
         expect(html).toContain('₹75,000');
         expect(html).toContain('no returns assumed');
+        expect(html).not.toContain('25 days overdue');
         expect(html).toContain('Keep this file private');
         expect(html).not.toMatch(/<script\b/i);
         expect(html).not.toMatch(/<(?:script|link|img)\b[^>]*(?:src|href)=["']https?:\/\//i);
