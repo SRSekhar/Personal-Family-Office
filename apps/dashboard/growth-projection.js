@@ -8,6 +8,16 @@ export function initializeGrowthProjectionCalculator() {
     const form = $('#growth-projection-form');
     if (!form) return;
     let scheduleRows = [];
+    const invalidateResults = () => {
+        scheduleRows = [];
+        $('#growth-export-csv').disabled = true;
+        $('#growth-results').hidden = true;
+        $('#growth-schedule-rows').replaceChildren();
+        $('#growth-validation').hidden = true;
+        $('#growth-validation').textContent = '';
+    };
+    form.addEventListener('input', invalidateResults);
+    form.addEventListener('change', invalidateResults);
     form.addEventListener('submit', (event) => {
         event.preventDefault(); $('#growth-validation').hidden = true;
         try {

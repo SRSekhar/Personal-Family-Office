@@ -33,6 +33,17 @@ export function initializeLoanAmortizationCalculator() {
     const form = $('#loan-amortization-form');
     if (!form) return;
     let lastSchedule = [];
+    const invalidateResults = () => {
+        lastSchedule = [];
+        $('#loan-estimate-results').hidden = true;
+        $('#loan-export-schedule').hidden = true;
+        $('#loan-schedule-rows').replaceChildren();
+        $('#loan-schedule-empty').hidden = false;
+        $('#loan-validation').hidden = true;
+        $('#loan-validation').textContent = '';
+    };
+    form.addEventListener('input', invalidateResults);
+    form.addEventListener('change', invalidateResults);
     form.addEventListener('submit', (event) => {
         event.preventDefault();
         $('#loan-validation').hidden = true;
@@ -57,14 +68,18 @@ export function initializeLoanAmortizationCalculator() {
             $('#loan-export-schedule').hidden = result.schedule.length === 0;
             renderSchedule(result.schedule);
         } catch (error) {
+            lastSchedule = [];
+            $('#loan-export-schedule').hidden = true;
             $('#loan-estimate-results').hidden = true;
             $('#loan-validation').textContent = error instanceof Error ? error.message : 'Could not calculate the loan schedule.';
             $('#loan-validation').hidden = false;
         }
     });
-    $('#loan-export-schedule').addEventListener('click', () => exportSchedule(lastSchedule));
+    $('#loan-export-schedule').addEventListener('click', () => {
+        if (lastSchedule.length > 0) exportSchedule(lastSchedule);
+    });
     $('#loan-reset').addEventListener('click', () => {
-        form.reset(); lastSchedule = []; $('#loan-estimate-results').hidden = true; $('#loan-validation').hidden = true; $('#loan-validation').textContent = '';
+        form.reset(); lastSchedule = []; $('#loan-estimate-results').hidden = true; $('#loan-export-schedule').hidden = true; $('#loan-validation').hidden = true; $('#loan-validation').textContent = '';
         $('#loan-schedule-rows').replaceChildren(); $('#loan-schedule-empty').hidden = false;
     });
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {

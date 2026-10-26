@@ -84,4 +84,11 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 ## 2026-10-26 — Return risk report
 - Add a self-contained offline HTML report for the existing descriptive return-risk calculator, revalidating the exact observation series and metrics before export.
 - Include supplied assumptions and dated returns; no market data, forecasts, risk rating, or investment recommendation.
-- Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
+- Validation: CI, Chromium browser smoke, and dashboard packaging passed before merge. The scheduled Secret Scan also runs independently and has three existing historical/documentation-pattern findings; the push-triggered scan passed.
+
+
+## 2026-10-26 — Loan and growth stale-result protection
+- Editing any loan amortization input now invalidates the prior schedule and hides its CSV export until recalculation; failed submissions cannot leave an old schedule exportable.
+- Editing any growth projection input now clears prior results and disables CSV export until recalculation.
+- Chromium regression checks verify both calculators invalidate stale outputs immediately after input changes.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
