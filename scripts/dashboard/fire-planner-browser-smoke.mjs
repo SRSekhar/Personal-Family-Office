@@ -561,7 +561,11 @@ try {
     await page.locator('#return-risk-observations').fill('2026-01-31,10\n2026-02-28,-20\n2026-03-31,5');
     await page.locator('#return-risk-risk-free').fill('1');
     await page.locator('#return-risk-target').fill('0');
-    await page.locator('#return-risk-form button[type="submit"]').click();
+    const calculateReturnRiskButton = page.getByRole('button', { name: 'Calculate risk metrics' });
+    await calculateReturnRiskButton.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#return-risk-results').isVisible(), true,
+        'keyboard submission should display return-risk results');
     assert.equal(await page.locator('#return-risk-observation-count').innerText(), '3');
     assert.equal(await page.locator('#return-risk-drawdown').innerText(), '20%');
     assert.equal(await page.locator('#return-risk-worst-period').innerText(), '-20%');
