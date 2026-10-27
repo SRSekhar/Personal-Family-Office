@@ -127,3 +127,10 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Recalculates concentration using the existing analytics function and escapes user-controlled category names.
 - Preserves CSV export; the downloaded report opens offline without scripts or remote requests.
 - Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #362.
+
+
+## 2026-10-27 — Historical net worth offline HTML report (in progress)
+- Add an offline HTML report for explicitly captured historical balance-sheet snapshots, including assets, liabilities, net worth, and changes between adjacent captured dates.
+- Use the existing snapshot validation and summary logic; do not interpolate missing dates or imply investment performance.
+- Preserve the existing history CSV export and test report opening without scripts or network requests.
+- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
