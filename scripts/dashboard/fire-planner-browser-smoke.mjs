@@ -2016,7 +2016,7 @@ try {
     const financialHealthCsvPath = join(temporaryDirectory, financialHealthCsvDownload.suggestedFilename());
     await financialHealthCsvDownload.saveAs(financialHealthCsvPath);
     const financialHealthCsv = await readFile(financialHealthCsvPath, 'utf8');
-    assert.ok(financialHealthCsv.startsWith('"metric","value","details","reporting_period","scope"\\r\\n'),
+    assert.ok(financialHealthCsv.startsWith('"metric","value","details","reporting_period","scope"\r\n'),
         'financial health CSV should contain the documented column header');
     const csvCell = (value) => '"' + String(value ?? '').replaceAll('"', '""') + '"';
     for (const [label, value, detail] of financialHealthCards) {
@@ -2025,11 +2025,11 @@ try {
         assert.ok(financialHealthCsv.includes(expectedRow),
             'financial health CSV should preserve each displayed metric and its reporting scope');
     }
-    assert.ok(financialHealthCsv.endsWith('\\r\\n'), 'financial health CSV should end with a CRLF record separator');
+    assert.ok(financialHealthCsv.endsWith('\r\n'), 'financial health CSV should end with a CRLF record separator');
     assert.ok(!financialHealthCsv.includes('<!doctype html'), 'financial health CSV must remain a CSV file, not an HTML report');
     assert.ok(financialHealthCsv.includes('"Private local workspace"'),
         'financial health CSV should label its local private-data scope');
-    process.stdout.write('PASS: financial health HTML and CSV exports reconcile to the selected, displayed private metrics.\\n');
+    process.stdout.write('PASS: financial health HTML and CSV exports reconcile to the selected, displayed private metrics.\n');
 
     assert.equal(await page.locator('#saved-goals-export-html').isEnabled(), true,
         'saved goal HTML export should be enabled for validated saved goals in the private workspace');
