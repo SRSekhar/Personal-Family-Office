@@ -1,12 +1,13 @@
-## 2026-10-27 — Historical net worth offline HTML report (in progress)
+## 2026-10-27 — Historical net worth offline HTML report (PR #364 merged)
 
-### Scope
-- Add an offline HTML report for explicitly captured historical balance-sheet snapshots, including assets, liabilities, net worth, and changes between adjacent captured dates.
-- Use existing snapshot validation and summary logic; do not interpolate missing dates or imply investment performance.
-- Preserve history CSV export; add unit and Chromium coverage for validation, missing dates, and offline opening.
+### Delivered
+- Added a standalone offline HTML report for explicitly captured historical balance-sheet snapshots, including assets, liabilities, net worth, record counts, changes between adjacent snapshots, and a first/latest comparison.
+- Reuses the existing snapshot validation and summary logic; does not interpolate missing dates or imply that net-worth changes are investment returns.
+- Preserves the history CSV export and includes unit and Chromium browser coverage for invalid/empty history, Indian numeric formatting, honest date gaps, download behavior, and opening the report without scripts or remote assets.
 
 ### Validation
-- Pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+- CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed before merge.
+- Browser fixtures use fictional data only; no personal financial values are committed.
 - Browser tests use fictional development snapshots; no personal financial values are committed.
 
 ## 2026-10-26 — Asset allocation offline HTML report (PR #362 merged)
