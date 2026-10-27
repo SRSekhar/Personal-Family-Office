@@ -1069,7 +1069,7 @@ function renderFinancialHealth() {
         const monthInput = $('#financial-health-month');
         if (monthInput && !monthInput.value) monthInput.value = currentMonth;
         const month = monthInput?.value || currentMonth;
-        if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
             throw new Error('Choose a valid financial health reporting month.');
         }
         const result = calculateFinancialHealth({ records, cashFlowEntries: entries, budgets, goals: savedGoals, month });
