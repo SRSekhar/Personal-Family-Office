@@ -1065,7 +1065,13 @@ function renderFinancialHealth() {
             budgetKeys.add(key);
         }
         const now = new Date();
-        const month = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        const monthInput = $('#financial-health-month');
+        if (monthInput && !monthInput.value) monthInput.value = currentMonth;
+        const month = monthInput?.value || currentMonth;
+        if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+            throw new Error('Choose a valid financial health reporting month.');
+        }
         const result = calculateFinancialHealth({ records, cashFlowEntries: entries, budgets, goals: savedGoals, month });
         const monthLabel = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' })
             .format(new Date(month + '-01T12:00:00'));
@@ -2058,6 +2064,7 @@ $('#print-report-button').addEventListener('click', printFinancialReport);
 $('#export-csv-button').addEventListener('click', exportCsv);
 $('#export-financial-ratios-csv').addEventListener('click', exportFinancialRatiosCsv);
 $('#export-financial-ratios-html').addEventListener('click', exportFinancialRatiosHtml);
+$('#financial-health-month').addEventListener('change', () => renderFinancialHealth());
 $('#export-financial-health-csv').addEventListener('click', exportFinancialHealthCsv);
 $('#export-financial-health-html').addEventListener('click', exportFinancialHealthHtml);
 $('#export-allocation-csv').addEventListener('click', exportAllocationCsv);
