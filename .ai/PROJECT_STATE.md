@@ -43,7 +43,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Complete manual screen-reader and real browser-chrome 400% zoom reviews for the FIRE planner, Goal Tracker, historical trend/details, and key report workflows. Automated Chromium checks cover keyboard activation, validation/focus behavior, report downloads, tested offline opening, and selected 320 CSS-pixel layouts; they do not substitute for manual assistive-technology review.
+1. LOW PRIORITY / DEFERRED: manual screen-reader and real browser-chrome 400% zoom reviews. Automated keyboard/focus and selected 320 CSS-pixel checks remain in CI; revisit manual audits during release readiness or if customer requirements justify them.
 2. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
 3. Validate the shipped financial-health, return-risk, concentration, and report outputs with synthetic acceptance scenarios and then user workflows; avoid adding KPIs before needs are validated.
 4. Manually review historical repository content and commit metadata for accidental secrets; finish software distribution/legal review and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
