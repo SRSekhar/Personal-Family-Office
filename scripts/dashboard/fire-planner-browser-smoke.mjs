@@ -626,7 +626,7 @@ try {
     const riskCsvPath = join(temporaryDirectory, riskCsv.suggestedFilename());
     await riskCsv.saveAs(riskCsvPath);
     const riskCsvText = await readFile(riskCsvPath, 'utf8');
-    const parseCsvRows = (content) => content.trimEnd().split(/\\r?\\n/u).map((line) =>
+    const parseCsvRows = (content) => content.trimEnd().split(/\r?\n/u).map((line) =>
         line.match(/(?:^|,)(?:"((?:[^"]|"")*)"|([^,]*))/gu).map((cell) => {
             const value = cell.startsWith(',') ? cell.slice(1) : cell;
             if (value.startsWith('"') && value.endsWith('"')) return value.slice(1, -1).replaceAll('""', '"');
@@ -654,7 +654,7 @@ try {
     const observationCsvPath = join(temporaryDirectory, observationCsvDownload.suggestedFilename());
     await observationCsvDownload.saveAs(observationCsvPath);
     const observationCsv = await readFile(observationCsvPath, 'utf8');
-    assert.equal(observationCsv, '"date","return_percent"\\r\\n"2026-01-31","10"\\r\\n"2026-02-28","-20"\\r\\n"2026-03-31","5"\\r\\n',
+    assert.equal(observationCsv, '"date","return_percent"\r\n"2026-01-31","10"\r\n"2026-02-28","-20"\r\n"2026-03-31","5"\r\n',
         'observations CSV should preserve exact dates, order, signed percentage values, and CRLF separators');
 
     const [riskHtmlDownload] = await Promise.all([
