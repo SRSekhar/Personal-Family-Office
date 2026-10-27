@@ -1,7 +1,5 @@
 import { summarizeHistoricalSnapshots } from './historical-snapshots.js';
 
-const escapeHtml = (value) => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 const money = (value, currency) => new Intl.NumberFormat('en-IN', {
     style: 'currency', currency, maximumFractionDigits: 2
 }).format(value);
@@ -23,7 +21,7 @@ export function renderHistoricalSnapshotsReportHtml({ snapshots, currency, gener
     const latest = points.at(-1);
     const totalChange = latest.netWorth - first.netWorth;
     const totalChangePercent = first.netWorth !== 0 ? totalChange / Math.abs(first.netWorth) * 100 : null;
-    const rows = points.map((point, index) => {
+    const rows = points.map((point) => {
         const changeClass = point.netWorthChange === null ? '' : point.netWorthChange >= 0 ? 'positive' : 'negative';
         return `<tr><th scope="row">${dateLabel(point.date)}</th><td>${point.recordCount}</td><td>${money(point.assets, currency)}</td><td>${money(point.liabilities, currency)}</td><td><strong>${money(point.netWorth, currency)}</strong></td><td class="${changeClass}">${point.netWorthChange === null ? '—' : money(point.netWorthChange, currency)}</td><td>${percent(point.netWorthChangePercent)}</td></tr>`;
     }).join('\n');
