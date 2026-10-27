@@ -23,9 +23,9 @@ describe('renderHistoricalSnapshotsReportHtml', () => {
         });
         expect(html).toMatch(/<!doctype html/i);
         expect(html).toContain('Historical net worth');
-        expect(html).toContain('2,420,000');
-        expect(html).toContain('3,720,000');
-        expect(html).toContain('1,300,000');
+        expect(html).toContain('24,20,000');
+        expect(html).toContain('37,20,000');
+        expect(html).toContain('13,00,000');
         expect(html).toContain('missing dates are not interpolated');
         expect(html).not.toContain('2023');
         expect(html).toContain('point-in-time balance sheets');
