@@ -1247,6 +1247,24 @@ try {
 
     
     await page.locator('#import-csv-file').setInputFiles({
+        name: 'partially-invalid-records.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(
+            'Name,Category,Type,Value,Currency\\r\\n'
+            + '"Would be first","Investments","asset",100,"INR"\\r\\n'
+            + '"Invalid second","Investments","asset",-1,"INR"\\r\\n'
+        )
+    });
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('invalid financial record')
+    );
+    assert.ok((await page.locator('#records-body').innerText()).includes('Savings account'),
+        'a CSV with a valid first row and invalid later row must not partially replace saved records');
+    assert.ok(!(await page.locator('#records-body').innerText()).includes('Would be first'),
+        'CSV validation must complete before any imported record is persisted');
+    process.stdout.write('PASS: a later invalid CSV row rejects the entire import without partial persistence.\\n');
+
+    await page.locator('#import-csv-file').setInputFiles({
         name: 'empty-records.csv',
         mimeType: 'text/csv',
         buffer: Buffer.from('Name,Category,Type,Value,Currency\r\n')
