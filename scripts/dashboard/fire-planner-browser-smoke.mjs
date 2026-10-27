@@ -233,7 +233,7 @@ try {
         assert.ok(await panel.isVisible(), `${label} should remain visible at a 320 CSS-pixel viewport`);
         assert.ok(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth),
             `${label} panel should contain its content at a 320 CSS-pixel viewport`);
-        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+        assert.ok(await page.evaluate(() => globalThis.document.documentElement.scrollWidth <= globalThis.document.documentElement.clientWidth),
             `${label} should not cause document-level horizontal overflow at a 320 CSS-pixel viewport`);
     }
     await page.setViewportSize({ width: 1280, height: 900 });
