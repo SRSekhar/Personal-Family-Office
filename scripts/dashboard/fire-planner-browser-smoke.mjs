@@ -94,6 +94,26 @@ try {
     assert.ok(!(await page.locator('#records-body').innerText()).includes('Must not import'),
         'cancelling a backup import must not import any records');
 
+    const cancelledCsvImport = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const message = dialog.message();
+            await dialog.dismiss();
+            resolve(message);
+        });
+    });
+    await page.locator('#import-csv-file').setInputFiles({
+        name: 'cancelled-records.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('Name,Category,Type,Value,Currency\\r\\n"Savings","Cash & deposits","asset",100,"INR"\\r\\n')
+    });
+    assert.match(await cancelledCsvImport, /cash-flow transactions, budgets, and historical snapshots are preserved/i);
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('CSV import cancelled.'));
+    assert.equal(await page.locator('#workspace-label').innerText(), 'SAMPLE WORKSPACE',
+        'cancelling a CSV import from the sample workspace must not switch workspaces');
+    assert.ok(!(await page.locator('#records-body').innerText()).includes('Savings'),
+        'cancelling a CSV import must not change the sample records');
+    process.stdout.write('PASS: cancelling CSV replacement preserves the current workspace and all saved data.\\n');
+
     await page.evaluate(() => {
         const originalSetItem = globalThis.Storage.prototype.setItem;
         globalThis.__pfoOriginalSetItem = originalSetItem;
@@ -1253,12 +1273,16 @@ try {
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
+    assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
+    assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private backup includes saved goals and their current progress.\n');
+    process.stdout.write('PASS: private schema-v4 backup includes records, goals, cash flow, budgets, and historical snapshots.\\n');
 
     const priorWorkspaceBeforeHistoryFailure = await page.evaluate(() => ({
         records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
         goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
         history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
     }));
     await page.evaluate(() => {
@@ -1288,6 +1312,8 @@ try {
     const afterFailedHistoryRestore = await page.evaluate(() => ({
         records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
         goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
         history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
     }));
     assert.deepEqual(afterFailedHistoryRestore, priorWorkspaceBeforeHistoryFailure,
