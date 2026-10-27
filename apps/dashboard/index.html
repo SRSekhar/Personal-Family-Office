@@ -103,8 +103,8 @@
             </section>
 
             <section class="panel financial-health-panel" id="financial-health-dashboard" aria-labelledby="financial-health-heading">
-                <div class="panel-header"><div><p class="eyebrow">FINANCIAL HEALTH</p><h2 id="financial-health-heading">Your financial health overview</h2></div><div class="panel-header-actions"><button class="button button-secondary button-small" id="export-financial-health-csv" type="button">Export health CSV</button><button class="button button-secondary button-small" id="export-financial-health-html" type="button">Download health report</button><span class="panel-tag" id="financial-health-status" aria-live="polite">Loading summary</span></div></div>
-                <p class="financial-health-intro">A consolidated view of your balance sheet, current-month recorded cash flow, explicit budget performance, and saved goal progress.</p>
+                <div class="panel-header"><div><p class="eyebrow">FINANCIAL HEALTH</p><h2 id="financial-health-heading">Your financial health overview</h2></div><div class="panel-header-actions"><label for="financial-health-month">Reporting month</label><input id="financial-health-month" type="month" aria-label="Financial health reporting month"><button class="button button-secondary button-small" id="export-financial-health-csv" type="button">Export health CSV</button><button class="button button-secondary button-small" id="export-financial-health-html" type="button">Download health report</button><span class="panel-tag" id="financial-health-status" aria-live="polite">Loading summary</span></div></div>
+                <p class="financial-health-intro">A consolidated view of your balance sheet, selected-month recorded cash flow, explicit budget performance, and saved goal progress.</p>
                 <div id="financial-health-metrics" class="financial-health-grid" aria-live="polite"></div>
                 <p id="financial-health-note" class="financial-health-note">Calculating from validated local records.</p>
             </section>
