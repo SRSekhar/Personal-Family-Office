@@ -61,7 +61,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 
 ## Next Deliverables
 
-1. Complete the manual screen-reader and real browser-chrome 400% zoom review for the dashboard, FIRE planner, Goal Tracker, history views, and key reports.
+1. LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom reviews. Keep existing automated accessibility, keyboard/focus, and narrow-viewport regression checks; revisit manual audits during release readiness or if customer requirements justify them.
 2. Run customer-discovery interviews using the existing non-leading script; record anonymized evidence and update the product log.
 3. Review historical repository content and commit metadata for accidental secrets, then resolve licensing/distribution and public/private product-boundary decisions.
 4. Configure GitHub Pages only after the repository owner confirms the public sample-only deployment and required settings.
