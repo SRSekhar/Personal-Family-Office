@@ -104,7 +104,7 @@ try {
     await page.locator('#import-csv-file').setInputFiles({
         name: 'cancelled-records.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('Name,Category,Type,Value,Currency\\r\\n"Savings","Cash & deposits","asset",100,"INR"\\r\\n')
+        buffer: Buffer.from('Name,Category,Type,Value,Currency\r\n"Savings","Cash & deposits","asset",100,"INR"\r\n')
     });
     assert.match(await cancelledCsvImport, /cash-flow transactions, budgets, and historical snapshots are preserved/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('CSV import cancelled.'));
@@ -112,7 +112,7 @@ try {
         'cancelling a CSV import from the sample workspace must not switch workspaces');
     assert.ok(!(await page.locator('#records-body').innerText()).includes('Savings'),
         'cancelling a CSV import must not change the sample records');
-    process.stdout.write('PASS: cancelling CSV replacement preserves the current workspace and all saved data.\\n');
+    process.stdout.write('PASS: cancelling CSV replacement preserves the current workspace and all saved data.\n');
 
     await page.evaluate(() => {
         const originalSetItem = globalThis.Storage.prototype.setItem;
@@ -1250,9 +1250,9 @@ try {
         name: 'partially-invalid-records.csv',
         mimeType: 'text/csv',
         buffer: Buffer.from(
-            'Name,Category,Type,Value,Currency\\r\\n'
-            + '"Would be first","Investments","asset",100,"INR"\\r\\n'
-            + '"Invalid second","Investments","asset",-1,"INR"\\r\\n'
+            'Name,Category,Type,Value,Currency\r\n'
+            + '"Would be first","Investments","asset",100,"INR"\r\n'
+            + '"Invalid second","Investments","asset",-1,"INR"\r\n'
         )
     });
     await page.waitForFunction(() =>
@@ -1262,7 +1262,7 @@ try {
         'a CSV with a valid first row and invalid later row must not partially replace saved records');
     assert.ok(!(await page.locator('#records-body').innerText()).includes('Would be first'),
         'CSV validation must complete before any imported record is persisted');
-    process.stdout.write('PASS: a later invalid CSV row rejects the entire import without partial persistence.\\n');
+    process.stdout.write('PASS: a later invalid CSV row rejects the entire import without partial persistence.\n');
 
     await page.locator('#import-csv-file').setInputFiles({
         name: 'empty-records.csv',
