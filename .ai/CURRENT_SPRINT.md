@@ -41,24 +41,30 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #326 — keyboard activation of FIRE readiness and Goal Tracker calculations.
 - PR #331 — Chromium keyboard submission of invalid FIRE contribution assumptions clears stale results and moves focus to the invalid required field.
 - PR #332 — Chromium keyboard submission of an invalid Goal Tracker target clears stale results and focuses the missing required field.
+- PR #352 — offline tax estimate report with exact supplied brackets, validation, and offline browser coverage.
+- PR #355 — compound-growth offline report with reconciled assumptions and annual schedule.
+- PR #356 — loan amortization offline report with validated assumptions, totals, and complete monthly schedule.
+- PR #358 — CAGR offline report with canonical recalculation and stale-export protection.
+- PR #360 — balance-sheet ratios offline report with reconciled totals and interpretation limits.
+- PR #362 — asset allocation offline report with category concentration metrics.
+- PR #364 — historical net worth offline report using only captured snapshots and honest date gaps.
+- PR #367 — annual financial review year-over-year comparison with explicit zero-baseline handling.
+- PR #365 and #366 — synchronized historical-report validation, roadmap, and project-state documentation.
 
 ## In Progress
 
-- Added CI static accessibility-contract regression checks for FIRE/Goal Tracker labels, alerts, live regions, section naming, and progress indicator. This is structural coverage only, not browser validation.
-- Chromium smoke now covers FIRE calculations/reset, Goal Tracker progress and validation, report downloads, keyboard activation, and over-target progress semantics. PR #331 added keyboard submission coverage for invalid FIRE contribution assumptions, stale-result clearing, and focus on the invalid required field. PR #332 adds equivalent invalid Goal Tracker submission coverage. The next follow-up covers invalid CAGR keyboard submission. Manual screen-reader review and real browser-chrome 400% zoom verification remain open.
-- Historical trend and detail panels now have Chromium regression checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and preserved focus; this is a narrow-viewport test, not a full browser-zoom or manual screen-reader audit.
-- Verify responsive layout and usability at 400% zoom.
-- Browser smoke opens the financial summary, single-scenario FIRE report, three-scenario comparison report, and monthly financial review from local file URLs with HTTP/HTTPS requests blocked. PRs #320–#321 verify escaped user-controlled goal and category text; fictional data only.
-- Customer demand remains unvalidated; plan the documented 8–10 anonymized interviews and seek two paid-pilot commitments.
+- Manual screen-reader review and real browser-chrome 400% zoom verification remain open. Static accessibility contracts and automated Chromium keyboard/focus checks do not replace assistive-technology review.
+- Historical trend and snapshot-detail panels have Chromium checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and focus restoration; this is not a substitute for browser zoom or manual screen-reader testing.
+- Customer demand remains unvalidated; the documented plan is 8–10 anonymized interviews and two paid-pilot commitments. Do not claim demand or revenue until evidence exists.
+- Release gates remain open for historical repository exposure review, dependency licensing/distribution disposition, the product licensing decision, and owner-side GitHub Pages setup.
 
 ## Next Deliverables
 
-1. Complete interactive browser and accessibility verification for FIRE planner, report exports, and Goal Tracker.
-2. Extend offline report checks to remaining report types and verify downloads stay self-contained under browser file-opening restrictions.
-3. Capture anonymized customer-discovery evidence and update the product log.
-4. Complete a broader manual screen-reader and real-browser 400% zoom review of the historical trend and snapshot-detail panels; automated keyboard focus and 320 CSS-pixel responsive checks are covered.
-5. Automated keyboard checks cover snapshot removal, cancellation, and storage failure. Complete a broader manual screen-reader review and ensure full-workspace backups are available before destructive edits.
-6. Resolve licensing/distribution and owner-side GitHub Pages setup before public release.
+1. Complete the manual screen-reader and real browser-chrome 400% zoom review for the dashboard, FIRE planner, Goal Tracker, history views, and key reports.
+2. Run customer-discovery interviews using the existing non-leading script; record anonymized evidence and update the product log.
+3. Review historical repository content and commit metadata for accidental secrets, then resolve licensing/distribution and public/private product-boundary decisions.
+4. Configure GitHub Pages only after the repository owner confirms the public sample-only deployment and required settings.
+5. Validate the existing financial-health, risk, concentration, and annual comparison outputs with real user workflows before adding more KPIs; preserve local-first privacy and deterministic calculation boundaries.
 
 ## Release Gates and Constraints
 
