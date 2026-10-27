@@ -121,7 +121,7 @@ Any future recommendations require explicit assumptions, explainability, and app
 - Local-only planner UI and required annual contribution action (PR #139)
 - Three-scenario comparison preserving entered order and explicit assumptions (PR #141)
 - Explicit downloadable offline HTML reports for one or more scenarios (PR #142)
-- Remaining: manual screen-reader and real browser-chrome 400% zoom review, customer discovery, and follow-up requirements for managing multiple goals and deciding persistence
+- LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom review. Remaining: customer discovery and follow-up requirements for managing multiple goals and deciding persistence
 - Monte Carlo scenarios only after a separate requirements and validation plan
 
 The current calculator is a deterministic scenario, not a probability model or guarantee. It excludes taxes, fees, investment volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. Keep assumptions visible and validated before exposing results in a user-facing planner.
