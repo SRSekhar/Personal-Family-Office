@@ -1229,7 +1229,7 @@ try {
     await page.locator('#import-csv-file').setInputFiles({
         name: 'empty-records.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('Name,Category,Type,Value,Currency\\r\\n')
+        buffer: Buffer.from('Name,Category,Type,Value,Currency\r\n')
     });
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#toast')?.textContent.includes('CSV contains no financial records')
@@ -1240,7 +1240,7 @@ try {
         'header-only CSV must preserve saved goals');
     assert.match(await page.locator('#net-worth').innerText(), /63,30,000/,
         'header-only CSV must leave financial totals unchanged');
-    process.stdout.write('PASS: header-only CSV is rejected without prompting to replace or changing saved records.\\n');
+    process.stdout.write('PASS: header-only CSV is rejected without prompting to replace or changing saved records.\n');
 
     const [goalBackupDownload] = await Promise.all([
         page.waitForEvent('download'),
