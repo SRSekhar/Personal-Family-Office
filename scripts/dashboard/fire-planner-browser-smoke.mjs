@@ -2026,7 +2026,9 @@ try {
             'financial health CSV should preserve each displayed metric and its reporting scope');
     }
     assert.ok(financialHealthCsv.endsWith('\\r\\n'), 'financial health CSV should end with a CRLF record separator');
-    await assertOfflineReport(financialHealthCsvDownload, 'pfo-os-financial-health.csv', 'metric,value,details');
+    assert.ok(!financialHealthCsv.includes('<!doctype html'), 'financial health CSV must remain a CSV file, not an HTML report');
+    assert.ok(financialHealthCsv.includes('"Private local workspace"'),
+        'financial health CSV should label its local private-data scope');
     process.stdout.write('PASS: financial health HTML and CSV exports reconcile to the selected, displayed private metrics.\\n');
 
     assert.equal(await page.locator('#saved-goals-export-html').isEnabled(), true,
