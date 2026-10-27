@@ -1482,7 +1482,7 @@ function importCsvData(file) {
                 'Importing this CSV will replace all financial records in your private workspace. Saved goals, cash-flow transactions, budgets, and historical snapshots are preserved. Continue?'
             );
             if (!replacementConfirmed) {
-                showToast('CSV import cancelled. Your existing records and goals were not changed.');
+                showToast('CSV import cancelled. Existing records, goals, cash flow, budgets, and historical snapshots were not changed.');
                 return;
             }
             if (savePrivateRecords(parsedRecords, true)) {
