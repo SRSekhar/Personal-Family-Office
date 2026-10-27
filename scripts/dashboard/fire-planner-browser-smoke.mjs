@@ -626,8 +626,37 @@ try {
     const riskCsvPath = join(temporaryDirectory, riskCsv.suggestedFilename());
     await riskCsv.saveAs(riskCsvPath);
     const riskCsvText = await readFile(riskCsvPath, 'utf8');
-    assert.match(riskCsvText, /"maximum_drawdown","0\.199999/,
+    const parseCsvRows = (content) => content.trimEnd().split(/\\r?\\n/u).map((line) =>
+        line.match(/(?:^|,)(?:"((?:[^"]|"")*)"|([^,]*))/gu).map((cell) => {
+            const value = cell.startsWith(',') ? cell.slice(1) : cell;
+            if (value.startsWith('"') && value.endsWith('"')) return value.slice(1, -1).replaceAll('""', '"');
+            return value;
+        })
+    );
+    const riskMetricRows = parseCsvRows(riskCsvText);
+    assert.deepEqual(riskMetricRows[0], ['metric', 'value'], 'risk metrics CSV should use its documented header');
+    const riskMetricMap = new Map(riskMetricRows.slice(1).map(([key, value]) => [key, value]));
+    assert.equal(riskMetricMap.get('observation_count'), '3');
+    assert.equal(riskMetricMap.get('periods_per_year'), '12');
+    assert.ok(Math.abs(Number(riskMetricMap.get('maximum_drawdown')) - 0.2) < 1e-12,
         'risk CSV should export the calculated maximum drawdown');
+    assert.ok(Math.abs(Number(riskMetricMap.get('worst_period_return')) + 0.2) < 1e-12,
+        'risk CSV should export the worst supplied return');
+    assert.equal(riskMetricMap.get('negative_period_count'), '1');
+    assert.ok(Math.abs(Number(riskMetricMap.get('risk_free_rate_per_period')) - 0.01) < 1e-12);
+    assert.ok(Math.abs(Number(riskMetricMap.get('minimum_acceptable_return_per_period')) - 0) < 1e-12);
+
+    const [observationCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#return-risk-export-observations-csv').click()
+    ]);
+    assert.equal(observationCsvDownload.suggestedFilename(), 'pfo-return-risk-observations.csv');
+    const observationCsvPath = join(temporaryDirectory, observationCsvDownload.suggestedFilename());
+    await observationCsvDownload.saveAs(observationCsvPath);
+    const observationCsv = await readFile(observationCsvPath, 'utf8');
+    assert.equal(observationCsv, '"date","return_percent"\\r\\n"2026-01-31","10"\\r\\n"2026-02-28","-20"\\r\\n"2026-03-31","5"\\r\\n',
+        'observations CSV should preserve exact dates, order, signed percentage values, and CRLF separators');
+
     const [riskHtmlDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#return-risk-export-html').click()
@@ -639,6 +668,20 @@ try {
     assert.ok(riskHtml.includes('Return risk analysis'), 'HTML report should include its title');
     assert.ok(riskHtml.includes('Maximum drawdown'), 'HTML report should include the drawdown metric');
     assert.ok(riskHtml.includes('2026-02-28'), 'HTML report should include the supplied observation dates');
+    for (const [selector, label] of [
+        ['#return-risk-observation-count', 'Observations'],
+        ['#return-risk-cumulative-return', 'Cumulative return'],
+        ['#return-risk-volatility', 'Annualized volatility'],
+        ['#return-risk-drawdown', 'Maximum drawdown'],
+        ['#return-risk-worst-period', 'Worst period return'],
+        ['#return-risk-negative-count', 'Negative periods'],
+        ['#return-risk-sharpe', 'Annualized Sharpe ratio'],
+        ['#return-risk-sortino', 'Annualized Sortino ratio']
+    ]) {
+        assert.ok(riskHtml.includes(label), 'HTML report should include ' + label);
+        assert.ok(riskHtml.includes(await page.locator(selector).innerText()),
+            'HTML report should reconcile ' + label + ' to the currently displayed result');
+    }
     assert.ok(!riskHtml.includes('<script') && !riskHtml.includes('<iframe')
         && !riskHtml.includes('https://') && !riskHtml.includes('http://'),
     'risk HTML report must be self-contained and script-free');
@@ -647,6 +690,10 @@ try {
     await page.locator('#return-risk-observations').fill('2026-02-30,3');
     assert.equal(await page.locator('#return-risk-export-csv').isDisabled(), true,
         'editing risk observations should invalidate stale metric exports');
+    assert.equal(await page.locator('#return-risk-export-observations-csv').isDisabled(), true,
+        'editing risk observations should invalidate stale observation exports');
+    assert.equal(await page.locator('#return-risk-export-html').isDisabled(), true,
+        'editing risk observations should invalidate stale HTML exports');
     await page.locator('#return-risk-form button[type="submit"]').click();
     assert.equal(await page.locator('#return-risk-validation').isVisible(), true,
         'invalid calendar dates should show an actionable validation message');
