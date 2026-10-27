@@ -94,6 +94,6 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PRs #317–#321 added offline browser verification for the financial summary, FIRE reports, scenario comparison, monthly financial review, and HTML escaping of user-controlled goal/category text.
 - PRs #322–#325 added keyboard removal coverage, duplicate-date capture rejection, malformed-history fail-closed behavior, and full-workspace backup recovery from malformed history.
 - PR #326 added keyboard activation coverage for FIRE readiness and Goal Tracker calculations. CI and Secret Scan passed before merge for these PRs.
-- Remaining: manual screen-reader and browser zoom review.
+- LOW PRIORITY / DEFERRED: manual screen-reader and browser zoom review; keep automated accessibility and responsive regression coverage, and revisit during release readiness if warranted.
 - Remaining: anonymized customer discovery.
 - Release gates: review repository history for exposed credentials, decide distribution/licensing, and complete owner-side Pages configuration.
