@@ -16,7 +16,7 @@ function money(value) {
  * and saved goals. Missing months remain zero; no transactions are inferred.
  */
 export function buildAnnualFinancialReview({ entries, budgets, goals, year, generatedAt = new Date() }) {
-    if (typeof year !== 'string' || !YEAR_PATTERN.test(year)) {
+    if (typeof year !== 'string' || !YEAR_PATTERN.test(year) || Number(year) < 1) {
         throw new RangeError('Year must use YYYY format.');
     }
     if (!(generatedAt instanceof Date) || Number.isNaN(generatedAt.getTime())) {
