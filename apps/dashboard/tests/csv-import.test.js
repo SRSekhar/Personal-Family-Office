@@ -28,6 +28,11 @@ describe('parseRecordsCsv', () => {
         expect(parseRecordsCsv(header + '"\'=1+1","Other","asset",1,"INR"')[0].name).toBe("'=1+1");
     });
 
+    it('rejects a header-only CSV so an accidental empty export cannot clear all records', () => {
+        expect(() => parseRecordsCsv(header)).toThrow('CSV contains no financial records');
+        expect(() => parseRecordsCsv(header.trimEnd())).toThrow('CSV contains no financial records');
+    });
+
     it('rejects empty input and unsupported headers', () => {
         expect(() => parseRecordsCsv('')).toThrow('CSV file is empty');
         expect(() => parseRecordsCsv('Name,Value\nCash,1')).toThrow('Unsupported CSV format');
