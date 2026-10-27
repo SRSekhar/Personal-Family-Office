@@ -222,6 +222,23 @@ try {
     await page.setViewportSize({ width: 1280, height: 900 });
     process.stdout.write('PASS: historical trend and snapshot details reflow and retain focus at a 320 CSS-pixel viewport.\\n');
 
+    await page.setViewportSize({ width: 320, height: 900 });
+    for (const [fragment, selector, label] of [
+        ['fire-planner', '.fire-planner-panel', 'FIRE planner'],
+        ['goal-tracker', '.goal-tracker-panel', 'Goal Tracker'],
+        ['return-risk-analysis', '.return-risk-panel', 'return-risk analysis']
+    ]) {
+        await page.goto(`${baseUrl}#${fragment}`, { waitUntil: 'networkidle' });
+        const panel = page.locator(selector);
+        assert.ok(await panel.isVisible(), `${label} should remain visible at a 320 CSS-pixel viewport`);
+        assert.ok(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth),
+            `${label} panel should contain its content at a 320 CSS-pixel viewport`);
+        assert.ok(await page.evaluate(() => globalThis.document.documentElement.scrollWidth <= globalThis.document.documentElement.clientWidth),
+            `${label} should not cause document-level horizontal overflow at a 320 CSS-pixel viewport`);
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    process.stdout.write('PASS: FIRE planner, Goal Tracker, and return-risk panels contain content at a 320 CSS-pixel viewport.\\n');
+
     await page.goto(`${baseUrl}#fire-planner`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => globalThis.document.querySelector('.nav-item[href="#fire-planner"]')?.getAttribute('aria-current') === 'page');
     assert.equal(await page.locator('#page-breadcrumb').innerText(), 'FIRE planner',
