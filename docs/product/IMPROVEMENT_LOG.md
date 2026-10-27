@@ -1,3 +1,14 @@
+## 2026-10-27 — Annual financial review year-over-year comparison (in progress)
+
+### Scope
+- Extend the annual cash-flow report to compare selected-year income, expenses, net cash flow, and transaction count with the previous calendar year.
+- Use only recorded transactions; preserve zero-activity months and make an empty prior-year baseline explicit.
+- Show absolute changes and percentage changes for income/expenses only when their prior-year denominator is positive. Do not imply forecasts or infer missing transactions.
+
+### Validation
+- Unit and Chromium offline-report regression coverage added; CI, browser smoke, dashboard packaging, and Secret Scan pending for the feature PR.
+- Tests use fictional transaction data only.
+
 ## 2026-10-27 — Historical net worth offline HTML report (PR #364 merged)
 
 ### Delivered
