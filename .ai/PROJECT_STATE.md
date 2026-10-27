@@ -43,11 +43,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Complete remaining interactive browser review for FIRE scenario comparison and report controls, then perform a manual screen-reader audit and real browser-chrome 400% zoom review. Chromium smoke already covers FIRE calculations/reset, Goal Tracker progress/validation, report downloads, keyboard activation, and narrow viewport behavior.
-2. Continue offline report checks for any remaining report types; the financial summary, single-scenario FIRE report, three-scenario comparison report, and monthly financial review have been opened from local file URLs with network access blocked in Chromium.
-3. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
-4. Historical snapshot persistence, explicit valuation dates, multi-year trend/detail views, CSV export, schema v4 backup/restore, duplicate-date protection, and malformed-storage recovery are implemented. Preserve the no-fabricated-history and local-first constraints.
-5. Manually review historical repository content and commit metadata for accidental secrets; finish software distribution/legal review and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
+1. Complete manual screen-reader and real browser-chrome 400% zoom reviews for the FIRE planner, Goal Tracker, historical trend/details, and key report workflows. Automated Chromium checks cover keyboard activation, validation/focus behavior, report downloads, tested offline opening, and selected 320 CSS-pixel layouts; they do not substitute for manual assistive-technology review.
+2. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
+3. Validate the shipped financial-health, return-risk, concentration, and report outputs with synthetic acceptance scenarios and then user workflows; avoid adding KPIs before needs are validated.
+4. Manually review historical repository content and commit metadata for accidental secrets; finish software distribution/legal review and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
+5. Keep historical snapshot guarantees intact: explicit valuation dates, no fabricated history, local-first storage, schema-compatible backup/restore, and transactional recovery.
 
 ## Blockers and Risks
 
