@@ -79,9 +79,10 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Autonomous engineering workflow improvements are intentionally deprioritized until core product functionality and customer validation are substantially further along.
 
 
-## 2026-10-25 — Follow-up in progress
-- Chromium browser smoke covers keyboard submission for the FIRE planner, Goal Tracker, CAGR, and investment-performance calculator; invalid required fields clear stale results and return focus to the missing field where applicable.
-- Follow-up: extend keyboard-submit coverage to return-risk analysis and verify its result summary appears when submitted from the keyboard.
+## 2026-10-25 — Keyboard-submit regression coverage
+- Chromium browser smoke covers keyboard submission for the FIRE planner, Goal Tracker, CAGR, investment-performance calculator, and return-risk analysis.
+- Invalid required inputs clear stale results and use native validation/focus behavior where applicable; return-risk keyboard submission verifies the result summary and calculated metrics.
+- Status: implemented in `scripts/dashboard/fire-planner-browser-smoke.mjs`; CI browser smoke passes.
 
 ## 2026-10-26 — Tax estimate report
 - Added a self-contained offline HTML report for the caller-defined progressive tax estimate; the report reuses the CSV validation contract and includes the exact supplied brackets and explicit limitations.
