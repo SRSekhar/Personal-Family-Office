@@ -75,16 +75,6 @@ try {
         'the trend chart should contain one point per actual sample snapshot');
     assert.ok(!(await page.locator('#historical-net-worth-chart').innerText()).includes('2023'),
         'sample history must not invent a missing year');
-    const [historyHtmlDownload] = await Promise.all([
-        page.waitForEvent('download'),
-        page.locator('#export-historical-snapshots-html').click()
-    ]);
-    const historyHtml = await assertOfflineReport(historyHtmlDownload, 'pfo-os-sample-historical-net-worth.html', 'Historical net worth');
-    assert.ok(historyHtml.includes('24,20,000'), 'history report should include the first captured net worth');
-    assert.ok(historyHtml.includes('44,75,000'), 'history report should include the latest captured net worth');
-    assert.ok(historyHtml.includes('missing dates are not interpolated'), 'history report must not imply missing years were captured');
-    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-sample-historical-net-worth.html'), 'Historical net worth');
-    process.stdout.write('PASS: historical net worth report includes captured snapshots and opens offline.\\n');
     const cancelledDemoImport = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
         name: 'cancelled-demo-import.json',
@@ -166,6 +156,16 @@ try {
         'activating the skip link should move focus to the main content landmark'
     );
     process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
+    const [historyHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-historical-snapshots-html').click()
+    ]);
+    const historyHtml = await assertOfflineReport(historyHtmlDownload, 'pfo-os-sample-historical-net-worth.html', 'Historical net worth');
+    assert.ok(historyHtml.includes('24,20,000'), 'history report should include the first captured net worth');
+    assert.ok(historyHtml.includes('44,75,000'), 'history report should include the latest captured net worth');
+    assert.ok(historyHtml.includes('missing dates are not interpolated'), 'history report must not imply missing years were captured');
+    await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-sample-historical-net-worth.html'), 'Historical net worth');
+    process.stdout.write('PASS: historical net worth report includes captured snapshots and opens offline.\\n');
     const [allocationHtmlDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-allocation-html').click()
