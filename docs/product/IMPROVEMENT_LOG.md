@@ -1,4 +1,4 @@
-## 2026-10-27 — Narrow-viewport checks for core financial panels (in progress)
+## 2026-10-27 — Narrow-viewport checks for core financial panels (PR #370 merged)
 
 ### Scope
 - Extend Chromium smoke coverage to the FIRE planner, Goal Tracker, and return-risk analysis at a 320 CSS-pixel viewport.
@@ -6,7 +6,7 @@
 - Keep this explicitly scoped as responsive viewport coverage, not a claim of browser-chrome 400% zoom or screen-reader verification.
 
 ### Validation
-- Chromium browser smoke, CI, dashboard packaging, and Secret Scan pending on the feature PR.
+- CI, Chromium browser smoke, and Secret Scan passed before merge.
 - Uses fictional browser data only; no application runtime or persistence changes.
 
 ## 2026-10-27 — Annual financial review year-over-year comparison (PR #367 merged)
