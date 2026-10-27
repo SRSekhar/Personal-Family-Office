@@ -80,6 +80,9 @@ export function parseRecordsCsv(source, expectedCurrency = 'INR') {
         || !HEADER.every((column, index) => rows[0][index] === column)) {
         throw new Error('Unsupported CSV format. Expected columns: Name, Category, Type, Value, Currency.');
     }
+    if (rows.length === 1) {
+        throw new Error('The CSV contains no financial records. Existing records were not changed.');
+    }
 
     return rows.slice(1).map((columns) => {
         if (columns.length !== HEADER.length || columns.some((value) => value.trim() === '')) {
