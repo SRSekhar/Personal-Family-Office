@@ -129,8 +129,8 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed; merged as PR #362.
 
 
-## 2026-10-27 — Historical net worth offline HTML report (in progress)
-- Add an offline HTML report for explicitly captured historical balance-sheet snapshots, including assets, liabilities, net worth, and changes between adjacent captured dates.
-- Use the existing snapshot validation and summary logic; do not interpolate missing dates or imply investment performance.
-- Preserve the existing history CSV export and test report opening without scripts or network requests.
-- Validation status: pending CI, Chromium browser smoke, dashboard packaging, and Secret Scan on the feature PR.
+## 2026-10-27 — Historical net worth offline HTML report (PR #364 merged)
+- Delivered a standalone HTML report for explicitly captured balance-sheet snapshots, including assets, liabilities, net worth, record counts, adjacent-snapshot changes, and first/latest comparison.
+- Reuses snapshot validation and summary logic; does not interpolate missing dates or imply that net-worth changes are investment returns.
+- Preserves the history CSV export. Unit and Chromium browser tests verify validation, Indian numeric formatting, honest date gaps, download behavior, and offline opening without scripts or remote assets.
+- Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed before merge.
