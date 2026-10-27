@@ -96,7 +96,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Explicit download of self-contained offline FIRE scenario HTML reports
 - Persistent multi-goal tracker with create/edit/confirmed-delete, deadline and progress status, and an approximate monthly savings pace that assumes no investment returns (PRs #169, #175)
 - Goal-aware private backup/restore with schema v2 and backward compatibility for legacy record-only schema v1 backups (PR #173)
-- Remaining: manual screen-reader and real browser-chrome 400% zoom review, customer feedback, and release-readiness gates. Automated Chromium smoke covers major calculations, keyboard activation, report downloads, offline opening for tested report types, and selected narrow-viewport behavior.
+- LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom review; retain automated coverage and revisit before release if needed. Customer feedback and other release gates remain open. Automated Chromium smoke covers major calculations, keyboard activation, report downloads, offline opening for tested report types, and selected narrow-viewport behavior.
 - Multi-year historical snapshots, trend chart, snapshot detail view, CSV export, and schema v4 backup/restore are implemented (PRs #304–#316). Portfolio explorer and additional KPIs remain deferred until customer needs are validated
 
 ---
