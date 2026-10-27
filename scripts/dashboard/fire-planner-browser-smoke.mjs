@@ -1964,6 +1964,13 @@ try {
     await assertOpensWithoutNetwork(browser, annualReviewPath, 'Annual financial review');
     process.stdout.write('PASS: annual financial review opens offline and aggregates only recorded annual data.\n');
 
+    const healthMonth = page.locator('#financial-health-month');
+    await healthMonth.fill('2026-09');
+    await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · September 2026');
+    assert.match(await page.locator('#financial-health-metrics').innerText(), /Recorded cash flow · September 2026/,
+        'financial health should recalculate cash-flow metrics for the selected historical month');
+    await healthMonth.fill('2026-10');
+    await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · October 2026');
     assert.match(await page.locator('#financial-health-status').innerText(), /^Local data · /,
         'financial health HTML export should only be available after validated private data is displayed');
     const [financialHealthDownload] = await Promise.all([
