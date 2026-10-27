@@ -104,7 +104,7 @@ try {
     await page.locator('#import-csv-file').setInputFiles({
         name: 'cancelled-records.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('Name,Category,Type,Value,Currency\r\n"Savings","Cash & deposits","asset",100,"INR"\r\n')
+        buffer: Buffer.from('Name,Category,Type,Value,Currency\r\n"Should not appear","Cash & deposits","asset",100,"INR"\r\n')
     });
     assert.match(await cancelledCsvImport, /cash-flow transactions, budgets, and historical snapshots are preserved/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('CSV import cancelled.'));
