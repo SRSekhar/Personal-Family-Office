@@ -1935,6 +1935,9 @@ try {
     const annualReviewHtml = await readFile(annualReviewPath, 'utf8');
     assert.ok(annualReviewHtml.includes('Annual financial review'), 'annual review should include its report title');
     assert.ok(annualReviewHtml.includes('Month-by-month cash flow'), 'annual review should include monthly totals');
+    assert.ok(annualReviewHtml.includes('Year-over-year comparison'), 'annual review should compare the selected year with the prior year');
+    assert.ok(annualReviewHtml.includes('Percentage changes are unavailable when the prior-year baseline is zero'),
+        'annual review should disclose undefined percentage changes');
     assert.ok(annualReviewHtml.includes('Groceries'), 'annual review should include recorded categories');
     assert.ok(annualReviewHtml.includes('Monthly review &lt;img src=x onerror=alert(1)&gt; goal'),
         'annual review should escape user-entered goal names');
