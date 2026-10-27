@@ -49,12 +49,13 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #362 — asset allocation offline report with category concentration metrics.
 - PR #364 — historical net worth offline report using only captured snapshots and honest date gaps.
 - PR #367 — annual financial review year-over-year comparison with explicit zero-baseline handling.
+- PR #370 — narrow-viewport Chromium regression checks for the FIRE planner, Goal Tracker, and return-risk analysis; no runtime behavior changed.
 - PR #365 and #366 — synchronized historical-report validation, roadmap, and project-state documentation.
 
 ## In Progress
 
 - Manual screen-reader review and real browser-chrome 400% zoom verification remain open. Static accessibility contracts and automated Chromium keyboard/focus checks do not replace assistive-technology review.
-- Historical trend and snapshot-detail panels have Chromium checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and focus restoration. A follow-up now checks that the FIRE planner, Goal Tracker, and return-risk panels do not introduce horizontal overflow at the same viewport. These checks are not a substitute for browser zoom or manual screen-reader testing.
+- Historical trend and snapshot-detail panels have Chromium checks at a 320 CSS-pixel viewport for single-column reflow, contained content, and focus restoration. PR #370 also verifies the FIRE planner, Goal Tracker, and return-risk panels remain contained without document-level horizontal overflow at that viewport. These checks are not a substitute for browser zoom or manual screen-reader testing.
 - Customer demand remains unvalidated; the documented plan is 8–10 anonymized interviews and two paid-pilot commitments. Do not claim demand or revenue until evidence exists.
 - Release gates remain open for historical repository exposure review, dependency licensing/distribution disposition, the product licensing decision, and owner-side GitHub Pages setup.
 
