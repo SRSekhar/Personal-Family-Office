@@ -927,3 +927,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Verify stale results are cleared and native browser validation moves focus to the invalid required field before restoring the valid input for remaining checks.
 - Uses fictional values only; no runtime, persistence, or network changes.
 - Validation status: pending CI, Chromium browser smoke, and Secret Scan on the feature PR.
+
+
+## 2026-10-27 — Accessibility audit prioritization decision
+- Product-owner direction: manual screen-reader and real browser 400% zoom reviews are low-priority deferred items for the current development phase, not active sprint blockers.
+- Keep existing automated accessibility-contract, keyboard/focus, and narrow-viewport regression checks in CI.
+- Revisit manual audits during release readiness or earlier if customer feedback or applicable requirements make them necessary. This priority change does not claim that manual audits have been completed.

@@ -96,7 +96,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Explicit download of self-contained offline FIRE scenario HTML reports
 - Persistent multi-goal tracker with create/edit/confirmed-delete, deadline and progress status, and an approximate monthly savings pace that assumes no investment returns (PRs #169, #175)
 - Goal-aware private backup/restore with schema v2 and backward compatibility for legacy record-only schema v1 backups (PR #173)
-- Remaining: manual screen-reader and real browser-chrome 400% zoom review, customer feedback, and release-readiness gates. Automated Chromium smoke covers major calculations, keyboard activation, report downloads, offline opening for tested report types, and selected narrow-viewport behavior.
+- LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom review; retain automated coverage and revisit before release if needed. Customer feedback and other release gates remain open. Automated Chromium smoke covers major calculations, keyboard activation, report downloads, offline opening for tested report types, and selected narrow-viewport behavior.
 - Multi-year historical snapshots, trend chart, snapshot detail view, CSV export, and schema v4 backup/restore are implemented (PRs #304–#316). Portfolio explorer and additional KPIs remain deferred until customer needs are validated
 
 ---
@@ -121,7 +121,7 @@ Any future recommendations require explicit assumptions, explainability, and app
 - Local-only planner UI and required annual contribution action (PR #139)
 - Three-scenario comparison preserving entered order and explicit assumptions (PR #141)
 - Explicit downloadable offline HTML reports for one or more scenarios (PR #142)
-- Remaining: manual screen-reader and real browser-chrome 400% zoom review, customer discovery, and follow-up requirements for managing multiple goals and deciding persistence
+- LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom review. Remaining: customer discovery and follow-up requirements for managing multiple goals and deciding persistence
 - Monte Carlo scenarios only after a separate requirements and validation plan
 
 The current calculator is a deterministic scenario, not a probability model or guarantee. It excludes taxes, fees, investment volatility, sequence-of-returns risk, changing contributions, pension/benefit income, and longevity adjustments. Keep assumptions visible and validated before exposing results in a user-facing planner.
