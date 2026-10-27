@@ -110,7 +110,7 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('CSV import cancelled.'));
     assert.equal(await page.locator('#workspace-label').innerText(), 'SAMPLE WORKSPACE',
         'cancelling a CSV import from the sample workspace must not switch workspaces');
-    assert.ok(!(await page.locator('#records-body').innerText()).includes('Savings'),
+    assert.ok(!(await page.locator('#records-body').innerText()).includes('Should not appear'),
         'cancelling a CSV import must not change the sample records');
     process.stdout.write('PASS: cancelling CSV replacement preserves the current workspace and all saved data.\n');
 
