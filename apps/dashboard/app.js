@@ -4,6 +4,7 @@ import { parseRecordsCsv } from './csv-import.js';
 import { renderFinancialReportHtml } from './financial-report.js';
 import { calculateFinancialTotals } from './financial-totals.js';
 import { captureHistoricalSnapshot, removeHistoricalSnapshot, summarizeHistoricalSnapshots, validateHistoricalSnapshots } from './historical-snapshots.js';
+import { renderHistoricalSnapshotsReportHtml } from './historical-snapshots-report.js';
 import { filterFinancialRecords } from './record-filter.js';
 import { sortFinancialRecords } from './record-sort.js';
 import { persistJson, readJsonArray } from './storage.js';
@@ -940,6 +941,42 @@ function captureCurrentHistoricalSnapshot(event) {
         showToast('Historical snapshot saved for ' + date + '.');
     } catch (error) {
         showToast(error instanceof Error ? error.message : 'Could not capture the historical snapshot.');
+    }
+}
+
+function exportHistoricalSnapshotsHtml() {
+    let snapshots;
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    if (workspace === 'demo') {
+        snapshots = validateHistoricalSnapshots(demoHistoricalSnapshots, CURRENCY);
+    } else {
+        snapshots = readHistoricalSnapshots();
+        if (snapshots === null) {
+            showToast('Saved history could not be validated. Nothing was exported.');
+            return;
+        }
+    }
+    try {
+        const report = renderHistoricalSnapshotsReportHtml({
+            snapshots, currency: CURRENCY, generatedAt: new Date().toISOString()
+        });
+        const blob = new Blob([report], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = workspace === 'demo'
+            ? 'pfo-os-sample-historical-net-worth.html' : 'pfo-os-historical-net-worth.html';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast(workspace === 'demo'
+            ? 'Exported fictional development history report.' : 'Exported saved historical net worth report.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not create historical net worth report.');
     }
 }
 
@@ -2012,6 +2049,7 @@ $('#export-button').addEventListener('click', exportData);
 $('#switch-demo-button').addEventListener('click', () => switchWorkspace('demo'));
 $('#historical-snapshot-form').addEventListener('submit', captureCurrentHistoricalSnapshot);
 $('#export-historical-snapshots-csv').addEventListener('click', exportHistoricalSnapshotsCsv);
+$('#export-historical-snapshots-html').addEventListener('click', exportHistoricalSnapshotsHtml);
 $('#close-historical-snapshot-detail').addEventListener('click', closeHistoricalSnapshotDetails);
 $('#export-report-button').addEventListener('click', exportFinancialReport);
 $('#monthly-review-export-button').addEventListener('click', exportMonthlyFinancialReview);
