@@ -21,6 +21,12 @@ describe('annual financial review', () => {
     it('aggregates recorded transactions by month, category, and explicitly budgeted month', () => {
         const review = buildAnnualFinancialReview({ entries, budgets, goals, year: '2026', generatedAt: new Date('2026-12-31T12:00:00.000Z') });
         expect(review.summary).toEqual({ income: 2000, expenses: 700, net: 1300, savingsRate: 65, transactionCount: 4 });
+        expect(review.comparison).toEqual({
+            year: '2025',
+            summary: { income: 0, expenses: 900, net: -900, savingsRate: null, transactionCount: 1 },
+            change: { income: 2000, expenses: -200, net: 2200, transactionCount: 3, incomePercent: null, expensesPercent: -200 / 9 },
+            hasTransactions: true
+        });
         expect(review.months).toHaveLength(12);
         expect(review.months[0]).toMatchObject({ month: '2026-01', income: 1000, expenses: 300, net: 700, transactionCount: 2 });
         expect(review.months[1]).toMatchObject({ month: '2026-02', income: 1000, expenses: 400, net: 600, transactionCount: 2 });
@@ -40,10 +46,15 @@ describe('annual financial review', () => {
         });
         expect(review.months[1]).toMatchObject({ month: '2024-02', expenses: 100, savingsRate: null });
         expect(review.summary).toMatchObject({ income: 0, expenses: 100, net: -100, savingsRate: null, transactionCount: 1 });
+        expect(review.comparison).toMatchObject({
+            year: '2023', summary: { income: 0, expenses: 0, net: 0, savingsRate: null, transactionCount: 0 },
+            change: { incomePercent: null, expensesPercent: null }, hasTransactions: false
+        });
     });
 
     it('rejects malformed years, invalid inputs, and invalid timestamps', () => {
         expect(() => buildAnnualFinancialReview({ entries, budgets, goals, year: '26' })).toThrow(/YYYY/);
+        expect(() => buildAnnualFinancialReview({ entries, budgets, goals, year: '0000' })).toThrow(/YYYY/);
         expect(() => buildAnnualFinancialReview({ entries, budgets, goals, year: '2026', generatedAt: new Date('invalid') })).toThrow(/timestamp/);
         expect(() => buildAnnualFinancialReview({ entries: [{ ...entries[0], amount: -1 }], budgets: [], goals: [], year: '2026' })).toThrow(/invalid or duplicate/);
         expect(() => buildAnnualFinancialReview({ entries, budgets: [...budgets, budgets[0]], goals, year: '2026' })).toThrow(/duplicate month\/category/);
@@ -58,6 +69,8 @@ describe('annual financial review', () => {
         const html = renderAnnualFinancialReviewHtml(review);
         expect(html).toContain('Annual financial review');
         expect(html).toContain('Month-by-month cash flow');
+        expect(html).toContain('Year-over-year comparison');
+        expect(html).toContain('No transactions were recorded in the comparison year');
         expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
         expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
         expect(html).not.toMatch(/<script\b|<iframe\b|<img\b/i);
