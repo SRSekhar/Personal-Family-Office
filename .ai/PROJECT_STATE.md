@@ -162,4 +162,4 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 - Added version-checked writes to the local SQLite API: clients supply the last observed `updatedAt` timestamp (or `null` for an empty database); the database checks it inside the write transaction.
 - Stale writes return HTTP 409 without replacing the latest snapshot. Automatic saves pause after a conflict, and manual overwrite requires confirmation. Version timestamps remain monotonic at millisecond boundaries.
-- Added database and API tests for stale write rejection. PR #400 CI, Chromium smoke, dashboard packaging, and Secret Scan passed on the initial feature head; documentation update is included before merge.
+- PR #400 merged as `3cda51c617360ae056fd3fe82b3cf8cf6ad6d554`. CI run #1112 and dashboard packaging run #500 passed on the final head; Secret Scan run #1065 passed on the code changes before the documentation-only update.
