@@ -1,4 +1,4 @@
-## 2026-10-28 — Local SQLite workspace persistence (in progress)
+## 2026-10-28 — Local SQLite workspace persistence
 
 ### Scope
 - Add a Node.js built-in SQLite database for the local dashboard, with the database file outside the repository by default and an explicit `PFO_DATABASE_PATH` override.
@@ -14,7 +14,7 @@
 ### Validation
 - Unit tests cover persistence across database reopen, all five collections, stable IDs, invalid data rejection, and previous-snapshot preservation.
 - API tests cover save/read/status, validation failures, and cross-origin request rejection.
-- Chromium smoke covers full-workspace save and restore. CI, browser smoke, dashboard packaging, and Secret Scan must pass before merge.
+- Chromium smoke covers full-workspace save and restore. Validation: CI, Chromium browser smoke (including an automatic-save transaction), dashboard packaging, and Secret Scan passed before merge.
 
 ---
 
