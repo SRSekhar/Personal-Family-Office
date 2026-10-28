@@ -7,7 +7,7 @@ import { readFile, realpath, stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { pathToFileURL, URL } from 'node:url';
 import process from 'node:process';
-import { WorkspaceDatabase, WorkspaceValidationError, resolveDatabasePath } from './workspace-database.mjs';
+import { WorkspaceConflictError, WorkspaceDatabase, WorkspaceValidationError, resolveDatabasePath } from './workspace-database.mjs';
 
 const dashboardRoot = realpathSync(new URL('../../apps/dashboard/', import.meta.url));
 
@@ -140,14 +140,17 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
                 }
                 try {
                     const body = await readJsonRequest(request);
-                    if (!body || typeof body !== 'object' || !Object.hasOwn(body, 'payload')) {
-                        sendJson(response, 400, { error: 'Request must include a complete workspace payload.' });
+                    if (!body || typeof body !== 'object' || !Object.hasOwn(body, 'payload')
+                        || !Object.hasOwn(body, 'expectedUpdatedAt')
+                        || !(body.expectedUpdatedAt === null || (typeof body.expectedUpdatedAt === 'string' && Number.isFinite(Date.parse(body.expectedUpdatedAt))))) {
+                        sendJson(response, 400, { error: 'Request must include a complete workspace payload and its last-read database timestamp (or null when no snapshot exists).' });
                         return;
                     }
-                    sendJson(response, 200, database.saveWorkspace(body.payload));
+                    sendJson(response, 200, database.saveWorkspace(body.payload, body.expectedUpdatedAt));
                 } catch (error) {
-                    const status = error instanceof WorkspaceValidationError ? 400
-                        : Number.isInteger(error?.statusCode) ? error.statusCode : 500;
+                    const status = error instanceof WorkspaceConflictError ? 409
+                        : error instanceof WorkspaceValidationError ? 400
+                            : Number.isInteger(error?.statusCode) ? error.statusCode : 500;
                     sendJson(response, status, {
                         error: status === 500
                             ? 'The workspace could not be saved to SQLite. The previous database snapshot was preserved.'
