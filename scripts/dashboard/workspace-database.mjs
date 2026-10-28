@@ -139,6 +139,13 @@ export class WorkspaceDatabase {
         };
     }
 
+    /** Run SQLite's read-only quick integrity check without changing workspace data. */
+    checkIntegrity() {
+        const rows = this.#database.prepare('PRAGMA quick_check').all();
+        const messages = rows.map((row) => String(row.quick_check));
+        return { ok: messages.length === 1 && messages[0] === 'ok', messages };
+    }
+
     getWorkspace() {
         const row = this.#database.prepare(
             'SELECT payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1'
