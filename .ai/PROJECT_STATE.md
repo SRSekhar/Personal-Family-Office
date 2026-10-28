@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Local SQLite Persistence
-- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore is explicit and restores through the existing validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. Cloud hosting, multi-user access, encryption, and automatic synchronization are not claimed.
+- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore reuses the validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. The opt-in automatic-save follow-up is in progress: it requires an initial successful snapshot and serializes debounced full-workspace writes after successful changes. Browser-local storage remains the immediate recovery copy. Cloud hosting, multi-user access, and encryption are not claimed.
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
 - FIRE report export is explicit user action. Reports are script-free, self-contained HTML, validate report inputs/results, escape untrusted scenario names, and are generated locally without network submission.
@@ -133,3 +133,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #390 merged as `4260e1f80cf30e3e597ff1f932be1a48c35b8eca`. It hardens SQLite database/WAL/SHM/journal permissions to owner-only on POSIX and adds a regression test for file modes.
 - CI run #1093 and Secret Scan run #1049 passed. CI includes lint, typecheck, unit/API tests, and Chromium browser smoke covering a full five-collection SQLite save/restore round trip.
 - SQLite is the chosen local backend for the current local-first dashboard. Explicit save/restore is supported; cloud hosting, multi-user access, encryption, and automatic synchronization remain future decisions, not shipped capabilities.
+
+
+## Latest Follow-up (2026-10-28 — automatic SQLite saves in progress)
+
+- The local SQLite backend and explicit full-workspace save/restore were merged in PR #390. The database file is local, outside the repository by default, and not encrypted by this feature.
+- Follow-up PR #393 adds opt-in automatic saves. The user must successfully save a full snapshot before enabling automatic mode; subsequent successful workspace changes schedule serialized, debounced snapshots. Database failures are surfaced as possible database lag; browser-local storage remains the immediate recovery copy.
+- Do not mark the follow-up complete until CI, Chromium browser smoke, dashboard packaging, and Secret Scan pass on the final head commit.
