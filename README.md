@@ -18,7 +18,7 @@ PFO OS aims to help individuals and families maintain structured financial recor
 
 ## Current repository
 
-The TypeScript monorepo contains deterministic financial models/calculators, portfolio analysis, an offline HTML report renderer, a local report CLI, and a static browser dashboard. These are early development capabilities, not a production-ready financial application; data ingestion, persistence, hosted services, AI integrations, and paid product capabilities remain incomplete.
+The TypeScript monorepo contains deterministic financial models/calculators, portfolio analysis, an offline HTML report renderer, a local report CLI, and a static browser dashboard. These are early development capabilities, not a production-ready financial application. Local SQLite snapshot persistence is available through the loopback dashboard preview; cloud persistence, automatic synchronization, multi-user hosted services, data ingestion, AI integrations, and paid product capabilities remain incomplete.
 
 ```text
 apps/       Local report CLI and static browser dashboard
@@ -51,7 +51,7 @@ pnpm dashboard:serve
 
 Open `http://127.0.0.1:4173/` in your browser. To choose a different port, set `$env:PFO_DASHBOARD_PORT = "4174"` before running the command. The server binds only to loopback and does not expose a public network listener.
 
-The local preview includes an opt-in SQLite persistence API. In the dashboard, switch to **Use my data**, then use **Save private workspace to SQLite** to persist one validated schema-v4 snapshot containing records, goals, cash-flow transactions, budgets, and historical snapshots. **Restore from SQLite** runs the normal backup preview, confirmation, validation, and transactional browser-storage restore flow. Save is explicit; browser edits are not automatically synchronized to SQLite.
+The local preview includes an opt-in SQLite persistence API. In the dashboard, switch to **Use my data**, then use **Save private workspace to SQLite** to persist one validated schema-v4 snapshot containing records, goals, cash-flow transactions, budgets, and historical snapshots. **Restore from SQLite** runs the normal backup preview, confirmation, validation, and transactional browser-storage restore flow. Save is explicit; browser edits are not automatically synchronized to SQLite. The database file is not encrypted; secure the device and maintain separate backups. On POSIX systems, database and SQLite sidecar files are restricted to owner-only permissions. On Windows, protect the file through the current user's profile ACL.
 
 By default, the database file is stored outside the repository at `%LOCALAPPDATA%\\PFO-OS\\pfo-os.sqlite` on Windows or `~/.local/share/PFO-OS/pfo-os.sqlite` on Linux/macOS. Set `$env:PFO_DATABASE_PATH = "D:\\PrivateData\\pfo-os.sqlite"` before starting the server to choose another path. Database files are not encrypted by this feature: protect the device and filesystem, keep the file out of source control, and maintain separate secure backups. This local API is not a cloud database or multi-user service.
 
