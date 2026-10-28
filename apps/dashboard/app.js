@@ -1076,9 +1076,23 @@ function renderFinancialHealth() {
         const monthLabel = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' })
             .format(new Date(month + '-01T12:00:00'));
         const percent = (value) => value === null ? 'Unavailable' : number(value) + '%';
+        const priorMonthLabel = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' })
+            .format(new Date(result.priorMonth + '-01T12:00:00'));
+        const deltaMoney = (value) => value > 0 ? '+' + money(value) : value < 0 ? '−' + money(Math.abs(value)) : money(0);
+        const comparisonValue = result.priorMonthTransactionCount === 0
+            ? 'Unavailable'
+            : 'Net cash flow ' + deltaMoney(result.netCashFlow - result.priorNetCashFlow);
+        const comparisonDetail = result.priorMonthTransactionCount === 0
+            ? 'No recorded transactions in ' + priorMonthLabel + '; no zero-activity baseline is assumed.'
+            : 'Income ' + deltaMoney(result.income - result.priorIncome)
+                + ' · Expenses ' + deltaMoney(result.expenses - result.priorExpenses)
+                + ' · Savings rate ' + (result.savingsRate === null || result.priorSavingsRate === null
+                    ? 'unavailable'
+                    : (result.savingsRate - result.priorSavingsRate > 0 ? '+' : '') + number(result.savingsRate - result.priorSavingsRate) + ' percentage points');
         const cards = [
             ['Net worth', money(result.netWorth), 'Assets ' + money(result.assets) + ' · Liabilities ' + money(result.liabilities)],
             ['Recorded cash flow · ' + monthLabel, money(result.netCashFlow), 'Income ' + money(result.income) + ' · Expenses ' + money(result.expenses)],
+            ['Change vs ' + priorMonthLabel, comparisonValue, comparisonDetail],
             ['Savings rate · ' + monthLabel, percent(result.savingsRate), result.savingsRate === null ? 'No recorded income for this month' : 'Recorded net cash flow ÷ recorded income'],
             ['Monthly budget control', result.budgetedCategoryCount === 0 ? 'No budgets set' : result.overBudgetCategoryCount + ' over budget', result.budgetedCategoryCount === 0 ? 'Save monthly category budgets to compare' : money(result.totalPositiveOverrun) + ' positive overruns · ' + money(result.actualInBudgetedCategories) + ' spent in budgeted categories'],
             ['Budget coverage · ' + monthLabel, result.expenseCoverageRate === null ? 'No expenses recorded' : percent(result.expenseCoverageRate), result.coveredExpenseCategoryCount + ' of ' + result.expenseCategoryCount + ' expense categories covered · ' + money(result.unbudgetedExpenses) + ' recorded expenses without a budget'],
