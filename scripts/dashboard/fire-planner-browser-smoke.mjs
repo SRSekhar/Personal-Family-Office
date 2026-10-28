@@ -2343,6 +2343,6 @@ try {
     throw error;
 } finally {
     if (browser) await browser.close();
-    if (server.listening) await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    if (server?.listening) await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
     if (temporaryDirectory) await rm(temporaryDirectory, { recursive: true, force: true });
 }
