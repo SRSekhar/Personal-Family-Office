@@ -2177,7 +2177,7 @@ try {
             { id: 'smoke-health-prior-expense', date: '2026-09-10', type: 'expense', category: 'Household', description: 'Fictional September expense', amount: 400, recurring: false }
         );
         globalThis.localStorage.setItem(key, JSON.stringify(existing));
-        globalThis.dispatchEvent(new Event('pfo:cashflow-updated'));
+        globalThis.dispatchEvent(new globalThis.Event('pfo:cashflow-updated'));
     });
     const healthMonth = page.locator('#financial-health-month');
     await healthMonth.fill('2026-09');
