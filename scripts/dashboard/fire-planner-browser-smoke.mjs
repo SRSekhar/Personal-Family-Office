@@ -507,11 +507,20 @@ try {
         const scenarioName = (await row.locator('td').first().innerText()).split(/\r?\n/u)[0]?.trim();
         assert.ok(scenarioName && normalizedComparisonHtml.includes(scenarioName.replace(/\s+/gu, '')),
             'comparison report should preserve the displayed scenario name');
-        assert.ok(scenarioName, 'each displayed comparison row should have a scenario name');
+        const metricValues = await row.locator('td').allInnerTexts();
+        const reportAmounts = [...comparisonHtml.matchAll(/INR\\s+([\\d,]+(?:\\.\\d{2})?)/gu)]
+            .map((match) => Math.round(Number(match[1].replace(/,/gu, ''))));
+        for (const metricValue of metricValues.slice(1, 4)) {
+            const displayedAmount = Number(metricValue.replace(/[^\\d]/gu, ''));
+            assert.ok(Number.isFinite(displayedAmount) && reportAmounts.includes(displayedAmount),
+                'comparison report should preserve each displayed amount after currency formatting and rounding: ' + metricValue);
+        }
+        assert.ok(comparisonHtml.includes(metricValues[4].trim()),
+            'comparison report should preserve the displayed scenario status');
     }
     assert.match(comparisonHtml, /Results are shown in the order entered/u,
         'comparison report should state that scenarios retain user-entered order');
-    assert.match(comparisonHtml, /not a forecast, investment recommendation, or guarantee/u,
+    assert.match(comparisonHtml, /not a forecast, investment recommendation, or guarantee/iu,
         'comparison report should disclose that results are illustrations, not guarantees');
     await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'Conservative');
     process.stdout.write('PASS: comparison FIRE report opens from a local file without network access.\\n');
