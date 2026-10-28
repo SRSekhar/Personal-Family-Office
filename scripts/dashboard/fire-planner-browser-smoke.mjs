@@ -2321,7 +2321,9 @@ try {
     for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
-    assert.equal(databaseBackup.records.length, 6, 'SQLite backup should contain the saved private records rather than sample data');
+    const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
+    assert.equal(databaseBackup.records.length, privateRecordCount,
+        'SQLite backup should match the saved private record count rather than assume fixture data');
     process.stdout.write('PASS: saved SQLite workspace can be exported as a portable schema-v4 JSON backup.\n');
 
     const savedDatabaseState = await page.evaluate(() => ({
