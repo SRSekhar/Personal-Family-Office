@@ -1948,6 +1948,34 @@ async function refreshDatabaseStatus() {
     }
 }
 
+async function checkDatabaseIntegrity() {
+    const resultElement = $('#database-integrity-result');
+    const button = $('#database-integrity-button');
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        resultElement.textContent = 'Database integrity checks are available only in the local private workspace.';
+        return;
+    }
+    button.disabled = true;
+    resultElement.textContent = 'Checking SQLite database integrity…';
+    try {
+        const response = await fetch('./api/v1/database/integrity', { headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (!response.ok || result.ok !== true) {
+            resultElement.textContent = 'SQLite integrity check failed. ' +
+                (Array.isArray(result.messages) && result.messages.length
+                    ? result.messages.join(' ')
+                    : 'The check could not confirm database integrity.');
+            return;
+        }
+        resultElement.textContent = 'SQLite integrity check passed: ' +
+            (Array.isArray(result.messages) ? result.messages.join(', ') : 'database structure is valid') + '.';
+    } catch {
+        resultElement.textContent = 'SQLite integrity check could not complete. Confirm the local dashboard server is running, then try again.';
+    } finally {
+        button.disabled = false;
+    }
+}
+
 async function exportSavedDatabaseBackup() {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showToast('SQLite backup export is available only in the local private workspace.');
@@ -2365,6 +2393,7 @@ $('#database-auto-save-button').addEventListener('click', () => { void toggleDat
 $('#database-restore-button').addEventListener('click', restoreWorkspaceFromDatabase);
 $('#database-export-backup-button').addEventListener('click', exportSavedDatabaseBackup);
 $('#database-refresh-button').addEventListener('click', refreshDatabaseStatus);
+$('#database-integrity-button').addEventListener('click', checkDatabaseIntegrity);
 $('#export-button').addEventListener('click', exportData);
 $('#switch-demo-button').addEventListener('click', () => switchWorkspace('demo'));
 $('#historical-snapshot-form').addEventListener('submit', captureCurrentHistoricalSnapshot);
