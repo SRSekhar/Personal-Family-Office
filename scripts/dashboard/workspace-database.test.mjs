@@ -1,4 +1,6 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import { existsSync, mkdtemp, rm, statSync } from 'node:fs';
+import { chmodSync } from 'node:fs';
+import { mkdtemp as mkdtempAsync, rm as rmAsync } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
 import { join } from 'node:path';
@@ -10,7 +12,7 @@ const directories = [];
 const databases = [];
 
 async function createDatabase() {
-    const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-test-'));
+    const directory = await mkdtempAsync(join(tmpdir(), 'pfo-sqlite-test-'));
     directories.push(directory);
     const database = new WorkspaceDatabase(join(directory, 'workspace.sqlite'));
     databases.push(database);
@@ -49,7 +51,7 @@ afterEach(async () => {
 
 describe('SQLite workspace persistence', () => {
     it('persists all five workspace collections in a single snapshot and preserves stable record IDs', async () => {
-        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-'));
+        const directory = await mkdtempAsync(join(tmpdir(), 'pfo-sqlite-reopen-'));
         directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const first = new WorkspaceDatabase(path);
@@ -106,6 +108,25 @@ describe('SQLite workspace persistence', () => {
         expect(() => database.saveWorkspace(payload({ budgets: [{ month: '2026-13', category: 'Invalid', amount: 10 }] })))
             .toThrow();
         expect(database.getWorkspace().payload).toEqual(payload());
+    });
+
+
+    it('restricts database and SQLite sidecar file permissions on POSIX systems', async () => {
+        if (process.platform === 'win32') return;
+        const directory = await mkdtempAsync(join(tmpdir(), 'pfo-sqlite-permissions-'));
+        directories.push(directory);
+        const path = join(directory, 'private.sqlite');
+        const database = new WorkspaceDatabase(path);
+        databases.push(database);
+        database.saveWorkspace(payload());
+
+        expect(statSync(path).mode & 0o777).toBe(0o600);
+        for (const suffix of ['-wal', '-shm', '-journal']) {
+            const sidecar = path + suffix;
+            if (existsSync(sidecar)) {
+                expect(statSync(sidecar).mode & 0o777).toBe(0o600);
+            }
+        }
     });
 
     it('resolves an explicit database path and keeps defaults outside the repository', () => {
