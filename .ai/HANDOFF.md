@@ -105,3 +105,11 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - PR #385 merged: financial-health reporting now compares the selected month with the previous calendar month for income, expenses, net cash flow, and savings rate. Missing prior-month activity is explicitly unavailable, not assumed to be zero. The same visible comparison is included in CSV and standalone offline HTML exports.
 - Validation for PR #385: CI run #1079 passed, dashboard packaging run #481 passed, and Secret Scan run #1035 passed. Merge commit: 0e7bcf03b9374cd3d1de5597c44690d8cd186f08.
 - Continue with cohesive functional batches rather than file-by-file pauses. Keep real financial data out of the public repo; use fictional fixtures only. Accessibility/manual zoom reviews remain low priority/deferred. Customer validation, repository-history exposure review, licensing/distribution decisions, and owner-side GitHub Pages configuration remain open release gates.
+
+
+## Latest Follow-up (2026-10-28 — local SQLite persistence)
+
+- PR #387 merged local SQLite workspace persistence. The local dashboard server stores a complete schema-v4 INR workspace snapshot in one SQLite transaction, with status/read/write API endpoints restricted to the loopback origin.
+- The database file defaults outside the repository and can be moved with `PFO_DATABASE_PATH`. Database files are ignored by Git. The feature does not encrypt the file and does not send data to a cloud provider.
+- Follow-up PR adds opt-in automatic saves: automatic mode is enabled only after a successful initial snapshot, then successful record, goal, cash-flow, budget, history, import, and restore changes schedule serialized/debounced full-workspace writes. The UI reports database lag/failure separately from browser-local storage.
+- Validate the automatic-save change through CI and Chromium before merge. Keep browser-local storage and exported backups available as recovery paths.
