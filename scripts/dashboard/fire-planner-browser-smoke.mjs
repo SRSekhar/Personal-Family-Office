@@ -2026,7 +2026,7 @@ try {
     await page.locator('#cash-flow-import-csv').setInputFiles({
         name: 'invalid-calendar-date.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('date,type,category,description,amount,recurring\\r\\n2026-02-30,expense,Food,Invalid date,100,false\\r\\n')
+        buffer: Buffer.from('date,type,category,description,amount,recurring\r\n2026-02-30,expense,Food,Invalid date,100,false\r\n')
     });
     await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('invalid calendar date'));
     assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
@@ -2045,7 +2045,7 @@ try {
     await page.locator('#cash-flow-import-csv').setInputFiles({
         name: 'cancelled-cash-flow-replacement.csv',
         mimeType: 'text/csv',
-        buffer: Buffer.from('date,type,category,description,amount,recurring\\r\\n2026-10-21,expense,Food,Cancelled replacement,250,false\\r\\n')
+        buffer: Buffer.from('date,type,category,description,amount,recurring\r\n2026-10-21,expense,Food,Cancelled replacement,250,false\r\n')
     });
     assert.match(await cancelledCashFlowImport, /Importing this CSV replaces all cash flow transactions/);
     await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('CSV import cancelled. Existing transactions were not changed.'));
