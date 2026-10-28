@@ -12,7 +12,7 @@ import { createDashboardServer } from './serve.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 
-const server = createDashboardServer();
+let server;
 let browser;
 let temporaryDirectory;
 
@@ -47,6 +47,7 @@ async function assertOpensWithoutNetwork(browserInstance, reportPath, expectedTe
 
 try {
     temporaryDirectory = await mkdtemp(join(tmpdir(), 'pfo-fire-browser-'));
+    server = createDashboardServer(undefined, { databasePath: join(temporaryDirectory, 'pfo-os.sqlite') });
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');
     const address = server.address();
@@ -2300,6 +2301,39 @@ try {
         'backup recovery should restore the historical snapshot row');
     assert.equal(await page.locator('#capture-historical-snapshot-button').isDisabled(), false,
         'snapshot capture should resume after valid history is restored');
+
+    // SQLite persistence is explicit and round-trips the full validated private workspace.
+    if ((await page.locator('#workspace-label').innerText()).toLowerCase().includes('sample')) {
+        await page.locator('#switch-private-button').click();
+    }
+    await page.locator('#database-save-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#database-storage-status')?.textContent.includes('SQLite save complete'));
+    const savedDatabaseState = await page.evaluate(() => ({
+        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length,
+        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]').length,
+        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]').length,
+        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]').length,
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length
+    }));
+    assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
+        'a successful SQLite save should enable database restore');
+    const databaseRestoreDialogPromise = page.waitForEvent('dialog');
+    await page.locator('#database-restore-button').click();
+    const databaseRestoreDialog = await databaseRestoreDialogPromise;
+    assert.match(databaseRestoreDialog.message(), /Backup import preview/);
+    assert.match(databaseRestoreDialog.message(), /Historical snapshots:/);
+    await databaseRestoreDialog.accept();
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('from the local SQLite database'));
+    const restoredDatabaseState = await page.evaluate(() => ({
+        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length,
+        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]').length,
+        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]').length,
+        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]').length,
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length
+    }));
+    assert.deepEqual(restoredDatabaseState, savedDatabaseState,
+        'SQLite restore must round-trip all five workspace collections without changing collection counts');
+    process.stdout.write('PASS: explicit SQLite save/restore round-trips records, goals, cash flow, budgets, and history.\\n');
 
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
