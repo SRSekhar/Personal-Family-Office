@@ -55,7 +55,7 @@ describe('financial health aggregation', () => {
         });
         expect(result.income - result.priorIncome).toBe(-400);
         expect(result.expenses - result.priorExpenses).toBe(-180);
-        expect(result.netCashFlow - result.priorNetCashFlow).toBe(-300);
+        expect(result.netCashFlow - result.priorNetCashFlow).toBe(-220);
     });
 
     it('handles January reporting by comparing with December of the previous year', () => {
