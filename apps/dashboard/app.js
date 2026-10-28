@@ -1477,19 +1477,19 @@ function importCsvData(file) {
         try {
             const parsedRecords = parseRecordsCsv(String(reader.result), CURRENCY)
                 .map((item) => ({ id: crypto.randomUUID(), ...item }));
-            if (workspace === 'demo') switchWorkspace('private');
             const needsConfirmation = records.length > 0 || !privateStorageHealthy;
             const replacementConfirmed = !needsConfirmation || window.confirm(
-                'Importing this CSV will replace all financial records in your private workspace. Saved goals are preserved. Continue?'
+                'Importing this CSV will replace all financial records in your private workspace. Saved goals, cash-flow transactions, budgets, and historical snapshots are preserved. Continue?'
             );
             if (!replacementConfirmed) {
-                showToast('CSV import cancelled. Your existing records and goals were not changed.');
+                showToast('CSV import cancelled. Existing records, goals, cash flow, budgets, and historical snapshots were not changed.');
                 return;
             }
             if (savePrivateRecords(parsedRecords, true)) {
+                if (workspace === 'demo') switchWorkspace('private');
                 records = parsedRecords;
                 render();
-                showToast(`Imported ${records.length} financial records from CSV. Saved goals were preserved.`);
+                showToast(`Imported ${records.length} financial records from CSV. Saved goals, cash flow, budgets, and historical snapshots were preserved.`);
             }
         } catch (error) {
             showToast(error instanceof Error ? error.message : 'Could not import this CSV.');
