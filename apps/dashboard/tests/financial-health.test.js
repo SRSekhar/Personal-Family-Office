@@ -51,7 +51,7 @@ describe('financial health aggregation', () => {
             priorIncome: 900,
             priorExpenses: 300,
             priorNetCashFlow: 600,
-            priorSavingsRate: 100
+            priorSavingsRate: 66.66666666666666
         });
         expect(result.income - result.priorIncome).toBe(-400);
         expect(result.expenses - result.priorExpenses).toBe(-180);
