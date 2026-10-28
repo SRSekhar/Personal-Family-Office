@@ -33,7 +33,8 @@ function payload(overrides = {}) {
         budgets: [{ month: '2026-10', category: 'Groceries', amount: 12000 }],
         historicalSnapshots: [{
             date: '2026-09-30', currency: 'INR',
-            records: [{ id: 'history-1', name: 'Savings', category: 'Cash & deposits', type: 'asset', value: 100000 }]
+            records: [{ id: 'history-1', name: 'Savings', category: 'Cash & deposits', type: 'asset', value: 100000 }],
+            totals: { assets: 100000, liabilities: 0, netWorth: 100000 }
         }],
         ...overrides
     };
