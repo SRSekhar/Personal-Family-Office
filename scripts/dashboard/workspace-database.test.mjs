@@ -1,6 +1,5 @@
-import { existsSync, mkdtemp, rm, statSync } from 'node:fs';
-import { chmodSync } from 'node:fs';
-import { mkdtemp as mkdtempAsync, rm as rmAsync } from 'node:fs/promises';
+import { existsSync, statSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
 import { join } from 'node:path';
@@ -12,7 +11,7 @@ const directories = [];
 const databases = [];
 
 async function createDatabase() {
-    const directory = await mkdtempAsync(join(tmpdir(), 'pfo-sqlite-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-test-'));
     directories.push(directory);
     const database = new WorkspaceDatabase(join(directory, 'workspace.sqlite'));
     databases.push(database);
@@ -51,7 +50,7 @@ afterEach(async () => {
 
 describe('SQLite workspace persistence', () => {
     it('persists all five workspace collections in a single snapshot and preserves stable record IDs', async () => {
-        const directory = await mkdtempAsync(join(tmpdir(), 'pfo-sqlite-reopen-'));
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-'));
         directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const first = new WorkspaceDatabase(path);
@@ -113,7 +112,7 @@ describe('SQLite workspace persistence', () => {
 
     it('restricts database and SQLite sidecar file permissions on POSIX systems', async () => {
         if (process.platform === 'win32') return;
-        const directory = await mkdtempAsync(join(tmpdir(), 'pfo-sqlite-permissions-'));
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-permissions-'));
         directories.push(directory);
         const path = join(directory, 'private.sqlite');
         const database = new WorkspaceDatabase(path);
