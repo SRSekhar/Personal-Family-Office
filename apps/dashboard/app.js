@@ -2019,7 +2019,8 @@ function importData(file, options = {}) {
                 window.dispatchEvent(new Event('pfo:cashflow-restored'));
                 window.dispatchEvent(new Event('pfo:cashflow-updated'));
                 renderHistoricalSnapshots();
-                showToast('Restored full workspace: ' + records.length + ' records, ' + savedGoals.length
+                const sourceSuffix = options.sourceLabel ? ' from ' + options.sourceLabel : '';
+                showToast('Restored full workspace' + sourceSuffix + ': ' + records.length + ' records, ' + savedGoals.length
                     + ' goals, ' + backup.cashFlowEntries.length + ' cash-flow transactions, ' + backup.budgets.length + ' budgets'
                     + (backup.includesHistoricalSnapshots ? ', and ' + backup.historicalSnapshots.length + ' historical snapshots.' : '. Historical snapshots were preserved because this older backup did not include them.'));
                 return;
