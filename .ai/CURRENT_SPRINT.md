@@ -32,6 +32,13 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - Stale writes return HTTP 409 without changing the newer snapshot. Automatic saves pause on conflict; replacing a newer snapshot requires explicit confirmation.
 - Added unit/API tests for stale version rejection and strictly increasing timestamp versions. CI run #1112, dashboard packaging run #500, and Secret Scan run #1065 passed on the code changes; a subsequent documentation-only update also passed CI.
 
+## Completed — Portable SQLite backup export
+
+- Added a dedicated action to export the currently committed SQLite snapshot as a dated, schema-v4 JSON full-workspace backup, independent of unsaved browser-local edits.
+- Export is available only on the local private dashboard and only when a database snapshot exists; the browser revalidates the payload before download.
+- Chromium smoke checks the download filename, schema version, and all five workspace collections.
+- This creates a portable recovery artifact, not an encrypted backup; store exports securely.
+
 ## Completed — Sprint 6: Local SQLite Persistence
 
 - Local SQLite backend is integrated with the loopback dashboard server. It persists the complete schema-v4 workspace (records, goals, cash-flow transactions, budgets, and historical snapshots) as one validated transactional snapshot.

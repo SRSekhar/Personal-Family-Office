@@ -1918,6 +1918,7 @@ async function refreshDatabaseStatus() {
         databaseRecoveryRequired = Boolean(result.hasWorkspace && !hasBrowserWorkspaceData());
         databaseStatusChecked = true;
         $('#database-restore-button').disabled = !result.hasWorkspace;
+        $('#database-export-backup-button').disabled = !result.hasWorkspace;
         $('#database-restore-button').textContent = databaseRecoveryRequired ? 'Review database recovery' : 'Restore from SQLite';
         const updated = result.updatedAt
             ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))
@@ -1938,11 +1939,48 @@ async function refreshDatabaseStatus() {
     } catch (error) {
         $('#database-storage').hidden = false;
         $('#database-restore-button').disabled = true;
+        $('#database-export-backup-button').disabled = true;
         databaseStatusChecked = true;
         updateDatabaseAutoSaveButton();
         setDatabaseStatus('SQLite unavailable', error instanceof Error
             ? error.message + ' Start the local app with pnpm dashboard:serve.'
             : 'Start the local app with pnpm dashboard:serve.');
+    }
+}
+
+async function exportSavedDatabaseBackup() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showToast('SQLite backup export is available only in the local private workspace.');
+        return;
+    }
+    const button = $('#database-export-backup-button');
+    let exportAvailable = false;
+    button.disabled = true;
+    try {
+        const response = await fetch('./api/v1/workspace', {
+            headers: { Accept: 'application/json' }
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The saved SQLite workspace could not be exported.');
+        const payload = result.payload;
+        // Revalidate at the export boundary so the downloaded file remains a supported
+        // full-workspace backup even if a future server response changes unexpectedly.
+        validateBackupPayload(payload, CURRENCY);
+        exportAvailable = true;
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pfo-os-sqlite-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Exported the saved SQLite workspace backup. Keep this file in a secure location.');
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not export the saved SQLite workspace.');
+    } finally {
+        button.disabled = !exportAvailable;
     }
 }
 
@@ -1982,6 +2020,7 @@ async function saveWorkspaceToDatabase(options = {}) {
             }
         }
         $('#database-restore-button').disabled = false;
+        $('#database-export-backup-button').disabled = false;
         $('#database-restore-button').textContent = 'Restore from SQLite';
         databaseRecoveryRequired = false;
         databaseWriteConflict = false;
@@ -2324,6 +2363,7 @@ $('#database-save-button').addEventListener('click', async () => {
 });
 $('#database-auto-save-button').addEventListener('click', () => { void toggleDatabaseAutoSave(); });
 $('#database-restore-button').addEventListener('click', restoreWorkspaceFromDatabase);
+$('#database-export-backup-button').addEventListener('click', exportSavedDatabaseBackup);
 $('#database-refresh-button').addEventListener('click', refreshDatabaseStatus);
 $('#export-button').addEventListener('click', exportData);
 $('#switch-demo-button').addEventListener('click', () => switchWorkspace('demo'));
