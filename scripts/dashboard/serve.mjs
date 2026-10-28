@@ -102,7 +102,7 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
             pathname = decodeURIComponent(new URL(request.url ?? '/', 'http://127.0.0.1').pathname);
         } catch {
             response.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
-            response.end(request.method === 'HEAD' ? undefined : 'Bad request\\n');
+            response.end(request.method === 'HEAD' ? undefined : 'Bad request\n');
             return;
         }
 
@@ -161,7 +161,7 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
 
         if (request.method !== 'GET' && request.method !== 'HEAD') {
             response.writeHead(405, { Allow: 'GET, HEAD', 'Content-Type': 'text/plain; charset=utf-8' });
-            response.end(request.method === 'HEAD' ? undefined : 'Method not allowed\\n');
+            response.end(request.method === 'HEAD' ? undefined : 'Method not allowed\n');
             return;
         }
 
