@@ -1387,51 +1387,69 @@ try {
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
     process.stdout.write('PASS: private schema-v4 backup includes records, goals, cash flow, budgets, and historical snapshots.\\n');
 
-    const priorWorkspaceBeforeHistoryFailure = await page.evaluate(() => ({
+    const restoreFailureCases = [
+        { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
+        { key: 'pfo-os.dashboard.goals.v1', message: 'Could not save financial goals.' },
+        { key: 'pfo-os.cash-flow.v1', message: 'Could not save cash-flow transactions.' },
+        { key: 'pfo-os.cash-flow-budgets.v1', message: 'Could not save category budgets.' },
+        { key: 'pfo-os.historical-snapshots.v1', message: 'Could not save historical snapshots.' }
+    ];
+    const readWorkspaceStorage = () => page.evaluate(() => ({
         records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
         goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
         cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
         budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
         history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
     }));
-    await page.evaluate(() => {
-        const originalSetItem = globalThis.Storage.prototype.setItem;
-        globalThis.__pfoOriginalSetItem = originalSetItem;
-        let failHistoryWriteOnce = true;
-        globalThis.Storage.prototype.setItem = function (key, value) {
-            if (failHistoryWriteOnce && key === 'pfo-os.historical-snapshots.v1') {
-                failHistoryWriteOnce = false;
-                throw new globalThis.DOMException('Simulated history storage quota failure', 'QuotaExceededError');
-            }
-            return originalSetItem.call(this, key, value);
-        };
-    });
-    const failedHistoryRestoreConfirmation = new Promise((resolve) => {
-        page.once('dialog', async (dialog) => {
-            const message = dialog.message();
-            await dialog.accept();
-            resolve(message);
+    const storageCollectionNames = {
+        'pfo-os.dashboard.private.v1': 'records',
+        'pfo-os.dashboard.goals.v1': 'goals',
+        'pfo-os.cash-flow.v1': 'cashFlow',
+        'pfo-os.cash-flow-budgets.v1': 'budgets',
+        'pfo-os.historical-snapshots.v1': 'history'
+    };
+    for (const failureCase of restoreFailureCases) {
+        const priorWorkspace = await readWorkspaceStorage();
+        await page.evaluate((targetKey) => {
+            const originalSetItem = globalThis.Storage.prototype.setItem;
+            globalThis.__pfoOriginalSetItem = originalSetItem;
+            let failTargetWriteOnce = true;
+            globalThis.Storage.prototype.setItem = function (key, value) {
+                if (failTargetWriteOnce && key === targetKey) {
+                    failTargetWriteOnce = false;
+                    throw new globalThis.DOMException('Simulated storage quota failure for ' + targetKey, 'QuotaExceededError');
+                }
+                return originalSetItem.call(this, key, value);
+            };
+        }, failureCase.key);
+        const failedRestoreConfirmation = new Promise((resolve) => {
+            page.once('dialog', async (dialog) => {
+                const message = dialog.message();
+                await dialog.accept();
+                resolve(message);
+            });
         });
-    });
-    await page.locator('#import-file').setInputFiles({
-        name: 'history-write-failure.json', mimeType: 'application/json', buffer: await readFile(goalBackupPath)
-    });
-    assert.match(await failedHistoryRestoreConfirmation, /historical snapshots/i);
-    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Could not save historical snapshots.'));
-    const afterFailedHistoryRestore = await page.evaluate(() => ({
-        records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
-        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
-        cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
-        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
-        history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
-    }));
-    assert.deepEqual(afterFailedHistoryRestore, priorWorkspaceBeforeHistoryFailure,
-        'failed history persistence must roll back records, goals, and historical snapshots together');
-    await page.evaluate(() => {
-        globalThis.Storage.prototype.setItem = globalThis.__pfoOriginalSetItem || globalThis.Storage.prototype.setItem;
-        delete globalThis.__pfoOriginalSetItem;
-    });
-    process.stdout.write('PASS: a history storage failure rolls back the complete workspace restore.\n');
+        await page.locator('#import-file').setInputFiles({
+            name: 'restore-write-failure.json',
+            mimeType: 'application/json',
+            buffer: await readFile(goalBackupPath)
+        });
+        const confirmationMessage = await failedRestoreConfirmation;
+        assert.match(confirmationMessage, /Backup import preview/);
+        await page.waitForFunction((expectedMessage) =>
+            globalThis.document.querySelector('#toast')?.textContent.includes(expectedMessage),
+        failureCase.message);
+        const afterFailedRestore = await readWorkspaceStorage();
+        assert.deepEqual(afterFailedRestore, priorWorkspace,
+            'a failed write to ' + failureCase.key + ' must roll back every workspace collection');
+        assert.equal(afterFailedRestore[storageCollectionNames[failureCase.key]], priorWorkspace[storageCollectionNames[failureCase.key]],
+            'the failing collection must retain its original serialized value');
+        await page.evaluate(() => {
+            globalThis.Storage.prototype.setItem = globalThis.__pfoOriginalSetItem || globalThis.Storage.prototype.setItem;
+            delete globalThis.__pfoOriginalSetItem;
+        });
+    }
+    process.stdout.write('PASS: failed writes to records, goals, cash flow, budgets, and history each roll back the entire workspace.\\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();

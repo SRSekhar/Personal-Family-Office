@@ -28,6 +28,10 @@ export function validateBackupPayload(payload, expectedCurrency) {
             value: item.value
         };
     });
+    // Validate aggregate totals here, not only individual values. Otherwise a
+    // backup with individually finite values can overflow net-worth calculations
+    // later in the import flow, after the payload has been labelled "validated".
+    calculateFinancialTotals(records);
 
     const goals = [];
     const seenGoalIds = new Set();
