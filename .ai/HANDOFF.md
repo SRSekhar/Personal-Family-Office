@@ -105,3 +105,12 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - PR #385 merged: financial-health reporting now compares the selected month with the previous calendar month for income, expenses, net cash flow, and savings rate. Missing prior-month activity is explicitly unavailable, not assumed to be zero. The same visible comparison is included in CSV and standalone offline HTML exports.
 - Validation for PR #385: CI run #1079 passed, dashboard packaging run #481 passed, and Secret Scan run #1035 passed. Merge commit: 0e7bcf03b9374cd3d1de5597c44690d8cd186f08.
 - Continue with cohesive functional batches rather than file-by-file pauses. Keep real financial data out of the public repo; use fictional fixtures only. Accessibility/manual zoom reviews remain low priority/deferred. Customer validation, repository-history exposure review, licensing/distribution decisions, and owner-side GitHub Pages configuration remain open release gates.
+
+
+## Latest Follow-up (2026-10-28 — Local SQLite persistence)
+
+- SQLite persistence is available through `pnpm dashboard:serve`. The loopback server opens the local database outside the checkout by default and exposes status plus validated workspace read/write endpoints.
+- One atomic schema-v4 snapshot stores records, goals, cash-flow transactions, budgets, and historical snapshots. Save/restore actions are explicit; restore reuses the existing preview, confirmation, and transactional local-storage restore path.
+- Database API has loopback Host/Origin checks, a 10 MiB request limit, no CORS, and validation before database mutation. POSIX database and sidecar files are owner-only; Windows access relies on the user's profile ACL.
+- Not included: automatic browser-to-database sync, encryption, remote hosting, multi-user identity/authorization, or cloud replication. Do not describe this as a cloud backend.
+- This persistence hardening is on a feature branch; do not call the delivery complete until CI, browser smoke, dashboard packaging, and Secret Scan pass and its PR is merged.
