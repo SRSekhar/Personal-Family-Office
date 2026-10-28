@@ -1,3 +1,23 @@
+## 2026-10-28 — Local SQLite workspace persistence (in progress)
+
+### Scope
+- Add a Node.js built-in SQLite database for the local dashboard, with the database file outside the repository by default and an explicit `PFO_DATABASE_PATH` override.
+- Store a complete schema-v4 INR workspace snapshot atomically: financial records, goals, cash-flow transactions, budgets, and historical snapshots.
+- Expose a loopback-only JSON API with origin checks, request-size limits, full payload validation, and no CORS.
+- Add explicit dashboard save/restore controls. Restore reuses the existing validated backup preview, confirmation, and rollback flow; stable record identifiers are preserved.
+- Preserve local browser storage and offline use. This first increment deliberately uses explicit save/restore rather than claiming automatic sync.
+
+### Privacy and operational boundaries
+- The SQLite file is local and is not encrypted by this feature. It is not committed to the repository and no cloud/database provider receives financial data.
+- The API is intended for the loopback development server only; it is not a multi-user or remote deployment architecture.
+
+### Validation
+- Unit tests cover persistence across database reopen, all five collections, stable IDs, invalid data rejection, and previous-snapshot preservation.
+- API tests cover save/read/status, validation failures, and cross-origin request rejection.
+- Chromium smoke covers full-workspace save and restore. CI, browser smoke, dashboard packaging, and Secret Scan must pass before merge.
+
+---
+
 ## 2026-10-28 — Financial-health month-over-month comparison
 
 ### Delivered
