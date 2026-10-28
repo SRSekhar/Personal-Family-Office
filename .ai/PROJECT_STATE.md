@@ -155,4 +155,4 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Added startup detection for the specific recovery case where a saved SQLite snapshot exists but all five browser workspace collections are missing or empty.
 - Automatic writes wait until database status is checked and remain paused while recovery is required; the UI directs the user to the existing preview-and-confirm restore flow. A manual save remains an explicit user choice.
 - Unreadable browser storage is treated as potentially recoverable data, not as an empty workspace. This is a recovery guard, not cross-device synchronization or full optimistic concurrency control.
-- PR pending validation; do not mark complete until CI, Chromium smoke, and Secret Scan pass.
+- PR #397 merged as `cbf778274e83d37970eef299a53d2c6c914d5584`. CI run #1103, dashboard packaging run #495, and Secret Scan run #1059 passed, including the Chromium startup-recovery regression.
