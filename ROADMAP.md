@@ -90,7 +90,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 
 **Status:** In Progress — core local-first dashboard and FIRE planner are implemented
 
-- Local SQLite persistence through the loopback preview server stores a complete validated schema-v4 workspace snapshot atomically; explicit save/restore, request/origin validation, private file permissions on POSIX, and full-workspace browser/API regression coverage are implemented. Cloud/multi-user persistence and automatic synchronization remain out of scope.
+- Local SQLite persistence through the loopback preview server stores a complete validated schema-v4 workspace snapshot atomically. Explicit save/restore, opt-in automatic saves after a successful initial snapshot, request/origin validation, private file permissions on POSIX, and full-workspace browser/API regression coverage are implemented. Browser-local storage remains the immediate recovery copy; cloud/multi-user persistence and database encryption remain out of scope.
 - Dashboard for assets, liabilities, net worth, category allocation, record CRUD, search, filtering, sorting, reset, validated CSV import/export, and versioned JSON backup/restore
 - Imported custom categories are preserved when editing records (PR #176)
 - Local-only FIRE planner with readiness calculation, required annual contribution, and ordered three-scenario comparison
