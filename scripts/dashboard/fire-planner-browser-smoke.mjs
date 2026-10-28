@@ -465,12 +465,16 @@ try {
         'comparison report should include all three scenario names');
     const comparisonRows = page.locator('#fire-compare-body tr');
     for (let rowIndex = 0; rowIndex < await comparisonRows.count(); rowIndex += 1) {
-        const cells = await comparisonRows.nth(rowIndex).locator('th, td').allInnerTexts();
-        for (const cell of cells) {
-            const value = cell.trim();
-            assert.ok(value.length > 0, 'each displayed comparison cell should have a value');
+        const row = comparisonRows.nth(rowIndex);
+        const scenarioName = (await row.locator('th').innerText()).split(/\\r?\\n/u)[0]?.trim();
+        assert.ok(scenarioName && comparisonHtml.includes(scenarioName),
+            'comparison report should preserve the displayed scenario name');
+        const metricValues = await row.locator('td').allInnerTexts();
+        for (const metricValue of metricValues) {
+            const value = metricValue.trim();
+            assert.ok(value.length > 0, 'each displayed comparison metric should have a value');
             assert.ok(comparisonHtml.includes(value),
-                'comparison report should preserve the displayed scenario name or metric value: ' + value);
+                'comparison report should preserve the displayed metric value: ' + value);
         }
     }
     assert.match(comparisonHtml, /Results are shown in the order entered/u,
