@@ -39,6 +39,12 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - Chromium smoke checks the download filename, schema version, and all five workspace collections.
 - This creates a portable recovery artifact, not an encrypted backup; store exports securely.
 
+## In Progress — Read-only SQLite integrity diagnostics
+
+- Added a loopback-protected API check using SQLite `PRAGMA quick_check`, with sanitized failure responses.
+- Unit/API tests verify a healthy database passes and its saved workspace/version remains unchanged.
+- Validation is pending on PR.
+
 ## Completed — Sprint 6: Local SQLite Persistence
 
 - Local SQLite backend is integrated with the loopback dashboard server. It persists the complete schema-v4 workspace (records, goals, cash-flow transactions, budgets, and historical snapshots) as one validated transactional snapshot.

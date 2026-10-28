@@ -1,3 +1,17 @@
+## 2026-10-28 — Read-only SQLite integrity diagnostics
+
+### Delivered
+- Added a loopback-origin-protected database API endpoint that runs SQLite `PRAGMA quick_check` and reports whether the local database passes its structural integrity check.
+- The check is read-only and does not alter, restore, or overwrite the saved workspace. Failures return a sanitized diagnostic rather than exposing raw database errors.
+- Added unit and API coverage confirming a healthy database passes the check and the saved workspace/version remains unchanged.
+
+### Scope
+- This is a structural SQLite check, not a guarantee that a valid-looking financial value is factually correct or that a separate backup can be restored.
+- Synthetic test data only; no financial data is transmitted remotely.
+
+### Validation
+- CI, dashboard packaging, browser smoke, and Secret Scan are required before merge.
+
 ## 2026-10-28 — Portable export of the committed SQLite workspace
 
 ### Delivered
