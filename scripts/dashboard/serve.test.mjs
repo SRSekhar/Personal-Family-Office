@@ -81,6 +81,9 @@ describe('local dashboard preview server', () => {
         expect(await read.json()).toMatchObject({ payload, updatedAt: expect.any(String) });
         expect((await fetch(`${origin}/api/v1/database/status`)).headers.get('content-security-policy'))
             .toContain("connect-src 'self'");
+        const integrity = await fetch(`${origin}/api/v1/database/integrity`);
+        expect(integrity.status).toBe(200);
+        expect(await integrity.json()).toEqual({ ok: true, messages: ['ok'] });
     });
 
     it('rejects stale database versions and preserves the latest workspace', async () => {
