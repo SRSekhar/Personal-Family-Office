@@ -1,3 +1,19 @@
+## 2026-10-27 — Selectable reporting month for financial health (PR #375 merged)
+
+### Delivered
+- Added an explicit reporting-month control to the private financial-health overview so users can inspect recorded cash flow, savings rate, budget control, and budget coverage for a chosen historical month.
+- Balance-sheet totals and saved-goal progress remain based on the current validated workspace; the month selection is ephemeral and does not create new persistence or network activity.
+- Added Chromium browser smoke coverage for switching between September and October 2026.
+
+### Validation
+- CI build, typecheck, lint, tests, Chromium browser smoke, dashboard packaging, and full-history Secret Scan passed before merge.
+- Browser tests use fictional records only.
+
+### Product lesson
+- A reporting summary should make its time scope user-selectable when underlying dated records support historical review. Clearly distinguish period-specific transaction metrics from current balance-sheet and goal state.
+
+---
+
 ## 2026-10-27 — Narrow-viewport checks for core financial panels (PR #370 merged)
 
 ### Scope

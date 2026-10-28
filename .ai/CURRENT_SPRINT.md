@@ -50,6 +50,7 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 - PR #364 — historical net worth offline report using only captured snapshots and honest date gaps.
 - PR #367 — annual financial review year-over-year comparison with explicit zero-baseline handling.
 - PR #370 — narrow-viewport Chromium regression checks for the FIRE planner, Goal Tracker, and return-risk analysis; no runtime behavior changed.
+- PR #375 — added a local reporting-month selector to the financial-health overview. Cash-flow, savings-rate, budget-control, and budget-coverage metrics recalculate for the selected month; balance-sheet totals and saved-goal progress remain current. Chromium smoke verified September/October 2026 selection; CI, dashboard packaging, and Secret Scan passed.
 - PR #365 and #366 — synchronized historical-report validation, roadmap, and project-state documentation.
 
 ## In Progress
