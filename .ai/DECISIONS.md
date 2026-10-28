@@ -185,6 +185,26 @@ Consequences
 - The database file is not encrypted by this feature and must be protected by device security and separate backups.
 - This is not a multi-user or cloud backend. A hosted database requires a separate deployment, authentication, tenancy, migration, and threat-model decision.
 
+## DEC-0012
+
+Title
+
+Read-Only SQLite Integrity Diagnostics
+
+Status
+
+Accepted
+
+Decision
+
+Expose a loopback-origin-protected read-only SQLite integrity endpoint using `PRAGMA quick_check`. Return a compact pass/fail result and sanitized failure messages without changing the workspace snapshot.
+
+Consequences
+
+- Users and local diagnostics can check structural database health before relying on a saved workspace.
+- A passing structural check does not prove financial values are accurate or that an external backup is restorable.
+- Integrity diagnostics must remain local-only and must never expose raw database contents.
+
 ## Future Decisions
 
 Every significant architectural or product decision shall be recorded here before implementation.
