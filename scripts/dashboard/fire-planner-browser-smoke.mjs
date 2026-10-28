@@ -500,12 +500,12 @@ try {
     const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
     assert.ok(comparisonHtml.includes('Baseline') && comparisonHtml.includes('Higher saving'),
         'comparison report should include all three scenario names');
-    const normalizedComparisonHtml = comparisonHtml.replace(/\\s+/gu, '');
+    const normalizedComparisonHtml = comparisonHtml.replace(/\s+/gu, '');
     const comparisonRows = page.locator('#fire-compare-body tr');
     for (let rowIndex = 0; rowIndex < await comparisonRows.count(); rowIndex += 1) {
         const row = comparisonRows.nth(rowIndex);
         const scenarioName = (await row.locator('td').first().innerText()).split(/\r?\n/u)[0]?.trim();
-        assert.ok(scenarioName && normalizedComparisonHtml.includes(scenarioName.replace(/\\s+/gu, '')),
+        assert.ok(scenarioName && normalizedComparisonHtml.includes(scenarioName.replace(/\s+/gu, '')),
             'comparison report should preserve the displayed scenario name');
         const metricValues = await row.locator('td').allInnerTexts();
         // The first cell combines the scenario label with a multi-line assumptions summary.
@@ -513,7 +513,7 @@ try {
         for (const metricValue of metricValues.slice(1)) {
             const value = metricValue.trim();
             assert.ok(value.length > 0, 'each displayed comparison metric should have a value');
-            assert.ok(normalizedComparisonHtml.includes(value.replace(/\\s+/gu, '')),
+            assert.ok(normalizedComparisonHtml.includes(value.replace(/\s+/gu, '')),
                 'comparison report should preserve the displayed metric value: ' + value);
         }
     }
