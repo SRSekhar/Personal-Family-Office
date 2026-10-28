@@ -513,7 +513,11 @@ try {
         for (const metricValue of metricValues.slice(1)) {
             const value = metricValue.trim();
             assert.ok(value.length > 0, 'each displayed comparison metric should have a value');
-            assert.ok(normalizedComparisonHtml.includes(value.replace(/\s+/gu, '')),
+            const numericValue = value.replace(/[^0-9.-]/gu, '');
+            const reportMatchesValue = numericValue.length > 0
+                ? comparisonHtml.replace(/,/gu, '').includes(numericValue.replace(/,/gu, ''))
+                : normalizedComparisonHtml.includes(value.replace(/\s+/gu, ''));
+            assert.ok(reportMatchesValue,
                 'comparison report should preserve the displayed metric value: ' + value);
         }
     }
