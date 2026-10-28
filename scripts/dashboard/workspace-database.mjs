@@ -1,4 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
+import { Buffer } from 'node:buffer';
+import process from 'node:process';
 import { mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
