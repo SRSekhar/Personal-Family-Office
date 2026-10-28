@@ -97,3 +97,11 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 4. Continue to keep real financial data out of the public repository. Customer demand, paid pilots, licensing/distribution review, and GitHub Pages setup remain open and must not be represented as complete.
 
 - PR #116's immediate post-merge run failed with `Unsupported event type: push`; no agent work was performed. PR #117 removed the unsupported trigger and changed the cadence to twice hourly. Do not report autonomous delivery as working until a scheduled/manual run publishes a valid PR.
+
+
+## Latest Follow-up (2026-10-28 — supersedes older status notes)
+
+- PR #384 merged: data-integrity batch validates aggregate financial totals and verifies atomic rollback for writes to records, goals, cash-flow transactions, budgets, and historical snapshots. CSV, backup/restore, storage, and ledger validation edge cases are covered.
+- PR #385 merged: financial-health reporting now compares the selected month with the previous calendar month for income, expenses, net cash flow, and savings rate. Missing prior-month activity is explicitly unavailable, not assumed to be zero. The same visible comparison is included in CSV and standalone offline HTML exports.
+- Validation for PR #385: CI run #1079 passed, dashboard packaging run #481 passed, and Secret Scan run #1035 passed. Merge commit: 0e7bcf03b9374cd3d1de5597c44690d8cd186f08.
+- Continue with cohesive functional batches rather than file-by-file pauses. Keep real financial data out of the public repo; use fictional fixtures only. Accessibility/manual zoom reviews remain low priority/deferred. Customer validation, repository-history exposure review, licensing/distribution decisions, and owner-side GitHub Pages configuration remain open release gates.
