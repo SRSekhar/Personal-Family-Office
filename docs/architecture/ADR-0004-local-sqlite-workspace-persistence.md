@@ -1,6 +1,6 @@
 # ADR-0004: Local SQLite workspace persistence
 
-- **Status:** Accepted — local SQLite snapshot persistence merged; opt-in automatic-save follow-up in progress
+- **Status:** Accepted — local SQLite snapshot persistence and opt-in automatic saves merged
 - **Date:** 2026-10-28
 
 ## Context

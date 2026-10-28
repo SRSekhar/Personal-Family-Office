@@ -12,10 +12,12 @@ Sprint 6 — Local SQLite Persistence
 
 Add an opt-in local SQLite backend for durable workspace snapshots while preserving local-first behavior, schema-v4 validation, atomic restore, and privacy boundaries.
 
-## In Progress — Opt-in automatic SQLite saves
+## Completed — Opt-in automatic SQLite saves (PR #394)
 
-- Add an explicit control to enable/disable automatic SQLite saves after a successful initial snapshot. Successful workspace changes schedule a serialized, 450 ms debounced full-workspace save; database failures must be surfaced without implying browser-local data was lost.
-- Chromium smoke covers enabling automatic saves, creating a cash-flow transaction through the UI, and verifying the transaction persisted through the SQLite API. Full CI and browser validation are pending.
+- Added an explicit control to enable/disable automatic SQLite saves after a successful initial snapshot.
+- Successful records, goals, cash-flow, budgets, historical snapshots, imports, and restores schedule a serialized, 450 ms debounced full-workspace save.
+- Database failures are surfaced as possible database lag; browser-local data remains intact as the immediate recovery copy.
+- Chromium smoke enables automatic saves, creates a cash-flow transaction through the UI, and verifies the transaction persisted through the SQLite API. CI run #1097, dashboard packaging run #493, and Secret Scan run #1053 passed before merge.
 
 ## Completed — Sprint 6: Local SQLite Persistence
 
@@ -23,7 +25,7 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - Dashboard controls explicitly save and restore the private workspace. Restore reuses the existing preview, confirmation, validation, and rollback flow; record IDs remain stable.
 - Default database path is outside the repository. POSIX database and SQLite sidecar files are restricted to owner-only permissions. Windows relies on the user's profile ACL.
 - The backend has request-size limits, loopback host/origin checks, no CORS, and server/API tests for persistence, validation, and rejected cross-origin writes.
-- Browser smoke verifies a full five-collection save/restore round trip. Automatic saving is now an opt-in follow-up in progress; database encryption, cloud hosting, and multi-user access remain out of scope.
+- Browser smoke verifies a full five-collection save/restore round trip and an automatic cash-flow save. Explicit and opt-in automatic persistence are complete; database encryption, cloud hosting, and multi-user access remain out of scope.
 
 ## Previous Completed Deliverables
 

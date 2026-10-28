@@ -1,4 +1,4 @@
-## 2026-10-28 — Opt-in automatic SQLite workspace saves (in progress)
+## 2026-10-28 — Opt-in automatic SQLite workspace saves (delivered; PR #394 merged)
 
 ### Delivered in this follow-up
 - Add a control to enable/disable automatic SQLite saves. Enabling requires a successful initial full-workspace snapshot.
@@ -8,7 +8,7 @@
 
 ### Boundaries
 - Automatic saving is opt-in. It is not cloud sync, multi-user consistency, or encryption at rest.
-- CI and browser smoke must pass before this follow-up is marked complete.
+- Validation passed before merge: CI run #1097, Chromium browser smoke including a cash-flow auto-save transaction, dashboard packaging run #493, and Secret Scan run #1053.
 
 ---
 
