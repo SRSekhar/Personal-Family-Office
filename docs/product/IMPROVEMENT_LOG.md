@@ -1,3 +1,15 @@
+## 2026-10-28 — Financial-health month-over-month comparison
+
+### Delivered
+- Added a comparison against the immediately preceding calendar month for the selected financial-health reporting month.
+- Shows recorded income, expenses, net cash-flow, and savings-rate changes using the same validated ledger; January correctly compares with December of the prior year.
+- Explicitly marks the comparison unavailable when the prior month has no recorded transactions instead of presenting an invented zero-activity baseline.
+- The comparison appears in the existing financial-health cards and therefore flows through the existing CSV and offline HTML exports without a second export implementation.
+
+### Validation
+- Added calculator tests for normal month comparison, January/year-boundary handling, and missing prior-month activity.
+- CI and browser smoke validation required before merge; all fixtures use fictional transactions.
+
 ## 2026-10-27 — Selectable reporting month for financial health (PR #375 merged)
 
 ### Delivered
