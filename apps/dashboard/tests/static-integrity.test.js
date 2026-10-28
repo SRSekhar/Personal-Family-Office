@@ -632,7 +632,7 @@ describe('financial health dashboard contract', () => {
         expect(app).toContain("isPrivateWorkspaceAllowed(window.location.hostname)");
         expect(app).toContain("workspace !== 'private'");
         expect(cashFlow).toContain("dispatchEvent(new Event('pfo:cashflow-updated'))");
-        expect(app).toContain("window.addEventListener('pfo:cashflow-updated', renderFinancialHealth)");
+        expect(app).toContain("window.addEventListener('pfo:cashflow-updated', () => { renderFinancialHealth(); scheduleDatabaseAutoSave(); })");
     });
 });
 

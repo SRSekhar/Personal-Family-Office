@@ -1,3 +1,17 @@
+## 2026-10-28 — Opt-in automatic SQLite workspace saves (in progress)
+
+### Delivered in this follow-up
+- Add a control to enable/disable automatic SQLite saves. Enabling requires a successful initial full-workspace snapshot.
+- Successful records, goals, cash-flow, budgets, historical snapshots, imports, and restores schedule a 450 ms debounced, serialized full-workspace save.
+- Database failures are surfaced as possible SQLite lag; browser-local data remains intact as the immediate recovery copy.
+- Chromium smoke exercises enabling auto-save, creating a cash-flow transaction through the UI, and verifying the transaction in the SQLite API.
+
+### Boundaries
+- Automatic saving is opt-in. It is not cloud sync, multi-user consistency, or encryption at rest.
+- CI and browser smoke must pass before this follow-up is marked complete.
+
+---
+
 ## 2026-10-28 — Local SQLite workspace persistence (delivered; PR #390)
 
 ### Scope

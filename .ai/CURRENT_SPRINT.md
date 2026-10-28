@@ -12,13 +12,18 @@ Sprint 6 — Local SQLite Persistence
 
 Add an opt-in local SQLite backend for durable workspace snapshots while preserving local-first behavior, schema-v4 validation, atomic restore, and privacy boundaries.
 
+## In Progress — Opt-in automatic SQLite saves
+
+- Add an explicit control to enable/disable automatic SQLite saves after a successful initial snapshot. Successful workspace changes schedule a serialized, 450 ms debounced full-workspace save; database failures must be surfaced without implying browser-local data was lost.
+- Chromium smoke covers enabling automatic saves, creating a cash-flow transaction through the UI, and verifying the transaction persisted through the SQLite API. Full CI and browser validation are pending.
+
 ## Completed — Sprint 6: Local SQLite Persistence
 
 - Local SQLite backend is integrated with the loopback dashboard server. It persists the complete schema-v4 workspace (records, goals, cash-flow transactions, budgets, and historical snapshots) as one validated transactional snapshot.
 - Dashboard controls explicitly save and restore the private workspace. Restore reuses the existing preview, confirmation, validation, and rollback flow; record IDs remain stable.
 - Default database path is outside the repository. POSIX database and SQLite sidecar files are restricted to owner-only permissions. Windows relies on the user's profile ACL.
 - The backend has request-size limits, loopback host/origin checks, no CORS, and server/API tests for persistence, validation, and rejected cross-origin writes.
-- Browser smoke verifies a full five-collection save/restore round trip. Automatic synchronization, database encryption, cloud hosting, and multi-user access are explicitly out of scope.
+- Browser smoke verifies a full five-collection save/restore round trip. Automatic saving is now an opt-in follow-up in progress; database encryption, cloud hosting, and multi-user access remain out of scope.
 
 ## Previous Completed Deliverables
 
