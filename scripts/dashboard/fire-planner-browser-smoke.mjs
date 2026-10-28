@@ -172,6 +172,23 @@ try {
     ]);
     const allocationHtml = await assertOfflineReport(allocationHtmlDownload, 'pfo-os-asset-allocation.html', 'Asset allocation by category');
     assert.ok(allocationHtml.includes('53.98%'), 'allocation report should reconcile the largest category share');
+    const dashboardConcentrationMetrics = await page.locator('#allocation-concentration .concentration-metrics article strong').allInnerTexts();
+    assert.equal(dashboardConcentrationMetrics.length, 3, 'dashboard should expose all three category concentration metrics');
+    const allocationMetricLabels = ['Concentration index (HHI)', 'Effective category count', 'Largest category share'];
+    for (const label of allocationMetricLabels) {
+        assert.ok(allocationHtml.includes('<span>' + label + '</span>'),
+            'allocation report should include the ' + label + ' summary metric');
+    }
+    const reportLargestShare = Number(allocationHtml.match(/<span>Largest category share<\/span><strong>([0-9.]+)%<\/strong>/u)?.[1]);
+    const dashboardLargestShare = Number(dashboardConcentrationMetrics[2].replace('%', ''));
+    assert.ok(Number.isFinite(reportLargestShare) && Number.isFinite(dashboardLargestShare),
+        'allocation report and dashboard should expose numeric largest-category shares');
+    assert.ok(Math.abs(reportLargestShare - dashboardLargestShare) <= 0.051,
+        'exported largest-category share should reconcile with the dashboard value within display rounding');
+    assert.ok(allocationHtml.includes(dashboardConcentrationMetrics[0].trim()),
+        'exported HHI should match the displayed dashboard concentration index');
+    assert.ok(allocationHtml.includes(dashboardConcentrationMetrics[1].trim()),
+        'exported effective category count should match the dashboard value');
     assert.ok(allocationHtml.includes('does not measure holding-level diversification'), 'allocation report should disclose concentration limitations');
     await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-os-asset-allocation.html'), 'Asset allocation by category');
     process.stdout.write('PASS: asset allocation report includes category totals and opens offline without network dependencies.\n');
