@@ -22,8 +22,8 @@ async function createRoot() {
     return root;
 }
 
-async function startServer(root) {
-    const server = createDashboardServer(root);
+async function startServer(root, options = {}) {
+    const server = createDashboardServer(root, options);
     servers.push(server);
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');
@@ -53,6 +53,63 @@ describe('local dashboard preview server', () => {
         expect(response.headers.get('content-security-policy')).toContain("default-src 'self'");
         expect(response.headers.get('content-security-policy')).toContain("style-src 'self' 'unsafe-inline'");
         expect(await response.text()).toContain('Local PFO');
+    });
+
+    it('persists a complete validated workspace through the local SQLite API', async () => {
+        const root = await createRoot();
+        const origin = await startServer(root, { databasePath: join(root, '..', 'api-workspace.sqlite') });
+        const statusBefore = await fetch(`${origin}/api/v1/database/status`);
+        expect(statusBefore.status).toBe(200);
+        expect(await statusBefore.json()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false });
+
+        const missing = await fetch(`${origin}/api/v1/workspace`);
+        expect(missing.status).toBe(404);
+
+        const payload = {
+            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+        };
+        const save = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload })
+        });
+        expect(save.status).toBe(200);
+        expect(await save.json()).toMatchObject({ database: 'SQLite', hasWorkspace: true, recordCount: 1 });
+
+        const read = await fetch(`${origin}/api/v1/workspace`);
+        expect(read.status).toBe(200);
+        expect(await read.json()).toMatchObject({ payload, updatedAt: expect.any(String) });
+        expect((await fetch(`${origin}/api/v1/database/status`)).headers.get('content-security-policy'))
+            .toContain("connect-src 'self'");
+    });
+
+    it('rejects invalid and cross-origin database writes without replacing saved data', async () => {
+        const root = await createRoot();
+        const origin = await startServer(root, { databasePath: join(root, '..', 'protected-workspace.sqlite') });
+        const payload = {
+            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+        };
+        const save = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload })
+        });
+        expect(save.status).toBe(200);
+
+        const invalid = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload: { ...payload, currency: 'USD' } })
+        });
+        expect(invalid.status).toBe(400);
+        expect((await fetch(`${origin}/api/v1/workspace`)).status).toBe(200);
+
+        const crossOrigin = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Origin: 'https://attacker.example' },
+            body: JSON.stringify({ payload })
+        });
+        expect(crossOrigin.status).toBe(403);
+        expect((await fetch(`${origin}/api/v1/workspace`)).status).toBe(200);
     });
 
     it('serves JavaScript with the correct MIME type and supports HEAD', async () => {
