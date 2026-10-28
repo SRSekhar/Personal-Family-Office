@@ -1,3 +1,18 @@
+## 2026-10-28 — Portable export of the committed SQLite workspace
+
+### Delivered
+- Added a dedicated local dashboard action to export the last committed SQLite snapshot as a dated schema-v4 JSON backup, independent of unsaved browser-local changes.
+- Export is available only on the loopback private dashboard and only when a saved snapshot exists. The browser validates the returned backup before download.
+- Added Chromium smoke assertions for the dated filename, schema version, and presence of all five workspace collections.
+
+### Recovery and privacy boundaries
+- The exported file is a portable, validated workspace backup; it is not encrypted. Users should keep it in a secure location and use encrypted device backups.
+- The export does not change the database or browser workspace and does not send financial data to a remote service.
+
+### Validation
+- Chromium smoke coverage is part of the pull-request CI and dashboard packaging checks.
+- Synthetic workspace fixtures only.
+
 ## 2026-10-28 — SQLite optimistic concurrency protection (delivered; PR #400 merged)
 
 - Added a last-read `updatedAt` version token to local SQLite workspace writes and compare it transactionally before replacement.
