@@ -148,3 +148,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #394 merged opt-in automatic SQLite saves. The user must save the complete workspace successfully before enabling automatic mode; subsequent successful record, goal, cash-flow, budget, history, import, and restore changes schedule serialized, 450 ms debounced full-workspace snapshots.
 - CI run #1097, dashboard packaging run #493, and Secret Scan run #1053 passed for the automatic-save PR before merge. Chromium smoke verified the database contains a cash-flow transaction created through the UI.
 - Browser-local storage remains the immediate recovery copy. The database is local and not encrypted; no cloud provider or multi-user service is included.
+
+
+## Latest Follow-up (2026-10-28 — SQLite startup recovery guard)
+
+- Added startup detection for the specific recovery case where a saved SQLite snapshot exists but all five browser workspace collections are missing or empty.
+- Automatic writes wait until database status is checked and remain paused while recovery is required; the UI directs the user to the existing preview-and-confirm restore flow. A manual save remains an explicit user choice.
+- Unreadable browser storage is treated as potentially recoverable data, not as an empty workspace. This is a recovery guard, not cross-device synchronization or full optimistic concurrency control.
+- PR pending validation; do not mark complete until CI, Chromium smoke, and Secret Scan pass.
