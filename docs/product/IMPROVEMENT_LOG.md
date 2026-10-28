@@ -12,7 +12,7 @@
 
 ---
 
-## 2026-10-28 — Local SQLite workspace persistence (delivered; PR #390)
+## 2026-10-28 — Local SQLite workspace persistence (PR #387; permission hardening in PR #390)
 
 ### Scope
 - Add a Node.js built-in SQLite database for the local dashboard, with the database file outside the repository by default and an explicit `PFO_DATABASE_PATH` override.
