@@ -508,10 +508,10 @@ try {
         assert.ok(scenarioName && normalizedComparisonHtml.includes(scenarioName.replace(/\s+/gu, '')),
             'comparison report should preserve the displayed scenario name');
         const metricValues = await row.locator('td').allInnerTexts();
-        const reportAmounts = [...comparisonHtml.matchAll(/INR\\s+([\\d,]+(?:\\.\\d{2})?)/gu)]
+        const reportAmounts = [...comparisonHtml.matchAll(/INR\s+([\d,]+(?:\.\d{2})?)/gu)]
             .map((match) => Math.round(Number(match[1].replace(/,/gu, ''))));
         for (const metricValue of metricValues.slice(1, 4)) {
-            const displayedAmount = Number(metricValue.replace(/[^\\d]/gu, ''));
+            const displayedAmount = Number(metricValue.replace(/[^\d]/gu, ''));
             assert.ok(Number.isFinite(displayedAmount) && reportAmounts.includes(displayedAmount),
                 'comparison report should preserve each displayed amount after currency formatting and rounding: ' + metricValue);
         }
