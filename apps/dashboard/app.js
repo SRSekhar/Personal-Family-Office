@@ -83,6 +83,7 @@ let lastComparisonReportScenarios = [];
 let databaseAutoSaveEnabled = false;
 let databaseAutoSaveTimer;
 let databaseSaveQueue = Promise.resolve();
+try { databaseAutoSaveEnabled = localStorage.getItem(DATABASE_AUTO_SAVE_KEY) === 'true'; } catch { /* automatic persistence remains off if the preference cannot be read */ }
 
 const $ = (selector) => document.querySelector(selector);
 const money = (value) => new Intl.NumberFormat('en-IN', {
