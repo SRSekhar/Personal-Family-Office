@@ -466,7 +466,7 @@ try {
     const comparisonRows = page.locator('#fire-compare-body tr');
     for (let rowIndex = 0; rowIndex < await comparisonRows.count(); rowIndex += 1) {
         const row = comparisonRows.nth(rowIndex);
-        const scenarioName = (await row.locator('th').innerText()).split(/\\r?\\n/u)[0]?.trim();
+        const scenarioName = (await row.locator('td').first().innerText()).split(/\\r?\\n/u)[0]?.trim();
         assert.ok(scenarioName && comparisonHtml.includes(scenarioName),
             'comparison report should preserve the displayed scenario name');
         const metricValues = await row.locator('td').allInnerTexts();
