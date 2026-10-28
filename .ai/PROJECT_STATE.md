@@ -107,3 +107,13 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #384 merged: added aggregate-total validation to backup validation and exercised atomic restore rollback for all five workspace collections (records, goals, cash flow, budgets, and history). CI, dashboard packaging, and Secret Scan passed.
 - PR #385 merged: financial health now compares the selected reporting month with the immediately previous calendar month for recorded income, expenses, net cash flow, and savings rate. It handles year boundaries and does not invent a baseline when no prior-month transactions exist. Unit tests, Chromium smoke, CI, dashboard packaging, and Secret Scan passed.
 - Product priority remains useful financial workflows, trustworthy calculations, privacy, and customer validation. Accessibility remains low priority/deferred as directed; automated checks remain in place.
+
+
+## Latest Follow-up (2026-10-28 — SQLite persistence in progress)
+
+- Major next deliverable: opt-in local SQLite persistence for the private dashboard workspace.
+- The proposed implementation uses Node.js built-in `node:sqlite` to avoid a native third-party database dependency and lockfile churn. The database defaults outside the Git checkout and can be relocated with `PFO_DATABASE_PATH`.
+- The local loopback server exposes a JSON API for status and full-workspace save/read. A single schema-v4 snapshot row is written in one SQLite transaction; records, goals, cash-flow transactions, budgets, and historical snapshots are validated as a unit.
+- The dashboard adds explicit save and restore actions. Restore reuses the established backup preview and atomic browser-storage recovery flow; browser edits are not automatically synchronized in this increment.
+- Security boundaries: loopback-only server, local-origin validation, no CORS, 10 MiB request limit, no remote database, no automatic cloud sync, and SQLite database files ignored by Git. This feature does not encrypt the database file.
+- Status: implementation and tests are on a feature branch. Do not mark complete until CI, Chromium smoke, dashboard packaging, and Secret Scan pass and the PR is merged.
