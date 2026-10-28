@@ -1802,7 +1802,123 @@ function restoreStorageValue(key, serializedValue) {
     }
 }
 
-function importData(file) {
+function buildDatabaseWorkspacePayload() {
+    if (workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) {
+        throw new Error('Switch to the local private workspace before saving to SQLite.');
+    }
+    if (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy) {
+        throw new Error('Database save is paused because saved workspace data could not be validated. Recover from a verified backup first.');
+    }
+    const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
+    const budgetsRaw = localStorage.getItem('pfo-os.cash-flow-budgets.v1');
+    const historicalSnapshots = readHistoricalSnapshots();
+    if (historicalSnapshots === null) throw new Error('Historical snapshots could not be validated.');
+    const payload = {
+        schemaVersion: 4,
+        currency: CURRENCY,
+        exportedAt: new Date().toISOString(),
+        records,
+        goals: savedGoals,
+        cashFlowEntries: entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw)),
+        budgets: validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw)),
+        historicalSnapshots
+    };
+    // Run the same backup validator used by file restore before sending anything to the server.
+    validateBackupPayload(payload, CURRENCY);
+    return payload;
+}
+
+function setDatabaseStatus(status, detail = '') {
+    $('#database-storage-status').textContent = status;
+    $('#database-storage-detail').textContent = detail;
+}
+
+async function refreshDatabaseStatus() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        $('#database-storage').hidden = true;
+        return;
+    }
+    try {
+        const response = await fetch('./api/v1/database/status', { headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Local SQLite service is unavailable.');
+        $('#database-storage').hidden = false;
+        $('#database-restore-button').disabled = !result.hasWorkspace;
+        const updated = result.updatedAt
+            ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))
+            : 'No database snapshot saved yet';
+        setDatabaseStatus(result.hasWorkspace ? 'SQLite ready · saved workspace found' : 'SQLite ready · no saved workspace',
+            `Local SQLite · ${updated} · ${result.payloadBytes ? number(result.payloadBytes) + ' bytes stored' : 'No workspace data stored yet'}`);
+    } catch (error) {
+        $('#database-storage').hidden = false;
+        $('#database-restore-button').disabled = true;
+        setDatabaseStatus('SQLite unavailable', error instanceof Error
+            ? error.message + ' Start the local app with pnpm dashboard:serve.'
+            : 'Start the local app with pnpm dashboard:serve.');
+    }
+}
+
+async function saveWorkspaceToDatabase() {
+    let payload;
+    try {
+        payload = buildDatabaseWorkspacePayload();
+    } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Could not validate the current workspace for database persistence.');
+        return;
+    }
+    const button = $('#database-save-button');
+    button.disabled = true;
+    setDatabaseStatus('Saving validated workspace to SQLite…');
+    try {
+        const response = await fetch('./api/v1/workspace', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ payload })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'SQLite save failed.');
+        $('#database-restore-button').disabled = false;
+        setDatabaseStatus('SQLite save complete',
+            `Saved ${result.recordCount} records, ${result.goalCount} goals, ${result.cashFlowTransactionCount} transactions, ${result.budgetCount} budgets, and ${result.historicalSnapshotCount} history snapshots at ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))}.`);
+        showToast('Complete private workspace saved to the local SQLite database.');
+    } catch (error) {
+        setDatabaseStatus('SQLite save failed', error instanceof Error
+            ? error.message + ' Your browser workspace was not changed.'
+            : 'Your browser workspace was not changed.');
+        showToast('SQLite save failed. The current browser workspace was not changed.');
+    } finally {
+        button.disabled = false;
+        await refreshDatabaseStatus();
+    }
+}
+
+async function restoreWorkspaceFromDatabase() {
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        showLocalWorkspaceRequired();
+        return;
+    }
+    const button = $('#database-restore-button');
+    button.disabled = true;
+    setDatabaseStatus('Reading saved workspace from SQLite…');
+    try {
+        const response = await fetch('./api/v1/workspace', { headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'No saved SQLite workspace is available.');
+        // Reuse the existing schema-v4 preview, confirmation, validation, and atomic local restore path.
+        const file = new File([JSON.stringify(result.payload)], 'pfo-os-sqlite-workspace.json', { type: 'application/json' });
+        importData(file, { preserveRecordIds: true, sourceLabel: 'the local SQLite database' });
+        setDatabaseStatus('SQLite workspace loaded for restore preview',
+            `Last database save: ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))}. Confirm the import preview to replace the browser workspace.`);
+    } catch (error) {
+        setDatabaseStatus('SQLite restore unavailable', error instanceof Error ? error.message : 'Could not read the saved workspace.');
+        showToast(error instanceof Error ? error.message : 'Could not read the saved SQLite workspace.');
+    } finally {
+        button.disabled = false;
+        await refreshDatabaseStatus();
+    }
+}
+
+function importData(file, options = {}) {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         showLocalWorkspaceRequired();
         return;
@@ -1813,7 +1929,12 @@ function importData(file) {
         try {
             const parsed = JSON.parse(String(reader.result));
             const backup = validateBackupPayload(parsed, CURRENCY);
-            const validatedRecords = backup.records.map((item) => ({ id: crypto.randomUUID(), ...item }));
+            const validatedRecords = backup.records.map((item) => ({
+                ...item,
+                id: options.preserveRecordIds && typeof item.id === 'string' && item.id.trim()
+                    ? item.id
+                    : crypto.randomUUID()
+            }));
 
             const preview = summarizeValidatedBackup(backup);
             const previewLines = [
@@ -1935,9 +2056,10 @@ function importData(file) {
                 showGoalMessage();
             }
             render();
+            const sourceSuffix = options.sourceLabel ? ` from ${options.sourceLabel}` : '';
             showToast(backup.includesGoals
-                ? `Imported ${records.length} records and ${savedGoals.length} saved goals into your private workspace.`
-                : `Imported ${records.length} records. This legacy backup did not contain goals; saved goals were preserved.`);
+                ? `Imported ${records.length} records and ${savedGoals.length} saved goals into your private workspace${sourceSuffix}.`
+                : `Imported ${records.length} records${sourceSuffix}. This legacy backup did not contain goals; saved goals were preserved.`);
         } catch (error) {
             showToast(error instanceof Error ? error.message : 'Could not import this backup.');
         } finally {
@@ -2065,6 +2187,9 @@ $('#view-all-button').addEventListener('click', () => {
     $('#view-all-button').dataset.all = $('#view-all-button').dataset.all !== 'true' ? 'true' : 'false';
     renderRecords();
 });
+$('#database-save-button').addEventListener('click', saveWorkspaceToDatabase);
+$('#database-restore-button').addEventListener('click', restoreWorkspaceFromDatabase);
+$('#database-refresh-button').addEventListener('click', refreshDatabaseStatus);
 $('#export-button').addEventListener('click', exportData);
 $('#switch-demo-button').addEventListener('click', () => switchWorkspace('demo'));
 $('#historical-snapshot-form').addEventListener('submit', captureCurrentHistoricalSnapshot);
@@ -2135,6 +2260,7 @@ window.addEventListener('hashchange', syncActiveNavigation);
 window.addEventListener('pfo:cashflow-updated', renderFinancialHealth);
 syncActiveNavigation();
 
+refreshDatabaseStatus();
 resetGoal();
 renderSavedGoals();
 showHostedPrivacyWarning();
