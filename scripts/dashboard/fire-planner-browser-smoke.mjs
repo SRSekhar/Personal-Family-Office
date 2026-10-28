@@ -2179,7 +2179,11 @@ try {
     const financialHealthCards = await page.locator('#financial-health-metrics .financial-health-card').evaluateAll((cards) =>
         cards.map((card) => [...card.children].slice(0, 3).map((part) => part.textContent))
     );
-    assert.equal(financialHealthCards.length, 6, 'financial health should display all six validated metric cards');
+    assert.equal(financialHealthCards.length, 7, 'financial health should display all seven validated metric cards, including the prior-month comparison');
+    assert.ok(financialHealthCards.some(([label, value, detail]) => label === 'Change vs September 2026'
+        && value.startsWith('Net cash flow ')
+        && detail.includes('Income ') && detail.includes('Expenses ') && detail.includes('Savings rate')),
+    'financial health should compare October metrics with recorded September transactions');
     const escapeFinancialHealthHtml = (value) => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
     const [financialHealthDownload] = await Promise.all([
