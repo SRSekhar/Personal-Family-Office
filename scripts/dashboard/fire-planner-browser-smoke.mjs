@@ -463,6 +463,20 @@ try {
     const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
     assert.ok(comparisonHtml.includes('Baseline') && comparisonHtml.includes('Higher saving'),
         'comparison report should include all three scenario names');
+    const comparisonRows = page.locator('#fire-compare-body tr');
+    for (let rowIndex = 0; rowIndex < await comparisonRows.count(); rowIndex += 1) {
+        const cells = await comparisonRows.nth(rowIndex).locator('th, td').allInnerTexts();
+        for (const cell of cells) {
+            const value = cell.trim();
+            assert.ok(value.length > 0, 'each displayed comparison cell should have a value');
+            assert.ok(comparisonHtml.includes(value),
+                'comparison report should preserve the displayed scenario name or metric value: ' + value);
+        }
+    }
+    assert.match(comparisonHtml, /Results are shown in the order entered/u,
+        'comparison report should state that scenarios retain user-entered order');
+    assert.match(comparisonHtml, /not a forecast, investment recommendation, or guarantee/u,
+        'comparison report should disclose that results are illustrations, not guarantees');
     await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'Conservative');
     process.stdout.write('PASS: comparison FIRE report opens from a local file without network access.\\n');
     process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\n');
