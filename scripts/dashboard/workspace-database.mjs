@@ -30,11 +30,14 @@ export function resolveDatabasePath(env = process.env, home = homedir(), platfor
 
 function validateWorkspacePayload(payload) {
     try {
-        if (!payload || payload.schemaVersion !== SCHEMA_VERSION || payload.currency !== CURRENCY
+        if (!payload || payload.schemaVersion !== SCHEMA_VERSION
             || !Array.isArray(payload.records) || !Array.isArray(payload.goals)
             || !Array.isArray(payload.cashFlowEntries) || !Array.isArray(payload.budgets)
             || !Array.isArray(payload.historicalSnapshots)) {
-            throw new Error('SQLite workspace persistence requires a complete schema-v4 INR workspace backup.');
+            throw new Error('SQLite workspace persistence requires a complete schema-v4 workspace backup.');
+        }
+        if (payload.currency !== CURRENCY) {
+            throw new Error(`Workspace currency must be ${CURRENCY}; this snapshot uses ${String(payload.currency ?? 'no currency')}.`);
         }
         const ids = new Set();
         for (const record of payload.records) {
