@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { Buffer } from 'node:buffer';
 import process from 'node:process';
-import { mkdirSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { validateBackupPayload } from '../../apps/dashboard/backup.js';
@@ -77,24 +77,43 @@ function validateWorkspacePayload(payload) {
  */
 export class WorkspaceDatabase {
     #database;
+    #databasePath;
 
     constructor(databasePath) {
         if (typeof databasePath !== 'string' || !databasePath.trim()) {
             throw new TypeError('A SQLite database path is required.');
         }
         const path = resolve(databasePath);
-        mkdirSync(dirname(path), { recursive: true });
+        this.#databasePath = path;
+        mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
         this.#database = new DatabaseSync(path);
-        this.#database.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA busy_timeout = 5000;');
-        this.#database.exec(`
-            CREATE TABLE IF NOT EXISTS workspace_snapshot (
-                singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
-                schema_version INTEGER NOT NULL CHECK (schema_version = 4),
-                currency TEXT NOT NULL CHECK (currency = 'INR'),
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-        `);
+        try {
+            // Financial records are private data. On POSIX, keep the database and
+            // SQLite sidecar files readable/writable only by the current user.
+            // Windows access is governed by the user's profile directory ACL.
+            this.#secureFilePermissions();
+            this.#database.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA busy_timeout = 5000;');
+            this.#database.exec(`
+                CREATE TABLE IF NOT EXISTS workspace_snapshot (
+                    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+                    schema_version INTEGER NOT NULL CHECK (schema_version = 4),
+                    currency TEXT NOT NULL CHECK (currency = 'INR'),
+                    payload_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            `);
+            this.#secureFilePermissions();
+        } catch (error) {
+            this.#database.close();
+            throw error;
+        }
+    }
+
+    #secureFilePermissions() {
+        if (process.platform === 'win32') return;
+        for (const filePath of [this.#databasePath, this.#databasePath + '-wal', this.#databasePath + '-shm', this.#databasePath + '-journal']) {
+            if (existsSync(filePath)) chmodSync(filePath, 0o600);
+        }
     }
 
     getStatus() {
@@ -145,6 +164,9 @@ export class WorkspaceDatabase {
                     payload_json = excluded.payload_json,
                     updated_at = excluded.updated_at
             `).run(SCHEMA_VERSION, CURRENCY, serialized, updatedAt);
+            // Secure the active WAL/SHM files before commit so permission failures
+            // roll back the candidate snapshot rather than report after a commit.
+            this.#secureFilePermissions();
             this.#database.exec('COMMIT');
         } catch (error) {
             this.#database.exec('ROLLBACK');

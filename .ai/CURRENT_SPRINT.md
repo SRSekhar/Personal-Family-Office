@@ -12,11 +12,15 @@ Sprint 6 — Local SQLite Persistence
 
 Add an opt-in local SQLite backend for durable workspace snapshots while preserving local-first behavior, schema-v4 validation, atomic restore, and privacy boundaries.
 
-## In Progress
+## Completed — Sprint 6: Local SQLite Persistence
 
-- Major deliverable: local SQLite database support through the loopback dashboard server. The database stores the complete validated workspace in one transactional snapshot; dashboard save/restore controls are explicit and reuse the existing restore safety path. Automatic synchronization is not included in this increment. CI and browser validation are pending.
+- Local SQLite backend is integrated with the loopback dashboard server. It persists the complete schema-v4 workspace (records, goals, cash-flow transactions, budgets, and historical snapshots) as one validated transactional snapshot.
+- Dashboard controls explicitly save and restore the private workspace. Restore reuses the existing preview, confirmation, validation, and rollback flow; record IDs remain stable.
+- Default database path is outside the repository. POSIX database and SQLite sidecar files are restricted to owner-only permissions. Windows relies on the user's profile ACL.
+- The backend has request-size limits, loopback host/origin checks, no CORS, and server/API tests for persistence, validation, and rejected cross-origin writes.
+- Browser smoke verifies a full five-collection save/restore round trip. Automatic synchronization, database encryption, cloud hosting, and multi-user access are explicitly out of scope.
 
-## Completed
+## Previous Completed Deliverables
 
 - PR #384 — closed the current data-integrity batch: aggregate financial-total validation, CSV and backup validation edge cases, and atomic restore rollback tests across records, goals, cash flow, budgets, and historical snapshots. CI, dashboard packaging, and Secret Scan passed.
 - PR #385 — added prior-calendar-month comparison to the financial-health overview for income, expenses, net cash flow, and savings rate; correctly handles year boundaries and marks comparison unavailable when the previous month has no recorded transactions. Existing CSV and offline HTML exports include the displayed comparison. CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed.

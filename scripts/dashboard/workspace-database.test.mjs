@@ -1,3 +1,4 @@
+import { existsSync, statSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
@@ -106,6 +107,25 @@ describe('SQLite workspace persistence', () => {
         expect(() => database.saveWorkspace(payload({ budgets: [{ month: '2026-13', category: 'Invalid', amount: 10 }] })))
             .toThrow();
         expect(database.getWorkspace().payload).toEqual(payload());
+    });
+
+
+    it('restricts database and SQLite sidecar file permissions on POSIX systems', async () => {
+        if (process.platform === 'win32') return;
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-permissions-'));
+        directories.push(directory);
+        const path = join(directory, 'private.sqlite');
+        const database = new WorkspaceDatabase(path);
+        databases.push(database);
+        database.saveWorkspace(payload());
+
+        expect(statSync(path).mode & 0o777).toBe(0o600);
+        for (const suffix of ['-wal', '-shm', '-journal']) {
+            const sidecar = path + suffix;
+            if (existsSync(sidecar)) {
+                expect(statSync(sidecar).mode & 0o777).toBe(0o600);
+            }
+        }
     });
 
     it('resolves an explicit database path and keeps defaults outside the repository', () => {

@@ -14,8 +14,8 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 
 ## Current Work
 
-- **Epic:** FIRE Planner and Offline Report Workflow
-- **Status:** The local-only FIRE planner (PR #139), three-scenario comparison UI (PR #141), and downloadable self-contained FIRE HTML reports (PR #142) are merged to `main`. Each PR's CI, full-history Secret Scan, and dashboard packaging passed before merge.
+- **Epic:** Local SQLite Persistence
+- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore is explicit and restores through the existing validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. Cloud hosting, multi-user access, encryption, and automatic synchronization are not claimed.
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
 - FIRE report export is explicit user action. Reports are script-free, self-contained HTML, validate report inputs/results, escape untrusted scenario names, and are generated locally without network submission.
@@ -116,4 +116,13 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - The local loopback server exposes a JSON API for status and full-workspace save/read. A single schema-v4 snapshot row is written in one SQLite transaction; records, goals, cash-flow transactions, budgets, and historical snapshots are validated as a unit.
 - The dashboard adds explicit save and restore actions. Restore reuses the established backup preview and atomic browser-storage recovery flow; browser edits are not automatically synchronized in this increment.
 - Security boundaries: loopback-only server, local-origin validation, no CORS, 10 MiB request limit, no remote database, no automatic cloud sync, and SQLite database files ignored by Git. This feature does not encrypt the database file.
-- Status: implementation and tests are on a feature branch. Do not mark complete until CI, Chromium smoke, dashboard packaging, and Secret Scan pass and the PR is merged.
+- Status: the SQLite implementation is present on main, and a follow-up hardening branch restricts database and sidecar file permissions on POSIX. Mark this follow-up complete only after CI, Chromium smoke, dashboard packaging, and Secret Scan pass and its PR is merged.
+
+
+## Latest Follow-up (2026-10-28 — SQLite persistence)
+
+- Local SQLite persistence is implemented in the loopback dashboard preview using Node.js built-in `node:sqlite`; no external database service or runtime dependency is required.
+- The API stores and retrieves a complete validated schema-v4 INR snapshot containing financial records, saved goals, cash-flow transactions, budgets, and historical snapshots. A single SQL transaction keeps each snapshot atomic.
+- Save and restore are explicit user actions. Restore goes through the existing backup preview, confirmation, validation, and rollback path; stable record identifiers are retained.
+- The database file defaults outside the repository. POSIX database and sidecar files use owner-only permissions; Windows relies on profile ACLs. The file is not encrypted, so device protection and separate backups remain necessary.
+- Scope limitation: this is a local single-user persistence backend, not a cloud or multi-user service; automatic synchronization is not included.
