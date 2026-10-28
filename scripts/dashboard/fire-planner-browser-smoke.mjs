@@ -2358,6 +2358,26 @@ try {
         'a cash-flow edit after enabling automatic persistence must reach the SQLite database');
     process.stdout.write('PASS: opt-in automatic SQLite saves persist subsequent cash-flow edits.\\n');
 
+    // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
+    await page.evaluate(() => {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1']) {
+            globalThis.localStorage.removeItem(key);
+        }
+    });
+    await page.reload();
+    await page.waitForFunction(() => globalThis.document.querySelector('#database-storage-status')?.textContent.includes('recovery needed'));
+    assert.equal(await page.locator('#database-restore-button').innerText(), 'Review database recovery',
+        'a saved database snapshot with an empty browser workspace should offer recovery review');
+    const databaseAfterRecoveryDetection = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) return null;
+        const saved = await response.json();
+        return saved.payload.cashFlowEntries.some((entry) => entry.description === 'SQLite auto-save smoke' && entry.amount === 1234.56);
+    });
+    assert.equal(databaseAfterRecoveryDetection, true,
+        'startup recovery detection must not auto-save an empty browser workspace over the database');
+    process.stdout.write('PASS: startup recovery detection pauses automatic saves when browser data is empty.\\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
