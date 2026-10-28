@@ -119,6 +119,6 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 ## Latest Follow-up (2026-10-28 — SQLite automatic-save follow-up)
 
 - PR #390 merged the local SQLite backend and explicit full-workspace save/restore. The backend uses Node.js `node:sqlite`, writes one validated schema-v4 INR snapshot transactionally, and stores the database outside the repository by default. POSIX database and sidecar permissions are owner-only; Windows relies on the current user's profile ACL. The database is not encrypted by this feature.
-- The current follow-up adds opt-in automatic saves. Automatic mode is enabled only after a successful initial full snapshot. Successful record, goal, cash-flow, budget, history, import, and restore changes schedule a serialized 450 ms debounced snapshot.
+- PR #394 merged opt-in automatic saves. Automatic mode is enabled only after a successful initial full snapshot. Successful record, goal, cash-flow, budget, history, import, and restore changes schedule a serialized 450 ms debounced snapshot.
 - Browser-local storage remains the immediate recovery copy. If SQLite fails, the UI reports that the database may be behind; it does not claim that the local edit was rolled back or that the database write succeeded.
-- Validate the final PR head with CI, Chromium smoke (including a real cash-flow auto-save), dashboard packaging, and Secret Scan before merging.
+- Validation passed before merge: CI run #1097, Chromium smoke (including a cash-flow transaction auto-saved through the API), dashboard packaging run #493, and Secret Scan run #1053.
