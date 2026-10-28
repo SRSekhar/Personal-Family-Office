@@ -26,6 +26,12 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - The recovery action reuses the validated backup preview and confirmation; unreadable browser values are treated as existing data rather than empty.
 - Chromium smoke verifies that startup recovery is offered and the SQLite snapshot remains unchanged. CI run #1103, dashboard packaging run #495, and Secret Scan run #1059 passed before merge.
 
+## Optimistic concurrency protection (PR #400 validation pending)
+
+- Every browser save includes the last-read database timestamp; SQLite compares it transactionally before replacing the snapshot.
+- Stale writes return HTTP 409 without changing the newer snapshot. Automatic saves pause on conflict; replacing a newer snapshot requires explicit confirmation.
+- Added unit/API tests for stale version rejection and strictly increasing timestamp versions.
+
 ## Completed — Sprint 6: Local SQLite Persistence
 
 - Local SQLite backend is integrated with the loopback dashboard server. It persists the complete schema-v4 workspace (records, goals, cash-flow transactions, budgets, and historical snapshots) as one validated transactional snapshot.

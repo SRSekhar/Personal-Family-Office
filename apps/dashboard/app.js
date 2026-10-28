@@ -85,6 +85,8 @@ let databaseAutoSaveTimer;
 let databaseSaveQueue = Promise.resolve();
 let databaseStatusChecked = false;
 let databaseRecoveryRequired = false;
+let databaseLastKnownUpdatedAt = null;
+let databaseWriteConflict = false;
 try { databaseAutoSaveEnabled = localStorage.getItem(DATABASE_AUTO_SAVE_KEY) === 'true'; } catch { /* automatic persistence remains off if the preference cannot be read */ }
 
 const $ = (selector) => document.querySelector(selector);
@@ -1875,7 +1877,7 @@ function enqueueDatabaseSave(options = {}) {
 }
 
 function scheduleDatabaseAutoSave() {
-    if (!databaseStatusChecked || databaseRecoveryRequired || !databaseAutoSaveEnabled || workspace !== 'private'
+    if (!databaseStatusChecked || databaseRecoveryRequired || databaseWriteConflict || !databaseAutoSaveEnabled || workspace !== 'private'
         || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
     clearTimeout(databaseAutoSaveTimer);
     databaseAutoSaveTimer = setTimeout(() => {
@@ -1912,6 +1914,7 @@ async function refreshDatabaseStatus() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Local SQLite service is unavailable.');
         $('#database-storage').hidden = false;
+        databaseLastKnownUpdatedAt = result.updatedAt ?? null;
         databaseRecoveryRequired = Boolean(result.hasWorkspace && !hasBrowserWorkspaceData());
         databaseStatusChecked = true;
         $('#database-restore-button').disabled = !result.hasWorkspace;
@@ -1919,14 +1922,18 @@ async function refreshDatabaseStatus() {
         const updated = result.updatedAt
             ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))
             : 'No database snapshot saved yet';
-        const status = databaseRecoveryRequired
-            ? 'SQLite recovery needed · automatic saves paused'
-            : databaseAutoSaveEnabled
-                ? 'SQLite ready · automatic saves enabled'
-                : result.hasWorkspace ? 'SQLite ready · saved workspace found' : 'SQLite ready · no saved workspace';
-        const detail = databaseRecoveryRequired
-            ? `A saved SQLite workspace exists, but this browser has no workspace data. Review the saved snapshot before editing or saving; automatic saves are paused. Last database save: ${updated}.`
-            : `Local SQLite · ${updated} · ${result.payloadBytes ? number(result.payloadBytes) + ' bytes stored' : 'No workspace data stored yet'}`;
+        const status = databaseWriteConflict
+            ? 'SQLite changed elsewhere · automatic saves paused'
+            : databaseRecoveryRequired
+                ? 'SQLite recovery needed · automatic saves paused'
+                : databaseAutoSaveEnabled
+                    ? 'SQLite ready · automatic saves enabled'
+                    : result.hasWorkspace ? 'SQLite ready · saved workspace found' : 'SQLite ready · no saved workspace';
+        const detail = databaseWriteConflict
+            ? `Another browser tab or process saved a newer SQLite snapshot at ${updated}. Automatic writes are paused. Restore the latest snapshot or explicitly confirm replacing it with this browser workspace.`
+            : databaseRecoveryRequired
+                ? `A saved SQLite workspace exists, but this browser has no workspace data. Review the saved snapshot before editing or saving; automatic saves are paused. Last database save: ${updated}.`
+                : `Local SQLite · ${updated} · ${result.payloadBytes ? number(result.payloadBytes) + ' bytes stored' : 'No workspace data stored yet'}`;
         setDatabaseStatus(status, detail);
     } catch (error) {
         $('#database-storage').hidden = false;
@@ -1955,10 +1962,14 @@ async function saveWorkspaceToDatabase(options = {}) {
         const response = await fetch('./api/v1/workspace', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload, expectedUpdatedAt: databaseLastKnownUpdatedAt })
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'SQLite save failed.');
+        if (!response.ok) {
+            if (response.status === 409) databaseWriteConflict = true;
+            throw new Error(result.error || 'SQLite save failed.');
+        }
+        databaseLastKnownUpdatedAt = result.updatedAt ?? null;
         if (options.enableAutoSave) {
             try {
                 localStorage.setItem(DATABASE_AUTO_SAVE_KEY, 'true');
@@ -1973,6 +1984,7 @@ async function saveWorkspaceToDatabase(options = {}) {
         $('#database-restore-button').disabled = false;
         $('#database-restore-button').textContent = 'Restore from SQLite';
         databaseRecoveryRequired = false;
+        databaseWriteConflict = false;
         const savedAt = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
             .format(new Date(result.updatedAt));
         const detail = `Saved ${result.recordCount} records, ${result.goalCount} goals, ${result.cashFlowTransactionCount} transactions, ${result.budgetCount} budgets, and ${result.historicalSnapshotCount} history snapshots at ${savedAt}.`;
@@ -1987,10 +1999,13 @@ async function saveWorkspaceToDatabase(options = {}) {
         }
         return true;
     } catch (error) {
-        setDatabaseStatus(options.quiet ? 'Automatic SQLite save failed' : 'SQLite save failed', error instanceof Error
-            ? error.message + ' Browser-local data is still saved; the database may be behind.'
-            : 'Browser-local data is still saved; the database may be behind.');
-        if (!options.quiet) showToast('SQLite save failed. The current browser workspace was not changed.');
+        setDatabaseStatus(databaseWriteConflict ? 'SQLite changed elsewhere · automatic saves paused' : options.quiet ? 'Automatic SQLite save failed' : 'SQLite save failed', error instanceof Error
+            ? error.message + ' Browser-local data is still saved; the database may be ahead.'
+            : 'Browser-local data is still saved; the database may be ahead.');
+        if (databaseWriteConflict) await refreshDatabaseStatus();
+        if (!options.quiet) showToast(databaseWriteConflict
+            ? 'SQLite changed in another tab or process. Automatic saves are paused; review the latest database snapshot before continuing.'
+            : 'SQLite save failed. The current browser workspace was not changed.');
         return false;
     } finally {
         button.disabled = false;
@@ -2121,7 +2136,10 @@ function importData(file, options = {}) {
                 renderSavedGoals();
                 showGoalMessage();
                 render();
-                if (options.sourceLabel && options.sourceLabel.includes('SQLite')) databaseRecoveryRequired = false;
+                if (options.sourceLabel && options.sourceLabel.includes('SQLite')) {
+                    databaseRecoveryRequired = false;
+                    databaseWriteConflict = false;
+                }
                 window.dispatchEvent(new Event('pfo:cashflow-restored'));
                 window.dispatchEvent(new Event('pfo:cashflow-updated'));
                 window.dispatchEvent(new Event('pfo:workspace-updated'));
@@ -2295,7 +2313,15 @@ $('#view-all-button').addEventListener('click', () => {
     $('#view-all-button').dataset.all = $('#view-all-button').dataset.all !== 'true' ? 'true' : 'false';
     renderRecords();
 });
-$('#database-save-button').addEventListener('click', () => { void enqueueDatabaseSave(); });
+$('#database-save-button').addEventListener('click', async () => {
+    if (databaseWriteConflict) {
+        const confirmed = window.confirm('The SQLite database has a newer snapshot from another tab or process. Replace that newer database snapshot with this browser workspace? Export a backup first if you need to preserve both versions.');
+        if (!confirmed) return;
+        await refreshDatabaseStatus();
+        databaseWriteConflict = false;
+    }
+    void enqueueDatabaseSave();
+});
 $('#database-auto-save-button').addEventListener('click', () => { void toggleDatabaseAutoSave(); });
 $('#database-restore-button').addEventListener('click', restoreWorkspaceFromDatabase);
 $('#database-refresh-button').addEventListener('click', refreshDatabaseStatus);

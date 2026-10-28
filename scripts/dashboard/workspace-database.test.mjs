@@ -5,7 +5,7 @@ import process from 'node:process';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
-import { WorkspaceDatabase, WorkspaceValidationError, resolveDatabasePath } from './workspace-database.mjs';
+import { WorkspaceConflictError, WorkspaceDatabase, WorkspaceValidationError, resolveDatabasePath } from './workspace-database.mjs';
 
 const directories = [];
 const databases = [];
@@ -71,6 +71,16 @@ describe('SQLite workspace persistence', () => {
         expect(loaded.payload.records.map((record) => record.id)).toEqual(['record-1', 'record-2']);
         expect(loaded.payload.historicalSnapshots[0].records[0].id).toBe('history-1');
         expect(reopened.getStatus().updatedAt).toBe(saved.updatedAt);
+    });
+
+    it('rejects stale database versions without replacing a newer committed snapshot', async () => {
+        const database = await createDatabase();
+        const first = database.saveWorkspace(payload(), null);
+        const secondPayload = payload({ records: [{ id: 'record-new', name: 'Updated savings', category: 'Cash & deposits', type: 'asset', value: 200000 }] });
+        const second = database.saveWorkspace(secondPayload, first.updatedAt);
+        expect(() => database.saveWorkspace(payload(), first.updatedAt)).toThrow(WorkspaceConflictError);
+        expect(database.getWorkspace().payload).toEqual(secondPayload);
+        expect(database.getStatus().updatedAt).toBe(second.updatedAt);
     });
 
     it('starts empty and reports no saved workspace', async () => {

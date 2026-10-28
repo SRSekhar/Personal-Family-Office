@@ -71,7 +71,7 @@ describe('local dashboard preview server', () => {
             goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload })
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
         });
         expect(save.status).toBe(200);
         expect(await save.json()).toMatchObject({ database: 'SQLite', hasWorkspace: true, recordCount: 1 });
@@ -83,6 +83,34 @@ describe('local dashboard preview server', () => {
             .toContain("connect-src 'self'");
     });
 
+    it('rejects stale database versions and preserves the latest workspace', async () => {
+        const root = await createRoot();
+        const origin = await startServer(root, { databasePath: join(root, '..', 'concurrency-workspace.sqlite') });
+        const payload = {
+            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+        };
+        const firstSave = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload, expectedUpdatedAt: null })
+        });
+        const firstVersion = (await firstSave.json()).updatedAt;
+        const updatedPayload = { ...payload, records: [{ ...payload.records[0], value: 2000 }] };
+        const secondSave = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload: updatedPayload, expectedUpdatedAt: firstVersion })
+        });
+        expect(secondSave.status).toBe(200);
+        const staleSave = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload, expectedUpdatedAt: firstVersion })
+        });
+        expect(staleSave.status).toBe(409);
+        const latest = await (await fetch(`${origin}/api/v1/workspace`)).json();
+        expect(latest.payload).toEqual(updatedPayload);
+    });
+
     it('rejects invalid and cross-origin database writes without replacing saved data', async () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'protected-workspace.sqlite') });
@@ -92,13 +120,13 @@ describe('local dashboard preview server', () => {
             goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload })
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
         });
         expect(save.status).toBe(200);
 
         const invalid = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload: { ...payload, currency: 'USD' } })
+            body: JSON.stringify({ payload: { ...payload, currency: 'USD' }, expectedUpdatedAt: null })
         });
         expect(invalid.status).toBe(400);
         expect((await fetch(`${origin}/api/v1/workspace`)).status).toBe(200);
@@ -106,7 +134,7 @@ describe('local dashboard preview server', () => {
         const crossOrigin = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Origin: 'https://attacker.example' },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload, expectedUpdatedAt: null })
         });
         expect(crossOrigin.status).toBe(403);
         expect((await fetch(`${origin}/api/v1/workspace`)).status).toBe(200);

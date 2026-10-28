@@ -1,3 +1,9 @@
+## 2026-10-28 — SQLite optimistic concurrency protection (PR #400 validation pending)
+
+- Added a last-read `updatedAt` version token to local SQLite workspace writes and compare it transactionally before replacement.
+- Stale writes return HTTP 409 and preserve the newer committed snapshot. Automatic writes pause after a conflict; manual overwrite requires explicit confirmation.
+- Version timestamps are monotonic even for writes occurring within one millisecond. Database and API tests cover stale-write rejection.
+
 ## 2026-10-28 — SQLite startup recovery guard (delivered; PR #397 merged)
 
 - Detect a saved SQLite snapshot alongside absent/empty browser workspace collections and label the restore action `Review database recovery`.

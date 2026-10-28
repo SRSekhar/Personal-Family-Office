@@ -129,3 +129,10 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - Current branch `fix/sqlite-startup-recovery-guard` detects when SQLite has a saved snapshot while browser workspace collections are absent/empty, and pauses autosave to prevent an empty browser profile from replacing the database on startup.
 - Recovery uses the existing restore preview/confirmation. Malformed or unreadable local values are treated as data present, so the app does not guess they can be discarded.
 - PR #397 merged as `cbf778274e83d37970eef299a53d2c6c914d5584`. CI run #1103, dashboard packaging run #495, and Secret Scan run #1059 passed; browser smoke verified the saved SQLite transaction survives startup recovery.
+
+
+## Latest Follow-up (2026-10-28 — SQLite optimistic concurrency)
+
+- Branch `feat/sqlite-optimistic-concurrency` adds a last-read version to every SQLite write. A mismatch returns HTTP 409 inside the SQLite transaction, preserving the newer snapshot.
+- After a conflict, automatic writes pause. A user must explicitly confirm before replacing the newer database version; browser-local storage remains untouched.
+- Added unit/API coverage for stale-write protection and monotonic timestamp versions. PR #400 validation passed before this documentation synchronization.

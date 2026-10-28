@@ -16,6 +16,14 @@ export class WorkspaceValidationError extends Error {
     }
 }
 
+export class WorkspaceConflictError extends Error {
+    constructor(message = 'The SQLite workspace changed since this browser last read it. Refresh and review the latest snapshot before saving again.') {
+        super(message);
+        this.name = 'WorkspaceConflictError';
+        this.statusCode = 409;
+    }
+}
+
 /** Resolve the private SQLite file outside the Git checkout by default. */
 export function resolveDatabasePath(env = process.env, home = homedir(), platform = process.platform) {
     if (typeof env.PFO_DATABASE_PATH === 'string' && env.PFO_DATABASE_PATH.trim()) {
@@ -146,15 +154,28 @@ export class WorkspaceDatabase {
         return { payload, updatedAt: row.updated_at };
     }
 
-    saveWorkspace(payload) {
+    saveWorkspace(payload, expectedUpdatedAt = null) {
         const validated = validateWorkspacePayload(payload);
+        if (expectedUpdatedAt !== null && (typeof expectedUpdatedAt !== 'string' || !Number.isFinite(Date.parse(expectedUpdatedAt)))) {
+            throw new WorkspaceValidationError('Expected database version must be null or a valid saved timestamp.');
+        }
         const serialized = JSON.stringify(validated);
         if (Buffer.byteLength(serialized, 'utf8') > 10 * 1024 * 1024) {
             throw new WorkspaceValidationError('The workspace exceeds the 10 MiB database request limit.');
         }
-        const updatedAt = new Date().toISOString();
+        let updatedAt = new Date().toISOString();
         this.#database.exec('BEGIN IMMEDIATE');
         try {
+            const current = this.#database.prepare(
+                'SELECT updated_at FROM workspace_snapshot WHERE singleton = 1'
+            ).get();
+            if ((current?.updated_at ?? null) !== expectedUpdatedAt) {
+                throw new WorkspaceConflictError();
+            }
+            // Keep versions distinct even when writes happen within one millisecond.
+            if (current?.updated_at && updatedAt <= current.updated_at) {
+                updatedAt = new Date(Date.parse(current.updated_at) + 1).toISOString();
+            }
             this.#database.prepare(`
                 INSERT INTO workspace_snapshot (singleton, schema_version, currency, payload_json, updated_at)
                 VALUES (1, ?, ?, ?, ?)
