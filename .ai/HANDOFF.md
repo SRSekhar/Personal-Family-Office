@@ -135,4 +135,4 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 
 - Branch `feat/sqlite-optimistic-concurrency` adds a last-read version to every SQLite write. A mismatch returns HTTP 409 inside the SQLite transaction, preserving the newer snapshot.
 - After a conflict, automatic writes pause. A user must explicitly confirm before replacing the newer database version; browser-local storage remains untouched.
-- Added unit/API coverage for stale-write protection and monotonic timestamp versions. PR #400 validation passed before this documentation synchronization.
+- PR #400 merged as `3cda51c617360ae056fd3fe82b3cf8cf6ad6d554`. CI run #1112 and dashboard packaging run #500 passed on the final head; Secret Scan run #1065 passed on the code changes before the documentation-only update.
