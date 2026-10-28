@@ -2,7 +2,7 @@
 
 ## Sprint
 
-Sprint 4 — FIRE Planner and Offline Report Workflow
+Sprint 5 — Financial Health and Data Integrity
 
 ## Version
 
@@ -10,9 +10,12 @@ Sprint 4 — FIRE Planner and Offline Report Workflow
 
 ## Goal
 
-Deliver a usable local-first retirement planning workflow that calculates readiness, compares explicit scenarios, solves required annual contributions, and lets the user download a private offline HTML report without automatic persistence or network submission.
+Deliver reliable, explainable financial-health and cash-flow workflows, protect all saved workspace collections during imports/restores, and keep reporting comparisons grounded only in recorded data.
 
 ## Completed
+
+- PR #384 — closed the current data-integrity batch: aggregate financial-total validation, CSV and backup validation edge cases, and atomic restore rollback tests across records, goals, cash flow, budgets, and historical snapshots. CI, dashboard packaging, and Secret Scan passed.
+- PR #385 — added prior-calendar-month comparison to the financial-health overview for income, expenses, net cash flow, and savings rate; correctly handles year boundaries and marks comparison unavailable when the previous month has no recorded transactions. Existing CSV and offline HTML exports include the displayed comparison. CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed.
 
 - PR #139 — local-only FIRE planner UI with validated assumptions, readiness outputs, required annual contribution action, reset, and ephemeral inputs/results.
 - PR #141 — three-scenario comparison using the existing tested calculator; user-entered order and assumptions are preserved, and scenarios are not ranked or recommended.
@@ -62,11 +65,12 @@ Deliver a usable local-first retirement planning workflow that calculates readin
 
 ## Next Deliverables
 
-1. LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom reviews. Keep existing automated accessibility, keyboard/focus, and narrow-viewport regression checks; revisit manual audits during release readiness or if customer requirements justify them.
-2. Run customer-discovery interviews using the existing non-leading script; record anonymized evidence and update the product log.
-3. Review historical repository content and commit metadata for accidental secrets, then resolve licensing/distribution and public/private product-boundary decisions.
-4. Configure GitHub Pages only after the repository owner confirms the public sample-only deployment and required settings.
-5. Validate the existing financial-health, risk, concentration, and annual comparison outputs with real user workflows before adding more KPIs; preserve local-first privacy and deterministic calculation boundaries.
+1. Audit remaining high-impact cash-flow and financial-health workflows as a cohesive batch; prioritize user-visible functionality and data correctness over new test-only work.
+2. Validate existing financial-health, return-risk, concentration, and report outputs with synthetic acceptance scenarios and user workflows before adding more KPIs.
+3. Run customer-discovery interviews using the existing non-leading script; record anonymized evidence and update the product log.
+4. Review historical repository content and commit metadata for accidental secrets, then resolve licensing/distribution and public/private product-boundary decisions.
+5. LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom reviews. Keep automated keyboard/focus and narrow-viewport regression checks; revisit during release readiness.
+6. Configure GitHub Pages only after the repository owner confirms the public sample-only deployment and required settings.
 
 ## Release Gates and Constraints
 

@@ -98,6 +98,8 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Goal-aware private backup/restore with schema v2 and backward compatibility for legacy record-only schema v1 backups (PR #173)
 - LOW PRIORITY / DEFERRED: manual screen-reader and real browser 400% zoom review; retain automated coverage and revisit before release if needed. Customer feedback and other release gates remain open. Automated Chromium smoke covers major calculations, keyboard activation, report downloads, offline opening for tested report types, and selected narrow-viewport behavior.
 - Multi-year historical snapshots, trend chart, snapshot detail view, CSV export, and schema v4 backup/restore are implemented (PRs #304–#316). Portfolio explorer and additional KPIs remain deferred until customer needs are validated
+- Financial-health reporting supports a selectable reporting month and compares recorded income, expenses, net cash flow, and savings rate with the previous calendar month; missing prior-month activity is not treated as a zero baseline (PR #385).
+- Full-workspace data-integrity regression coverage includes aggregate overflow rejection and atomic rollback across records, goals, cash flow, budgets, and history (PR #384).
 
 ---
 

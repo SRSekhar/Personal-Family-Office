@@ -82,7 +82,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Last Updated
 
-2026-10-18
+2026-10-28
 
 - PR #116 added a main-push trigger, but its first run failed immediately with `Unsupported event type: push` before the agent executed. PR #117 removed that unsupported trigger and changed the schedule to twice hourly at minutes 17 and 47 UTC; PR CI and Secret Scan passed.
 - End-to-end autonomous delivery remains unverified. The next scheduled/manual run must reach the agent, create a focused commit, publish a PR, and pass PR CI before the workflow is considered operational.
@@ -97,3 +97,13 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - LOW PRIORITY / DEFERRED: manual screen-reader and browser zoom review; keep automated accessibility and responsive regression coverage, and revisit during release readiness if warranted.
 - Remaining: anonymized customer discovery.
 - Release gates: review repository history for exposed credentials, decide distribution/licensing, and complete owner-side Pages configuration.
+
+
+## Latest Follow-up (2026-10-28)
+
+- PR #377 merged: hardened CSV imports and full-workspace schema-v4 backup/restore coverage, including cancellation safety and rollback protection.
+- PRs #378–#380 and #382 merged: strengthened financial-health, return-risk, asset-allocation, and FIRE comparison report fidelity checks.
+- PR #383 merged: invalid-date and cancelled CSV replacement flows preserve the existing cash-flow ledger.
+- PR #384 merged: added aggregate-total validation to backup validation and exercised atomic restore rollback for all five workspace collections (records, goals, cash flow, budgets, and history). CI, dashboard packaging, and Secret Scan passed.
+- PR #385 merged: financial health now compares the selected reporting month with the immediately previous calendar month for recorded income, expenses, net cash flow, and savings rate. It handles year boundaries and does not invent a baseline when no prior-month transactions exist. Unit tests, Chromium smoke, CI, dashboard packaging, and Secret Scan passed.
+- Product priority remains useful financial workflows, trustworthy calculations, privacy, and customer validation. Accessibility remains low priority/deferred as directed; automated checks remain in place.
