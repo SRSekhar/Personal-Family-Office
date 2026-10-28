@@ -507,8 +507,13 @@ try {
         const scenarioName = (await row.locator('td').first().innerText()).split(/\r?\n/u)[0]?.trim();
         assert.ok(scenarioName && normalizedComparisonHtml.includes(scenarioName.replace(/\s+/gu, '')),
             'comparison report should preserve the displayed scenario name');
+        const reportRowStart = comparisonHtml.indexOf('<th scope="row">' + scenarioName);
+        assert.notEqual(reportRowStart, -1, 'comparison report should contain a row for ' + scenarioName);
+        const reportRowEnd = comparisonHtml.indexOf('</tr>', reportRowStart);
+        assert.notEqual(reportRowEnd, -1, 'comparison report row should be complete for ' + scenarioName);
+        const reportScenarioRow = comparisonHtml.slice(reportRowStart, reportRowEnd);
         const metricValues = await row.locator('td').allInnerTexts();
-        const reportAmounts = [...comparisonHtml.matchAll(/INR\s+([\d,]+(?:\.\d{2})?)/gu)]
+        const reportAmounts = [...reportScenarioRow.matchAll(/INR\s+([\d,]+(?:\.\d{2})?)/gu)]
             .map((match) => Math.round(Number(match[1].replace(/,/gu, ''))));
         for (const metricValue of metricValues.slice(1, 4)) {
             const displayedAmount = Number(metricValue.replace(/[^\d]/gu, ''));
