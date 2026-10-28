@@ -19,12 +19,12 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - Database failures are surfaced as possible database lag; browser-local data remains intact as the immediate recovery copy.
 - Chromium smoke enables automatic saves, creates a cash-flow transaction through the UI, and verifies the transaction persisted through the SQLite API. CI run #1097, dashboard packaging run #493, and Secret Scan run #1053 passed before merge.
 
-## Startup recovery guard (PR pending validation)
+## Completed — SQLite startup recovery guard (PR #397 merged)
 
 - Detects when a valid SQLite snapshot exists but all five browser workspace collections are absent or empty.
 - Pauses automatic database writes until the user reviews recovery or explicitly saves the current workspace, preventing a cleared browser profile from silently replacing a recoverable SQLite snapshot.
 - The recovery action reuses the validated backup preview and confirmation; unreadable browser values are treated as existing data rather than empty.
-- Chromium smoke verifies that startup recovery is offered and the SQLite snapshot remains unchanged.
+- Chromium smoke verifies that startup recovery is offered and the SQLite snapshot remains unchanged. CI run #1103, dashboard packaging run #495, and Secret Scan run #1059 passed before merge.
 
 ## Completed — Sprint 6: Local SQLite Persistence
 
