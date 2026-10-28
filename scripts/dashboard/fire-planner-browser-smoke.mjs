@@ -2166,6 +2166,19 @@ try {
     await assertOpensWithoutNetwork(browser, annualReviewPath, 'Annual financial review');
     process.stdout.write('PASS: annual financial review opens offline and aggregates only recorded annual data.\n');
 
+    // Ensure the selected October report has a deterministic, fictional prior-month baseline.
+    // Keep existing smoke transactions while adding two uniquely identified September entries.
+    await page.evaluate(() => {
+        const key = 'pfo-os.cash-flow.v1';
+        const existing = JSON.parse(globalThis.localStorage.getItem(key) || '[]')
+            .filter((entry) => !['smoke-health-prior-income', 'smoke-health-prior-expense'].includes(entry.id));
+        existing.push(
+            { id: 'smoke-health-prior-income', date: '2026-09-05', type: 'income', category: 'Salary', description: 'Fictional September income', amount: 1000, recurring: false },
+            { id: 'smoke-health-prior-expense', date: '2026-09-10', type: 'expense', category: 'Household', description: 'Fictional September expense', amount: 400, recurring: false }
+        );
+        globalThis.localStorage.setItem(key, JSON.stringify(existing));
+        globalThis.dispatchEvent(new Event('pfo:cashflow-updated'));
+    });
     const healthMonth = page.locator('#financial-health-month');
     await healthMonth.fill('2026-09');
     await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · September 2026');
