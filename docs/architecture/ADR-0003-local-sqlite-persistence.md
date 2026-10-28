@@ -32,3 +32,8 @@ Use the built-in `node:sqlite` API on the supported Node.js 22 runtime for the l
 ## Recovery guard follow-up (2026-10-28)
 
 When a saved SQLite snapshot exists but all five browser workspace collections are absent or empty, the dashboard pauses automatic writes and offers a recovery review using the existing backup preview and confirmation. Automatic saves also wait for the initial database-status check, preventing initialization events from racing ahead of recovery detection. Unreadable browser values count as data present. This guard protects against a cleared browser profile; it is not a substitute for cross-tab optimistic concurrency control.
+
+
+## Optimistic concurrency follow-up (2026-10-28)
+
+Every workspace write carries the last database `updatedAt` observed by that browser (or `null` if no snapshot existed). The server compares that version inside the same `BEGIN IMMEDIATE` transaction used to replace the snapshot. Stale writes receive HTTP 409 and do not alter the database. Version timestamps are strictly increasing, including writes within the same millisecond. The UI pauses automatic saves after a conflict; replacing a newer snapshot requires explicit confirmation. This prevents silent last-write-wins across tabs/processes but does not merge simultaneous edits.
