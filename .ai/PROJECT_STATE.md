@@ -117,3 +117,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - The dashboard adds explicit save and restore actions. Restore reuses the established backup preview and atomic browser-storage recovery flow; browser edits are not automatically synchronized in this increment.
 - Security boundaries: loopback-only server, local-origin validation, no CORS, 10 MiB request limit, no remote database, no automatic cloud sync, and SQLite database files ignored by Git. This feature does not encrypt the database file.
 - Status: implementation and tests are on a feature branch. Do not mark complete until CI, Chromium smoke, dashboard packaging, and Secret Scan pass and the PR is merged.
+
+
+## Latest Follow-up (2026-10-28 — SQLite persistence)
+
+- PR #387 merged the local SQLite backend: a validated schema-v4 INR workspace is persisted as one transactional snapshot containing records, goals, cash-flow transactions, budgets, and historical snapshots.
+- The local server exposes status/read/write endpoints restricted to loopback. The default SQLite file lives outside the repository; `PFO_DATABASE_PATH` can override the location. Database files are ignored by Git and are not encrypted by this feature.
+- The follow-up increment adds opt-in automatic saves. Automatic mode is enabled only after a successful initial snapshot, then successful workspace changes schedule a serialized, 450 ms debounced full-workspace save. Failed database writes are surfaced; browser-local data remains the immediate recovery copy.
+- Keep the service local-only. This is not cloud sync or a multi-user service, and no cloud provider receives financial data.
