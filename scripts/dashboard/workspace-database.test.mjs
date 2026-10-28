@@ -1,5 +1,6 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import process from 'node:process';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
