@@ -164,6 +164,9 @@ export class WorkspaceDatabase {
                     payload_json = excluded.payload_json,
                     updated_at = excluded.updated_at
             `).run(SCHEMA_VERSION, CURRENCY, serialized, updatedAt);
+            // Secure the active WAL/SHM files before commit so permission failures
+            // roll back the candidate snapshot rather than report after a commit.
+            this.#secureFilePermissions();
             this.#database.exec('COMMIT');
         } catch (error) {
             this.#database.exec('ROLLBACK');
