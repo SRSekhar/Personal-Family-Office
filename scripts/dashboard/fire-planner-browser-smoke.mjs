@@ -500,6 +500,33 @@ try {
     const comparisonHtml = await readFile(join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'utf8');
     assert.ok(comparisonHtml.includes('Baseline') && comparisonHtml.includes('Higher saving'),
         'comparison report should include all three scenario names');
+    const normalizedComparisonHtml = comparisonHtml.replace(/\s+/gu, '');
+    const comparisonRows = page.locator('#fire-compare-body tr');
+    for (let rowIndex = 0; rowIndex < await comparisonRows.count(); rowIndex += 1) {
+        const row = comparisonRows.nth(rowIndex);
+        const scenarioName = (await row.locator('td').first().innerText()).split(/\r?\n/u)[0]?.trim();
+        assert.ok(scenarioName && normalizedComparisonHtml.includes(scenarioName.replace(/\s+/gu, '')),
+            'comparison report should preserve the displayed scenario name');
+        const reportRowStart = comparisonHtml.indexOf('<th scope="row">' + scenarioName);
+        assert.notEqual(reportRowStart, -1, 'comparison report should contain a row for ' + scenarioName);
+        const reportRowEnd = comparisonHtml.indexOf('</tr>', reportRowStart);
+        assert.notEqual(reportRowEnd, -1, 'comparison report row should be complete for ' + scenarioName);
+        const reportScenarioRow = comparisonHtml.slice(reportRowStart, reportRowEnd);
+        const metricValues = await row.locator('td').allInnerTexts();
+        const reportAmounts = [...reportScenarioRow.matchAll(/INR\s+([\d,]+(?:\.\d{2})?)/gu)]
+            .map((match) => Math.round(Number(match[1].replace(/,/gu, ''))));
+        for (const metricValue of metricValues.slice(1, 4)) {
+            const displayedAmount = Number(metricValue.replace(/[^\d]/gu, ''));
+            assert.ok(Number.isFinite(displayedAmount) && reportAmounts.includes(displayedAmount),
+                'comparison report should preserve each displayed amount after currency formatting and rounding: ' + metricValue);
+        }
+        assert.ok(comparisonHtml.includes(metricValues[4].trim()),
+            'comparison report should preserve the displayed scenario status');
+    }
+    assert.match(comparisonHtml, /Results are shown in the order entered/u,
+        'comparison report should state that scenarios retain user-entered order');
+    assert.match(comparisonHtml, /not a forecast, investment recommendation, or guarantee/iu,
+        'comparison report should disclose that results are illustrations, not guarantees');
     await assertOpensWithoutNetwork(browser, join(temporaryDirectory, 'pfo-fire-comparison-report.html'), 'Conservative');
     process.stdout.write('PASS: comparison FIRE report opens from a local file without network access.\\n');
     process.stdout.write('PASS: comparison report downloads with all scenario assumptions and no remote dependencies.\n');
