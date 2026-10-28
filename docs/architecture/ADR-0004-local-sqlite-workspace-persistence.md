@@ -23,7 +23,7 @@ The default database path is outside the repository:
 
 `PFO_DATABASE_PATH` overrides the default. SQLite files and journal files are ignored by Git.
 
-The dashboard's initial integration uses explicit **Save to SQLite** and **Restore from SQLite** actions. Restore reuses the existing schema validation, user confirmation, and atomic browser-storage rollback. Browser edits are not automatically synchronized in this increment; do not claim otherwise.
+The dashboard provides explicit **Save to SQLite** and **Restore from SQLite** actions, plus opt-in **automatic SQLite saves**. Automatic saving can only be enabled after the current complete workspace is successfully saved. Successful records, goals, history, cash-flow, budget, CSV import, and backup-restore changes schedule a debounced full-workspace snapshot. Writes are serialized to avoid racing database snapshots. Browser-local storage remains the immediate source of truth and recovery copy; if the database write fails, the UI reports that the database may be behind rather than claiming durable success. Restore reuses the existing schema validation, user confirmation, and atomic browser-storage rollback.
 
 ## Consequences
 
@@ -34,7 +34,7 @@ The dashboard's initial integration uses explicit **Save to SQLite** and **Resto
 - Existing offline browser storage and exported JSON backups remain available.
 
 ### Trade-offs and limitations
-- The initial UI requires explicit saves; automatic write-through is a separate design/implementation step.
+- Automatic save is opt-in and debounced, not a synchronous database transaction with every browser-local write. Browser-local storage remains immediately durable; database lag or write failures are surfaced in the persistence status. This is not a distributed multi-user consistency model.
 - SQLite file contents are not encrypted by this feature. Filesystem/device protection and independent backups remain the user's responsibility.
 - This is a single-user local database API, not a remote, multi-user, or production-hosted database service.
 - The Node.js `node:sqlite` API is experimental in Node 22; CI must verify the exact supported runtime.
