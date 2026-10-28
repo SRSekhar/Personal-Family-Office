@@ -113,4 +113,4 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - One atomic schema-v4 snapshot stores records, goals, cash-flow transactions, budgets, and historical snapshots. Save/restore actions are explicit; restore reuses the existing preview, confirmation, and transactional local-storage restore path.
 - Database API has loopback Host/Origin checks, a 10 MiB request limit, no CORS, and validation before database mutation. POSIX database and sidecar files are owner-only; Windows access relies on the user's profile ACL.
 - Not included: automatic browser-to-database sync, encryption, remote hosting, multi-user identity/authorization, or cloud replication. Do not describe this as a cloud backend.
-- This persistence hardening is on a feature branch; do not call the delivery complete until CI, browser smoke, dashboard packaging, and Secret Scan pass and its PR is merged.
+- PR #390 is merged (commit `4260e1f80cf30e3e597ff1f932be1a48c35b8eca`). CI run #1093 and Secret Scan run #1049 passed; CI includes the Chromium smoke test and dashboard API/unit tests.

@@ -116,7 +116,7 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - The local loopback server exposes a JSON API for status and full-workspace save/read. A single schema-v4 snapshot row is written in one SQLite transaction; records, goals, cash-flow transactions, budgets, and historical snapshots are validated as a unit.
 - The dashboard adds explicit save and restore actions. Restore reuses the established backup preview and atomic browser-storage recovery flow; browser edits are not automatically synchronized in this increment.
 - Security boundaries: loopback-only server, local-origin validation, no CORS, 10 MiB request limit, no remote database, no automatic cloud sync, and SQLite database files ignored by Git. This feature does not encrypt the database file.
-- Status: the SQLite implementation is present on main, and a follow-up hardening branch restricts database and sidecar file permissions on POSIX. Mark this follow-up complete only after CI, Chromium smoke, dashboard packaging, and Secret Scan pass and its PR is merged.
+- Status: local SQLite persistence and POSIX file-permission hardening are merged to main in PR #390. CI run #1093 and Secret Scan run #1049 passed. Chromium browser smoke is included in CI. The backend is local-only and explicitly saved; it is not a cloud or multi-user service.
 
 
 ## Latest Follow-up (2026-10-28 — SQLite persistence)
@@ -126,3 +126,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Save and restore are explicit user actions. Restore goes through the existing backup preview, confirmation, validation, and rollback path; stable record identifiers are retained.
 - The database file defaults outside the repository. POSIX database and sidecar files use owner-only permissions; Windows relies on profile ACLs. The file is not encrypted, so device protection and separate backups remain necessary.
 - Scope limitation: this is a local single-user persistence backend, not a cloud or multi-user service; automatic synchronization is not included.
+
+
+## Latest Follow-up (2026-10-28 — SQLite persistence complete)
+
+- PR #390 merged as `4260e1f80cf30e3e597ff1f932be1a48c35b8eca`. It hardens SQLite database/WAL/SHM/journal permissions to owner-only on POSIX and adds a regression test for file modes.
+- CI run #1093 and Secret Scan run #1049 passed. CI includes lint, typecheck, unit/API tests, and Chromium browser smoke covering a full five-collection SQLite save/restore round trip.
+- SQLite is the chosen local backend for the current local-first dashboard. Explicit save/restore is supported; cloud hosting, multi-user access, encryption, and automatic synchronization remain future decisions, not shipped capabilities.

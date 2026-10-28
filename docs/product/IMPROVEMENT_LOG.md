@@ -1,4 +1,4 @@
-## 2026-10-28 — Local SQLite workspace persistence (hardening in progress)
+## 2026-10-28 — Local SQLite workspace persistence (delivered; PR #390)
 
 ### Scope
 - Add a Node.js built-in SQLite database for the local dashboard, with the database file outside the repository by default and an explicit `PFO_DATABASE_PATH` override.
@@ -9,7 +9,8 @@
 
 ### Privacy and operational boundaries
 - The SQLite file is local and is not encrypted by this feature. It is not committed to the repository and no cloud/database provider receives financial data.
-- POSIX database and SQLite sidecar files are being restricted to owner-only permissions; Windows relies on the current user's profile ACL.
+- POSIX database and SQLite sidecar files are restricted to owner-only permissions; Windows relies on the current user's profile ACL.
+- PR #390 merged as `4260e1f80cf30e3e597ff1f932be1a48c35b8eca`. CI run #1093 and Secret Scan run #1049 passed; CI includes the Chromium full-workspace round-trip smoke test.
 - Automatic synchronization, cloud hosting, and multi-user access remain explicitly out of scope.
 - The API is intended for the loopback development server only; it is not a multi-user or remote deployment architecture.
 
