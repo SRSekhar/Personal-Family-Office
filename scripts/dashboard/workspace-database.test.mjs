@@ -83,6 +83,14 @@ describe('SQLite workspace persistence', () => {
         expect(database.getStatus().updatedAt).toBe(second.updatedAt);
     });
 
+    it('reports a healthy SQLite database without changing its workspace snapshot', async () => {
+        const database = await createDatabase();
+        const saved = database.saveWorkspace(payload());
+        expect(database.checkIntegrity()).toEqual({ ok: true, messages: ['ok'] });
+        expect(database.getWorkspace().payload).toEqual(payload());
+        expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
+    });
+
     it('starts empty and reports no saved workspace', async () => {
         const database = await createDatabase();
         expect(database.getWorkspace()).toBeNull();
