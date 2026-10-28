@@ -35,6 +35,53 @@ describe('financial health aggregation', () => {
         });
     });
 
+    it('compares the selected month with the previous calendar month without inventing missing activity', () => {
+        const result = calculateFinancialHealth({
+            ...base,
+            cashFlowEntries: [
+                { date: '2026-10-02', type: 'income', amount: 500, category: 'Salary' },
+                { date: '2026-10-03', type: 'expense', amount: 120, category: 'Food' },
+                { date: '2026-09-30', type: 'income', amount: 900, category: 'Salary' },
+                { date: '2026-09-15', type: 'expense', amount: 300, category: 'Rent' }
+            ]
+        });
+        expect(result).toMatchObject({
+            priorMonth: '2026-09',
+            priorMonthTransactionCount: 2,
+            priorIncome: 900,
+            priorExpenses: 300,
+            priorNetCashFlow: 600,
+            priorSavingsRate: 100
+        });
+        expect(result.income - result.priorIncome).toBe(-400);
+        expect(result.expenses - result.priorExpenses).toBe(-180);
+        expect(result.netCashFlow - result.priorNetCashFlow).toBe(-300);
+    });
+
+    it('handles January reporting by comparing with December of the previous year', () => {
+        const result = calculateFinancialHealth({
+            ...base,
+            month: '2026-01',
+            cashFlowEntries: [{ date: '2025-12-31', type: 'income', amount: 1000, category: 'Salary' }]
+        });
+        expect(result.priorMonth).toBe('2025-12');
+        expect(result.priorMonthTransactionCount).toBe(1);
+        expect(result.priorIncome).toBe(1000);
+        expect(result.priorNetCashFlow).toBe(1000);
+    });
+
+    it('exposes an empty prior month as zero transactions so the UI can mark comparison unavailable', () => {
+        const result = calculateFinancialHealth({
+            ...base,
+            cashFlowEntries: base.cashFlowEntries.filter((entry) => entry.date.startsWith('2026-10'))
+        });
+        expect(result.priorMonth).toBe('2026-09');
+        expect(result.priorMonthTransactionCount).toBe(0);
+        expect(result.priorIncome).toBe(0);
+        expect(result.priorExpenses).toBe(0);
+        expect(result.priorSavingsRate).toBeNull();
+    });
+
     it('marks savings rate unavailable when recorded income is zero', () => {
         const result = calculateFinancialHealth({
             ...base,
