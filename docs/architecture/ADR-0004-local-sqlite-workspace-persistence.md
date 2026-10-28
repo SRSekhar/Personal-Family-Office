@@ -1,13 +1,13 @@
 # ADR-0004: Local SQLite workspace persistence
 
-- **Status:** Proposed with implementation in progress
+- **Status:** Accepted — local SQLite snapshot persistence merged; opt-in automatic-save follow-up in progress
 - **Date:** 2026-10-28
 
 ## Context
 
 PFO OS currently stores its private browser workspace in separate local-storage collections. This works offline but does not provide a durable, independently addressable database file and makes browser-profile loss a recovery risk. The existing schema-v4 backup format already defines the complete workspace boundary: records, goals, cash-flow transactions, budgets, and historical snapshots.
 
-The first database increment must not imply cloud hosting, multi-user access, encryption at rest, or automatic synchronization. Existing local-first behavior and validated backup recovery must remain available.
+The database must not imply cloud hosting, multi-user access, or encryption at rest. Existing local-first behavior and validated backup recovery must remain available. Automatic database persistence is opt-in and must report failures without pretending the browser-local write was rolled back.
 
 ## Decision
 
@@ -23,7 +23,7 @@ The default database path is outside the repository:
 
 `PFO_DATABASE_PATH` overrides the default. SQLite files and journal files are ignored by Git.
 
-The dashboard's initial integration uses explicit **Save to SQLite** and **Restore from SQLite** actions. Restore reuses the existing schema validation, user confirmation, and atomic browser-storage rollback. Browser edits are not automatically synchronized in this increment; do not claim otherwise.
+The dashboard provides explicit **Save to SQLite** and **Restore from SQLite** actions plus opt-in **automatic SQLite saves**. Automatic mode is enabled only after the current complete workspace is successfully saved. Successful records, goals, history, cash-flow, budget, CSV-import, and backup-restore changes schedule a debounced full-workspace snapshot; writes are serialized to prevent overlapping snapshots. Restore reuses the existing schema validation, user confirmation, and atomic browser-storage rollback. Browser-local storage remains the immediate recovery copy. If SQLite writes fail, the UI reports that the database may be behind instead of claiming the database save succeeded.
 
 ## Consequences
 
@@ -34,12 +34,12 @@ The dashboard's initial integration uses explicit **Save to SQLite** and **Resto
 - Existing offline browser storage and exported JSON backups remain available.
 
 ### Trade-offs and limitations
-- The initial UI requires explicit saves; automatic write-through is a separate design/implementation step.
+- Automatic saves are opt-in and debounced, not a synchronous database transaction with every browser-local write. Browser-local storage remains the immediate recovery copy; failures are surfaced as database lag.
 - SQLite file contents are not encrypted by this feature. Filesystem/device protection and independent backups remain the user's responsibility.
 - This is a single-user local database API, not a remote, multi-user, or production-hosted database service.
 - The Node.js `node:sqlite` API is experimental in Node 22; CI must verify the exact supported runtime.
 
-## Validation required before acceptance
+## Validation and operational status
 
 - Unit tests for snapshot persistence across reopen, schema validation, stable IDs, and failed-write safety.
 - API tests for local origin enforcement, payload validation, request size/content type, and read/write behavior.
