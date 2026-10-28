@@ -2033,7 +2033,7 @@ try {
         'a rejected CSV replacement must leave existing cash-flow totals unchanged');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
         'a rejected CSV replacement must leave every existing transaction unchanged');
-    process.stdout.write('PASS: invalid cash-flow CSV dates are rejected without changing the saved ledger.\\n');
+    process.stdout.write('PASS: invalid cash-flow CSV dates are rejected without changing the saved ledger.\n');
 
     const cancelledCashFlowImport = new Promise((resolve) => {
         page.once('dialog', async (dialog) => {
@@ -2053,7 +2053,7 @@ try {
         'cancelling a CSV replacement must preserve existing cash-flow totals');
     assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
         'cancelling a CSV replacement must preserve the existing transactions');
-    process.stdout.write('PASS: cancelling cash-flow CSV replacement preserves the existing ledger.\\n');
+    process.stdout.write('PASS: cancelling cash-flow CSV replacement preserves the existing ledger.\n');
 
 
     await page.locator('#cash-flow-budget-month').fill('2026-10');
