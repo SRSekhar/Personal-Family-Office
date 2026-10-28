@@ -2023,6 +2023,38 @@ try {
         'CSV append should preserve the original transaction and add the repeated transaction');
     assert.match(await page.locator('#cash-flow-message').innerText(), /Appended 1 cash flow transactions from CSV/);
     process.stdout.write('PASS: cash-flow CSV append preserves existing transactions and warns about potential duplicates.\n');
+    await page.locator('#cash-flow-import-csv').setInputFiles({
+        name: 'invalid-calendar-date.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('date,type,category,description,amount,recurring\r\n2026-02-30,expense,Food,Invalid date,100,false\r\n')
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('invalid calendar date'));
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
+        'a rejected CSV replacement must leave existing cash-flow totals unchanged');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
+        'a rejected CSV replacement must leave every existing transaction unchanged');
+    process.stdout.write('PASS: invalid cash-flow CSV dates are rejected without changing the saved ledger.\n');
+
+    const cancelledCashFlowImport = new Promise((resolve) => {
+        page.once('dialog', async (dialog) => {
+            const confirmationMessage = dialog.message();
+            await dialog.dismiss();
+            resolve(confirmationMessage);
+        });
+    });
+    await page.locator('#cash-flow-import-csv').setInputFiles({
+        name: 'cancelled-cash-flow-replacement.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('date,type,category,description,amount,recurring\r\n2026-10-21,expense,Food,Cancelled replacement,250,false\r\n')
+    });
+    assert.match(await cancelledCashFlowImport, /Importing this CSV replaces all cash flow transactions/);
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-message')?.innerText.includes('CSV import cancelled. Existing transactions were not changed.'));
+    assert.equal((await page.locator('#cash-flow-income-total').innerText()).replace(/[^0-9]/g, ''), '100000',
+        'cancelling a CSV replacement must preserve existing cash-flow totals');
+    assert.equal(await page.locator('#cash-flow-rows tr').count(), 2,
+        'cancelling a CSV replacement must preserve the existing transactions');
+    process.stdout.write('PASS: cancelling cash-flow CSV replacement preserves the existing ledger.\n');
+
 
     await page.locator('#cash-flow-budget-month').fill('2026-10');
     await page.locator('#cash-flow-budget-category').fill('Groceries');
