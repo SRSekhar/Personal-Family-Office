@@ -2307,7 +2307,7 @@ try {
         await page.locator('#switch-private-button').click();
     }
     await page.locator('#database-save-button').click();
-    await page.waitForFunction(() => globalThis.document.querySelector('#database-storage-status')?.textContent.includes('SQLite save complete'));
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Complete private workspace saved to the local SQLite database'));
     const savedDatabaseState = await page.evaluate(() => ({
         records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length,
         goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]').length,
