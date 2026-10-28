@@ -2312,7 +2312,7 @@ try {
         page.waitForEvent('download'),
         page.locator('#database-export-backup-button').click()
     ]);
-    assert.match(databaseBackupDownload.suggestedFilename(), /^pfo-os-sqlite-backup-\\d{4}-\\d{2}-\\d{2}\\.json$/,
+    assert.match(databaseBackupDownload.suggestedFilename(), /^pfo-os-sqlite-backup-\d{4}-\d{2}-\d{2}\.json$/,
         'SQLite backup export should use a dated JSON filename');
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
@@ -2322,7 +2322,7 @@ try {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     assert.equal(databaseBackup.records.length, 6, 'SQLite backup should contain the saved private records rather than sample data');
-    process.stdout.write('PASS: saved SQLite workspace can be exported as a portable schema-v4 JSON backup.\\n');
+    process.stdout.write('PASS: saved SQLite workspace can be exported as a portable schema-v4 JSON backup.\n');
 
     const savedDatabaseState = await page.evaluate(() => ({
         records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length,
