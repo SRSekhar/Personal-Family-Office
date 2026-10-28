@@ -96,3 +96,11 @@ test-results/
 # ============================================================================
 *.bak
 *.tmp
+
+# SQLite databases and journal files contain private financial data.
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
