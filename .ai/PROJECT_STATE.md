@@ -15,7 +15,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Epic:** Local SQLite Persistence
-- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore reuses the validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. The opt-in automatic-save follow-up is in progress: it requires an initial successful snapshot and serializes debounced full-workspace writes after successful changes. Browser-local storage remains the immediate recovery copy. Cloud hosting, multi-user access, and encryption are not claimed.
+- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore reuses the validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. Opt-in automatic saving is merged in PR #394: it requires an initial successful snapshot and serializes 450 ms debounced full-workspace writes after successful changes. Browser-local storage remains the immediate recovery copy, and failures are surfaced as possible database lag. Cloud hosting, multi-user access, and encryption are not claimed.
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
 - FIRE report export is explicit user action. Reports are script-free, self-contained HTML, validate report inputs/results, escape untrusted scenario names, and are generated locally without network submission.
@@ -140,3 +140,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - The local SQLite backend and explicit full-workspace save/restore were merged in PR #390. The database file is local, outside the repository by default, and not encrypted by this feature.
 - Follow-up PR #393 adds opt-in automatic saves. The user must successfully save a full snapshot before enabling automatic mode; subsequent successful workspace changes schedule serialized, debounced snapshots. Database failures are surfaced as possible database lag; browser-local storage remains the immediate recovery copy.
 - Do not mark the follow-up complete until CI, Chromium browser smoke, dashboard packaging, and Secret Scan pass on the final head commit.
+
+
+## Latest Follow-up (2026-10-28 — SQLite persistence complete)
+
+- PR #390 hardened SQLite database and sidecar file permissions on POSIX systems and ensured a permission-hardening failure prevents a candidate snapshot from committing.
+- PR #394 merged opt-in automatic SQLite saves. The user must save the complete workspace successfully before enabling automatic mode; subsequent successful record, goal, cash-flow, budget, history, import, and restore changes schedule serialized, 450 ms debounced full-workspace snapshots.
+- CI run #1097, dashboard packaging run #493, and Secret Scan run #1053 passed for the automatic-save PR before merge. Chromium smoke verified the database contains a cash-flow transaction created through the UI.
+- Browser-local storage remains the immediate recovery copy. The database is local and not encrypted; no cloud provider or multi-user service is included.
