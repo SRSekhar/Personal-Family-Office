@@ -2348,7 +2348,7 @@ try {
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'));
     const autoSavedTransaction = await page.evaluate(async () => {
-        const response = await fetch('/api/v1/workspace');
+        const response = await globalThis.fetch('/api/v1/workspace');
         if (!response.ok) return false;
         const saved = await response.json();
         return saved.payload.cashFlowEntries.some((entry) => entry.description === 'SQLite auto-save smoke'
