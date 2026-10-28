@@ -2335,6 +2335,29 @@ try {
         'SQLite restore must round-trip all five workspace collections without changing collection counts');
     process.stdout.write('PASS: explicit SQLite save/restore round-trips records, goals, cash flow, budgets, and history.\\n');
 
+    await page.locator('#database-auto-save-button').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-auto-save-button')?.textContent.includes('Disable automatic')
+        && globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Automatic SQLite saves enabled'));
+    await page.locator('#cash-flow-date').fill('2026-10-27');
+    await page.locator('#cash-flow-type').selectOption('income');
+    await page.locator('#cash-flow-category').fill('Automation test');
+    await page.locator('#cash-flow-description').fill('SQLite auto-save smoke');
+    await page.locator('#cash-flow-amount').fill('1234.56');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'));
+    const autoSavedTransaction = await page.evaluate(async () => {
+        const response = await fetch('/api/v1/workspace');
+        if (!response.ok) return false;
+        const saved = await response.json();
+        return saved.payload.cashFlowEntries.some((entry) => entry.description === 'SQLite auto-save smoke'
+            && entry.amount === 1234.56);
+    });
+    assert.equal(autoSavedTransaction, true,
+        'a cash-flow edit after enabling automatic persistence must reach the SQLite database');
+    process.stdout.write('PASS: opt-in automatic SQLite saves persist subsequent cash-flow edits.\\n');
+
     assert.deepEqual(pageErrors, [], 'browser should not report uncaught JavaScript errors');
     process.stdout.write('PASS: no uncaught browser JavaScript errors.\n');
     await context.close();
