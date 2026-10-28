@@ -36,6 +36,7 @@ import { buildAnnualFinancialReview, renderAnnualFinancialReviewHtml } from './a
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const HISTORICAL_STORAGE_KEY = 'pfo-os.historical-snapshots.v1';
+const DATABASE_AUTO_SAVE_KEY = 'pfo-os.sqlite-auto-save.v1';
 const CURRENCY = 'INR';
 const COLORS = ['#176b4d', '#4d8b70', '#9dbb9f', '#c4a15d', '#7898b6', '#a18cb5', '#d18b70', '#7c8a82'];
 const ASSET_CATEGORIES = ['Cash & deposits', 'Investments', 'Property', 'Retirement', 'Insurance', 'Other assets'];
@@ -79,6 +80,10 @@ let editingGoalId = null;
 let toastTimer;
 let lastFireReportScenarios = [];
 let lastComparisonReportScenarios = [];
+let databaseAutoSaveEnabled = false;
+let databaseAutoSaveTimer;
+let databaseSaveQueue = Promise.resolve();
+try { databaseAutoSaveEnabled = localStorage.getItem(DATABASE_AUTO_SAVE_KEY) === 'true'; } catch { /* automatic persistence remains off if the preference cannot be read */ }
 
 const $ = (selector) => document.querySelector(selector);
 const money = (value) => new Intl.NumberFormat('en-IN', {
@@ -134,6 +139,7 @@ function savePrivateRecords(nextRecords, allowRecovery = false) {
         return false;
     }
     privateStorageHealthy = true;
+    window.dispatchEvent(new Event('pfo:workspace-updated'));
     return true;
 }
 
@@ -423,6 +429,7 @@ function persistGoals(nextGoals) {
     savedGoals = nextGoals;
     renderSavedGoals();
     showGoalMessage();
+    window.dispatchEvent(new Event('pfo:workspace-updated'));
     return true;
 }
 
@@ -938,6 +945,7 @@ function captureCurrentHistoricalSnapshot(event) {
         }
         historicalStorageHealthy = true;
         renderHistoricalSnapshots();
+        window.dispatchEvent(new Event('pfo:workspace-updated'));
         showToast('Historical snapshot saved for ' + date + '.');
     } catch (error) {
         showToast(error instanceof Error ? error.message : 'Could not capture the historical snapshot.');
@@ -1833,12 +1841,56 @@ function setDatabaseStatus(status, detail = '') {
     $('#database-storage-detail').textContent = detail;
 }
 
+function updateDatabaseAutoSaveButton() {
+    const button = $('#database-auto-save-button');
+    if (!button) return;
+    button.textContent = databaseAutoSaveEnabled ? 'Disable automatic SQLite saves' : 'Enable automatic SQLite saves';
+    button.setAttribute('aria-pressed', String(databaseAutoSaveEnabled));
+}
+
+function enqueueDatabaseSave(options = {}) {
+    const operation = databaseSaveQueue.then(
+        () => saveWorkspaceToDatabase(options),
+        () => saveWorkspaceToDatabase(options)
+    );
+    databaseSaveQueue = operation.catch(() => false);
+    return operation;
+}
+
+function scheduleDatabaseAutoSave() {
+    if (!databaseAutoSaveEnabled || workspace !== 'private'
+        || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
+    clearTimeout(databaseAutoSaveTimer);
+    databaseAutoSaveTimer = setTimeout(() => {
+        void enqueueDatabaseSave({ quiet: true });
+    }, 450);
+}
+
+async function toggleDatabaseAutoSave() {
+    if (databaseAutoSaveEnabled) {
+        try {
+            localStorage.removeItem(DATABASE_AUTO_SAVE_KEY);
+            databaseAutoSaveEnabled = false;
+            clearTimeout(databaseAutoSaveTimer);
+            updateDatabaseAutoSaveButton();
+            setDatabaseStatus('Automatic SQLite saves disabled', 'Your browser-local workspace remains available. The last database snapshot is unchanged.');
+            showToast('Automatic SQLite saves disabled.');
+        } catch {
+            showToast('Could not change the automatic-save preference in browser storage.');
+        }
+        return;
+    }
+    await enqueueDatabaseSave({ enableAutoSave: true });
+}
+
 async function refreshDatabaseStatus() {
     if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
         $('#database-storage').hidden = true;
         return;
     }
     try {
+        try { databaseAutoSaveEnabled = localStorage.getItem(DATABASE_AUTO_SAVE_KEY) === 'true'; } catch { /* preference remains off */ }
+        updateDatabaseAutoSaveButton();
         const response = await fetch('./api/v1/database/status', { headers: { Accept: 'application/json' } });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Local SQLite service is unavailable.');
@@ -1847,28 +1899,33 @@ async function refreshDatabaseStatus() {
         const updated = result.updatedAt
             ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))
             : 'No database snapshot saved yet';
-        setDatabaseStatus(result.hasWorkspace ? 'SQLite ready · saved workspace found' : 'SQLite ready · no saved workspace',
+        const status = databaseAutoSaveEnabled
+            ? 'SQLite ready · automatic saves enabled'
+            : result.hasWorkspace ? 'SQLite ready · saved workspace found' : 'SQLite ready · no saved workspace';
+        setDatabaseStatus(status,
             `Local SQLite · ${updated} · ${result.payloadBytes ? number(result.payloadBytes) + ' bytes stored' : 'No workspace data stored yet'}`);
     } catch (error) {
         $('#database-storage').hidden = false;
         $('#database-restore-button').disabled = true;
+        updateDatabaseAutoSaveButton();
         setDatabaseStatus('SQLite unavailable', error instanceof Error
             ? error.message + ' Start the local app with pnpm dashboard:serve.'
             : 'Start the local app with pnpm dashboard:serve.');
     }
 }
 
-async function saveWorkspaceToDatabase() {
+async function saveWorkspaceToDatabase(options = {}) {
     let payload;
     try {
         payload = buildDatabaseWorkspacePayload();
     } catch (error) {
-        showToast(error instanceof Error ? error.message : 'Could not validate the current workspace for database persistence.');
-        return;
+        if (!options.quiet) showToast(error instanceof Error ? error.message : 'Could not validate the current workspace for database persistence.');
+        if (options.quiet) setDatabaseStatus('Automatic SQLite save paused', error instanceof Error ? error.message : 'Workspace validation failed.');
+        return false;
     }
     const button = $('#database-save-button');
     button.disabled = true;
-    setDatabaseStatus('Saving validated workspace to SQLite…');
+    setDatabaseStatus(options.quiet ? 'Automatically saving workspace to SQLite…' : 'Saving validated workspace to SQLite…');
     try {
         const response = await fetch('./api/v1/workspace', {
             method: 'PUT',
@@ -1877,18 +1934,39 @@ async function saveWorkspaceToDatabase() {
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'SQLite save failed.');
+        if (options.enableAutoSave) {
+            try {
+                localStorage.setItem(DATABASE_AUTO_SAVE_KEY, 'true');
+                databaseAutoSaveEnabled = true;
+                updateDatabaseAutoSaveButton();
+            } catch {
+                setDatabaseStatus('Workspace saved; automatic saves not enabled', 'SQLite contains the snapshot, but the browser could not store the automatic-save preference.');
+                showToast('Workspace saved, but automatic saves could not be enabled. Check browser storage and retry.');
+                return true;
+            }
+        }
         $('#database-restore-button').disabled = false;
-        setDatabaseStatus('SQLite save complete',
-            `Saved ${result.recordCount} records, ${result.goalCount} goals, ${result.cashFlowTransactionCount} transactions, ${result.budgetCount} budgets, and ${result.historicalSnapshotCount} history snapshots at ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))}.`);
-        showToast('Complete private workspace saved to the local SQLite database.');
+        const savedAt = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+            .format(new Date(result.updatedAt));
+        const detail = `Saved ${result.recordCount} records, ${result.goalCount} goals, ${result.cashFlowTransactionCount} transactions, ${result.budgetCount} budgets, and ${result.historicalSnapshotCount} history snapshots at ${savedAt}.`;
+        if (options.quiet) {
+            setDatabaseStatus('Auto-save saved to SQLite', detail);
+        } else if (options.enableAutoSave) {
+            setDatabaseStatus('Automatic SQLite saves enabled', detail);
+            showToast('Workspace saved and automatic SQLite saves enabled.');
+        } else {
+            setDatabaseStatus('SQLite save complete', detail);
+            showToast('Complete private workspace saved to the local SQLite database.');
+        }
+        return true;
     } catch (error) {
-        setDatabaseStatus('SQLite save failed', error instanceof Error
-            ? error.message + ' Your browser workspace was not changed.'
-            : 'Your browser workspace was not changed.');
-        showToast('SQLite save failed. The current browser workspace was not changed.');
+        setDatabaseStatus(options.quiet ? 'Automatic SQLite save failed' : 'SQLite save failed', error instanceof Error
+            ? error.message + ' Browser-local data is still saved; the database may be behind.'
+            : 'Browser-local data is still saved; the database may be behind.');
+        if (!options.quiet) showToast('SQLite save failed. The current browser workspace was not changed.');
+        return false;
     } finally {
         button.disabled = false;
-        await refreshDatabaseStatus();
     }
 }
 
@@ -2018,6 +2096,7 @@ function importData(file, options = {}) {
                 render();
                 window.dispatchEvent(new Event('pfo:cashflow-restored'));
                 window.dispatchEvent(new Event('pfo:cashflow-updated'));
+                window.dispatchEvent(new Event('pfo:workspace-updated'));
                 renderHistoricalSnapshots();
                 const sourceSuffix = options.sourceLabel ? ' from ' + options.sourceLabel : '';
                 showToast('Restored full workspace' + sourceSuffix + ': ' + records.length + ' records, ' + savedGoals.length
@@ -2188,7 +2267,8 @@ $('#view-all-button').addEventListener('click', () => {
     $('#view-all-button').dataset.all = $('#view-all-button').dataset.all !== 'true' ? 'true' : 'false';
     renderRecords();
 });
-$('#database-save-button').addEventListener('click', saveWorkspaceToDatabase);
+$('#database-save-button').addEventListener('click', () => { void enqueueDatabaseSave(); });
+$('#database-auto-save-button').addEventListener('click', () => { void toggleDatabaseAutoSave(); });
 $('#database-restore-button').addEventListener('click', restoreWorkspaceFromDatabase);
 $('#database-refresh-button').addEventListener('click', refreshDatabaseStatus);
 $('#export-button').addEventListener('click', exportData);
@@ -2258,7 +2338,8 @@ function syncActiveNavigation() {
 
 document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', syncActiveNavigation));
 window.addEventListener('hashchange', syncActiveNavigation);
-window.addEventListener('pfo:cashflow-updated', renderFinancialHealth);
+window.addEventListener('pfo:cashflow-updated', () => { renderFinancialHealth(); scheduleDatabaseAutoSave(); });
+window.addEventListener('pfo:workspace-updated', scheduleDatabaseAutoSave);
 syncActiveNavigation();
 
 refreshDatabaseStatus();
