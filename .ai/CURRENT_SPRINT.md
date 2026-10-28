@@ -2,7 +2,7 @@
 
 ## Sprint
 
-Sprint 5 — Financial Health and Data Integrity
+Sprint 6 — Local SQLite Persistence
 
 ## Version
 
@@ -10,7 +10,11 @@ Sprint 5 — Financial Health and Data Integrity
 
 ## Goal
 
-Deliver reliable, explainable financial-health and cash-flow workflows, protect all saved workspace collections during imports/restores, and keep reporting comparisons grounded only in recorded data.
+Add an opt-in local SQLite backend for durable workspace snapshots while preserving local-first behavior, schema-v4 validation, atomic restore, and privacy boundaries.
+
+## In Progress
+
+- Major deliverable: local SQLite database support through the loopback dashboard server. The database stores the complete validated workspace in one transactional snapshot; dashboard save/restore controls are explicit and reuse the existing restore safety path. Automatic synchronization is not included in this increment. CI and browser validation are pending.
 
 ## Completed
 
@@ -65,7 +69,8 @@ Deliver reliable, explainable financial-health and cash-flow workflows, protect 
 
 ## Next Deliverables
 
-1. Audit remaining high-impact cash-flow and financial-health workflows as a cohesive batch; prioritize user-visible functionality and data correctness over new test-only work.
+1. Complete and validate the local SQLite persistence PR, including CI and Chromium full-workspace save/restore checks.
+2. Design the next persistence increment only after this backend is validated: decide whether and how to make SQLite the automatic write-through store without weakening save-failure handling or offline recovery.
 2. Validate existing financial-health, return-risk, concentration, and report outputs with synthetic acceptance scenarios and user workflows before adding more KPIs.
 3. Run customer-discovery interviews using the existing non-leading script; record anonymized evidence and update the product log.
 4. Review historical repository content and commit metadata for accidental secrets, then resolve licensing/distribution and public/private product-boundary decisions.
