@@ -14,7 +14,7 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 
 ## In Progress
 
-- Major deliverable: local SQLite database support through the loopback dashboard server. The database stores the complete validated workspace in one transactional snapshot; dashboard save/restore controls are explicit and reuse the existing restore safety path. Automatic synchronization is not included in this increment. CI and browser validation are pending.
+- Major deliverable: local SQLite database support through the loopback dashboard server. The database stores the complete validated workspace in one transactional snapshot; dashboard save/restore controls reuse the existing restore safety path. Opt-in automatic saving can be enabled only after a successful initial snapshot, and subsequent successful changes schedule a debounced full-workspace save. CI and browser validation are pending.
 
 ## Completed
 
