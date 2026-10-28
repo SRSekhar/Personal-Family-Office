@@ -2166,6 +2166,19 @@ try {
     await assertOpensWithoutNetwork(browser, annualReviewPath, 'Annual financial review');
     process.stdout.write('PASS: annual financial review opens offline and aggregates only recorded annual data.\n');
 
+    // Ensure the selected October report has a deterministic, fictional prior-month baseline.
+    // Keep existing smoke transactions while adding two uniquely identified September entries.
+    await page.evaluate(() => {
+        const key = 'pfo-os.cash-flow.v1';
+        const existing = JSON.parse(globalThis.localStorage.getItem(key) || '[]')
+            .filter((entry) => !['smoke-health-prior-income', 'smoke-health-prior-expense'].includes(entry.id));
+        existing.push(
+            { id: 'smoke-health-prior-income', date: '2026-09-05', type: 'income', category: 'Salary', description: 'Fictional September income', amount: 1000, recurring: false },
+            { id: 'smoke-health-prior-expense', date: '2026-09-10', type: 'expense', category: 'Household', description: 'Fictional September expense', amount: 400, recurring: false }
+        );
+        globalThis.localStorage.setItem(key, JSON.stringify(existing));
+        globalThis.dispatchEvent(new globalThis.Event('pfo:cashflow-updated'));
+    });
     const healthMonth = page.locator('#financial-health-month');
     await healthMonth.fill('2026-09');
     await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · September 2026');
@@ -2179,7 +2192,11 @@ try {
     const financialHealthCards = await page.locator('#financial-health-metrics .financial-health-card').evaluateAll((cards) =>
         cards.map((card) => [...card.children].slice(0, 3).map((part) => part.textContent))
     );
-    assert.equal(financialHealthCards.length, 6, 'financial health should display all six validated metric cards');
+    assert.equal(financialHealthCards.length, 7, 'financial health should display all seven validated metric cards, including the prior-month comparison');
+    assert.ok(financialHealthCards.some(([label, value, detail]) => label === 'Change vs September 2026'
+        && value.startsWith('Net cash flow ')
+        && detail.includes('Income ') && detail.includes('Expenses ') && detail.includes('Savings rate')),
+    'financial health should compare October metrics with recorded September transactions');
     const escapeFinancialHealthHtml = (value) => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
     const [financialHealthDownload] = await Promise.all([

@@ -1,5 +1,11 @@
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
+function previousMonth(month) {
+    const [year, monthNumber] = month.split('-').map(Number);
+    const date = new Date(Date.UTC(year, monthNumber - 2, 1));
+    return date.getUTCFullYear() + '-' + String(date.getUTCMonth() + 1).padStart(2, '0');
+}
+
 function finiteTotal(values, label) {
     const total = values.reduce((sum, value) => sum + value, 0);
     if (!Number.isFinite(total)) throw new Error(label + ' exceeds the supported numeric range.');
@@ -16,6 +22,15 @@ export function calculateFinancialHealth({ records, cashFlowEntries, budgets, go
     const liabilities = finiteTotal(records.filter((item) => item.type === 'liability').map((item) => item.value), 'Liability total');
     const netWorth = assets - liabilities;
     if (!Number.isFinite(netWorth)) throw new Error('Net worth exceeds the supported numeric range.');
+
+    const priorMonth = previousMonth(month);
+    const priorEntries = cashFlowEntries.filter((entry) => entry.date.startsWith(priorMonth));
+    const priorIncome = finiteTotal(priorEntries.filter((entry) => entry.type === 'income').map((entry) => entry.amount), 'Prior-month income');
+    const priorExpenses = finiteTotal(priorEntries.filter((entry) => entry.type === 'expense').map((entry) => entry.amount), 'Prior-month expenses');
+    const priorNetCashFlow = priorIncome - priorExpenses;
+    if (!Number.isFinite(priorNetCashFlow)) throw new Error('Prior-month net cash flow exceeds the supported numeric range.');
+    const priorSavingsRate = priorIncome > 0 ? priorNetCashFlow / priorIncome * 100 : null;
+    if (priorSavingsRate !== null && !Number.isFinite(priorSavingsRate)) throw new Error('Prior-month savings rate is unavailable.');
 
     const periodEntries = cashFlowEntries.filter((entry) => entry.date.startsWith(month));
     const income = finiteTotal(periodEntries.filter((entry) => entry.type === 'income').map((entry) => entry.amount), 'Monthly income');
@@ -55,6 +70,8 @@ export function calculateFinancialHealth({ records, cashFlowEntries, budgets, go
 
     return {
         month, assets, liabilities, netWorth, income, expenses, netCashFlow, savingsRate,
+        priorMonth, priorMonthTransactionCount: priorEntries.length, priorIncome, priorExpenses,
+        priorNetCashFlow, priorSavingsRate,
         transactionCount: periodEntries.length, budgetTotal, actualInBudgetedCategories,
         budgetedCategoryCount: monthBudgets.length, overBudgetCategoryCount, totalPositiveOverrun,
         coveredExpenseCategoryCount, expenseCategoryCount: actualsByCategory.size, unbudgetedExpenses, expenseCoverageRate,
