@@ -83,6 +83,8 @@ let lastComparisonReportScenarios = [];
 let databaseAutoSaveEnabled = false;
 let databaseAutoSaveTimer;
 let databaseSaveQueue = Promise.resolve();
+let databaseStatusChecked = false;
+let databaseRecoveryRequired = false;
 try { databaseAutoSaveEnabled = localStorage.getItem(DATABASE_AUTO_SAVE_KEY) === 'true'; } catch { /* automatic persistence remains off if the preference cannot be read */ }
 
 const $ = (selector) => document.querySelector(selector);
@@ -1848,6 +1850,21 @@ function updateDatabaseAutoSaveButton() {
     button.setAttribute('aria-pressed', String(databaseAutoSaveEnabled));
 }
 
+// Unreadable browser values count as existing data: recovery must never assume they are disposable.
+function hasBrowserWorkspaceData() {
+    const keys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY];
+    try {
+        return keys.some((key) => {
+            const raw = localStorage.getItem(key);
+            if (raw === null) return false;
+            const parsed = JSON.parse(raw);
+            return !Array.isArray(parsed) || parsed.length > 0;
+        });
+    } catch {
+        return true;
+    }
+}
+
 function enqueueDatabaseSave(options = {}) {
     const operation = databaseSaveQueue.then(
         () => saveWorkspaceToDatabase(options),
@@ -1858,7 +1875,7 @@ function enqueueDatabaseSave(options = {}) {
 }
 
 function scheduleDatabaseAutoSave() {
-    if (!databaseAutoSaveEnabled || workspace !== 'private'
+    if (!databaseStatusChecked || databaseRecoveryRequired || !databaseAutoSaveEnabled || workspace !== 'private'
         || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
     clearTimeout(databaseAutoSaveTimer);
     databaseAutoSaveTimer = setTimeout(() => {
@@ -1895,18 +1912,26 @@ async function refreshDatabaseStatus() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Local SQLite service is unavailable.');
         $('#database-storage').hidden = false;
+        databaseRecoveryRequired = Boolean(result.hasWorkspace && !hasBrowserWorkspaceData());
+        databaseStatusChecked = true;
         $('#database-restore-button').disabled = !result.hasWorkspace;
+        $('#database-restore-button').textContent = databaseRecoveryRequired ? 'Review database recovery' : 'Restore from SQLite';
         const updated = result.updatedAt
             ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))
             : 'No database snapshot saved yet';
-        const status = databaseAutoSaveEnabled
-            ? 'SQLite ready · automatic saves enabled'
-            : result.hasWorkspace ? 'SQLite ready · saved workspace found' : 'SQLite ready · no saved workspace';
-        setDatabaseStatus(status,
-            `Local SQLite · ${updated} · ${result.payloadBytes ? number(result.payloadBytes) + ' bytes stored' : 'No workspace data stored yet'}`);
+        const status = databaseRecoveryRequired
+            ? 'SQLite recovery needed · automatic saves paused'
+            : databaseAutoSaveEnabled
+                ? 'SQLite ready · automatic saves enabled'
+                : result.hasWorkspace ? 'SQLite ready · saved workspace found' : 'SQLite ready · no saved workspace';
+        const detail = databaseRecoveryRequired
+            ? `A saved SQLite workspace exists, but this browser has no workspace data. Review the saved snapshot before editing or saving; automatic saves are paused. Last database save: ${updated}.`
+            : `Local SQLite · ${updated} · ${result.payloadBytes ? number(result.payloadBytes) + ' bytes stored' : 'No workspace data stored yet'}`;
+        setDatabaseStatus(status, detail);
     } catch (error) {
         $('#database-storage').hidden = false;
         $('#database-restore-button').disabled = true;
+        databaseStatusChecked = true;
         updateDatabaseAutoSaveButton();
         setDatabaseStatus('SQLite unavailable', error instanceof Error
             ? error.message + ' Start the local app with pnpm dashboard:serve.'
@@ -1946,6 +1971,8 @@ async function saveWorkspaceToDatabase(options = {}) {
             }
         }
         $('#database-restore-button').disabled = false;
+        $('#database-restore-button').textContent = 'Restore from SQLite';
+        databaseRecoveryRequired = false;
         const savedAt = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
             .format(new Date(result.updatedAt));
         const detail = `Saved ${result.recordCount} records, ${result.goalCount} goals, ${result.cashFlowTransactionCount} transactions, ${result.budgetCount} budgets, and ${result.historicalSnapshotCount} history snapshots at ${savedAt}.`;
@@ -2094,6 +2121,7 @@ function importData(file, options = {}) {
                 renderSavedGoals();
                 showGoalMessage();
                 render();
+                if (options.sourceLabel && options.sourceLabel.includes('SQLite')) databaseRecoveryRequired = false;
                 window.dispatchEvent(new Event('pfo:cashflow-restored'));
                 window.dispatchEvent(new Event('pfo:cashflow-updated'));
                 window.dispatchEvent(new Event('pfo:workspace-updated'));
