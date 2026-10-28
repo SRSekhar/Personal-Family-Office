@@ -114,7 +114,7 @@
                     <div><p class="eyebrow">LOCAL DATABASE</p><h2 id="database-storage-heading">SQLite workspace persistence</h2></div>
                     <span class="panel-tag" id="database-storage-status" aria-live="polite">Checking local database…</span>
                 </div>
-                <p class="financial-health-intro">Save a complete, validated snapshot of your private workspace to a local SQLite database. Restore uses the existing backup preview and confirmation before replacing browser data.</p>
+                <p class="financial-health-intro">Save a complete, validated snapshot of your private workspace to a local SQLite database. Opt-in automatic saves write after successful changes; if browser data is missing but a database snapshot exists, automatic saves pause and recovery uses the existing preview and confirmation.</p>
                 <div class="fire-actions">
                     <button class="button button-primary" id="database-save-button" type="button">Save private workspace to SQLite</button>
                     <button class="button button-secondary" id="database-restore-button" type="button" disabled>Restore from SQLite</button>
@@ -122,7 +122,7 @@
                     <button class="button button-secondary button-small" id="database-refresh-button" type="button">Refresh status</button>
                 </div>
                 <p class="financial-health-note" id="database-storage-detail">Checking the local database service.</p>
-                <p class="fire-assumptions-note">SQLite is stored on this device, outside the repository. Saving is explicit; there is no automatic sync or cloud upload. Keep encrypted device backups and exported workspace backups. The database file is not encrypted by this feature.</p>
+                <p class="fire-assumptions-note">SQLite is stored on this device, outside the repository. Automatic saving is opt-in; there is no cloud upload. Keep encrypted device backups and exported workspace backups. The database file is not encrypted by this feature.</p>
             </section>
 
             <div class="content-grid">

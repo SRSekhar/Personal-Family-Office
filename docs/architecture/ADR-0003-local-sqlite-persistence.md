@@ -27,3 +27,8 @@ Use the built-in `node:sqlite` API on the supported Node.js 22 runtime for the l
 - The database is not encrypted by this feature. Device security and separate encrypted backups are still required.
 - This is a single-user local backend, not a cloud or multi-user service. A future hosted backend would require separate decisions for authentication, authorization, tenancy, migrations, encryption/key management, deployment, and threat modeling.
 - The persisted payload uses the existing backup schema and validators to avoid creating a second financial-data contract.
+
+
+## Recovery guard follow-up (2026-10-28)
+
+When a saved SQLite snapshot exists but all five browser workspace collections are absent or empty, the dashboard pauses automatic writes and offers a recovery review using the existing backup preview and confirmation. Automatic saves also wait for the initial database-status check, preventing initialization events from racing ahead of recovery detection. Unreadable browser values count as data present. This guard protects against a cleared browser profile; it is not a substitute for cross-tab optimistic concurrency control.

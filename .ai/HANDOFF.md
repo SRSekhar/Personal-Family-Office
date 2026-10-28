@@ -122,3 +122,10 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - PR #394 merged opt-in automatic saves. Automatic mode is enabled only after a successful initial full snapshot. Successful record, goal, cash-flow, budget, history, import, and restore changes schedule a serialized 450 ms debounced snapshot.
 - Browser-local storage remains the immediate recovery copy. If SQLite fails, the UI reports that the database may be behind; it does not claim that the local edit was rolled back or that the database write succeeded.
 - Validation passed before merge: CI run #1097, Chromium smoke (including a cash-flow transaction auto-saved through the API), dashboard packaging run #493, and Secret Scan run #1053.
+
+
+## Latest Follow-up (2026-10-28 — SQLite startup recovery guard)
+
+- Current branch `fix/sqlite-startup-recovery-guard` detects when SQLite has a saved snapshot while browser workspace collections are absent/empty, and pauses autosave to prevent an empty browser profile from replacing the database on startup.
+- Recovery uses the existing restore preview/confirmation. Malformed or unreadable local values are treated as data present, so the app does not guess they can be discarded.
+- Browser smoke coverage verifies the saved SQLite transaction survives this startup recovery condition. PR is pending CI/Secret Scan validation.

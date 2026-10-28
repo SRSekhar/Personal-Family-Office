@@ -1,3 +1,10 @@
+## 2026-10-28 — SQLite startup recovery guard (PR pending)
+
+- Detect a saved SQLite snapshot alongside absent/empty browser workspace collections and label the restore action `Review database recovery`.
+- Pause automatic writes until status is loaded and while recovery is needed; this prevents startup initialization from overwriting the only durable snapshot with an empty browser workspace.
+- Reuse the existing validated import preview and confirmation. Unreadable browser storage is conservatively treated as existing data.
+- Added Chromium smoke coverage that clears browser workspace collections, reloads, and verifies the SQLite snapshot is unchanged. Pending CI and Secret Scan.
+
 ## 2026-10-28 — Opt-in automatic SQLite workspace saves (delivered; PR #394 merged)
 
 ### Delivered in this follow-up
