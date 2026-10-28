@@ -39,11 +39,17 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - Chromium smoke checks the download filename, schema version, and all five workspace collections.
 - This creates a portable recovery artifact, not an encrypted backup; store exports securely.
 
-## In Progress — Read-only SQLite integrity diagnostics
+## Completed — Read-only SQLite integrity diagnostics (PR #403 merged)
 
 - Added a loopback-protected API check using SQLite `PRAGMA quick_check`, with sanitized failure responses.
 - Unit/API tests verify a healthy database passes and its saved workspace/version remains unchanged.
-- Validation is pending on PR.
+- CI and Secret Scan passed. A passing structural check does not prove financial accuracy or backup restorability.
+
+## In Progress — Dashboard-visible SQLite integrity check
+
+- Added a local-dashboard control to run the read-only integrity endpoint and show a clear pass/fail result.
+- Chromium smoke verifies a successful check after a validated workspace snapshot is saved.
+- Awaiting CI, browser smoke, dashboard packaging, and Secret Scan for the follow-up PR.
 
 ## Completed — Sprint 6: Local SQLite Persistence
 
