@@ -4,8 +4,9 @@
 - Add a Node.js built-in SQLite database for the local dashboard, with the database file outside the repository by default and an explicit `PFO_DATABASE_PATH` override.
 - Store a complete schema-v4 INR workspace snapshot atomically: financial records, goals, cash-flow transactions, budgets, and historical snapshots.
 - Expose a loopback-only JSON API with origin checks, request-size limits, full payload validation, and no CORS.
-- Add explicit dashboard save/restore controls. Restore reuses the existing validated backup preview, confirmation, and rollback flow; stable record identifiers are preserved.
-- Preserve local browser storage and offline use. This first increment deliberately uses explicit save/restore rather than claiming automatic sync.
+- Add explicit dashboard save/restore controls and opt-in automatic saves. Automatic mode is enabled only after a successful full snapshot; successful records, goals, cash-flow, budgets, historical snapshots, imports, and restores schedule a debounced full-workspace snapshot.
+- Automatic saves are debounced by 450 ms and serialized so rapid edits cannot race database snapshots. Database write failures are surfaced as possible database lag while the browser-local workspace remains intact.
+- Restore reuses the existing validated backup preview, confirmation, and rollback flow; stable record identifiers are preserved. Browser-local storage remains the immediate recovery copy and offline mode remains available.
 
 ### Privacy and operational boundaries
 - The SQLite file is local and is not encrypted by this feature. It is not committed to the repository and no cloud/database provider receives financial data.
