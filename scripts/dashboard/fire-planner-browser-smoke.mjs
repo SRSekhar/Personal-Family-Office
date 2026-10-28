@@ -507,7 +507,9 @@ try {
         assert.ok(scenarioName && comparisonHtml.includes(scenarioName),
             'comparison report should preserve the displayed scenario name');
         const metricValues = await row.locator('td').allInnerTexts();
-        for (const metricValue of metricValues) {
+        // The first cell combines the scenario label with a multi-line assumptions summary.
+        // Validate it by scenario name above; compare the report against the actual metric cells.
+        for (const metricValue of metricValues.slice(1)) {
             const value = metricValue.trim();
             assert.ok(value.length > 0, 'each displayed comparison metric should have a value');
             assert.ok(comparisonHtml.includes(value),
