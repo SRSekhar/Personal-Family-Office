@@ -121,8 +121,10 @@
                     <button class="button button-secondary" id="database-export-backup-button" type="button" disabled>Export saved SQLite backup</button>
                     <button class="button button-secondary" id="database-auto-save-button" type="button" aria-pressed="false">Enable automatic SQLite saves</button>
                     <button class="button button-secondary button-small" id="database-refresh-button" type="button">Refresh status</button>
+                    <button class="button button-secondary button-small" id="database-integrity-button" type="button">Check database integrity</button>
                 </div>
                 <p class="financial-health-note" id="database-storage-detail">Checking the local database service.</p>
+                <p class="financial-health-note" id="database-integrity-result" role="status" aria-live="polite">Database integrity has not been checked.</p>
                 <p class="fire-assumptions-note">SQLite is stored on this device, outside the repository. Automatic saving is opt-in; there is no cloud upload. Keep encrypted device backups and exported workspace backups. The database file is not encrypted by this feature.</p>
             </section>
 
