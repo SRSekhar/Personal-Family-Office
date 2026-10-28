@@ -120,6 +120,15 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
                 sendJson(response, 200, database.getStatus());
                 return;
             }
+            if (pathname === '/api/v1/database/integrity' && request.method === 'GET') {
+                try {
+                    const result = database.checkIntegrity();
+                    sendJson(response, result.ok ? 200 : 500, result);
+                } catch {
+                    sendJson(response, 500, { ok: false, messages: ['SQLite integrity check could not complete.'] });
+                }
+                return;
+            }
             if (pathname === '/api/v1/workspace' && request.method === 'GET') {
                 try {
                     const workspace = database.getWorkspace();
