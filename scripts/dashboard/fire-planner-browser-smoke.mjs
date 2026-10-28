@@ -2034,6 +2034,13 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · October 2026');
     assert.match(await page.locator('#financial-health-status').innerText(), /^Local data · /,
         'financial health HTML export should only be available after validated private data is displayed');
+    const financialHealthStatus = await page.locator('#financial-health-status').innerText();
+    const financialHealthCards = await page.locator('#financial-health-metrics .financial-health-card').evaluateAll((cards) =>
+        cards.map((card) => [...card.children].slice(0, 3).map((part) => part.textContent))
+    );
+    assert.equal(financialHealthCards.length, 6, 'financial health should display all six validated metric cards');
+    const escapeFinancialHealthHtml = (value) => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
     const [financialHealthDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-financial-health-html').click()
@@ -2047,13 +2054,43 @@ try {
         'financial health report should include its title');
     assert.ok(financialHealthHtml.includes('Net worth'), 'financial health report should include balance-sheet summary');
     assert.ok(financialHealthHtml.includes('Savings rate'), 'financial health report should include recorded cash-flow metrics');
+    assert.ok(financialHealthHtml.includes('October 2026'), 'financial health report should disclose the selected reporting month');
+    for (const metric of financialHealthCards) {
+        for (const text of metric) {
+            assert.ok(financialHealthHtml.includes(escapeFinancialHealthHtml(text)),
+                'financial health HTML export should preserve each displayed metric label, value, and detail');
+        }
+    }
     assert.ok(financialHealthHtml.includes('Keep this file private'),
         'financial health report should include a privacy warning');
     assert.doesNotMatch(financialHealthHtml, /<script\\b|<iframe\\b|<img\\b/i,
         'financial health report must not contain executable scripts or injected elements');
     await assertOfflineReport(financialHealthDownload, 'pfo-os-financial-health.html', 'Financial health overview');
     await assertOpensWithoutNetwork(browser, financialHealthPath, 'Financial health overview');
-    process.stdout.write('PASS: financial health HTML report exports validated private metrics and opens offline.\\n');
+
+    const [financialHealthCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-financial-health-csv').click()
+    ]);
+    assert.equal(financialHealthCsvDownload.suggestedFilename(), 'pfo-os-financial-health.csv',
+        'financial health CSV export should use a stable filename');
+    const financialHealthCsvPath = join(temporaryDirectory, financialHealthCsvDownload.suggestedFilename());
+    await financialHealthCsvDownload.saveAs(financialHealthCsvPath);
+    const financialHealthCsv = await readFile(financialHealthCsvPath, 'utf8');
+    assert.ok(financialHealthCsv.startsWith('"metric","value","details","reporting_period","scope"\r\n'),
+        'financial health CSV should contain the documented column header');
+    const csvCell = (value) => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+    for (const [label, value, detail] of financialHealthCards) {
+        const expectedRow = [label, value, detail, financialHealthStatus.slice('Local data · '.length), 'Private local workspace']
+            .map(csvCell).join(',');
+        assert.ok(financialHealthCsv.includes(expectedRow),
+            'financial health CSV should preserve each displayed metric and its reporting scope');
+    }
+    assert.ok(financialHealthCsv.endsWith('\r\n'), 'financial health CSV should end with a CRLF record separator');
+    assert.ok(!financialHealthCsv.includes('<!doctype html'), 'financial health CSV must remain a CSV file, not an HTML report');
+    assert.ok(financialHealthCsv.includes('"Private local workspace"'),
+        'financial health CSV should label its local private-data scope');
+    process.stdout.write('PASS: financial health HTML and CSV exports reconcile to the selected, displayed private metrics.\n');
 
     assert.equal(await page.locator('#saved-goals-export-html').isEnabled(), true,
         'saved goal HTML export should be enabled for validated saved goals in the private workspace');
