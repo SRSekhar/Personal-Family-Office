@@ -156,3 +156,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Automatic writes wait until database status is checked and remain paused while recovery is required; the UI directs the user to the existing preview-and-confirm restore flow. A manual save remains an explicit user choice.
 - Unreadable browser storage is treated as potentially recoverable data, not as an empty workspace. This is a recovery guard, not cross-device synchronization or full optimistic concurrency control.
 - PR #397 merged as `cbf778274e83d37970eef299a53d2c6c914d5584`. CI run #1103, dashboard packaging run #495, and Secret Scan run #1059 passed, including the Chromium startup-recovery regression.
+
+
+## Latest Follow-up (2026-10-28 — SQLite optimistic concurrency)
+
+- Added version-checked writes to the local SQLite API: clients supply the last observed `updatedAt` timestamp (or `null` for an empty database); the database checks it inside the write transaction.
+- Stale writes return HTTP 409 without replacing the latest snapshot. Automatic saves pause after a conflict, and manual overwrite requires confirmation. Version timestamps remain monotonic at millisecond boundaries.
+- Added database and API tests for stale write rejection. PR #400 CI, Chromium smoke, dashboard packaging, and Secret Scan passed on the initial feature head; documentation update is included before merge.
