@@ -49,7 +49,11 @@ Run the static dashboard on your own machine without GitHub Pages:
 pnpm dashboard:serve
 ```
 
-Open `http://127.0.0.1:4173/` in your browser. To choose a different port, set `$env:PFO_DASHBOARD_PORT = "4174"` before running the command. The server binds only to loopback, serves files from `apps/dashboard`, and does not expose a public network listener. Dashboard records remain in that browser origin's local storage; this preview server does not receive or persist them.
+Open `http://127.0.0.1:4173/` in your browser. To choose a different port, set `$env:PFO_DASHBOARD_PORT = "4174"` before running the command. The server binds only to loopback and does not expose a public network listener.
+
+The local preview includes an opt-in SQLite persistence API. In the dashboard, switch to **Use my data**, then use **Save private workspace to SQLite** to persist one validated schema-v4 snapshot containing records, goals, cash-flow transactions, budgets, and historical snapshots. **Restore from SQLite** runs the normal backup preview, confirmation, validation, and transactional browser-storage restore flow. Save is explicit; browser edits are not automatically synchronized to SQLite.
+
+By default, the database file is stored outside the repository at `%LOCALAPPDATA%\\PFO-OS\\pfo-os.sqlite` on Windows or `~/.local/share/PFO-OS/pfo-os.sqlite` on Linux/macOS. Set `$env:PFO_DATABASE_PATH = "D:\\PrivateData\\pfo-os.sqlite"` before starting the server to choose another path. Database files are not encrypted by this feature: protect the device and filesystem, keep the file out of source control, and maintain separate secure backups. This local API is not a cloud database or multi-user service.
 
 This is a local development preview, not a production hosting service. Publishing the hosted GitHub Pages demo still requires the one-time repository setting **Settings → Pages → Source: GitHub Actions**. The hosted dashboard is sample-only on every non-loopback hostname: private-workspace entry and backup imports are blocked because a hosted origin is not the trusted local workspace. Personal records are available only from `localhost`/`127.0.0.1`/IPv6 loopback; use the loopback-only preview for household records.
 
