@@ -1954,6 +1954,7 @@ async function exportSavedDatabaseBackup() {
         return;
     }
     const button = $('#database-export-backup-button');
+    let exportAvailable = false;
     button.disabled = true;
     try {
         const response = await fetch('./api/v1/workspace', {
@@ -1965,6 +1966,7 @@ async function exportSavedDatabaseBackup() {
         // Revalidate at the export boundary so the downloaded file remains a supported
         // full-workspace backup even if a future server response changes unexpectedly.
         validateBackupPayload(payload, CURRENCY);
+        exportAvailable = true;
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -1978,7 +1980,7 @@ async function exportSavedDatabaseBackup() {
     } catch (error) {
         showToast(error instanceof Error ? error.message : 'Could not export the saved SQLite workspace.');
     } finally {
-        button.disabled = false;
+        button.disabled = !exportAvailable;
     }
 }
 
