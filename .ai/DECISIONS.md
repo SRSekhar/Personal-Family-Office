@@ -164,6 +164,27 @@ Maintain a clean project history.
 
 ---
 
+## DEC-0011
+
+Title
+
+Local SQLite Persistence
+
+Status
+
+Accepted
+
+Decision
+
+Use Node.js built-in SQLite for the local dashboard's durable private-workspace persistence. Store one fully validated schema-v4 workspace snapshot in a single transaction, expose the API only through the loopback preview server, and keep explicit save/restore semantics for the first increment. The default database path is outside the repository. Protect database files with owner-only POSIX permissions; Windows relies on the current user's profile ACL.
+
+Consequences
+
+- No external database service, credentials, network upload, or new runtime dependency is required for local use.
+- Browser edits are not automatically synchronized; users explicitly save and restore complete snapshots.
+- The database file is not encrypted by this feature and must be protected by device security and separate backups.
+- This is not a multi-user or cloud backend. A hosted database requires a separate deployment, authentication, tenancy, migration, and threat-model decision.
+
 ## Future Decisions
 
 Every significant architectural or product decision shall be recorded here before implementation.
