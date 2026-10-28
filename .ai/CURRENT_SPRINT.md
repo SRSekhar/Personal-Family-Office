@@ -19,6 +19,13 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - Database failures are surfaced as possible database lag; browser-local data remains intact as the immediate recovery copy.
 - Chromium smoke enables automatic saves, creates a cash-flow transaction through the UI, and verifies the transaction persisted through the SQLite API. CI run #1097, dashboard packaging run #493, and Secret Scan run #1053 passed before merge.
 
+## Startup recovery guard (PR pending validation)
+
+- Detects when a valid SQLite snapshot exists but all five browser workspace collections are absent or empty.
+- Pauses automatic database writes until the user reviews recovery or explicitly saves the current workspace, preventing a cleared browser profile from silently replacing a recoverable SQLite snapshot.
+- The recovery action reuses the validated backup preview and confirmation; unreadable browser values are treated as existing data rather than empty.
+- Chromium smoke verifies that startup recovery is offered and the SQLite snapshot remains unchanged.
+
 ## Completed — Sprint 6: Local SQLite Persistence
 
 - Local SQLite backend is integrated with the loopback dashboard server. It persists the complete schema-v4 workspace (records, goals, cash-flow transactions, budgets, and historical snapshots) as one validated transactional snapshot.
@@ -80,8 +87,7 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 
 ## Next Deliverables
 
-1. Complete and validate the local SQLite persistence PR, including CI and Chromium full-workspace save/restore checks.
-2. Design the next persistence increment only after this backend is validated: decide whether and how to make SQLite the automatic write-through store without weakening save-failure handling or offline recovery.
+1. Validate startup recovery and autosave conflict protection through Chromium and CI; decide whether optimistic concurrency is required before any multi-tab workflow.
 2. Validate existing financial-health, return-risk, concentration, and report outputs with synthetic acceptance scenarios and user workflows before adding more KPIs.
 3. Run customer-discovery interviews using the existing non-leading script; record anonymized evidence and update the product log.
 4. Review historical repository content and commit metadata for accidental secrets, then resolve licensing/distribution and public/private product-boundary decisions.
