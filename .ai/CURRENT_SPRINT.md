@@ -45,11 +45,25 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 - Unit/API tests verify a healthy database passes and its saved workspace/version remains unchanged.
 - CI and Secret Scan passed. A passing structural check does not prove financial accuracy or backup restorability.
 
-## In Progress — Dashboard-visible SQLite integrity check
+## Completed — Dashboard-visible SQLite integrity check (PR #404 merged)
 
 - Added a local-dashboard control to run the read-only integrity endpoint and show a clear pass/fail result.
 - Chromium smoke verifies a successful check after a validated workspace snapshot is saved.
-- Awaiting CI, browser smoke, dashboard packaging, and Secret Scan for the follow-up PR.
+- CI run #1122, dashboard packaging run #506, and Secret Scan run #1078 passed before merge.
+
+## Completed — Sprint 6: Local SQLite Persistence
+
+The local SQLite persistence milestone is complete. The dashboard supports validated full-workspace snapshots, explicit save/restore, opt-in automatic saves, startup recovery protection, optimistic concurrency, portable JSON backup export, and read-only integrity diagnostics exposed in the UI.
+
+## Next — Sprint 7: Backup and Recovery Assurance
+
+Priority order:
+1. Verify backup round trips using full-content equality, not only collection counts; include stable IDs and nested historical records.
+2. Exercise malformed, truncated, wrong-schema, and oversized backup files; prove the existing database and browser workspace remain unchanged on rejection.
+3. Add explicit database backup/restore operational guidance, including backup frequency, retention, encryption responsibility, and recovery steps.
+4. Evaluate SQLite online-backup/checkpoint behavior and safe shutdown/reopen scenarios before adding any automatic backup rotation.
+
+Keep backups local-first and user-controlled. Do not add cloud sync, encryption claims, or automatic destructive retention without explicit requirements.
 
 ## Completed — Sprint 6: Local SQLite Persistence
 

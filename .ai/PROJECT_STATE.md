@@ -14,8 +14,9 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 
 ## Current Work
 
-- **Epic:** Local SQLite Persistence
-- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore reuses the validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. Opt-in automatic saving is merged in PR #394: it requires an initial successful snapshot and serializes 450 ms debounced full-workspace writes after successful changes. Browser-local storage remains the immediate recovery copy, and failures are surfaced as possible database lag. Cloud hosting, multi-user access, and encryption are not claimed.
+- **Completed Epic:** Local SQLite Persistence (PRs #394, #397, #400, #403, #404)
+- **Current Epic:** Backup and Recovery Assurance
+- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore reuses the validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. Opt-in automatic saving requires an initial successful snapshot and serializes 450 ms debounced full-workspace writes after successful changes. Startup recovery protection, optimistic concurrency, portable JSON backup export, and read-only integrity diagnostics are implemented. The dashboard now exposes the integrity check. Browser-local storage remains the immediate recovery copy, and failures are surfaced as possible database lag. Cloud hosting, multi-user access, and database encryption are not claimed.
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
 - FIRE report export is explicit user action. Reports are script-free, self-contained HTML, validate report inputs/results, escape untrusted scenario names, and are generated locally without network submission.
@@ -43,7 +44,9 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. LOW PRIORITY / DEFERRED: manual screen-reader and real browser-chrome 400% zoom reviews. Automated keyboard/focus and selected 320 CSS-pixel checks remain in CI; revisit manual audits during release readiness or if customer requirements justify them.
+1. Backup and recovery assurance: full-content round-trip tests, corrupted/oversized backup rejection, and proof that failed restores preserve both browser and SQLite snapshots.
+2. Document local backup cadence, retention, encryption responsibility, and recovery procedures without implying that JSON exports are encrypted.
+3. LOW PRIORITY / DEFERRED: manual screen-reader and real browser-chrome 400% zoom reviews. Automated keyboard/focus and selected 320 CSS-pixel checks remain in CI; revisit manual audits during release readiness or if customer requirements justify them.
 2. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
 3. Validate the shipped financial-health, return-risk, concentration, and report outputs with synthetic acceptance scenarios and then user workflows; avoid adding KPIs before needs are validated.
 4. Manually review historical repository content and commit metadata for accidental secrets; finish software distribution/legal review and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
