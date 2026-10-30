@@ -208,3 +208,11 @@ Keep backups local-first and user-controlled. Do not add cloud sync, encryption 
 - Reuses snapshot validation and summary logic; does not interpolate missing dates or imply that net-worth changes are investment returns.
 - Preserves the history CSV export. Unit and Chromium browser tests verify validation, Indian numeric formatting, honest date gaps, download behavior, and offline opening without scripts or remote assets.
 - Validation: CI, Chromium browser smoke, dashboard packaging, and Secret Scan passed before merge.
+
+
+## 2026-10-30 — Backup and recovery assurance progress
+
+- PR #406 merged: Chromium smoke now compares the portable JSON export with the committed SQLite workspace using full deep equality, then verifies the restored browser workspace matches every field across all five collections, including stable IDs and nested historical records.
+- CI run #1126 and Secret Scan run #1082 passed before merge. The CI job includes Chromium browser smoke.
+- Added an operator-facing local backup/recovery guide covering recommended cadence, manual retention, encryption responsibility, SQLite and JSON recovery, and device migration. These are recommendations and procedures; automated rotation, remote backup, and encryption are not implemented.
+- Remaining Sprint 7 work: strengthen negative restore tests for malformed/truncated/wrong-schema/oversized input where current coverage has gaps, then assess safe SQLite shutdown/reopen and online-backup behavior before considering rotation.
