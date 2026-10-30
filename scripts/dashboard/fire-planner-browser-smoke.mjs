@@ -1224,6 +1224,41 @@ try {
         'a rejected backup must preserve the prior financial totals');
     process.stdout.write('PASS: invalid backup rejection preserves the current records and totals.\n');
 
+    const workspaceBeforeMalformedBackup = await page.evaluate(() => ({
+        records: localStorage.getItem('pfo-os.records.v1'),
+        goals: localStorage.getItem('pfo-os.goals.v1'),
+        cashFlow: localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        history: localStorage.getItem('pfo-os.historical-snapshots.v1')
+    }));
+    await page.locator('#import-file').setInputFiles({
+        name: 'truncated-backup.json', mimeType: 'application/json', buffer: Buffer.from('{"schemaVersion":4,"currency":"INR","records":[')
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Unexpected end of JSON input'));
+    assert.deepEqual(await page.evaluate(() => ({
+        records: localStorage.getItem('pfo-os.records.v1'),
+        goals: localStorage.getItem('pfo-os.goals.v1'),
+        cashFlow: localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        history: localStorage.getItem('pfo-os.historical-snapshots.v1')
+    })), workspaceBeforeMalformedBackup, 'truncated JSON must preserve all five browser workspace collections');
+
+    await page.locator('#import-file').setInputFiles({
+        name: 'oversized-backup.json', mimeType: 'application/json',
+        buffer: Buffer.alloc(10 * 1024 * 1024 + 1, 0x20)
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('exceeds the 10 MiB limit'));
+    assert.deepEqual(await page.evaluate(() => ({
+        records: localStorage.getItem('pfo-os.records.v1'),
+        goals: localStorage.getItem('pfo-os.goals.v1'),
+        cashFlow: localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        history: localStorage.getItem('pfo-os.historical-snapshots.v1')
+    })), workspaceBeforeMalformedBackup, 'oversized JSON must be rejected before changing any browser workspace collection');
+    assert.match(await page.locator('#net-worth').innerText(), /1,23,456/,
+        'malformed and oversized backup rejection must preserve visible financial totals');
+    process.stdout.write('PASS: truncated and oversized full-workspace backups are rejected without changing any browser collection.\\n');
+
     const replacementBackup = {
         schemaVersion: 1,
         currency: 'INR',
