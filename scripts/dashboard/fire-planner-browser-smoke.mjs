@@ -2328,14 +2328,21 @@ try {
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
     assert.equal(databaseBackup.records.length, privateRecordCount,
         'SQLite backup should match the saved private record count rather than assume fixture data');
-    process.stdout.write('PASS: saved SQLite workspace can be exported as a portable schema-v4 JSON backup.\n');
+    const committedDatabaseWorkspace = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not read the committed SQLite workspace during backup verification.');
+        return (await response.json()).payload;
+    });
+    assert.deepEqual(databaseBackup, committedDatabaseWorkspace,
+        'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
+    process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
 
     const savedDatabaseState = await page.evaluate(() => ({
-        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length,
-        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]').length,
-        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]').length,
-        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]').length,
-        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length
+        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
+        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
+        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
+        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -2347,15 +2354,15 @@ try {
     await databaseRestoreDialog.accept();
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace from the local SQLite database'));
     const restoredDatabaseState = await page.evaluate(() => ({
-        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length,
-        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]').length,
-        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]').length,
-        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]').length,
-        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length
+        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
+        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
+        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
+        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must round-trip all five workspace collections without changing collection counts');
-    process.stdout.write('PASS: explicit SQLite save/restore round-trips records, goals, cash flow, budgets, and history.\\n');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all five collections');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all five workspace collections.\\n');
 
     await page.locator('#database-auto-save-button').click();
     await page.waitForFunction(() =>
