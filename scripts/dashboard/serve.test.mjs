@@ -143,6 +143,40 @@ describe('local dashboard preview server', () => {
         expect((await fetch(`${origin}/api/v1/workspace`)).status).toBe(200);
     });
 
+    it('rejects malformed and oversized SQLite API bodies without changing the committed snapshot', async () => {
+        const root = await createRoot();
+        const origin = await startServer(root, { databasePath: join(root, '..', 'request-boundary.sqlite') });
+        const payload = {
+            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            records: [{ id: 'api-record-stable', name: 'Savings', category: 'Cash', type: 'asset', value: 123456 }],
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+        };
+        const initial = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload, expectedUpdatedAt: null })
+        });
+        expect(initial.status).toBe(200);
+        const committed = await (await fetch(`${origin}/api/v1/workspace`)).json();
+
+        const malformed = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: '{"payload":'
+        });
+        expect(malformed.status).toBe(400);
+        expect((await malformed.json()).error).toContain('valid JSON');
+
+        const oversized = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: Buffer.alloc(10 * 1024 * 1024 + 1, 0x20)
+        });
+        expect(oversized.status).toBe(413);
+        expect((await oversized.json()).error).toContain('10 MiB limit');
+
+        const after = await (await fetch(`${origin}/api/v1/workspace`)).json();
+        expect(after).toEqual(committed);
+        expect(after.payload).toEqual(payload);
+    });
+
     it('serves JavaScript with the correct MIME type and supports HEAD', async () => {
         const origin = await startServer(await createRoot());
         const response = await fetch(`${origin}/app.js`);
