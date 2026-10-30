@@ -10,7 +10,7 @@
 - Synthetic test data only; no financial data is transmitted remotely.
 
 ### Validation
-- CI, dashboard packaging, browser smoke, and Secret Scan are required before merge.
+- API/unit checks, CI browser smoke, dashboard packaging, and Secret Scan passed for the API delivery. The dashboard-visible control is tracked separately until its browser smoke and CI pass.
 
 ## 2026-10-28 — Portable export of the committed SQLite workspace
 

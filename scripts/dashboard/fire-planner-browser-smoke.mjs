@@ -2308,6 +2308,10 @@ try {
     }
     await page.locator('#database-save-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Complete private workspace saved to the local SQLite database'));
+    await page.locator('#database-integrity-button').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('SQLite integrity check passed'));
+    process.stdout.write('PASS: dashboard exposes a read-only SQLite integrity check.\\n');
     const [databaseBackupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#database-export-backup-button').click()
