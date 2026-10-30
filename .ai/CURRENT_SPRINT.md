@@ -2,7 +2,7 @@
 
 ## Sprint
 
-Sprint 6 — Local SQLite Persistence
+Sprint 7 — Backup and Recovery Assurance (completed 2026-10-30)
 
 ## Version
 
@@ -10,7 +10,7 @@ Sprint 6 — Local SQLite Persistence
 
 ## Goal
 
-Add an opt-in local SQLite backend for durable workspace snapshots while preserving local-first behavior, schema-v4 validation, atomic restore, and privacy boundaries.
+Prove that local SQLite persistence and portable backup/recovery preserve the complete private workspace under valid, malformed, truncated, wrong-schema, and oversized inputs.
 
 ## Completed — Opt-in automatic SQLite saves (PR #394)
 
@@ -55,15 +55,20 @@ Add an opt-in local SQLite backend for durable workspace snapshots while preserv
 
 The local SQLite persistence milestone is complete. The dashboard supports validated full-workspace snapshots, explicit save/restore, opt-in automatic saves, startup recovery protection, optimistic concurrency, portable JSON backup export, and read-only integrity diagnostics exposed in the UI.
 
-## Next — Sprint 7: Backup and Recovery Assurance
+## Completed — Sprint 7: Backup and Recovery Assurance (PRs #406–#409)
 
-Priority order:
-1. Verify backup round trips using full-content equality, not only collection counts; include stable IDs and nested historical records.
-2. Exercise malformed, truncated, wrong-schema, and oversized backup files; prove the existing database and browser workspace remain unchanged on rejection.
-3. Add explicit database backup/restore operational guidance, including backup frequency, retention, encryption responsibility, and recovery steps.
-4. Evaluate SQLite online-backup/checkpoint behavior and safe shutdown/reopen scenarios before adding any automatic backup rotation.
+- PR #406 verifies exact full-content equality between the portable JSON export and the committed SQLite workspace, then verifies restored browser data across all five collections, stable IDs, and nested historical records.
+- PR #407 adds operator guidance for backup cadence, manual retention, encryption responsibility, same-device recovery, portable JSON recovery, and device migration. Exports are explicitly not encrypted; SQLite persistence is not an independent backup.
+- PR #408 rejects oversized JSON backup files before `FileReader` reads or decodes them. Chromium regression tests prove truncated and oversized imports preserve all five browser collections and visible financial totals.
+- PR #409 verifies malformed JSON and request bodies over 10 MiB are rejected by the SQLite API (400/413) without changing the committed payload/version.
+- Existing database tests cover validated atomic writes, stale-version conflicts, `PRAGMA quick_check`, POSIX owner-only database/sidecar permissions, and clean close/reopen persistence.
+- Final CI and Secret Scan passed for PRs #408 and #409; dashboard packaging passed for #408. Both PRs are merged to main.
 
-Keep backups local-first and user-controlled. Do not add cloud sync, encryption claims, or automatic destructive retention without explicit requirements.
+The current local SQLite persistence and portable backup/recovery scope is complete. Keep the product local-first and user-controlled. Do not claim encryption, remote backup, cloud sync, or automated rotation.
+
+## Next — Operational hardening (backlog)
+
+Evaluate SQLite online-backup/checkpoint behavior and backup automation only after a concrete retention, encryption, and restore policy is approved. These are not blockers for the completed local persistence/recovery milestone.
 
 ## Completed — Sprint 6: Local SQLite Persistence
 
@@ -216,3 +221,8 @@ Keep backups local-first and user-controlled. Do not add cloud sync, encryption 
 - CI run #1126 and Secret Scan run #1082 passed before merge. The CI job includes Chromium browser smoke.
 - Added an operator-facing local backup/recovery guide covering recommended cadence, manual retention, encryption responsibility, SQLite and JSON recovery, and device migration. These are recommendations and procedures; automated rotation, remote backup, and encryption are not implemented.
 - Remaining Sprint 7 work: strengthen negative restore tests for malformed/truncated/wrong-schema/oversized input where current coverage has gaps, then assess safe SQLite shutdown/reopen and online-backup behavior before considering rotation.
+
+
+## Sprint 7 closure — 2026-10-30
+
+The backup/recovery assurance acceptance criteria are complete. All five workspace collections are covered by exact round-trip tests; invalid, truncated, oversized, malformed API, and oversized API inputs are rejected without replacing existing workspace data. Clean database reopen and integrity checks are tested. Operational guidance is published in `docs/operations/LOCAL_BACKUP_AND_RECOVERY.md`. PRs #406–#409 are merged; CI and Secret Scan passed on the final heads, and dashboard packaging passed for the UI change in PR #408.
