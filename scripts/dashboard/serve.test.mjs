@@ -167,7 +167,7 @@ describe('local dashboard preview server', () => {
 
         const oversized = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
-            body: Buffer.alloc(10 * 1024 * 1024 + 1, 0x20)
+            body: new Uint8Array(10 * 1024 * 1024 + 1).fill(0x20)
         });
         expect(oversized.status).toBe(413);
         expect((await oversized.json()).error).toContain('10 MiB limit');
