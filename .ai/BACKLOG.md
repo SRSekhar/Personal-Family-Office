@@ -44,8 +44,6 @@ These items are not prerequisites for the completed single-user local SQLite mil
 
 ---
 
----
-
 # Epic 1 — Platform Foundation
 
 Status
