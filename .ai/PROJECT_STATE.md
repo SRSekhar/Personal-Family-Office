@@ -14,13 +14,15 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 
 ## Current Work
 
-- **Completed Epic:** Local SQLite Persistence (PRs #394, #397, #400, #403, #404)
-- **Current Epic:** Backup and Recovery Assurance
-- **Status:** The loopback dashboard server exposes a validated SQLite workspace API. The database stores all five private workspace collections in one transactional schema-v4 snapshot; dashboard save/restore reuses the validated preview and atomic browser-storage recovery path. Local database file permissions are hardened on POSIX. Opt-in automatic saving requires an initial successful snapshot and serializes 450 ms debounced full-workspace writes after successful changes. Startup recovery protection, optimistic concurrency, portable JSON backup export, and read-only integrity diagnostics are implemented. The dashboard now exposes the integrity check. Browser-local storage remains the immediate recovery copy, and failures are surfaced as possible database lag. Cloud hosting, multi-user access, and database encryption are not claimed.
+- **Completed Epics:** Local SQLite Persistence (PRs #394, #397, #400, #403, #404) and Backup and Recovery Assurance (PRs #406–#409).
+- **Current Epic:** Continue functional product development from the prioritized backlog; local SQL persistence/recovery is not an active blocker.
+- **SQLite status:** The loopback dashboard server stores all five private workspace collections in one validated transactional schema-v4 snapshot. Explicit save/restore, opt-in serialized automatic saves, startup recovery protection, optimistic concurrency, portable committed-snapshot export, read-only integrity diagnostics, and user-visible integrity checks are implemented. The database defaults outside the checkout; POSIX database and sidecar files are owner-only. Browser-local storage remains the immediate recovery copy.
+- **Recovery assurance:** Full-content JSON export/restore equality is verified across records, goals, cash flow, budgets, and historical snapshots, including stable IDs and nested history. Truncated/wrong-schema/oversized backup imports and malformed/oversized API bodies are rejected without replacing existing data. Clean close/reopen persistence and SQLite PRAGMA quick_check are tested. Operational instructions are in docs/operations/LOCAL_BACKUP_AND_RECOVERY.md.
+- **Privacy boundaries:** The database and JSON exports are not encrypted by this feature. Exports require user-managed secure storage and retention. Cloud hosting, multi-user access, remote backup, and automatic backup rotation are not shipped.
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
 - FIRE report export is explicit user action. Reports are script-free, self-contained HTML, validate report inputs/results, escape untrusted scenario names, and are generated locally without network submission.
-- The dashboard's static artifact is packaged successfully by CI. PR #145 adds a session-only Goal Tracker for one target with progress, remaining amount, target date, and completion/overdue status; its calculator, dashboard integration, tests, and documentation passed PR CI, Secret Scan, and dashboard packaging before merge. Publishing remains blocked until the repository owner configures GitHub Pages in Settings → Pages with Source set to GitHub Actions.
+- The dashboard's static artifact is packaged successfully by CI. The session-only Goal Tracker does not persist goals or project returns. Publishing remains blocked until the repository owner configures GitHub Pages in Settings → Pages with Source set to GitHub Actions.
 - Customer demand remains unvalidated; no revenue or paid-pilot commitment is claimed.
 
 ## Foundation Verified
@@ -44,13 +46,12 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 ## Next Deliverables
 
-1. Backup and recovery assurance: full-content round-trip tests, corrupted/oversized backup rejection, and proof that failed restores preserve both browser and SQLite snapshots.
-2. Document local backup cadence, retention, encryption responsibility, and recovery procedures without implying that JSON exports are encrypted.
-3. LOW PRIORITY / DEFERRED: manual screen-reader and real browser-chrome 400% zoom reviews. Automated keyboard/focus and selected 320 CSS-pixel checks remain in CI; revisit manual audits during release readiness or if customer requirements justify them.
+1. Continue functional development using the prioritized product backlog and validate workflows with synthetic acceptance scenarios before expanding scope.
 2. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
-3. Validate the shipped financial-health, return-risk, concentration, and report outputs with synthetic acceptance scenarios and then user workflows; avoid adding KPIs before needs are validated.
-4. Manually review historical repository content and commit metadata for accidental secrets; finish software distribution/legal review and owner-side Pages configuration before release. These gates do not block safe local-first feature work.
-5. Keep historical snapshot guarantees intact: explicit valuation dates, no fabricated history, local-first storage, schema-compatible backup/restore, and transactional recovery.
+3. Validate shipped financial-health, return-risk, concentration, and report outputs against user workflows; avoid adding KPIs before needs are validated.
+4. Keep historical snapshot guarantees intact: explicit valuation dates, no fabricated history, local-first storage, schema-compatible backup/restore, and transactional recovery.
+5. **LOW PRIORITY / DEFERRED:** manual screen-reader and real browser-chrome 400% zoom reviews. Automated keyboard/focus and selected 320 CSS-pixel checks remain in CI.
+6. Evaluate SQLite online-backup/checkpoint behavior, encryption, and automated rotation only after explicit operational/security requirements are approved; these are future enhancements, not current completion gaps.
 
 ## Blockers and Risks
 
@@ -166,3 +167,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Added version-checked writes to the local SQLite API: clients supply the last observed `updatedAt` timestamp (or `null` for an empty database); the database checks it inside the write transaction.
 - Stale writes return HTTP 409 without replacing the latest snapshot. Automatic saves pause after a conflict, and manual overwrite requires confirmation. Version timestamps remain monotonic at millisecond boundaries.
 - PR #400 merged as `3cda51c617360ae056fd3fe82b3cf8cf6ad6d554`. CI run #1112 and dashboard packaging run #500 passed on the final head; Secret Scan run #1065 passed on the code changes before the documentation-only update.
+
+
+## Latest Follow-up (2026-10-30 — SQLite and recovery assurance closed)
+
+- PR #408 merged as 7aa369a4a91bcd0d2432833b51b9e71a074fcef9: oversized full-workspace JSON imports are rejected before file decoding. Chromium tests prove truncated and oversized imports preserve all five browser collections and financial totals. Final CI run #1133, dashboard packaging run #510, and Secret Scan run #1089 passed.
+- PR #409 merged as 43066794750b139f15fc8b6e4d8f81e5dcafefec: malformed and >10 MiB SQLite API request bodies return 400/413 and leave the committed workspace payload/version unchanged. Final CI run #1134 and Secret Scan run #1090 passed.
+- Together with PRs #406–#407, full-content round-trip verification and operator recovery guidance are complete. Clean database close/reopen, transactional snapshot persistence, optimistic concurrency, and read-only integrity diagnostics are already covered.
+- Local SQLite persistence and backup/recovery assurance are complete for the current single-user local-first scope. Encryption, remote backup, cloud sync, multi-user support, and automatic rotation remain explicitly unimplemented.
