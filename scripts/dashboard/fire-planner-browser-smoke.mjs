@@ -70,7 +70,7 @@ try {
     assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 3,
         'local development sample workspace should show fictional multi-year history points only');
-    assert.equal(await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), null,
+    assert.equal(await page.evaluate(() => globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), null,
         'fictional history fixtures must never be written to browser storage');
     assert.equal(await page.locator('#historical-net-worth-chart li').count(), 3,
         'the trend chart should contain one point per actual sample snapshot');
@@ -1054,11 +1054,11 @@ try {
     await page.locator('#capture-historical-snapshot-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('Dec 2023')
         || globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('31 Dec 2023'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'capturing a dated snapshot should persist it locally');
     await page.locator('#capture-historical-snapshot-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.innerText.includes('A historical snapshot already exists for this date.'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'a duplicate capture must leave the original saved snapshot unchanged');
     let cancelledRemovalMessage = '';
     page.once('dialog', async (dialog) => {
@@ -1068,7 +1068,7 @@ try {
     await page.locator('[data-history-remove="2023-12-31"]').focus();
     await page.keyboard.press('Enter');
     assert.match(cancelledRemovalMessage, /export a full workspace backup first/i);
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'cancelling snapshot removal must preserve saved history');
     assert.equal(await page.evaluate(() => globalThis.document.activeElement?.getAttribute('data-history-remove')), '2023-12-31',
         'cancelling keyboard-initiated removal should return focus to its trigger');
@@ -1093,7 +1093,7 @@ try {
     await page.keyboard.press('Enter');
     assert.match(removalFailureMessage, /does not change current financial records/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.innerText.includes('previous saved history was left unchanged'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'failed snapshot removal persistence must leave the original history intact');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
         'failed snapshot removal must not remove the visible history row');
@@ -1112,7 +1112,7 @@ try {
     await page.keyboard.press('Enter');
     assert.match(confirmedRemovalMessage, /does not change current financial records/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.children.length === 0);
-    assert.deepEqual(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')), [],
+    assert.deepEqual(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')), [],
         'confirmed removal should persist an empty history collection');
     assert.equal(await page.evaluate(() => globalThis.document.activeElement?.id), 'historical-snapshots-heading',
         'successful keyboard-initiated removal should move focus to the history heading');
@@ -1120,7 +1120,7 @@ try {
     await page.locator('#capture-historical-snapshot-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('Dec 2023')
         || globalThis.document.querySelector('#historical-snapshot-rows')?.innerText.includes('31 Dec 2023'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'an explicitly removed snapshot date should be available for a corrected recapture');
     const [historyCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
@@ -1132,10 +1132,10 @@ try {
     assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 3);
     assert.equal(await page.locator('#historical-net-worth-chart li').count(), 3);
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'switching to sample mode must not replace saved private history');
     await page.locator('#switch-private-button').click();
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'switching back must preserve the private historical snapshot');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
@@ -1174,7 +1174,7 @@ try {
     });
     assert.match(await legacyV3Confirmation, /existing history is preserved/i);
     await page.waitForFunction(() => globalThis.document.querySelector('#records-body')?.innerText.includes('Legacy full backup asset'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'restoring a schema v3 backup should preserve historical snapshots');
     process.stdout.write('PASS: schema v3 full-workspace restore preserves history omitted by the legacy format.\n');
 
@@ -1223,6 +1223,41 @@ try {
     assert.match(await page.locator('#net-worth').innerText(), /1,23,456/,
         'a rejected backup must preserve the prior financial totals');
     process.stdout.write('PASS: invalid backup rejection preserves the current records and totals.\n');
+
+    const workspaceBeforeMalformedBackup = await page.evaluate(() => ({
+        records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
+    }));
+    await page.locator('#import-file').setInputFiles({
+        name: 'truncated-backup.json', mimeType: 'application/json', buffer: Buffer.from('{"schemaVersion":4,"currency":"INR","records":[')
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Unexpected end of JSON input'));
+    assert.deepEqual(await page.evaluate(() => ({
+        records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
+    })), workspaceBeforeMalformedBackup, 'truncated JSON must preserve all five browser workspace collections');
+
+    await page.locator('#import-file').setInputFiles({
+        name: 'oversized-backup.json', mimeType: 'application/json',
+        buffer: Buffer.alloc(10 * 1024 * 1024 + 1, 0x20)
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('exceeds the 10 MiB limit'));
+    assert.deepEqual(await page.evaluate(() => ({
+        records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
+    })), workspaceBeforeMalformedBackup, 'oversized JSON must be rejected before changing any browser workspace collection');
+    assert.match(await page.locator('#net-worth').innerText(), /1,23,456/,
+        'malformed and oversized backup rejection must preserve visible financial totals');
+    process.stdout.write('PASS: truncated and oversized full-workspace backups are rejected without changing any browser collection.\\n');
 
     const replacementBackup = {
         schemaVersion: 1,
@@ -1396,11 +1431,11 @@ try {
         { key: 'pfo-os.historical-snapshots.v1', message: 'Could not save historical snapshots.' }
     ];
     const readWorkspaceStorage = () => page.evaluate(() => ({
-        records: globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
-        goals: globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
-        cashFlow: globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
-        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
-        history: globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
+        records: globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
+        cashFlow: globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
+        budgets: globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        history: globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
     }));
     const storageCollectionNames = {
         'pfo-os.dashboard.private.v1': 'records',
@@ -2171,7 +2206,7 @@ try {
     // Keep existing smoke transactions while adding two uniquely identified September entries.
     await page.evaluate(() => {
         const key = 'pfo-os.cash-flow.v1';
-        const existing = JSON.parse(globalThis.localStorage.getItem(key) || '[]')
+        const existing = JSON.parse(globalThis.globalThis.localStorage.getItem(key) || '[]')
             .filter((entry) => !['smoke-health-prior-income', 'smoke-health-prior-expense'].includes(entry.id));
         existing.push(
             { id: 'smoke-health-prior-income', date: '2026-09-05', type: 'income', category: 'Salary', description: 'Fictional September income', amount: 1000, recurring: false },
@@ -2274,7 +2309,7 @@ try {
     await assertOpensWithoutNetwork(browser, goalReportPath, 'Saved goal progress');
     process.stdout.write('PASS: saved goal progress HTML report reconciles goals and opens offline.\n');
 
-    const validHistoryBeforeCorruption = await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'));
+    const validHistoryBeforeCorruption = await page.evaluate(() => globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'));
     assert.ok(validHistoryBeforeCorruption, 'private history should be available before the malformed-storage check');
     await page.evaluate(() => globalThis.localStorage.setItem('pfo-os.historical-snapshots.v1', '{invalid'));
     await page.reload({ waitUntil: 'networkidle' });
@@ -2286,7 +2321,7 @@ try {
         'snapshot capture should be paused while saved history is invalid');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 0,
         'malformed history should not be presented as valid snapshot data');
-    assert.equal(await page.evaluate(() => globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), '{invalid',
+    assert.equal(await page.evaluate(() => globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')), '{invalid',
         'reading malformed history must not overwrite or silently clear the original storage value');
     const historyRecoveryDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles(backupPath);
@@ -2295,7 +2330,7 @@ try {
     assert.match(historyRecoveryDialog.message(), /Historical snapshots: 1/);
     await historyRecoveryDialog.accept();
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.innerText.includes('Restored full workspace:'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'restoring a valid full-workspace backup should recover history after malformed storage');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
         'backup recovery should restore the historical snapshot row');
@@ -2325,7 +2360,7 @@ try {
     for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
-    const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
+    const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
     assert.equal(databaseBackup.records.length, privateRecordCount,
         'SQLite backup should match the saved private record count rather than assume fixture data');
     const committedDatabaseWorkspace = await page.evaluate(async () => {
@@ -2338,11 +2373,11 @@ try {
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
 
     const savedDatabaseState = await page.evaluate(() => ({
-        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
-        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
-        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
-        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
-        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
+        records: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
+        goals: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
+        cashFlow: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
+        budgets: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
+        history: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -2354,11 +2389,11 @@ try {
     await databaseRestoreDialog.accept();
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace from the local SQLite database'));
     const restoredDatabaseState = await page.evaluate(() => ({
-        records: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
-        goals: JSON.parse(globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
-        cashFlow: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
-        budgets: JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
-        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
+        records: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
+        goals: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
+        cashFlow: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
+        budgets: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
+        history: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
         'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all five collections');

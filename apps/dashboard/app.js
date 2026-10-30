@@ -1498,6 +1498,14 @@ function importCsvData(file) {
         return;
     }
     if (!file) return;
+    // Keep browser imports aligned with the local SQLite API's 10 MiB request limit.
+    // Reject before FileReader allocates/decodes the entire file; no workspace data is touched.
+    const maximumBackupBytes = 10 * 1024 * 1024;
+    if (file.size > maximumBackupBytes) {
+        showToast('Backup file exceeds the 10 MiB limit. No records were imported.');
+        $('#import-file').value = '';
+        return;
+    }
     const reader = new FileReader();
     reader.addEventListener('load', () => {
         try {
@@ -2111,6 +2119,12 @@ function importData(file, options = {}) {
         return;
     }
     if (!file) return;
+    // Reject before FileReader allocates/decodes the entire backup; no workspace data is touched.
+    const maximumBackupBytes = 10 * 1024 * 1024;
+    if (file.size > maximumBackupBytes) {
+        showToast('Backup file exceeds the 10 MiB limit. No records were imported.');
+        return;
+    }
     const reader = new FileReader();
     reader.addEventListener('load', () => {
         try {
