@@ -29,6 +29,21 @@ Planned — architecture and requirements first; no cloud provider is enabled by
 - Do not use a public spreadsheet as a database or publish household financial data. Google Sheets is a candidate, not a final architectural decision; evaluate whether it meets the security and consistency requirements before selecting it.
 - Acceptance gate: approved storage/sync ADR, threat/privacy review, data model/schema mapping, migration and recovery plan, automated integration tests, and explicit user opt-in.
 
+## Local SQLite — Future Operational Enhancements
+
+Status
+
+Deferred; current local persistence and portable backup/recovery acceptance criteria are complete.
+
+- Evaluate SQLite online-backup API and WAL checkpoint behavior under the actual dashboard lifecycle; document tested shutdown, reopen, and restore procedures before adding automation.
+- Consider optional encrypted backup artifacts only after selecting a key-management model that does not place secrets in the browser bundle or repository.
+- Consider automatic backup rotation only with an approved retention policy, safe failure behavior, and restore verification. Never silently delete the only known-good backup.
+- Consider remote backup or synchronization only through a separately approved provider/security architecture, explicit user opt-in, and conflict/recovery tests. Google Sheets remains a candidate, not a selected database.
+
+These items are not prerequisites for the completed single-user local SQLite milestone. The existing database and portable JSON exports are not encrypted by this feature.
+
+---
+
 ---
 
 # Epic 1 — Platform Foundation
