@@ -1225,8 +1225,8 @@ try {
     process.stdout.write('PASS: invalid backup rejection preserves the current records and totals.\n');
 
     const workspaceBeforeMalformedBackup = await page.evaluate(() => ({
-        records: localStorage.getItem('pfo-os.records.v1'),
-        goals: localStorage.getItem('pfo-os.goals.v1'),
+        records: localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: localStorage.getItem('pfo-os.dashboard.goals.v1'),
         cashFlow: localStorage.getItem('pfo-os.cash-flow.v1'),
         budgets: localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
         history: localStorage.getItem('pfo-os.historical-snapshots.v1')
@@ -1236,8 +1236,8 @@ try {
     });
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Unexpected end of JSON input'));
     assert.deepEqual(await page.evaluate(() => ({
-        records: localStorage.getItem('pfo-os.records.v1'),
-        goals: localStorage.getItem('pfo-os.goals.v1'),
+        records: localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: localStorage.getItem('pfo-os.dashboard.goals.v1'),
         cashFlow: localStorage.getItem('pfo-os.cash-flow.v1'),
         budgets: localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
         history: localStorage.getItem('pfo-os.historical-snapshots.v1')
@@ -1249,8 +1249,8 @@ try {
     });
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('exceeds the 10 MiB limit'));
     assert.deepEqual(await page.evaluate(() => ({
-        records: localStorage.getItem('pfo-os.records.v1'),
-        goals: localStorage.getItem('pfo-os.goals.v1'),
+        records: localStorage.getItem('pfo-os.dashboard.private.v1'),
+        goals: localStorage.getItem('pfo-os.dashboard.goals.v1'),
         cashFlow: localStorage.getItem('pfo-os.cash-flow.v1'),
         budgets: localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
         history: localStorage.getItem('pfo-os.historical-snapshots.v1')
