@@ -1053,3 +1053,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Product-owner direction: manual screen-reader and real browser 400% zoom reviews are low-priority deferred items for the current development phase, not active sprint blockers.
 - Keep existing automated accessibility-contract, keyboard/focus, and narrow-viewport regression checks in CI.
 - Revisit manual audits during release readiness or earlier if customer feedback or applicable requirements make them necessary. This priority change does not claim that manual audits have been completed.
+
+
+## 2026-10-30 — SQLite backup and restore assurance
+- PR #406 merged full-content equality checks for portable JSON export and restore: the downloaded backup is compared with the committed SQLite snapshot, and restored browser storage is compared across all five collections, including stable identifiers and nested historical records.
+- CI (including Chromium browser smoke) and Secret Scan passed before merge.
+- Added a local backup/recovery operations guide with recommended export cadence, manual retention, encryption responsibility, same-device recovery, portable JSON recovery, and device migration steps. It explicitly distinguishes SQLite persistence from independent backups and does not claim encryption or automated retention.
