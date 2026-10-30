@@ -1,3 +1,16 @@
+## 2026-10-30 — Dashboard-visible SQLite integrity check (delivered; PR #404 merged)
+
+- Added a local dashboard action that invokes the existing loopback-protected, read-only SQLite `PRAGMA quick_check` endpoint.
+- Displays an explicit success/failure result without exposing raw database errors or changing workspace data.
+- Added Chromium smoke coverage that saves a validated workspace and verifies the dashboard integrity result.
+- CI run #1122, dashboard packaging run #506, and Secret Scan run #1078 passed before merge.
+- A successful structural check does not establish financial correctness or prove a separate backup can be restored.
+
+## 2026-10-30 — Sprint 6 Local SQLite Persistence milestone completed
+
+- Closed the dashboard integration of the integrity check. The full persistence scope includes validated schema-v4 snapshots, explicit save/restore, opt-in automatic persistence, startup recovery guard, optimistic concurrency, portable JSON export, and integrity diagnostics.
+- Next focus: backup and recovery assurance, particularly complete round-trip equality and failure-path preservation.
+
 ## 2026-10-28 — Read-only SQLite integrity diagnostics
 
 ### Delivered
