@@ -220,7 +220,7 @@ Evaluate SQLite online-backup/checkpoint behavior and backup automation only aft
 - PR #406 merged: Chromium smoke now compares the portable JSON export with the committed SQLite workspace using full deep equality, then verifies the restored browser workspace matches every field across all five collections, including stable IDs and nested historical records.
 - CI run #1126 and Secret Scan run #1082 passed before merge. The CI job includes Chromium browser smoke.
 - Added an operator-facing local backup/recovery guide covering recommended cadence, manual retention, encryption responsibility, SQLite and JSON recovery, and device migration. These are recommendations and procedures; automated rotation, remote backup, and encryption are not implemented.
-- Remaining Sprint 7 work: strengthen negative restore tests for malformed/truncated/wrong-schema/oversized input where current coverage has gaps, then assess safe SQLite shutdown/reopen and online-backup behavior before considering rotation.
+- Sprint 7 negative-restore acceptance criteria are now covered by PRs #408–#409. Clean close/reopen persistence is covered by the existing database test suite. Online-backup/checkpoint evaluation and any rotation remain deferred operational enhancements.
 
 
 ## Sprint 7 closure — 2026-10-30
