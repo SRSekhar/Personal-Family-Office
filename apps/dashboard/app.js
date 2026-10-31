@@ -82,7 +82,6 @@ let workspace = 'demo';
 let privateStorageHealthy = true;
 let historicalStorageHealthy = true;
 let investmentStorageHealthy = true;
-let investmentLedger = { investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [] };
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -711,7 +710,6 @@ function persistInvestmentLedgerCollections(collections) {
     for (const [collection, key] of Object.entries(INVESTMENT_STORAGE_KEYS)) {
         if (!persistJson(localStorage, key, validated[collection])) throw new Error('Could not save ' + collection + ' to browser storage.');
     }
-    investmentLedger = validated;
     investmentStorageHealthy = true;
     return validated;
 }
@@ -719,7 +717,8 @@ function persistInvestmentLedgerCollections(collections) {
 function switchWorkspace(nextWorkspace) {
     workspace = nextWorkspace;
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
-    investmentLedger = workspace === 'demo' ? { investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [] } : readInvestmentLedgerCollections();
+    if (workspace === 'private') readInvestmentLedgerCollections();
+    else investmentStorageHealthy = true;
     loadSavedGoals();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
@@ -2259,7 +2258,7 @@ function importData(file, options = {}) {
                 privateStorageHealthy = true;
                 goalsStorageHealthy = true;
                 if (backup.includesHistoricalSnapshots) historicalStorageHealthy = true;
-                if (backup.includesInvestmentLedger) { investmentLedger = validateInvestmentLedgerCollections(backup); investmentStorageHealthy = true; }
+                if (backup.includesInvestmentLedger) investmentStorageHealthy = true;
                 renderSavedGoals();
                 showGoalMessage();
                 render();
