@@ -243,3 +243,7 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 ## Follow-up validation — investment CSV size guard (2026-10-31)
 
 - Added a real Chromium scenario for an investment cash-flow CSV one byte above 10 MiB. It verifies rejection, file-input reset, and preservation of previously imported cash flows. This strengthens PR #414's static pre-read-order regression with an end-to-end user workflow check.
+
+## Follow-up validation — financial-health unavailable states (2026-10-31)
+
+- Added Chromium acceptance scenarios for no recorded transactions/no expenses, no income, no saved budgets, and expense-only unbudgeted activity. Assertions verify unavailable states and prevent zero-activity baselines or savings rates from being fabricated. The temporary synthetic transaction is removed and the reporting month restored before report export checks.
