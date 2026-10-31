@@ -226,3 +226,12 @@ Evaluate SQLite online-backup/checkpoint behavior and backup automation only aft
 ## Sprint 7 closure — 2026-10-30
 
 The backup/recovery assurance acceptance criteria are complete. All five workspace collections are covered by exact round-trip tests; invalid, truncated, oversized, malformed API, and oversized API inputs are rejected without replacing existing workspace data. Clean database reopen and integrity checks are tested. Operational guidance is published in `docs/operations/LOCAL_BACKUP_AND_RECOVERY.md`. PRs #406–#409 are merged; CI and Secret Scan passed on the final heads, and dashboard packaging passed for the UI change in PR #408.
+
+## 2026-10-31 — Import size-boundary hardening
+
+- PR #412 merged: Chromium regression coverage for repeated monthly budget overruns, including fixture isolation and empty-state behavior.
+- PR #413 merged: 10 MiB pre-read limits for cash-flow CSV replacement/append, cash-flow JSON restore, and category-budget JSON restore.
+- PR #414 merged: 10 MiB pre-read limit for investment cash-flow CSV imports.
+- The existing primary records CSV and full-workspace JSON import paths already enforce the same 10 MiB browser-side limit. The SQLite API independently enforces its request-body limit.
+- Validation for PR #413: CI, Secret Scan, and dashboard deployment passed. Validation for PR #414: CI, Secret Scan, and dashboard deployment passed. PR #412 CI and Secret Scan passed.
+- Import-size audit covered the dashboard's FileReader-backed imports in the records, full-workspace backup, cash-flow CSV/JSON, category-budget JSON, and investment cash-flow CSV flows. Each applicable import rejects oversized files before decoding and preserves existing data.
