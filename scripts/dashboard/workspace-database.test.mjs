@@ -91,6 +91,30 @@ describe('SQLite workspace persistence schema v5', () => {
         expect(recovery).not.toHaveProperty('investmentAccounts');
         if (process.platform !== 'win32') expect(statSync(join(directory, backupFiles[0])).mode & 0o777).toBe(0o600);
     });
+    it('leaves a v4 database untouched when migration validation fails', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v4-rollback-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const invalidLegacy = payload({ schemaVersion: 4, currency: 'USD' });
+        delete invalidLegacy.investmentAccounts; delete invalidLegacy.investmentInstruments;
+        delete invalidLegacy.investmentTransactions; delete invalidLegacy.investmentValuations;
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 4),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 4, ?, ?, ?)').run('USD', JSON.stringify(invalidLegacy), '2026-10-28T12:00:00.000Z');
+        raw.close();
+
+        expect(() => new WorkspaceDatabase(path)).toThrow(/unsupported schema or currency/i);
+        const unchanged = new DatabaseSync(path);
+        const table = unchanged.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
+        const row = unchanged.prepare('SELECT schema_version, currency, payload_json FROM workspace_snapshot WHERE singleton = 1').get();
+        expect(table.sql).toMatch(/schema_version = 4/i);
+        expect(row).toMatchObject({ schema_version: 4, currency: 'USD', payload_json: JSON.stringify(invalidLegacy) });
+        unchanged.close();
+        expect(readdirSync(directory).filter((name) => name.includes('.pre-v5-'))).toHaveLength(0);
+    });
     it('rejects stale database versions without replacing a newer committed snapshot', async () => {
         const database = await createDatabase();
         const first = database.saveWorkspace(payload(), null);
