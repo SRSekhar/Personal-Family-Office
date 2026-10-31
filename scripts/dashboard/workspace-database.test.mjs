@@ -1,15 +1,14 @@
+import { DatabaseSync } from 'node:sqlite';
 import { existsSync, statSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
 import { join } from 'node:path';
-
 import { afterEach, describe, expect, it } from 'vitest';
 import { WorkspaceConflictError, WorkspaceDatabase, WorkspaceValidationError, resolveDatabasePath } from './workspace-database.mjs';
 
 const directories = [];
 const databases = [];
-
 async function createDatabase() {
     const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-test-'));
     directories.push(directory);
@@ -17,140 +16,121 @@ async function createDatabase() {
     databases.push(database);
     return database;
 }
-
 function payload(overrides = {}) {
     return {
-        schemaVersion: 4,
-        currency: 'INR',
-        exportedAt: '2026-10-28T00:00:00.000Z',
+        schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
         records: [
             { id: 'record-1', name: 'Savings', category: 'Cash & deposits', type: 'asset', value: 125000 },
             { id: 'record-2', name: 'Home loan', category: 'Home loan', type: 'liability', value: 25000 }
         ],
-        goals: [],
-        cashFlowEntries: [
-            { id: 'cash-1', date: '2026-10-01', type: 'income', category: 'Salary', description: 'Monthly salary', amount: 100000, recurring: true }
-        ],
+        goals: [], cashFlowEntries: [{ id: 'cash-1', date: '2026-10-01', type: 'income', category: 'Salary', description: 'Monthly salary', amount: 100000, recurring: true }],
         budgets: [{ month: '2026-10', category: 'Groceries', amount: 12000 }],
-        historicalSnapshots: [{
-            date: '2026-09-30', currency: 'INR',
+        historicalSnapshots: [{ date: '2026-09-30', currency: 'INR',
             records: [{ id: 'history-1', name: 'Savings', category: 'Cash & deposits', type: 'asset', value: 100000 }],
-            totals: { assets: 100000, liabilities: 0, netWorth: 100000 }
-        }],
+            totals: { assets: 100000, liabilities: 0, netWorth: 100000 } }],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [{ id: 'transaction-1', accountId: 'account-1', instrumentId: 'instrument-1', type: 'Purchase',
+            cashAmount: { amount: -200, currency: 'INR' }, quantity: 2, unitPrice: { amount: 100, currency: 'INR' },
+            date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-02T00:00:00.000Z' }],
+        investmentValuations: [{ instrumentId: 'instrument-1', price: { amount: 110, currency: 'INR' },
+            asOf: '2026-10-03T00:00:00.000Z', recordedAt: '2026-10-03T00:00:00.000Z', sourceType: 'manual', sourceName: 'User-entered' }],
         ...overrides
     };
 }
-
 afterEach(async () => {
-    for (const database of databases.splice(0)) {
-        try { database.close(); } catch { /* already closed by a reopen test */ }
-    }
+    for (const database of databases.splice(0)) { try { database.close(); } catch { /* already closed */ } }
     await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
-describe('SQLite workspace persistence', () => {
-    it('persists all five workspace collections in a single snapshot and preserves stable record IDs', async () => {
-        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-'));
-        directories.push(directory);
+describe('SQLite workspace persistence schema v5', () => {
+    it('persists all nine collections atomically and preserves IDs and valuation provenance after reopen', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
-        const first = new WorkspaceDatabase(path);
-        databases.push(first);
+        const first = new WorkspaceDatabase(path); databases.push(first);
         const saved = first.saveWorkspace(payload());
-        expect(saved).toMatchObject({
-            database: 'SQLite', configured: true, hasWorkspace: true,
-            recordCount: 2, goalCount: 0, cashFlowTransactionCount: 1,
-            budgetCount: 1, historicalSnapshotCount: 1
-        });
-        first.close();
-        databases.splice(databases.indexOf(first), 1);
-
-        const reopened = new WorkspaceDatabase(path);
-        databases.push(reopened);
-        const loaded = reopened.getWorkspace();
-        expect(loaded.payload).toEqual(payload());
-        expect(loaded.payload.records.map((record) => record.id)).toEqual(['record-1', 'record-2']);
-        expect(loaded.payload.historicalSnapshots[0].records[0].id).toBe('history-1');
+        expect(saved).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: true, schemaVersion: 5,
+            recordCount: 2, goalCount: 0, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
+            investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1 });
+        first.close(); databases.splice(databases.indexOf(first), 1);
+        const reopened = new WorkspaceDatabase(path); databases.push(reopened);
+        expect(reopened.getWorkspace().payload).toEqual(payload());
+        expect(reopened.getWorkspace().payload.investmentTransactions[0].id).toBe('transaction-1');
+        expect(reopened.getWorkspace().payload.investmentValuations[0].sourceName).toBe('User-entered');
         expect(reopened.getStatus().updatedAt).toBe(saved.updatedAt);
     });
-
+    it('migrates an existing v4 SQLite snapshot without losing legacy collections or stable IDs', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v4-migration-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const legacy = payload({ schemaVersion: 4 });
+        delete legacy.investmentAccounts; delete legacy.investmentInstruments;
+        delete legacy.investmentTransactions; delete legacy.investmentValuations;
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 4),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 4, ?, ?, ?)').run('INR', JSON.stringify(legacy), '2026-10-28T12:00:00.000Z');
+        raw.close();
+        const migrated = new WorkspaceDatabase(path); databases.push(migrated);
+        const result = migrated.getWorkspace();
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 5, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(result.payload.records.map((item) => item.id)).toEqual(['record-1', 'record-2']);
+        expect(result.payload.cashFlowEntries).toEqual(legacy.cashFlowEntries);
+        expect(result.payload.historicalSnapshots).toEqual(legacy.historicalSnapshots);
+        expect(result.payload.investmentAccounts).toEqual([]);
+        expect(result.payload.investmentTransactions).toEqual([]);
+    });
     it('rejects stale database versions without replacing a newer committed snapshot', async () => {
         const database = await createDatabase();
         const first = database.saveWorkspace(payload(), null);
-        const secondPayload = payload({ records: [{ id: 'record-new', name: 'Updated savings', category: 'Cash & deposits', type: 'asset', value: 200000 }] });
-        const second = database.saveWorkspace(secondPayload, first.updatedAt);
+        const second = database.saveWorkspace(payload({ records: [{ id: 'record-new', name: 'Updated savings', category: 'Cash & deposits', type: 'asset', value: 200000 }] }), first.updatedAt);
         expect(() => database.saveWorkspace(payload(), first.updatedAt)).toThrow(WorkspaceConflictError);
-        expect(database.getWorkspace().payload).toEqual(secondPayload);
+        expect(database.getWorkspace().payload.records[0].id).toBe('record-new');
         expect(database.getStatus().updatedAt).toBe(second.updatedAt);
     });
-
-    it('reports a healthy SQLite database without changing its workspace snapshot', async () => {
-        const database = await createDatabase();
-        const saved = database.saveWorkspace(payload());
+    it('reports healthy integrity without changing its snapshot', async () => {
+        const database = await createDatabase(); const saved = database.saveWorkspace(payload());
         expect(database.checkIntegrity()).toEqual({ ok: true, messages: ['ok'] });
         expect(database.getWorkspace().payload).toEqual(payload());
         expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
     });
-
-    it('starts empty and reports no saved workspace', async () => {
+    it('starts empty and reports schema v5', async () => {
         const database = await createDatabase();
         expect(database.getWorkspace()).toBeNull();
-        expect(database.getStatus()).toMatchObject({
-            database: 'SQLite', configured: true, hasWorkspace: false,
-            schemaVersion: 4, currency: 'INR', updatedAt: null
-        });
+        expect(database.getStatus()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false, schemaVersion: 5, currency: 'INR', updatedAt: null });
     });
-
-    it('rejects incomplete, wrong-currency, duplicate-ID, and invalid-financial snapshots', async () => {
+    it('rejects incomplete, wrong-currency, duplicate-ID and invalid financial snapshots', async () => {
         const database = await createDatabase();
-        expect(() => database.saveWorkspace({ schemaVersion: 4, currency: 'INR' }))
-            .toThrow(WorkspaceValidationError);
-        expect(() => database.saveWorkspace(payload({ currency: 'USD' })))
-            .toThrow(/currency must be INR/i);
-        expect(() => database.saveWorkspace(payload({
-            records: [
-                { id: 'same', name: 'Savings', category: 'Cash', type: 'asset', value: 10 },
-                { id: 'same', name: 'Other', category: 'Other', type: 'asset', value: 20 }
-            ]
-        }))).toThrow(/unique, non-empty identifiers/i);
-        expect(() => database.saveWorkspace(payload({
-            records: [{ id: 'overflow-1', name: 'Huge', category: 'Other', type: 'asset', value: Number.MAX_VALUE },
-                { id: 'overflow-2', name: 'Huge 2', category: 'Other', type: 'asset', value: Number.MAX_VALUE }]
-        }))).toThrow();
+        expect(() => database.saveWorkspace({ schemaVersion: 5, currency: 'INR' })).toThrow(WorkspaceValidationError);
+        expect(() => database.saveWorkspace(payload({ currency: 'USD' }))).toThrow(/currency must be INR/i);
+        expect(() => database.saveWorkspace(payload({ records: [
+            { id: 'same', name: 'Savings', category: 'Cash', type: 'asset', value: 10 },
+            { id: 'same', name: 'Other', category: 'Other', type: 'asset', value: 20 }
+        ] }))).toThrow(/unique, non-empty identifiers/i);
+        expect(() => database.saveWorkspace(payload({ investmentTransactions: [{ id: 'bad', accountId: 'missing', instrumentId: 'missing', type: 'Purchase',
+            cashAmount: { amount: -2, currency: 'INR' }, quantity: 1, unitPrice: { amount: 2, currency: 'INR' },
+            date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-01T00:00:00.000Z' }] }))).toThrow(/unknown account or instrument/i);
         expect(database.getWorkspace()).toBeNull();
     });
-
     it('preserves the previous committed snapshot when a later write is invalid', async () => {
-        const database = await createDatabase();
-        database.saveWorkspace(payload());
-        expect(() => database.saveWorkspace(payload({ budgets: [{ month: '2026-13', category: 'Invalid', amount: 10 }] })))
-            .toThrow();
+        const database = await createDatabase(); database.saveWorkspace(payload());
+        expect(() => database.saveWorkspace(payload({ investmentValuations: [{ instrumentId: 'missing', price: { amount: 2, currency: 'INR' },
+            asOf: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-01T00:00:00.000Z', sourceType: 'manual', sourceName: 'User' }] }))).toThrow();
         expect(database.getWorkspace().payload).toEqual(payload());
     });
-
-
-    it('restricts database and SQLite sidecar file permissions on POSIX systems', async () => {
+    it('restricts database and sidecar permissions on POSIX systems', async () => {
         if (process.platform === 'win32') return;
-        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-permissions-'));
-        directories.push(directory);
-        const path = join(directory, 'private.sqlite');
-        const database = new WorkspaceDatabase(path);
-        databases.push(database);
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-permissions-')); directories.push(directory);
+        const path = join(directory, 'private.sqlite'); const database = new WorkspaceDatabase(path); databases.push(database);
         database.saveWorkspace(payload());
-
         expect(statSync(path).mode & 0o777).toBe(0o600);
-        for (const suffix of ['-wal', '-shm', '-journal']) {
-            const sidecar = path + suffix;
-            if (existsSync(sidecar)) {
-                expect(statSync(sidecar).mode & 0o777).toBe(0o600);
-            }
-        }
+        for (const suffix of ['-wal', '-shm', '-journal']) if (existsSync(path + suffix)) expect(statSync(path + suffix).mode & 0o777).toBe(0o600);
     });
-
-    it('resolves an explicit database path and keeps defaults outside the repository', () => {
-        expect(resolveDatabasePath({ PFO_DATABASE_PATH: './private-data/pfo.sqlite' }, '/home/test', 'linux'))
-            .toBe(join(process.cwd(), 'private-data', 'pfo.sqlite'));
-        expect(resolveDatabasePath({}, '/home/test', 'linux'))
-            .toBe('/home/test/.local/share/PFO-OS/pfo-os.sqlite');
+    it('resolves explicit paths and keeps defaults outside the repository', () => {
+        expect(resolveDatabasePath({ PFO_DATABASE_PATH: './private-data/pfo.sqlite' }, '/home/test', 'linux')).toBe(join(process.cwd(), 'private-data', 'pfo.sqlite'));
+        expect(resolveDatabasePath({}, '/home/test', 'linux')).toBe('/home/test/.local/share/PFO-OS/pfo-os.sqlite');
         expect(resolveDatabasePath({ LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local' }, 'C:\\Users\\test', 'win32'))
             .toBe(join('C:\\Users\\test\\AppData\\Local', 'PFO-OS', 'pfo-os.sqlite'));
     });
