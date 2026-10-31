@@ -155,6 +155,15 @@ Planned
 
 Status
 
+Planned — recommendation and automation capabilities remain requirements- and validation-gated.
+
+Initial reporting capability delivered:
+- Offline Portfolio Review report schema v2 includes the already-calculated balance-sheet ratios (liabilities/assets, net worth/assets, assets/liabilities) and category concentration metrics (HHI, effective category count, largest category share). Zero denominators and empty allocations remain explicitly unavailable. The report states that category concentration is not correlation-aware risk analysis; no thresholds, scoring, or recommendations are introduced.
+
+Features
+
+Status
+
 Planned
 
 Features
