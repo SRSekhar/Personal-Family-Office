@@ -1514,14 +1514,14 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 5, 'private backup should use schema v4 and include saved goals and history');
+    assert.equal(goalBackup.schemaVersion, 5, 'private backup should use schema v5 and include saved goals, history, and investment ledger');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
     assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
     assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private schema-v4 backup includes records, goals, cash flow, budgets, and historical snapshots.\\n');
+    process.stdout.write('PASS: private schema-v5 backup includes records, goals, cash flow, budgets, history, and investment ledger.\\n');
 
     const restoreFailureCases = [
         { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
