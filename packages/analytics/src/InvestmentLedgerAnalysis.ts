@@ -201,6 +201,10 @@ function selectLatestValuations(
             || !(valuation.recordedAt instanceof Date) || !Number.isFinite(valuation.recordedAt.getTime())) {
             throw new RangeError('Investment valuation dates must be valid.');
         }
+        const sourceType: unknown = valuation.sourceType;
+        if (sourceType !== 'manual' && sourceType !== 'provider') {
+            throw new RangeError('Investment valuation source type must be manual or provider.');
+        }
         if (typeof valuation.sourceName !== 'string' || valuation.sourceName.trim().length === 0) {
             throw new RangeError('Investment valuation source name cannot be empty.');
         }
