@@ -69,3 +69,19 @@ These are target boundaries, not permission to create unused packages prematurel
 8. Backtesting and paper portfolio as separately gated modules.
 
 Every phase must preserve legacy functionality and include migration, restore, and synthetic browser acceptance coverage.
+
+### Additional Microsoft research
+
+The generic `github.com/microsoft` organization link was narrowed to **Microsoft Qlib** (`microsoft/qlib`), an AI-oriented quantitative investment platform. Its loose-coupled modules and full research workflow (data processing, model training, backtesting, portfolio analysis and execution) are relevant architectural patterns. PFO adopts modular research pipelines, point-in-time data handling, experiment reproducibility, and strict separation between signals, portfolio decisions and execution. Qlib's full ML platform is not being imported as a dependency; PFO remains TypeScript/Node and deterministic-first.
+
+### Refined upstream source/license register
+
+| Project | Repository inspected | License evidence | PFO treatment |
+| --- | --- | --- | --- |
+| TradingAgents | `TauricResearch/TradingAgents` | Apache-2.0 badge/GitHub metadata | Architecture only; specialist research, adversarial review, provenance and point-in-time controls. |
+| OpenBB | `OpenBB-finance/OpenBB` resolves to `openbq-org/OpenBB` | Apache-2.0 stated in repository README | Architecture only; core + typed provider/router extension pattern. |
+| Maybe | `maybe-finance/maybe` | AGPLv3 stated in README; repository archived | Product/UX pattern reference only; no source reuse without an explicit AGPL decision. |
+| Microsoft Qlib | `microsoft/qlib` | License not independently reviewed in this pass | Architecture only; exact LICENSE review required before code reuse. |
+| vn.py | `vnpy/vnpy` | MIT declared in `pyproject.toml` | Architecture only; modular adapters, event/data management, risk and paper-account boundaries. |
+
+The project URL provided for Microsoft is an organization, not a single repository. Qlib was selected as the directly relevant quantitative-investment project, but no Microsoft source code was copied.
