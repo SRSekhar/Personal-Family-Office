@@ -1,5 +1,6 @@
+import type { Currency } from '@pfo/models';
+
 import {
-    Currency,
     InvestmentAccount,
     InvestmentInstrument,
     InvestmentTransaction,
