@@ -30,6 +30,17 @@ function makeAnalysis(overrides: Partial<PortfolioAnalysis> = {}): PortfolioAnal
                 { category: 'Equity', value: new Money(75_000, Currency.INR), weight: 0.75 }
             ]
         },
+        financialRatios: {
+            liabilitiesToAssets: 0.25,
+            netWorthToAssets: 0.75,
+            assetsToLiabilities: 4
+        },
+        diversification: {
+            categoryCount: 2,
+            concentrationIndex: 0.625,
+            effectiveCategoryCount: 1.6,
+            largestCategoryShare: 0.75
+        },
         ...overrides
     };
 }
@@ -46,7 +57,7 @@ describe('createPortfolioReport', () => {
     it('creates a serializable report with deterministic dates and totals', () => {
         const report = createReport();
 
-        expect(report.schemaVersion).toBe(1);
+        expect(report.schemaVersion).toBe(2);
         expect(report.portfolioId).toBe('portfolio-1');
         expect(report.portfolioName).toBe('Household');
         expect(report.asOfDate).toBe('2026-10-01T00:00:00.000Z');
@@ -54,7 +65,46 @@ describe('createPortfolioReport', () => {
         expect(report.totalAssets).toBe(100_000);
         expect(report.totalLiabilities).toBe(25_000);
         expect(report.netWorth).toBe(75_000);
+        expect(report.financialRatios).toEqual({
+            liabilitiesToAssets: 0.25,
+            netWorthToAssets: 0.75,
+            assetsToLiabilities: 4
+        });
+        expect(report.diversification).toEqual({
+            categoryCount: 2,
+            concentrationIndex: 0.625,
+            effectiveCategoryCount: 1.6,
+            largestCategoryShare: 0.75
+        });
         expect(report.allocations.map((item) => item.category)).toEqual(['Cash', 'Equity']);
+    });
+
+
+    it('rejects invalid or inconsistent portfolio analysis metrics', () => {
+        const invalidRatio = makeAnalysis({
+            financialRatios: {
+                liabilitiesToAssets: -1,
+                netWorthToAssets: 0.75,
+                assetsToLiabilities: 4
+            }
+        });
+        const invalidConcentration = makeAnalysis({
+            diversification: {
+                categoryCount: 2,
+                concentrationIndex: 1.2,
+                effectiveCategoryCount: 1,
+                largestCategoryShare: 0.75
+            }
+        });
+        const missingMetrics = {
+            ...createReport(),
+            financialRatios: null
+        };
+
+        expect(() => createReport(invalidRatio)).toThrow(/financial ratios must be non-negative/);
+        expect(() => createReport(invalidConcentration)).toThrow(/diversification metrics contain invalid values/);
+        expect(() => renderPortfolioReportHtml(missingMetrics as unknown as ReturnType<typeof createPortfolioReport>))
+            .toThrow(/financial ratios must be an object/);
     });
 
     it('rejects invalid dates and inconsistent currencies', () => {
@@ -143,6 +193,12 @@ describe('renderPortfolioReportHtml', () => {
         expect(html).toContain('<main>');
         expect(html).toContain('Net worth summary');
         expect(html).toContain('Asset allocation by category');
+        expect(html).toContain('Balance-sheet ratios');
+        expect(html).toContain('Liabilities / assets');
+        expect(html).toContain('Category concentration');
+        expect(html).toContain('Concentration index (HHI)');
+        expect(html).toContain('correlation-aware risk or diversification score');
+        expect(html).toContain('Effective category count');
         expect(html).toContain('datetime="2026-10-01T00:00:00.000Z"');
         expect(html).toContain('datetime="2026-10-10T06:00:00.000Z"');
         expect(html).toContain('INR 1,00,000.00');
@@ -311,10 +367,24 @@ describe('renderPortfolioReportHtml', () => {
                 currency: Currency.INR,
                 totalValue: zeroAssets,
                 allocations: []
+            },
+            financialRatios: {
+                liabilitiesToAssets: null,
+                netWorthToAssets: null,
+                assetsToLiabilities: 0
+            },
+            diversification: {
+                categoryCount: 0,
+                concentrationIndex: null,
+                effectiveCategoryCount: null,
+                largestCategoryShare: null
             }
         });
 
-        expect(renderPortfolioReportHtml(createReport(analysis)))
-            .toContain('No asset positions were selected for allocation.');
+        const html = renderPortfolioReportHtml(createReport(analysis));
+        expect(html).toContain('No asset positions were selected for allocation.');
+        expect(html).toContain('Unavailable (zero denominator)');
+        expect(html).toContain('Concentration index (HHI)');
+        expect(html).toContain('Unavailable</td>');
     });
 });
