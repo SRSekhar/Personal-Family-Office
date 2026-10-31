@@ -101,7 +101,7 @@ describe('createPortfolioReport', () => {
             financialRatios: null
         };
 
-        expect(() => createReport(invalidRatio)).toThrow(/financial ratios must be non-negative/);
+        expect(() => createReport(invalidRatio)).toThrow(/only net-worth-to-assets may be negative/);
         expect(() => createReport(invalidConcentration)).toThrow(/diversification metrics contain invalid values/);
         expect(() => renderPortfolioReportHtml(missingMetrics as unknown as ReturnType<typeof createPortfolioReport>))
             .toThrow(/financial ratios must be an object/);
