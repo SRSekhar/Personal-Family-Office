@@ -5,6 +5,7 @@ import { isPrivateWorkspaceAllowed } from './workspace-security.js';
 const $ = (selector) => document.querySelector(selector);
 const money = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 const percent = (value) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(value) + '%';
+const MAX_IMPORT_FILE_BYTES = 10 * 1024 * 1024;
 
 function createCashFlowRow({ amount = '', date = '', onRemove = () => {} } = {}) {
     const row = document.createElement('div'); row.className = 'investment-flow-row';
@@ -104,6 +105,11 @@ export function initializeInvestmentPerformanceCalculator() {
     $('#investment-import-csv').addEventListener('change', (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        if (Number.isFinite(file.size) && file.size > MAX_IMPORT_FILE_BYTES) {
+            $('#investment-performance-import-status').textContent = 'The selected file exceeds the 10 MiB import limit. Existing cash flows were not changed.';
+            $('#investment-import-csv').value = '';
+            return;
+        }
         const reader = new FileReader();
         reader.addEventListener('load', () => {
             try {
