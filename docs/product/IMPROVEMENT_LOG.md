@@ -1,3 +1,12 @@
+## 2026-10-31 — FIFO investment ledger projection (PR #424)
+
+- Added deterministic account/instrument position reconstruction from investment transactions using FIFO cost basis.
+- Calculates open quantity/lots, remaining cost basis, realised gain, dividend/interest income, and separately recorded fee/tax expenses.
+- Applies only explicit valuation observations available on or before the requested as-of date, preserving source type/name, valuation date and recorded timestamp.
+- Missing or future-only prices produce unavailable market value and unrealised gain; no zero-price or market data is invented.
+- Rejects overselling, duplicate transaction IDs, unknown references, invalid valuation provenance and mixed currencies. No FX conversion, tax calculation, provider call or recommendation.
+- Added deterministic FIFO, partial-sale, as-of, missing/future valuation, oversell, reference and currency tests.
+
 ## 2026-10-31 — Portfolio management architecture research and direction
 
 - Approved Option B: full investment portfolio management, delivered incrementally while retaining current functionality.
