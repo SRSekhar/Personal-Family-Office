@@ -1065,9 +1065,9 @@ try {
         ]
     };
     await page.evaluate((fixtures) => {
-        localStorage.setItem('pfo-os.cash-flow-budgets.v1', JSON.stringify(fixtures.budgets));
-        localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(fixtures.entries));
-        document.querySelector('#cash-flow').dispatchEvent(new Event('click', { bubbles: true }));
+        window.localStorage.setItem('pfo-os.cash-flow-budgets.v1', JSON.stringify(fixtures.budgets));
+        window.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(fixtures.entries));
+        window.document.querySelector('#cash-flow').dispatchEvent(new window.Event('click', { bubbles: true }));
     }, repeatedBudgetFixtures);
     await page.waitForFunction(() => document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 1);
     const repeatedOverrunRow = await page.locator('#cash-flow-repeated-budget-overrun-rows tr').first().innerText();
@@ -1079,11 +1079,11 @@ try {
     assert.ok(!repeatedOverrunRow.includes('Rent'), 'a category over budget in only one month must be excluded');
     assert.ok(!repeatedOverrunRow.includes('Unbudgeted'), 'expenses without an explicit budget must be excluded');
     await page.evaluate(() => {
-        const entries = JSON.parse(localStorage.getItem('pfo-os.cash-flow.v1') || '[]');
-        localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(entries.map((entry) => (
+        const entries = JSON.parse(window.localStorage.getItem('pfo-os.cash-flow.v1') || '[]');
+        window.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(entries.map((entry) => (
             entry.category === 'Groceries' ? { ...entry, amount: 100 } : entry
         ))));
-        document.querySelector('#cash-flow').dispatchEvent(new Event('click', { bubbles: true }));
+        window.document.querySelector('#cash-flow').dispatchEvent(new window.Event('click', { bubbles: true }));
     });
     await page.waitForFunction(() => document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 0
         && !document.querySelector('#cash-flow-repeated-budget-overrun-empty')?.hidden);
