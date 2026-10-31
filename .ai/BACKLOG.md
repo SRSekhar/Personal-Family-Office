@@ -416,7 +416,8 @@ The following work is approved under Option B. It is a functional product epic, 
 
 #### IPM-03 progress note (2026-10-31)
 - In progress on PR #425: schema-v5 investment collections, transactional SQLite v4 migration, v5 backup validation with v1-v4 compatibility, browser-local persistence, and initial dashboard ledger entry forms.
-- Not accepted as complete yet. External pre-migration backup, Chromium workflow coverage, new-ledger multi-tab conflict tests and final green CI remain required.
+- Added a durable, exclusive-create schema-v4 JSON recovery artifact before the migration changes the live SQLite table; the migration aborts if the backup cannot be written. Automated tests verify artifact contents/permissions and that invalid v4 data leaves the original schema and row untouched.
+- Not accepted as complete yet. Chromium workflow coverage, new-ledger multi-tab conflict tests and final green CI remain required.
 
 ### IPM-04 — Investment performance and reconciliation
 - Calculate realised/unrealised P&L, open cost basis, dividends, interest, fees and taxes.
