@@ -247,3 +247,9 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 ## Follow-up validation — financial-health unavailable states (2026-10-31)
 
 - Added Chromium acceptance scenarios for no recorded transactions/no expenses, no income, no saved budgets, and expense-only unbudgeted activity. Assertions verify unavailable states and prevent zero-activity baselines or savings rates from being fabricated. The temporary synthetic transaction is removed and the reporting month restored before report export checks.
+
+## Validation follow-up — 2026-10-31
+
+- PR #417 merged: Chromium rejects investment cash-flow CSV files over 10 MiB, resets the file input, and preserves previously imported cash flows.
+- PR #418 merged: Chromium verifies financial-health unavailable states for empty months, missing prior-month activity, zero income, no budgets, and unbudgeted expense-only months.
+- CI (including the full browser smoke) and Secret Scan passed for both PRs. No real financial data was used.
