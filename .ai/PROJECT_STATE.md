@@ -196,3 +196,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #418 adds synthetic Chromium acceptance scenarios for no-activity months, missing prior-month baselines, no-income savings-rate unavailability, no-budget states, and expense-only unbudgeted activity. Temporary fixtures are removed before subsequent report checks.
 - Both PRs passed CI (including the complete Chromium smoke) and Secret Scan before merge.
 - Backlog status corrected: repeated budget-overrun browser interaction coverage is complete (PR #412); FIRE Goal Gap Analysis is merged (PR #290); historical net-worth timeline is implemented from captured snapshots, while additional cash-flow charts remain requirements/customer-validation gated.
+
+
+## Portfolio Review reporting increment (2026-10-31)
+
+- Portfolio report schema v2 carries the existing analytics results for balance-sheet ratios and category concentration into the offline HTML artifact.
+- The report labels ratios as descriptive, displays zero-denominator values as unavailable, and documents that HHI/category concentration is not correlation-aware risk or a recommendation.
+- No persistence schema, holdings model, market-data integration, thresholds, or AI recommendation behavior is changed.
+- Validation status: pending PR CI and Secret Scan.
