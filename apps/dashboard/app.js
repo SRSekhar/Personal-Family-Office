@@ -1874,6 +1874,8 @@ function buildDatabaseWorkspacePayload() {
     const budgetsRaw = localStorage.getItem('pfo-os.cash-flow-budgets.v1');
     const historicalSnapshots = readHistoricalSnapshots();
     if (historicalSnapshots === null) throw new Error('Historical snapshots could not be validated.');
+    const investmentCollections = readInvestmentLedgerCollections();
+    if (!investmentStorageHealthy) throw new Error('Investment ledger validation failed; database save is paused.');
     const payload = {
         schemaVersion: 5,
         currency: CURRENCY,
@@ -1883,7 +1885,7 @@ function buildDatabaseWorkspacePayload() {
         cashFlowEntries: entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw)),
         budgets: validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw)),
         historicalSnapshots,
-        ...readInvestmentLedgerCollections()
+        ...investmentCollections
     };
     // Run the same backup validator used by file restore before sending anything to the server.
     validateBackupPayload(payload, CURRENCY);
