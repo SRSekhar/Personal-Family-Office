@@ -711,3 +711,17 @@ describe('full workspace backup contract', () => {
         expect(cashflow).toContain("windowRef.addEventListener('pfo:cashflow-restored'");
     });
 });
+
+describe('cash-flow and budget import size guards', () => {
+    it('rejects oversized files before FileReader allocates or decodes their contents', async () => {
+        const cashFlow = await readDashboardFile('cashflow.js');
+        expect(cashFlow).toContain('const MAX_IMPORT_FILE_BYTES = 10 * 1024 * 1024;');
+        expect(cashFlow).toContain('function rejectOversizedImport(file, reportError, resetInput)');
+        expect(cashFlow).toContain('file.size <= MAX_IMPORT_FILE_BYTES');
+        expect(cashFlow).toContain('The selected file exceeds the 10 MiB import limit. Existing financial data was not changed.');
+        expect(cashFlow).toContain("rejectOversizedImport(file, (text) => message(text, true)");
+        expect(cashFlow).toContain("rejectOversizedImport(file, (text) => budgetMessage(text, true)");
+        expect(cashFlow).toContain("$('#cash-flow-import-json').value = ''");
+        expect(cashFlow).toContain("$('#cash-flow-budget-import-json').value = ''");
+    });
+});
