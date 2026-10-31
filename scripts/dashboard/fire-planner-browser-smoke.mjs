@@ -1220,8 +1220,8 @@ try {
     assert.equal(await page.locator('#investment-instrument-count').innerText(), '1');
     assert.equal(await page.locator('#investment-transaction-count').innerText(), '1');
     assert.equal(await page.locator('#investment-valuation-count').innerText(), '1');
-    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\\s\\S]*Browser test brokerage[\\s\\S]*Purchase/);
-    assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\\s\\S]*120/);
+    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Browser test brokerage[\s\S]*Purchase/);
+    assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\s\S]*120/);
     const investmentStorage = await page.evaluate(() => ({
         accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
         instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
