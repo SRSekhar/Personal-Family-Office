@@ -1192,6 +1192,47 @@ try {
     await page.locator('#switch-private-button').click();
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'switching back must preserve the private historical snapshot');
+
+    // Exercise the complete investment ledger using isolated, explicitly fictional browser-test data.
+    await page.locator('#investment-account-form [name="name"]').fill('Browser test brokerage');
+    await page.locator('#investment-account-form [name="institution"]').fill('Browser test institution');
+    await page.locator('#investment-account-form [name="type"]').selectOption('Brokerage');
+    await page.locator('#investment-account-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-account-form button[type="submit"]').click();
+    await page.locator('#investment-instrument-form [name="name"]').fill('Browser test equity');
+    await page.locator('#investment-instrument-form [name="type"]').selectOption('Equity');
+    await page.locator('#investment-instrument-form [name="symbol"]').fill('BROWSERTEST');
+    await page.locator('#investment-instrument-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-instrument-form button[type="submit"]').click();
+    await page.locator('#investment-transaction-form [name="accountId"]').selectOption({ index: 0 });
+    await page.locator('#investment-transaction-form [name="instrumentId"]').selectOption({ index: 0 });
+    await page.locator('#investment-transaction-form [name="type"]').selectOption('Purchase');
+    await page.locator('#investment-transaction-form [name="cashAmount"]').fill('-1000');
+    await page.locator('#investment-transaction-form [name="date"]').fill('2026-10-30');
+    await page.locator('#investment-transaction-form [name="quantity"]').fill('10');
+    await page.locator('#investment-transaction-form [name="unitPrice"]').fill('100');
+    await page.locator('#investment-transaction-form button[type="submit"]').click();
+    await page.locator('#investment-valuation-form [name="instrumentId"]').selectOption({ index: 0 });
+    await page.locator('#investment-valuation-form [name="price"]').fill('120');
+    await page.locator('#investment-valuation-form [name="asOf"]').fill('2026-10-31');
+    await page.locator('#investment-valuation-form button[type="submit"]').click();
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-instrument-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-valuation-count').innerText(), '1');
+    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\\s\\S]*Browser test brokerage[\\s\\S]*Purchase/);
+    assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\\s\\S]*120/);
+    const investmentStorage = await page.evaluate(() => ({
+        accounts: JSON.parse(localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        instruments: JSON.parse(localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        transactions: JSON.parse(localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        valuations: JSON.parse(localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+    }));
+    assert.equal(investmentStorage.accounts.length, 1);
+    assert.equal(investmentStorage.instruments.length, 1);
+    assert.equal(investmentStorage.transactions.length, 1);
+    assert.equal(investmentStorage.valuations.length, 1);
+    process.stdout.write('PASS: private investment ledger creates accounts, instruments, reconciled trades and manual valuations.\\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -1209,6 +1250,10 @@ try {
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
+    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
+        assert.ok(Array.isArray(backup[collection]), `schema-v5 backup should include ${collection}`);
+        assert.equal(backup[collection].length, 1, `schema-v5 backup should preserve the saved ${collection}`);
+    }
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
@@ -1545,6 +1590,14 @@ try {
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'investment account should persist across page reloads');
+    assert.equal(await page.locator('#investment-instrument-count').innerText(), '1',
+        'investment instrument should persist across page reloads');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1',
+        'investment transaction should persist across page reloads');
+    assert.equal(await page.locator('#investment-valuation-count').innerText(), '1',
+        'manual valuation should persist across page reloads');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
         'historical snapshot should persist across page reloads');
     assert.ok((await page.locator('#historical-snapshot-rows').innerText()).includes('31 Dec 2023'),
@@ -2471,8 +2524,8 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 4, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots']) {
+    assert.equal(databaseBackup.schemaVersion, 5, 'SQLite backup should retain the supported full-workspace schema version');
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
