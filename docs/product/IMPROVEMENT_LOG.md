@@ -1059,3 +1059,11 @@ Do not record personal financial values or claim customer demand without evidenc
 - PR #406 merged full-content equality checks for portable JSON export and restore: the downloaded backup is compared with the committed SQLite snapshot, and restored browser storage is compared across all five collections, including stable identifiers and nested historical records.
 - CI (including Chromium browser smoke) and Secret Scan passed before merge.
 - Added a local backup/recovery operations guide with recommended export cadence, manual retention, encryption responsibility, same-device recovery, portable JSON recovery, and device migration steps. It explicitly distinguishes SQLite persistence from independent backups and does not claim encryption or automated retention.
+
+
+## 2026-10-30 — SQLite persistence and backup/recovery assurance complete
+- PR #408 merged oversized full-workspace JSON import protection. The size guard runs before FileReader reads/decodes the backup; Chromium regression coverage verifies truncated and oversized files preserve all five browser workspace collections and visible financial totals. Final CI run #1133, dashboard packaging run #510, and Secret Scan run #1089 passed.
+- PR #409 merged SQLite API request-boundary tests. Malformed JSON returns HTTP 400 and a request larger than 10 MiB returns HTTP 413; the previously committed workspace payload and version remain unchanged. Final CI run #1134 and Secret Scan run #1090 passed.
+- Together with PR #406, portable JSON export and restore are checked with exact full-content equality across records, goals, cash flow, budgets, and historical snapshots, including stable IDs and nested historical records. PR #407 provides local backup/recovery operating guidance.
+- Existing SQLite coverage includes atomic full-workspace snapshots, stale-write conflict protection, clean close/reopen persistence, POSIX owner-only database/sidecar permissions, and read-only PRAGMA quick_check.
+- Sprint 7 — Backup and Recovery Assurance is closed for the current local single-user scope. SQLite and JSON exports are not encrypted; remote backup, cloud sync, multi-user access, and automatic rotation remain unimplemented and are explicitly deferred.
