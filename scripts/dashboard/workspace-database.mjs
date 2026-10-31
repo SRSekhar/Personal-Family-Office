@@ -85,7 +85,7 @@ function writePreMigrationBackup(databasePath, oldPayload, validated) {
 }
 
 /** Transactional v4 -> v5 migration. Existing five collections and IDs are retained. */
-function migrateSchemaV4(database) {
+function migrateSchemaV4(database, databasePath) {
     const table = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
     if (!table) { createSnapshotTable(database); return; }
     if (!/schema_version\s*=\s*4/i.test(table.sql ?? '')) return;
@@ -126,7 +126,7 @@ export class WorkspaceDatabase {
         try {
             this.#secureFilePermissions();
             this.#database.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA busy_timeout = 5000;');
-            migrateSchemaV4(this.#database);
+            migrateSchemaV4(this.#database, this.#databasePath);
             this.#secureFilePermissions();
         } catch (error) { this.#database.close(); throw error; }
     }
