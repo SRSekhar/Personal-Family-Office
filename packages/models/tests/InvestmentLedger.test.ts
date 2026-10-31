@@ -135,6 +135,16 @@ describe('InvestmentTransaction', () => {
         })).toThrow('Purchase and sale transactions require a positive finite quantity.');
     });
 
+    it('rejects trade cash amounts that do not reconcile to units and price', () => {
+        expect(() => new InvestmentTransaction({
+            ...base,
+            type: InvestmentTransactionType.Purchase,
+            quantity: 2,
+            unitPrice: new Money(100),
+            cashAmount: new Money(-150)
+        })).toThrow('Trade cash amount must reconcile');
+    });
+
     it('rejects mismatched transaction currencies', () => {
         expect(() => new InvestmentTransaction({
             ...base,
