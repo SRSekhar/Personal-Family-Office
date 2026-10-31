@@ -253,3 +253,11 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 - PR #417 merged: Chromium rejects investment cash-flow CSV files over 10 MiB, resets the file input, and preserves previously imported cash flows.
 - PR #418 merged: Chromium verifies financial-health unavailable states for empty months, missing prior-month activity, zero income, no budgets, and unbudgeted expense-only months.
 - CI (including the full browser smoke) and Secret Scan passed for both PRs. No real financial data was used.
+
+
+## 2026-10-31 — Portfolio Review report analysis
+
+- Portfolio offline HTML report is being expanded to include existing validated balance-sheet ratios and category-concentration measures.
+- The report will preserve unavailable values for zero denominators/empty allocations and explicitly explain that category concentration is not correlation-aware portfolio risk.
+- No holdings schema, market-data provider, performance assumptions, risk thresholds, or recommendations are added.
+- Validation status: pending PR CI and Secret Scan.
