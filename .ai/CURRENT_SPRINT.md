@@ -235,3 +235,7 @@ The backup/recovery assurance acceptance criteria are complete. All five workspa
 - The existing primary records CSV and full-workspace JSON import paths already enforce the same 10 MiB browser-side limit. The SQLite API independently enforces its request-body limit.
 - Validation for PR #413: CI, Secret Scan, and dashboard deployment passed. Validation for PR #414: CI, Secret Scan, and dashboard deployment passed. PR #412 CI and Secret Scan passed.
 - Import-size audit covered the dashboard's FileReader-backed imports in the records, full-workspace backup, cash-flow CSV/JSON, category-budget JSON, and investment cash-flow CSV flows. Each applicable import rejects oversized files before decoding and preserves existing data.
+
+## P1 engineering scope closure — 2026-10-31
+
+The previously committed P1 engineering deliverables are complete and mapped to acceptance criteria and evidence in `.ai/P1_ACCEPTANCE_MATRIX.md`. This includes financial integrity/rollback, SQLite persistence and recovery, import/export hardening, calculator correctness, FIRE and Goal Tracker browser regressions, historical data, financial-health/budget workflows, offline report verification, and automated keyboard/browser checks. Manual accessibility review remains deferred. Customer validation and release/legal/repository-owner tasks remain open and are not represented as completed engineering work.
