@@ -1065,11 +1065,11 @@ try {
         ]
     };
     await page.evaluate((fixtures) => {
-        window.localStorage.setItem('pfo-os.cash-flow-budgets.v1', JSON.stringify(fixtures.budgets));
-        window.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(fixtures.entries));
-        window.document.querySelector('#cash-flow').dispatchEvent(new window.Event('click', { bubbles: true }));
+        globalThis.localStorage.setItem('pfo-os.cash-flow-budgets.v1', JSON.stringify(fixtures.budgets));
+        globalThis.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(fixtures.entries));
+        globalThis.document.querySelector('#cash-flow').dispatchEvent(new globalThis.Event('click', { bubbles: true }));
     }, repeatedBudgetFixtures);
-    await page.waitForFunction(() => document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 1);
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 1);
     const repeatedOverrunRow = await page.locator('#cash-flow-repeated-budget-overrun-rows tr').first().innerText();
     assert.match(repeatedOverrunRow, /Groceries/);
     assert.match(repeatedOverrunRow, /2/);
@@ -1079,14 +1079,14 @@ try {
     assert.ok(!repeatedOverrunRow.includes('Rent'), 'a category over budget in only one month must be excluded');
     assert.ok(!repeatedOverrunRow.includes('Unbudgeted'), 'expenses without an explicit budget must be excluded');
     await page.evaluate(() => {
-        const entries = JSON.parse(window.localStorage.getItem('pfo-os.cash-flow.v1') || '[]');
-        window.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(entries.map((entry) => (
+        const entries = JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]');
+        globalThis.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(entries.map((entry) => (
             entry.category === 'Groceries' ? { ...entry, amount: 100 } : entry
         ))));
-        window.document.querySelector('#cash-flow').dispatchEvent(new window.Event('click', { bubbles: true }));
+        globalThis.document.querySelector('#cash-flow').dispatchEvent(new globalThis.Event('click', { bubbles: true }));
     });
-    await page.waitForFunction(() => document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 0
-        && !document.querySelector('#cash-flow-repeated-budget-overrun-empty')?.hidden);
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 0
+        && !globalThis.document.querySelector('#cash-flow-repeated-budget-overrun-empty')?.hidden);
     assert.match(await page.locator('#cash-flow-repeated-budget-overrun-empty').innerText(),
         /No category has exceeded its saved budget in two or more recorded months/);
     process.stdout.write('PASS: repeated budget-overrun insights render correct browser results and the no-repeat-overrun empty state.\\n');
