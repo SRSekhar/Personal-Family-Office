@@ -725,3 +725,14 @@ describe('cash-flow and budget import size guards', () => {
         expect(cashFlow).toContain("$('#cash-flow-budget-import-json').value = ''");
     });
 });
+
+describe('investment cash-flow CSV import size guard', () => {
+    it('rejects oversized investment cash-flow files before FileReader decoding', async () => {
+        const source = await readDashboardFile('investment-performance.js');
+        expect(source).toContain('const MAX_IMPORT_FILE_BYTES = 10 * 1024 * 1024;');
+        expect(source).toContain('file.size > MAX_IMPORT_FILE_BYTES');
+        expect(source).toContain('The selected file exceeds the 10 MiB import limit. Existing cash flows were not changed.');
+        expect(source).toContain("$('#investment-import-csv').value = ''");
+        expect(source.indexOf('file.size > MAX_IMPORT_FILE_BYTES')).toBeLessThan(source.indexOf('const reader = new FileReader();'));
+    });
+});
