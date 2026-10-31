@@ -165,3 +165,12 @@ Continue with the next functional product priorities in .ai/BACKLOG.md. Customer
 - Added `.ai/P1_ACCEPTANCE_MATRIX.md` to map every previously committed P1 engineering area to acceptance criteria, automated tests, browser smoke coverage, and merged PR evidence.
 - The engineering P1 scope is complete based on the committed unit/API/Chromium tests and merged PRs. This is not a claim that customer discovery or external release gates are complete.
 - Manual screen-reader and actual browser-chrome 400% zoom reviews remain deferred. Encryption, automated backup rotation, remote backup/cloud sync, multi-user support, and speculative Portfolio Health/recommendation features are excluded or requirements-gated.
+
+
+## Latest Follow-up (2026-10-31 — Investment Portfolio Management)
+
+- PR #421 merged: approved Option B architecture and research adoption plan; documents patterns from TradingAgents, OpenBB, Maybe, Microsoft Qlib and vn.py, with license guardrails. No third-party code was copied.
+- PR #422 merged: investment account, instrument and immutable transaction domain foundation. Signed cash movements, purchase/sale quantity-price reconciliation, fees/taxes as separate events, optional market identifiers, and non-market investment products are supported.
+- PR #424 is the second delivery: FIFO position projection with cost basis, realised gain, dividend/interest income, fee/tax expenses and manual/provider valuation observation provenance. It selects only prices known by the requested as-of date; missing prices remain unavailable. CI and Secret Scan are pending.
+- Full Option B backlog IPM-01 through IPM-10 is detailed in `.ai/BACKLOG.md`; architecture and research rationale are in `docs/architecture/PORTFOLIO_MANAGEMENT_RESEARCH_AND_ARCHITECTURE.md`.
+- No schema-v4 SQLite migration or dashboard integration is included yet. Preserve all existing functionality and backup compatibility in the next phase. No live trading, autonomous orders, FX conversion, AI ledger mutation, or copied upstream source code.
