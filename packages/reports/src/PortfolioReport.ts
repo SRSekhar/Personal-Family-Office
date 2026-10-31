@@ -26,6 +26,17 @@ export interface PortfolioReportData {
     readonly totalAssets: number;
     readonly totalLiabilities: number;
     readonly netWorth: number;
+    readonly financialRatios: {
+        readonly liabilitiesToAssets: number | null;
+        readonly netWorthToAssets: number | null;
+        readonly assetsToLiabilities: number | null;
+    };
+    readonly diversification: {
+        readonly categoryCount: number;
+        readonly concentrationIndex: number | null;
+        readonly effectiveCategoryCount: number | null;
+        readonly largestCategoryShare: number | null;
+    };
     readonly allocations: readonly PortfolioReportAllocation[];
 }
 
@@ -80,7 +91,7 @@ export function createPortfolioReport({
     }
 
     const report: PortfolioReportData = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         portfolioId: analysis.portfolioId,
         portfolioName: analysis.portfolioName,
         currency: analysis.currency,
@@ -90,6 +101,8 @@ export function createPortfolioReport({
         totalAssets: analysis.netWorth.totalAssets.amount,
         totalLiabilities: analysis.netWorth.totalLiabilities.amount,
         netWorth: analysis.netWorth.netWorth.amount,
+        financialRatios: { ...analysis.financialRatios },
+        diversification: { ...analysis.diversification },
         allocations: analysis.assetAllocation.allocations.map((allocation) => ({
             category: allocation['category'],
             value: allocation['value'].amount,
@@ -114,6 +127,21 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
     validatePortfolioReport(report);
 
     const allocations = [...report.allocations].sort(compareAllocationCategory);
+    const ratioRows = [
+        ['Liabilities / assets', report.financialRatios.liabilitiesToAssets],
+        ['Net worth / assets', report.financialRatios.netWorthToAssets],
+        ['Assets / liabilities', report.financialRatios.assetsToLiabilities]
+    ].map(([label, value]) => {
+        const formatted = typeof value === 'number' ? formatRatio(value) : 'Unavailable (zero denominator)';
+        return `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(formatted)}</td></tr>`;
+    }).join('');
+    const diversification = report.diversification;
+    const concentrationRows = [
+        ['Categories', String(diversification.categoryCount)],
+        ['Concentration index (HHI)', diversification.concentrationIndex === null ? 'Unavailable' : formatRatio(diversification.concentrationIndex)],
+        ['Effective category count', diversification.effectiveCategoryCount === null ? 'Unavailable' : formatRatio(diversification.effectiveCategoryCount)],
+        ['Largest category share', diversification.largestCategoryShare === null ? 'Unavailable' : formatPercentage(diversification.largestCategoryShare)]
+    ].map(([label, value]) => `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(value)}</td></tr>`).join('');
     const allocationRows = allocations.length === 0
         ? '<p class="empty-state">No asset positions were selected for allocation.</p>'
         : `<table>
@@ -182,6 +210,20 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
                 <div class="metric"><span class="metric-label">Net worth</span><span class="metric-value">${escapeHtml(formatMoney(report.netWorth, report.currency))}</span></div>
             </div>
         </section>
+        <section aria-labelledby="ratios-heading">
+            <h2 id="ratios-heading">Balance-sheet ratios</h2>
+            <table>
+                <caption>Descriptive ratios calculated from the selected records; unavailable values have a zero denominator.</caption>
+                <tbody>${ratioRows}</tbody>
+            </table>
+        </section>
+        <section aria-labelledby="diversification-heading">
+            <h2 id="diversification-heading">Category concentration</h2>
+            <table>
+                <caption>Concentration reflects supplied allocation categories only; it is not a correlation-aware risk or diversification score.</caption>
+                <tbody>${concentrationRows}</tbody>
+            </table>
+        </section>
         <section aria-labelledby="allocation-heading">
             <h2 id="allocation-heading">Asset allocation</h2>
             ${allocationRows}
@@ -201,7 +243,7 @@ function validatePortfolioReport(value: unknown): void {
     }
 
     const report = value as PortfolioReportData;
-    if (report.schemaVersion !== 1) {
+    if (report.schemaVersion !== 2) {
         throw new RangeError('Unsupported portfolio report schema version.');
     }
 
@@ -241,6 +283,37 @@ function validatePortfolioReport(value: unknown): void {
         throw new RangeError('Portfolio report net worth must equal total assets minus total liabilities.');
     }
 
+    if (report.financialRatios === null || typeof report.financialRatios !== 'object') {
+        throw new RangeError('Portfolio report financial ratios must be an object.');
+    }
+    const ratioValues = [
+        report.financialRatios.liabilitiesToAssets,
+        report.financialRatios.netWorthToAssets,
+        report.financialRatios.assetsToLiabilities
+    ];
+    if (!ratioValues.every((item) => item === null || (typeof item === 'number' && Number.isFinite(item) && item >= 0))) {
+        throw new RangeError('Portfolio report financial ratios must be non-negative finite numbers or null.');
+    }
+    if (report.diversification === null || typeof report.diversification !== 'object') {
+        throw new RangeError('Portfolio report diversification metrics must be an object.');
+    }
+    const diversification = report.diversification;
+    if (!Number.isInteger(diversification.categoryCount) || diversification.categoryCount < 0
+        || !isNullableFinite(diversification.concentrationIndex, 0, 1)
+        || !isNullableFinite(diversification.effectiveCategoryCount, 0, Number.POSITIVE_INFINITY)
+        || !isNullableFinite(diversification.largestCategoryShare, 0, 1)) {
+        throw new RangeError('Portfolio report diversification metrics contain invalid values.');
+    }
+    if (diversification.categoryCount === 0) {
+        if (diversification.concentrationIndex !== null || diversification.effectiveCategoryCount !== null
+            || diversification.largestCategoryShare !== null) {
+            throw new RangeError('Empty portfolio allocations must have unavailable concentration metrics.');
+        }
+    } else if (diversification.concentrationIndex === null || diversification.effectiveCategoryCount === null
+        || diversification.largestCategoryShare === null) {
+        throw new RangeError('Non-empty portfolio allocations require concentration metrics.');
+    }
+
     if (!Array.isArray(report.allocations)) {
         throw new RangeError('Portfolio report allocations must be an array.');
     }
@@ -277,6 +350,18 @@ function validatePortfolioReport(value: unknown): void {
     if (Math.abs(allocationWeightTotal - 1) > weightTolerance) {
         throw new RangeError('Portfolio report allocation weights must sum to 1.');
     }
+}
+
+function isNullableFinite(value: unknown, minimum: number, maximum: number): boolean {
+    return value === null || (typeof value === 'number' && Number.isFinite(value)
+        && value >= minimum && value <= maximum);
+}
+
+function formatRatio(value: number): string {
+    return new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 4
+    }).format(value);
 }
 
 function isValidPortfolioReportAllocation(value: unknown): value is PortfolioReportAllocation {
