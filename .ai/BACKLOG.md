@@ -412,6 +412,12 @@ The following work is approved under Option B. It is a functional product epic, 
 - Preserve current schema-v4 import compatibility and all existing five workspace collections.
 - Acceptance: v4-to-new-schema migration, round-trip equality, old backup restore, failure rollback, browser reload and multi-tab conflict behavior.
 
+
+
+#### IPM-03 progress note (2026-10-31)
+- In progress on PR #425: schema-v5 investment collections, transactional SQLite v4 migration, v5 backup validation with v1-v4 compatibility, browser-local persistence, and initial dashboard ledger entry forms.
+- Not accepted as complete yet. External pre-migration backup, Chromium workflow coverage, new-ledger multi-tab conflict tests and final green CI remain required.
+
 ### IPM-04 — Investment performance and reconciliation
 - Calculate realised/unrealised P&L, open cost basis, dividends, interest, fees and taxes.
 - Calculate XIRR from dated investor-perspective cash flows and CAGR only where its beginning/end-value assumptions are valid.
