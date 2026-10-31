@@ -174,3 +174,13 @@ Continue with the next functional product priorities in .ai/BACKLOG.md. Customer
 - PR #424 is the second delivery: FIFO position projection with cost basis, realised gain, dividend/interest income, fee/tax expenses and manual/provider valuation observation provenance. It selects only prices known by the requested as-of date; missing prices remain unavailable. CI and Secret Scan are pending.
 - Full Option B backlog IPM-01 through IPM-10 is detailed in `.ai/BACKLOG.md`; architecture and research rationale are in `docs/architecture/PORTFOLIO_MANAGEMENT_RESEARCH_AND_ARCHITECTURE.md`.
 - No schema-v4 SQLite migration or dashboard integration is included yet. Preserve all existing functionality and backup compatibility in the next phase. No live trading, autonomous orders, FX conversion, AI ledger mutation, or copied upstream source code.
+
+
+## Latest Handoff — Investment workspace persistence (2026-10-31)
+
+- PR #425 now carries schema-v5 SQLite persistence, a transactional v4-to-v5 migration, v5 backup validation, browser-local ledger persistence, and basic investment ledger entry forms.
+- New collections: investmentAccounts, investmentInstruments, investmentTransactions and investmentValuations. The validator checks IDs, references, currencies, trade signs/reconciliation, timestamps and valuation provenance.
+- Legacy v1-v4 backups remain supported. An import from an older backup preserves the investment ledger because that backup does not contain the new collections.
+- UI currently supports creating accounts/instruments and appending transactions/manual valuation observations. It intentionally does not silently edit or delete ledger events.
+- The branch now writes a durable, exclusive-create schema-v4 JSON recovery artifact before replacing the old SQLite table; failure to create the artifact cancels migration. Tests verify preserved v4 data, owner-only POSIX permissions, and that invalid v4 data leaves the original schema/data untouched.
+- PR remains draft. Chromium end-to-end tests, new-collection multi-tab conflict tests, and final CI verification remain outstanding. Never claim IPM-03 complete until those are delivered.

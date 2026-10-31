@@ -269,3 +269,11 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 - PR #424 in progress: deterministic FIFO position projection, cost basis, realised/unrealised gain, income/expense tracking, and manual valuation provenance with strict as-of-date selection.
 - The approved investment portfolio management backlog is IPM-01 through IPM-10 in `.ai/BACKLOG.md`. Next phases are SQLite workspace migration and dashboard ledger workflows, performance reconciliation, user-defined allocation targets, provider contracts, evidence-grounded research, point-in-time backtesting, and isolated paper portfolios.
 - Preserve legacy portfolio records, local-first operation, SQLite schema-v4 backup compatibility, all existing reports/imports/exports, and existing dashboard features. No live broker execution, FX conversion, hidden risk thresholds, or AI ledger writes.
+
+
+## 2026-10-31 — Investment workspace persistence (IPM-03)
+
+- PR #425 is in progress. The SQLite workspace is moving from schema v4 to v5 with four investment ledger collections.
+- Delivered in branch: v4-to-v5 transactional table migration, preservation of all five legacy collections and IDs, v5 backup validation with v1-v4 compatibility, browser-local persistence, dashboard forms for accounts/instruments/transactions/manual valuations, and SQLite/backup integration.
+- Added a durable pre-migration schema-v4 JSON recovery artifact (exclusive create, flush to disk, owner-only POSIX permissions) before destructive schema replacement; migration is cancelled if the artifact cannot be written. Added migration tests for recovery-artifact contents and invalid-v4 rollback.
+- Remaining: browser-level persistence and restore tests, new-ledger multi-tab conflict behavior, complete CI verification and documentation close-out. Accessibility remains secondary as previously directed.

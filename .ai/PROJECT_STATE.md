@@ -204,3 +204,14 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - The report labels ratios as descriptive, displays zero-denominator values as unavailable, and documents that HHI/category concentration is not correlation-aware risk or a recommendation.
 - No persistence schema, holdings model, market-data integration, thresholds, or AI recommendation behavior is changed.
 - Validation status: pending PR CI and Secret Scan.
+
+
+## Investment Portfolio Management — IPM-03 implementation update (2026-10-31)
+
+- PR #425 is open as a draft; schema-v5 persistence and the dashboard ledger entry workflows are being integrated.
+- Added strict backup validation for the four investment collections while preserving schema-v1 through schema-v4 backup compatibility.
+- Added a transactional SQLite schema-v4 to schema-v5 migration. It preserves the original five collections, record IDs and saved timestamp, then initializes investment collections empty. A failed migration rolls back its table replacement.
+- Added local browser persistence and append-only forms for investment accounts, instruments, transactions and manual valuation observations. No market prices are inferred.
+- Integrated the new collections into full-workspace v5 backup/export and SQLite save/restore. Older backups that omit the investment ledger preserve the existing ledger.
+- Added a durable schema-v4 JSON recovery artifact before table replacement; it uses exclusive file creation, flush-to-disk, and owner-only POSIX permissions. Migration aborts if backup creation fails. Tests verify recovery payload preservation and invalid-v4 rollback.
+- Not complete yet: Chromium acceptance for ledger entry/reload/backup restore, new-collection multi-tab conflict coverage, and green CI on the final branch head. Do not mark IPM-03 complete or merge until those gates pass.
