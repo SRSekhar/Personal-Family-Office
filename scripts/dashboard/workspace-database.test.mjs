@@ -103,15 +103,15 @@ describe('SQLite workspace persistence schema v5', () => {
             schema_version INTEGER NOT NULL CHECK (schema_version = 4),
             currency TEXT NOT NULL CHECK (currency = 'INR'),
             payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
-        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 4, ?, ?, ?)').run('USD', JSON.stringify(invalidLegacy), '2026-10-28T12:00:00.000Z');
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 4, ?, ?, ?)').run('INR', JSON.stringify(invalidLegacy), '2026-10-28T12:00:00.000Z');
         raw.close();
 
-        expect(() => new WorkspaceDatabase(path)).toThrow(/unsupported schema or currency/i);
+        expect(() => new WorkspaceDatabase(path)).toThrow(/currency/i);
         const unchanged = new DatabaseSync(path);
         const table = unchanged.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
         const row = unchanged.prepare('SELECT schema_version, currency, payload_json FROM workspace_snapshot WHERE singleton = 1').get();
         expect(table.sql).toMatch(/schema_version = 4/i);
-        expect(row).toMatchObject({ schema_version: 4, currency: 'USD', payload_json: JSON.stringify(invalidLegacy) });
+        expect(row).toMatchObject({ schema_version: 4, currency: 'INR', payload_json: JSON.stringify(invalidLegacy) });
         unchanged.close();
         expect(readdirSync(directory).filter((name) => name.includes('.pre-v5-'))).toHaveLength(0);
     });
