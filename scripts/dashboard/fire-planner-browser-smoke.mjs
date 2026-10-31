@@ -1971,6 +1971,18 @@ try {
     assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
         'cancelling investment CSV replacement must preserve the existing cash flows');
 
+    await page.locator('#investment-import-csv').setInputFiles({
+        name: 'oversized-investment-cash-flows.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.alloc(10 * 1024 * 1024 + 1, 0x61)
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-performance-import-status')?.innerText.includes('exceeds the 10 MiB import limit'));
+    assert.equal(await page.locator('#investment-cash-flows .investment-flow-row').count(), 2,
+        'rejecting an oversized investment CSV must preserve the previously imported cash flows');
+    assert.equal(await page.locator('#investment-import-csv').inputValue(), '',
+        'rejecting an oversized investment CSV must reset the file input so the user can retry');
+    process.stdout.write('PASS: oversized investment CSV is rejected in Chromium without reading/replacing existing cash flows.\\n');
+
     await page.locator('#loan-outstanding-principal').fill('1200');
     await page.locator('#loan-annual-rate').fill('0');
     await page.locator('#loan-monthly-payment').fill('500');
