@@ -1,3 +1,11 @@
+## 2026-10-31 — Portfolio management architecture research and direction
+
+- Approved Option B: full investment portfolio management, delivered incrementally while retaining current functionality.
+- Added an architecture/research ADR covering typed investment domain, event-led ledger, derived positions, manual/provider valuations, provenance, deterministic performance and risk analytics, opt-in specialist research, point-in-time backtesting, paper-only simulation boundary, and migration safeguards.
+- Reviewed TradingAgents (specialist analyst roles, bull/bear challenge, run provenance, checkpoint/resume and point-in-time correctness); OpenBB (typed provider extensions and stable core); Maybe (self-hosted personal-finance UX patterns; archived AGPL-3.0); and vn.py (event-driven portfolio, risk, data management, adapters and paper-account separation).
+- Microsoft was supplied as an organization URL, not a specific repository; no particular codebase selected. The OpenBB URL resolves to the openbq-org/OpenBB repository.
+- No third-party source code copied. PFO is currently UNLICENSED; exact license and attribution review is mandatory before code reuse. Prefer clean-room implementation of architectural approaches.
+- Scope excludes live autonomous trading, AI ledger writes, unapproved risk thresholds and unconfigured market-data calls. Manual valuation and local-first use remain supported.
 ## 2026-10-30 — Dashboard-visible SQLite integrity check (delivered; PR #404 merged)
 
 - Added a local dashboard action that invokes the existing loopback-protected, read-only SQLite `PRAGMA quick_check` endpoint.

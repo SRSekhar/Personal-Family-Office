@@ -44,7 +44,7 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 
 These are mathematical utilities, not investment advice or guaranteed forecasts. XIRR currently supports cash-flow streams with exactly one sign change to avoid ambiguous roots.
 
-## Next Deliverables
+## Current Product Direction\n\n- Option B — full investment portfolio management — approved. Architecture/research ADR is committed at `docs/architecture/PORTFOLIO_MANAGEMENT_RESEARCH_AND_ARCHITECTURE.md`. Delivery is phased and must preserve existing financial workflows and schema-v4 backup compatibility.\n- Research patterns reviewed: TradingAgents specialist research, adversarial challenge, point-in-time correctness and reproducibility; OpenBB provider-neutral typed extension architecture; Maybe self-hosted personal-finance workflows (AGPL-3.0 code reuse prohibited absent licensing approval); vn.py event-driven portfolio/risk/data modules. Microsoft organization URL requires a specific repository before code review.\n- No third-party source code copied. Root project remains UNLICENSED; license review required before any reuse.\n\n## Next Deliverables
 
 1. Continue functional development using the prioritized product backlog and validate workflows with synthetic acceptance scenarios before expanding scope.
 2. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
