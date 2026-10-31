@@ -1067,3 +1067,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Together with PR #406, portable JSON export and restore are checked with exact full-content equality across records, goals, cash flow, budgets, and historical snapshots, including stable IDs and nested historical records. PR #407 provides local backup/recovery operating guidance.
 - Existing SQLite coverage includes atomic full-workspace snapshots, stale-write conflict protection, clean close/reopen persistence, POSIX owner-only database/sidecar permissions, and read-only PRAGMA quick_check.
 - Sprint 7 — Backup and Recovery Assurance is closed for the current local single-user scope. SQLite and JSON exports are not encrypted; remote backup, cloud sync, multi-user access, and automatic rotation remain unimplemented and are explicitly deferred.
+
+## 2026-10-31 — Oversized investment CSV browser regression
+- Extended the Chromium smoke workflow to submit an investment cash-flow CSV one byte above the 10 MiB limit.
+- Verified the browser rejects the file, resets the input, and preserves the previously imported cash flows.
+- Uses synthetic browser data; no runtime behavior or financial records changed.
+- Validation status: pending CI/Chromium browser smoke and Secret Scan on the feature PR.
