@@ -380,3 +380,83 @@ Architecture and research direction: `docs/architecture/PORTFOLIO_MANAGEMENT_RES
 ### License guardrail
 
 Do not copy source wholesale. TradingAgents advertises Apache-2.0; Maybe is archived and AGPL-3.0; OpenBB and vnpy components require exact license inspection; the Microsoft URL must be narrowed to a specific repository. PFO currently has no declared open-source license. Prefer clean-room implementation of ideas and keep a source/commit/license/attribution register for any reused code.
+
+
+## Investment Portfolio Management — Detailed Delivery Backlog
+
+The following work is approved under Option B. It is a functional product epic, not a prototype. All deliverables must preserve existing financial workflows, local-first privacy, current Investment records, SQLite persistence, schema-v4 backup/restore, CSV imports/exports, and offline reports.
+
+### IPM-01 — Investment ledger domain foundation
+**Status: Delivered — PR #422 merged.**
+- Typed investment accounts, instruments and immutable transactions.
+- Support equities, mutual funds, ETFs, bonds, deposits, PPF, NPS, EPF, gold, silver, alternatives and other existing InvestmentType values.
+- Optional symbol/exchange/ISIN; non-market products need no ticker.
+- Signed cash events for purchase, sale, dividend, interest, fee and tax.
+- Trade cash reconciliation, currency, identifier, date and event-sign validation.
+- Acceptance: domain unit tests; legacy Investment and Portfolio constructors remain compatible; no provider or network dependency.
+
+### IPM-02 — FIFO position and valuation projection
+**Status: Implemented; PR #424 pending CI/merge.**
+- Derive account/instrument positions from transaction history.
+- FIFO cost basis and realised gain on partial/full sales; reject overselling.
+- Record dividend/interest income and fee/tax expense separately.
+- Apply only explicit valuation observations dated on or before the requested as-of date.
+- Manual valuation is first-class; no valuation means market value and unrealised gain are unavailable, never zero or fabricated.
+- Keep provenance (source type/name, valuation date, recorded date).
+- Acceptance: deterministic FIFO fixtures, as-of date tests, missing/future valuation tests, currency and reference validation.
+
+### IPM-03 — Portfolio workspace and migration
+- Add the investment ledger to the local dashboard and SQLite snapshot without removing legacy investment records.
+- Version the persistence schema and migration; transactional migration, backup-before-upgrade, rollback and reopen tests.
+- Add account/instrument/transaction/valuation CRUD with confirmation for destructive edits; corrections use reversal/adjustment events, not silent history mutation.
+- Preserve current schema-v4 import compatibility and all existing five workspace collections.
+- Acceptance: v4-to-new-schema migration, round-trip equality, old backup restore, failure rollback, browser reload and multi-tab conflict behavior.
+
+### IPM-04 — Investment performance and reconciliation
+- Calculate realised/unrealised P&L, open cost basis, dividends, interest, fees and taxes.
+- Calculate XIRR from dated investor-perspective cash flows and CAGR only where its beginning/end-value assumptions are valid.
+- Reconcile ledger cash movements, unit quantities, position cost basis and valuation snapshots.
+- Show missing data, incomplete history and unsupported corporate actions explicitly.
+- Acceptance: hand-calculated test cases, multi-currency rejection/no FX, negative returns, partial exits, multiple lots, fees, and no cash-flow sign ambiguity.
+
+### IPM-05 — Allocation targets and risk policy
+- User-defined target allocation by asset class/category/instrument and optional account.
+- Calculate actual weights, percentage-point drift and absolute currency drift.
+- User-configured concentration, liquidity, exposure and drawdown policies; no hidden defaults.
+- Rebalancing observations are explanatory, not orders; user must approve target policy.
+- Acceptance: exact target reconciliation, zero/empty denominator states, target version history, and no action suggestion without configured target.
+
+### IPM-06 — Market-data provider boundary
+- Define typed provider contract for instrument identity, quotes, historical bars, fundamentals and corporate actions as separate capabilities.
+- Manual price entry remains available offline.
+- Provider adapter must disclose source, timestamps, market timezone, delay, coverage, adjustments and licensing.
+- Opt-in only, credentials in local secret storage, bounded retries/timeouts/cache and sanitized errors.
+- No provider implementation until exact API docs, auth and terms are reviewed; no invented endpoints or payloads.
+- Acceptance: contract tests, provider mocks, stale/missing data states, point-in-time guarantees and no outbound calls by default.
+
+### IPM-07 — Evidence-grounded research and AI review
+- Optional specialist research: fundamentals, technicals, news/macro and portfolio risk.
+- Separate bullish and bearish challenge stages; final synthesis must cite evidence, dates, sources, uncertainty and conflicting evidence.
+- Deterministic calculations remain authoritative; AI cannot write ledger entries, prices, targets or orders.
+- Persist reproducible run inputs/configuration/model/provider versions, timestamps, evidence references, report and errors; idempotent retry/resume.
+- Explicit user invocation, data minimization and provider disclosure; no household data transmission by default.
+- Acceptance: synthetic fixtures, structured-output validation, prompt-injection handling, stale evidence warnings, missing-source handling and no unsupported recommendation.
+
+### IPM-08 — Point-in-time backtesting and paper portfolio
+- Reproducible historical evaluation with as-of data constraints, corporate-action handling, transaction costs, slippage, liquidity and benchmark assumptions.
+- Prevent look-ahead and survivorship bias; document limitations and out-of-sample/walk-forward evaluation.
+- Keep paper portfolio and simulated fills separate from real investment ledger.
+- No live broker connection, order routing or autonomous trading in this scope.
+- Acceptance: deterministic replay, known-answer fixtures, no future-data leakage, explicit costs, run provenance and strict paper/live separation.
+
+### IPM-09 — Research-inspired UX and observability
+- Portfolio overview, account/instrument drilldown, transaction ledger, valuation history, allocation drift and downloadable reports.
+- Event timeline, data freshness, provider health, research run status and actionable validation errors.
+- Responsive/accessible improvements remain secondary to correctness and complete workflows.
+- Acceptance: Chromium end-to-end workflows, keyboard smoke, empty/error/loading states, report parity and no regression to existing dashboard features.
+
+### IPM-10 — Third-party reuse and licensing
+- Prefer clean-room implementation of architectural patterns.
+- Before any source reuse, record exact repository, commit, files, license, notices, modifications and distribution implications.
+- No AGPL source integration without an explicit licensing decision; PFO's current root license is unresolved.
+- Never copy code from an organization URL without identifying the exact repository and reviewing its license.

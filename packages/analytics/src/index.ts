@@ -9,6 +9,13 @@
  */
 
 export {};
+export { analyzeInvestmentLedger } from './InvestmentLedgerAnalysis.js';
+export type {
+    InvestmentLedgerAnalysisInput,
+    InvestmentLedgerPosition,
+    InvestmentValuationObservation,
+    InvestmentValuationSourceType
+} from './InvestmentLedgerAnalysis.js';
 export { analyzePortfolio } from './PortfolioAnalysis.js';
 export type { PortfolioAnalysis, PortfolioAnalysisInput } from './PortfolioAnalysis.js';
 

@@ -82,7 +82,8 @@ describe('InvestmentTransaction', () => {
         id: Identifier.create(),
         accountId: 'account-1',
         instrumentId: 'instrument-1',
-        date: new Date('2026-01-15T00:00:00.000Z')
+        date: new Date('2026-01-15T00:00:00.000Z'),
+    recordedAt: new Date('2026-01-15T00:00:00.000Z')
     };
 
     it('creates a purchase with investor-perspective cash flow', () => {
@@ -162,6 +163,15 @@ describe('InvestmentTransaction', () => {
             quantity: 1,
             cashAmount: new Money(100)
         })).toThrow('Non-trade transactions cannot specify quantity or unit price.');
+    });
+
+    it('rejects an invalid ledger recorded-at timestamp', () => {
+        expect(() => new InvestmentTransaction({
+            ...base,
+            type: InvestmentTransactionType.Dividend,
+            recordedAt: new Date(Number.NaN),
+            cashAmount: new Money(100)
+        })).toThrow('Investment transaction recorded-at date must be valid.');
     });
 
     it('rejects invalid dates and zero cash movements', () => {

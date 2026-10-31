@@ -261,3 +261,11 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 - The report will preserve unavailable values for zero denominators/empty allocations and explicitly explain that category concentration is not correlation-aware portfolio risk.
 - No holdings schema, market-data provider, performance assumptions, risk thresholds, or recommendations are added.
 - Validation status: pending PR CI and Secret Scan.
+
+
+## Current Focus — Investment Portfolio Management (Option B)
+
+- PR #422 merged: typed investment accounts, instruments and immutable transaction events with explicit signed cash movements, currency/date validation, and trade amount reconciliation.
+- PR #424 in progress: deterministic FIFO position projection, cost basis, realised/unrealised gain, income/expense tracking, and manual valuation provenance with strict as-of-date selection.
+- The approved investment portfolio management backlog is IPM-01 through IPM-10 in `.ai/BACKLOG.md`. Next phases are SQLite workspace migration and dashboard ledger workflows, performance reconciliation, user-defined allocation targets, provider contracts, evidence-grounded research, point-in-time backtesting, and isolated paper portfolios.
+- Preserve legacy portfolio records, local-first operation, SQLite schema-v4 backup compatibility, all existing reports/imports/exports, and existing dashboard features. No live broker execution, FX conversion, hidden risk thresholds, or AI ledger writes.

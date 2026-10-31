@@ -168,3 +168,11 @@ pnpm test
 - Use immutable inputs and strongly typed results.
 - Test missing data, duplicate records, mixed currencies, and boundary conditions.
 - Do not provide investment recommendations without a separate, explainable, and appropriately reviewed design.
+
+## Investment ledger projection
+
+`analyzeInvestmentLedger` derives account/instrument positions from immutable investment transaction events using FIFO cost basis. It reports open quantity and lots, remaining cost basis, realised gain, dividend/interest income, and separately recorded fees/taxes. Sales exceeding the available position are rejected.
+
+Valuations are explicit observations with source type/name, valuation date and recorded date. The latest observation on or before the requested as-of date is selected. Future observations are ignored; absent observations produce null market value and unrealised gain rather than an invented zero. All account, instrument, transaction and valuation currencies must match; FX conversion is not performed.
+
+This is a deterministic ledger projection, not a tax engine. FIFO is the selected cost-basis method for this initial implementation; jurisdiction-specific tax treatment, corporate actions, fees embedded in broker statements and accounting policy must be validated before tax reporting.
