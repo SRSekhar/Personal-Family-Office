@@ -128,19 +128,19 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
 
     const allocations = [...report.allocations].sort(compareAllocationCategory);
     const ratioRows = [
-        ['Liabilities / assets', report.financialRatios.liabilitiesToAssets],
-        ['Net worth / assets', report.financialRatios.netWorthToAssets],
-        ['Assets / liabilities', report.financialRatios.assetsToLiabilities]
+        ['Liabilities / assets', report.financialRatios.liabilitiesToAssets] as const,
+        ['Net worth / assets', report.financialRatios.netWorthToAssets] as const,
+        ['Assets / liabilities', report.financialRatios.assetsToLiabilities] as const
     ].map(([label, value]: readonly [string, number | null]) => {
         const formatted = typeof value === 'number' ? formatRatio(value) : 'Unavailable (zero denominator)';
         return `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(formatted)}</td></tr>`;
     }).join('');
     const diversification = report.diversification;
     const concentrationRows = [
-        ['Categories', String(diversification.categoryCount)],
-        ['Concentration index (HHI)', diversification.concentrationIndex === null ? 'Unavailable' : formatRatio(diversification.concentrationIndex)],
-        ['Effective category count', diversification.effectiveCategoryCount === null ? 'Unavailable' : formatRatio(diversification.effectiveCategoryCount)],
-        ['Largest category share', diversification.largestCategoryShare === null ? 'Unavailable' : formatPercentage(diversification.largestCategoryShare)]
+        ['Categories', String(diversification.categoryCount)] as const,
+        ['Concentration index (HHI)', diversification.concentrationIndex === null ? 'Unavailable' : formatRatio(diversification.concentrationIndex)] as const,
+        ['Effective category count', diversification.effectiveCategoryCount === null ? 'Unavailable' : formatRatio(diversification.effectiveCategoryCount)] as const,
+        ['Largest category share', diversification.largestCategoryShare === null ? 'Unavailable' : formatPercentage(diversification.largestCategoryShare)] as const
     ].map(([label, value]: readonly [string, string]) => `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(value)}</td></tr>`).join('');
     const allocationRows = allocations.length === 0
         ? '<p class="empty-state">No asset positions were selected for allocation.</p>'
