@@ -1257,6 +1257,29 @@ try {
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
+    const investmentRestoreDialogPromise = page.waitForEvent('dialog');
+    await page.locator('#import-file').setInputFiles({
+        name: 'investment-ledger-v5-roundtrip.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(backup))
+    });
+    const investmentRestoreDialog = await investmentRestoreDialogPromise;
+    assert.match(investmentRestoreDialog.message(), /Backup import preview/);
+    assert.match(investmentRestoreDialog.message(), /Investment accounts: 1/);
+    await investmentRestoreDialog.accept();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('Backup imported successfully')
+    );
+    const restoredInvestmentStorage = await page.evaluate(() => ({
+        accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        transactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+    }));
+    assert.deepEqual(restoredInvestmentStorage, investmentStorage,
+        'schema-v5 JSON restore must round-trip all investment ledger collections without changing IDs or values');
+    process.stdout.write('PASS: schema-v5 JSON backup restore round-trips accounts, instruments, transactions and valuations.\\n');
+
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
         records: [{ name: 'Legacy full backup asset', category: 'Investments', type: 'asset', value: 321000 }],
