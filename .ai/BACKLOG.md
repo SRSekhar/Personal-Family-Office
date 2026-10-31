@@ -346,3 +346,37 @@ No work should begin unless it has been added to the backlog.
 - Summarize monthly budget coverage by budgeted expense amount, unbudgeted expense amount, category counts, and the percentage of recorded expenses in categories with an explicit saved budget; show coverage as unavailable when no expenses are recorded.
 - Export the validated local financial-health dashboard summary to a formula-safe CSV with metric labels, displayed values/details, reporting period, and explicit private-workspace scope; no data is sent externally (implemented in feature/financial-health-summary-export).
 - Financial-health overview reports the share of recorded monthly expenses in explicitly budgeted categories, covered versus total expense-category counts, and unbudgeted expense amount; coverage is unavailable when no expenses are recorded.
+
+
+# Epic 6 — Investment Portfolio Management
+
+Status
+
+Approved for phased implementation. Scope: full investment portfolio management with user-defined allocation targets, manual valuations, deterministic performance calculations, and optional research/data providers. Preserve every existing dashboard, report, calculator, import/export, SQLite workspace and backup workflow.
+
+Architecture and research direction: `docs/architecture/PORTFOLIO_MANAGEMENT_RESEARCH_AND_ARCHITECTURE.md`.
+
+### Adopted engineering patterns
+
+- Typed, provider-neutral domain core; manual valuation works without external providers.
+- Event/history-led investment ledger with derived positions and auditable corrections.
+- Point-in-time provenance for all external observations; no look-ahead in historical analytics.
+- Deterministic calculations first; optional AI research is advisory-only and cannot modify financial records.
+- Specialist evidence reports, an explicit bull/bear challenge, risk review, citations, uncertainty, and reproducible run metadata.
+- Separate research/backtesting from paper simulation; no live order execution or autonomous trading.
+- Allocation targets and risk policies are user-defined; no hidden default thresholds or portfolio recommendations.
+
+### Delivery slices
+
+1. Domain and migration ADR; preserve schema-v4 backup compatibility.
+2. Investment instruments, accounts, transactions, tax lots/cost basis, dividends, fees, and corporate-action-ready events.
+3. Derived positions, manual price observations, valuation history and provenance.
+4. Realised/unrealised P&L, cash-flow reconciliation, XIRR and CAGR.
+5. Allocation targets, drift, exposure and explicit user risk policies.
+6. Typed market-data provider contract and opt-in providers after API/security review.
+7. Optional structured research workflow with evidence grounding, challenge stage, run provenance and no ledger writes.
+8. Point-in-time backtesting and separately gated paper portfolio.
+
+### License guardrail
+
+Do not copy source wholesale. TradingAgents advertises Apache-2.0; Maybe is archived and AGPL-3.0; OpenBB and vnpy components require exact license inspection; the Microsoft URL must be narrowed to a specific repository. PFO currently has no declared open-source license. Prefer clean-room implementation of ideas and keep a source/commit/license/attribution register for any reused code.
