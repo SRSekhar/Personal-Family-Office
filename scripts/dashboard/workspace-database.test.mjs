@@ -84,7 +84,7 @@ describe('SQLite workspace persistence schema v5', () => {
         const backupFiles = readdirSync(directory).filter((name) => name.includes('.pre-v5-') && name.endsWith('.json'));
         expect(backupFiles).toHaveLength(1);
         const recovery = JSON.parse(readFileSync(join(directory, backupFiles[0]), 'utf8'));
-        expect(recovery.schemaVersion).toBe(4);
+        expect(recovery).toMatchObject({ schemaVersion: 4, currency: 'INR', exportedAt: legacy.exportedAt });
         expect(recovery.records.map((item) => item.id)).toEqual(['record-1', 'record-2']);
         expect(recovery.cashFlowEntries).toEqual(legacy.cashFlowEntries);
         expect(recovery.historicalSnapshots).toEqual(legacy.historicalSnapshots);
