@@ -52,6 +52,7 @@ function transaction(
         instrumentId: ids.instrumentId,
         type,
         date: new Date(date),
+        recordedAt: new Date(date),
         cashAmount: new Money(cash, Currency.INR),
         ...(quantity === undefined ? {} : { quantity }),
         ...(unitPrice === undefined ? {} : { unitPrice: new Money(unitPrice, Currency.INR) })
@@ -163,6 +164,30 @@ describe('analyzeInvestmentLedger', () => {
         });
 
         expect(result[0]?.quantity).toBe(10);
+    });
+
+    it('does not use transactions or backfilled valuations recorded after the as-of date', () => {
+        const ids = setup();
+        const backfilledPurchase = new InvestmentTransaction({
+            id: Identifier.create(),
+            accountId: ids.accountId,
+            instrumentId: ids.instrumentId,
+            type: InvestmentTransactionType.Purchase,
+            date: new Date('2025-01-01T00:00:00.000Z'),
+            recordedAt: new Date('2025-04-01T00:00:00.000Z'),
+            quantity: 1,
+            unitPrice: new Money(100),
+            cashAmount: new Money(-100)
+        });
+        const result = analyzeInvestmentLedger({
+            accounts: [ids.account],
+            instruments: [ids.instrument],
+            transactions: [backfilledPurchase],
+            valuations: [valuation(ids.instrumentId, 150, '2025-02-01T00:00:00.000Z', '2025-04-01T00:00:00.000Z')],
+            asOfDate: new Date('2025-03-01T00:00:00.000Z')
+        });
+
+        expect(result).toHaveLength(0);
     });
 
     it('rejects a sale that exceeds the available FIFO quantity', () => {
