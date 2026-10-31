@@ -1,6 +1,6 @@
 import type { Identifier } from '@pfo/core';
 
-import { Currency } from '../common/Currency.js';
+import type { Currency } from '../common/Currency.js';
 import { Money } from '../common/Money.js';
 import { InvestmentTransactionType } from './InvestmentTransactionType.js';
 
