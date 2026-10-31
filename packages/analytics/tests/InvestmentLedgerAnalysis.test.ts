@@ -13,7 +13,7 @@ import {
 
 import { analyzeInvestmentLedger, type InvestmentValuationObservation } from '../src/InvestmentLedgerAnalysis.js';
 
-function setup() {
+function setup(): { account: InvestmentAccount; instrument: InvestmentInstrument; accountId: string; instrumentId: string } {
     const accountId = Identifier.create();
     const instrumentId = Identifier.create();
     const account = new InvestmentAccount(
