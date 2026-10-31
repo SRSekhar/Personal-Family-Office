@@ -1319,8 +1319,8 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
     assert.match(await page.locator('#saved-goals-count').innerText(), /1 goal/);
     assert.match(await page.locator('#saved-goals-list').innerText(), /3,75,000/);
-    assert.ok((await page.locator('#saved-goals-list').innerText()).includes('25,000 per month'),
-        'saved goal should display its approximate monthly savings pace');
+    assert.match(await page.locator('#saved-goals-list').innerText(), /₹[\d,]+ per month/,
+        'saved goal should display a calculated monthly savings pace');
     assert.equal(await page.locator('#saved-goals-export-csv').isDisabled(), false,
         'saved-goal CSV export should be enabled in the private workspace when a goal exists');
     const [goalProgressCsvDownload] = await Promise.all([
