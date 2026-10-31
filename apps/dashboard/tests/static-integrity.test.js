@@ -701,7 +701,8 @@ describe('full workspace backup contract', () => {
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
         expect(app).toContain('investmentAccounts:');
-        expect(app).toContain('...readInvestmentLedgerCollections()');
+        expect(app).toContain('const investmentCollections = readInvestmentLedgerCollections()');
+        expect(app).toContain('...investmentCollections');
         expect(app).toContain('backup.includesHistoricalSnapshots && !persistJson(localStorage, HISTORICAL_STORAGE_KEY, backup.historicalSnapshots)');
         expect(app).toContain("'pfo-os-full-workspace-backup.json'");
         expect(app).toContain("window.dispatchEvent(new Event('pfo:cashflow-restored'))");
