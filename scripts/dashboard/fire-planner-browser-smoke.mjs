@@ -2289,6 +2289,55 @@ try {
         'financial health should recalculate cash-flow metrics for the selected historical month');
     await healthMonth.fill('2026-10');
     await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · October 2026');
+
+    const emptyHealthMonth = await page.locator('#financial-health-metrics .financial-health-card').allInnerTexts();
+    await healthMonth.fill('2025-01');
+    await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · January 2025');
+    const januaryHealthCards = await page.locator('#financial-health-metrics .financial-health-card').allInnerTexts();
+    assert.ok(januaryHealthCards.some((card) => /Change vs December 2024\\s+Unavailable\\s+No recorded transactions in December 2024; no zero-activity baseline is assumed/u.test(card)),
+        'an empty prior month must be shown as unavailable rather than treated as a zero-activity baseline');
+    assert.ok(januaryHealthCards.some((card) => /Savings rate · January 2025\\s+Unavailable\\s+No recorded income for this month/u.test(card)),
+        'savings rate must be unavailable when no income is recorded');
+    assert.ok(januaryHealthCards.some((card) => /Monthly budget control\\s+No budgets set/u.test(card)),
+        'the dashboard must not imply a budget comparison when no budget exists');
+    assert.ok(januaryHealthCards.some((card) => /Budget coverage · January 2025\\s+No expenses recorded/u.test(card)),
+        'budget coverage must be unavailable when there are no expenses');
+
+    await page.evaluate(() => {
+        const key = 'pfo-os.cash-flow.v1';
+        const entries = JSON.parse(globalThis.localStorage.getItem(key) || '[]')
+            .filter((entry) => entry.id !== 'smoke-health-expense-without-income');
+        entries.push({
+            id: 'smoke-health-expense-without-income',
+            date: '2025-02-10',
+            type: 'expense',
+            category: 'Unbudgeted test expense',
+            description: 'Fictional expense without income or budget',
+            amount: 500,
+            recurring: false
+        });
+        globalThis.localStorage.setItem(key, JSON.stringify(entries));
+        globalThis.dispatchEvent(new globalThis.Event('pfo:cashflow-updated'));
+    });
+    await healthMonth.fill('2025-02');
+    await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · February 2025');
+    const februaryHealthCards = await page.locator('#financial-health-metrics .financial-health-card').allInnerTexts();
+    assert.ok(februaryHealthCards.some((card) => /Savings rate · February 2025\\s+Unavailable\\s+No recorded income for this month/u.test(card)),
+        'a month with expenses but no income must not display a fabricated savings rate');
+    assert.ok(februaryHealthCards.some((card) => /Budget coverage · February 2025\\s+0%\\s+0 of 1 expense categories covered · ₹500 recorded expenses without a budget/u.test(card)),
+        'unbudgeted expense-only months must show zero budget coverage and the unbudgeted amount');
+    assert.ok(februaryHealthCards.some((card) => /Monthly budget control\\s+No budgets set/u.test(card)),
+        'expense-only activity must not imply a budget was configured');
+    await page.evaluate(() => {
+        const key = 'pfo-os.cash-flow.v1';
+        const entries = JSON.parse(globalThis.localStorage.getItem(key) || '[]')
+            .filter((entry) => entry.id !== 'smoke-health-expense-without-income');
+        globalThis.localStorage.setItem(key, JSON.stringify(entries));
+        globalThis.dispatchEvent(new globalThis.Event('pfo:cashflow-updated'));
+    });
+    await healthMonth.fill('2026-10');
+    await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · October 2026');
+    process.stdout.write('PASS: financial health reports unavailable savings rates, missing comparison baselines, and unbudgeted expense-only months without inventing data.\\n');
     assert.match(await page.locator('#financial-health-status').innerText(), /^Local data · /,
         'financial health HTML export should only be available after validated private data is displayed');
     const financialHealthStatus = await page.locator('#financial-health-status').innerText();
