@@ -1,5 +1,6 @@
 import { summarizeValidatedBackup, validateBackupPayload } from './backup.js';
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
+import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
 import { renderFinancialReportHtml } from './financial-report.js';
@@ -725,6 +726,7 @@ function switchWorkspace(nextWorkspace) {
     $('#switch-demo-button').hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
     render();
+    window.dispatchEvent(new Event('pfo:workspace-updated'));
 }
 
 
@@ -1882,7 +1884,7 @@ function buildDatabaseWorkspacePayload() {
         cashFlowEntries: entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw)),
         budgets: validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw)),
         historicalSnapshots,
-        ...investmentLedger
+        ...readInvestmentLedgerCollections()
     };
     // Run the same backup validator used by file restore before sending anything to the server.
     validateBackupPayload(payload, CURRENCY);
@@ -2543,6 +2545,7 @@ initializeCashFlowTracker();
 initializeTaxEstimator();
 initializeLoanAmortizationCalculator();
 initializeInvestmentPerformanceCalculator();
+initializeInvestmentWorkspace();
 initializeGrowthProjectionCalculator();
 initializeCagrCalculator();
 initializeReturnRiskCalculator();
