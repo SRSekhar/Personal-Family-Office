@@ -1079,3 +1079,10 @@ Do not record personal financial values or claim customer demand without evidenc
 - Verified missing prior-month activity and savings rate are shown as unavailable, zero-expense budget coverage is unavailable, and an expense-only unbudgeted month reports 0% coverage and the actual unbudgeted amount.
 - Temporary fixture is removed and the selected reporting month is restored before subsequent report assertions. Synthetic data only; no runtime changes.
 - Validation status: pending CI/Chromium browser smoke and Secret Scan on the feature PR.
+
+
+## 2026-10-31 — Portfolio report analysis expansion
+- Extended the offline portfolio report model to include existing balance-sheet ratios and category concentration metrics.
+- Added explicit unavailable rendering for zero denominators and empty allocations, plus explanatory wording that HHI/category concentration is not correlation-aware risk analysis.
+- Added report validation and regression coverage for metric serialization, rendering, malformed values, and empty states. No new assumptions, market-data integrations, or recommendations.
+- Validation status: pending PR CI and Secret Scan.
