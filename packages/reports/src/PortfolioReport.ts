@@ -127,21 +127,21 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
     validatePortfolioReport(report);
 
     const allocations = [...report.allocations].sort(compareAllocationCategory);
-    const ratioRows: readonly (readonly [string, number | null])[] = [
+    const ratioRows = [
         ['Liabilities / assets', report.financialRatios.liabilitiesToAssets],
         ['Net worth / assets', report.financialRatios.netWorthToAssets],
         ['Assets / liabilities', report.financialRatios.assetsToLiabilities]
-    ].map(([label, value]) => {
+    ].map(([label, value]: readonly [string, number | null]) => {
         const formatted = typeof value === 'number' ? formatRatio(value) : 'Unavailable (zero denominator)';
         return `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(formatted)}</td></tr>`;
     }).join('');
     const diversification = report.diversification;
-    const concentrationRows: readonly (readonly [string, string])[] = [
+    const concentrationRows = [
         ['Categories', String(diversification.categoryCount)],
         ['Concentration index (HHI)', diversification.concentrationIndex === null ? 'Unavailable' : formatRatio(diversification.concentrationIndex)],
         ['Effective category count', diversification.effectiveCategoryCount === null ? 'Unavailable' : formatRatio(diversification.effectiveCategoryCount)],
         ['Largest category share', diversification.largestCategoryShare === null ? 'Unavailable' : formatPercentage(diversification.largestCategoryShare)]
-    ].map(([label, value]) => `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(value)}</td></tr>`).join('');
+    ].map(([label, value]: readonly [string, string]) => `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(value)}</td></tr>`).join('');
     const allocationRows = allocations.length === 0
         ? '<p class="empty-state">No asset positions were selected for allocation.</p>'
         : `<table>
