@@ -62,6 +62,11 @@ export class InvestmentTransaction {
             if (input.unitPrice.currency !== input.cashAmount.currency) {
                 throw new RangeError('Transaction cash amount and unit price must use the same currency.');
             }
+            const expectedCashAmount = input.quantity * input.unitPrice.amount;
+            if (!Number.isFinite(expectedCashAmount)
+                || Math.abs(Math.abs(input.cashAmount.amount) - expectedCashAmount) > 0.01) {
+                throw new RangeError('Trade cash amount must reconcile to quantity multiplied by unit price; record fees and taxes as separate events.');
+            }
             if (input.type === InvestmentTransactionType.Purchase && input.cashAmount.amount >= 0) {
                 throw new RangeError('Purchase cash amount must be negative from the investor perspective.');
             }
