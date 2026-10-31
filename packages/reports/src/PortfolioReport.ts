@@ -127,7 +127,7 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
     validatePortfolioReport(report);
 
     const allocations = [...report.allocations].sort(compareAllocationCategory);
-    const ratioRows = [
+    const ratioRows: readonly (readonly [string, number | null])[] = [
         ['Liabilities / assets', report.financialRatios.liabilitiesToAssets],
         ['Net worth / assets', report.financialRatios.netWorthToAssets],
         ['Assets / liabilities', report.financialRatios.assetsToLiabilities]
@@ -136,7 +136,7 @@ export function renderPortfolioReportHtml(report: PortfolioReportData): string {
         return `<tr><th scope="row">${label}</th><td class="numeric">${escapeHtml(formatted)}</td></tr>`;
     }).join('');
     const diversification = report.diversification;
-    const concentrationRows = [
+    const concentrationRows: readonly (readonly [string, string])[] = [
         ['Categories', String(diversification.categoryCount)],
         ['Concentration index (HHI)', diversification.concentrationIndex === null ? 'Unavailable' : formatRatio(diversification.concentrationIndex)],
         ['Effective category count', diversification.effectiveCategoryCount === null ? 'Unavailable' : formatRatio(diversification.effectiveCategoryCount)],
@@ -283,7 +283,7 @@ function validatePortfolioReport(value: unknown): void {
         throw new RangeError('Portfolio report net worth must equal total assets minus total liabilities.');
     }
 
-    if (report.financialRatios === null || typeof report.financialRatios !== 'object') {
+    if (!isRecord(report.financialRatios)) {
         throw new RangeError('Portfolio report financial ratios must be an object.');
     }
     const ratioValues = [
@@ -295,7 +295,7 @@ function validatePortfolioReport(value: unknown): void {
         && (typeof item !== 'number' || !Number.isFinite(item) || (index !== 1 && item < 0)))) {
         throw new RangeError('Portfolio report financial ratios must be finite; only net-worth-to-assets may be negative.');
     }
-    if (report.diversification === null || typeof report.diversification !== 'object') {
+    if (!isRecord(report.diversification)) {
         throw new RangeError('Portfolio report diversification metrics must be an object.');
     }
     const diversification = report.diversification;
@@ -351,6 +351,10 @@ function validatePortfolioReport(value: unknown): void {
     if (Math.abs(allocationWeightTotal - 1) > weightTolerance) {
         throw new RangeError('Portfolio report allocation weights must sum to 1.');
     }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isNullableFinite(value: unknown, minimum: number, maximum: number): boolean {
