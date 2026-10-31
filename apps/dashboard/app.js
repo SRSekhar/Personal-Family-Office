@@ -1,4 +1,5 @@
 import { summarizeValidatedBackup, validateBackupPayload } from './backup.js';
+import { validateInvestmentLedgerCollections } from './investment-ledger.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
 import { renderFinancialReportHtml } from './financial-report.js';
@@ -36,6 +37,12 @@ import { buildAnnualFinancialReview, renderAnnualFinancialReviewHtml } from './a
 
 const STORAGE_KEY = 'pfo-os.dashboard.private.v1';
 const HISTORICAL_STORAGE_KEY = 'pfo-os.historical-snapshots.v1';
+const INVESTMENT_STORAGE_KEYS = {
+    investmentAccounts: 'pfo-os.investment-accounts.v1',
+    investmentInstruments: 'pfo-os.investment-instruments.v1',
+    investmentTransactions: 'pfo-os.investment-transactions.v1',
+    investmentValuations: 'pfo-os.investment-valuations.v1'
+};
 const DATABASE_AUTO_SAVE_KEY = 'pfo-os.sqlite-auto-save.v1';
 const CURRENCY = 'INR';
 const COLORS = ['#176b4d', '#4d8b70', '#9dbb9f', '#c4a15d', '#7898b6', '#a18cb5', '#d18b70', '#7c8a82'];
@@ -73,6 +80,8 @@ let records = [];
 let workspace = 'demo';
 let privateStorageHealthy = true;
 let historicalStorageHealthy = true;
+let investmentStorageHealthy = true;
+let investmentLedger = { investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [] };
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -678,9 +687,38 @@ function showLocalWorkspaceRequired() {
     showToast('The public hosted demo is sample-only. Run pnpm dashboard:serve locally to enter or import personal financial records.');
 }
 
+function readInvestmentLedgerCollections() {
+    try {
+        const collections = {};
+        for (const [collection, key] of Object.entries(INVESTMENT_STORAGE_KEYS)) {
+            const raw = localStorage.getItem(key);
+            const parsed = raw === null ? [] : JSON.parse(raw);
+            if (!Array.isArray(parsed)) throw new Error('Saved ' + collection + ' data is not a collection.');
+            collections[collection] = parsed;
+        }
+        investmentStorageHealthy = true;
+        return validateInvestmentLedgerCollections(collections);
+    } catch (error) {
+        investmentStorageHealthy = false;
+        showToast(error instanceof Error ? 'Investment data could not be validated and was left untouched: ' + error.message : 'Investment data could not be validated. Existing storage was left untouched.');
+        return { investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [] };
+    }
+}
+
+function persistInvestmentLedgerCollections(collections) {
+    const validated = validateInvestmentLedgerCollections(collections);
+    for (const [collection, key] of Object.entries(INVESTMENT_STORAGE_KEYS)) {
+        if (!persistJson(localStorage, key, validated[collection])) throw new Error('Could not save ' + collection + ' to browser storage.');
+    }
+    investmentLedger = validated;
+    investmentStorageHealthy = true;
+    return validated;
+}
+
 function switchWorkspace(nextWorkspace) {
     workspace = nextWorkspace;
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
+    investmentLedger = workspace === 'demo' ? { investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [] } : readInvestmentLedgerCollections();
     loadSavedGoals();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
@@ -1452,12 +1490,12 @@ function showToast(message) {
 
 function exportData() {
     const isPrivateExport = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname);
-    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy)) {
+    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy)) {
         showToast('Export is paused because saved records or goals could not be read safely. Existing storage remains untouched; import a valid backup to recover.');
         return;
     }
     const payload = {
-        schemaVersion: isPrivateExport ? 4 : 1,
+        schemaVersion: isPrivateExport ? 5 : 1,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records
@@ -1472,6 +1510,8 @@ function exportData() {
             const historicalSnapshots = readHistoricalSnapshots();
             if (historicalSnapshots === null) throw new Error('Historical snapshots could not be validated.');
             payload.historicalSnapshots = historicalSnapshots;
+            Object.assign(payload, readInvestmentLedgerCollections());
+            if (!investmentStorageHealthy) throw new Error('Investment ledger storage could not be validated.');
         } catch (error) {
             showToast(error instanceof Error ? 'Full workspace export paused: ' + error.message : 'Full workspace data could not be validated; nothing was exported.');
             return;
@@ -1826,7 +1866,7 @@ function buildDatabaseWorkspacePayload() {
     if (workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) {
         throw new Error('Switch to the local private workspace before saving to SQLite.');
     }
-    if (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy) {
+    if (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy) {
         throw new Error('Database save is paused because saved workspace data could not be validated. Recover from a verified backup first.');
     }
     const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
@@ -1834,14 +1874,15 @@ function buildDatabaseWorkspacePayload() {
     const historicalSnapshots = readHistoricalSnapshots();
     if (historicalSnapshots === null) throw new Error('Historical snapshots could not be validated.');
     const payload = {
-        schemaVersion: 4,
+        schemaVersion: 5,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records,
         goals: savedGoals,
         cashFlowEntries: entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw)),
         budgets: validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw)),
-        historicalSnapshots
+        historicalSnapshots,
+        ...investmentLedger
     };
     // Run the same backup validator used by file restore before sending anything to the server.
     validateBackupPayload(payload, CURRENCY);
@@ -1862,7 +1903,7 @@ function updateDatabaseAutoSaveButton() {
 
 // Unreadable browser values count as existing data: recovery must never assume they are disposable.
 function hasBrowserWorkspaceData() {
-    const keys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY];
+    const keys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY, ...Object.values(INVESTMENT_STORAGE_KEYS)];
     try {
         return keys.some((key) => {
             const raw = localStorage.getItem(key);
@@ -2181,7 +2222,7 @@ function importData(file, options = {}) {
             }
 
             if (backup.includesCashFlow) {
-                const storageKeys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY];
+                const storageKeys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY, ...(backup.includesInvestmentLedger ? Object.values(INVESTMENT_STORAGE_KEYS) : [])];
                 let previousValues;
                 try {
                     previousValues = storageKeys.map((key) => [key, localStorage.getItem(key)]);
@@ -2196,12 +2237,14 @@ function importData(file, options = {}) {
                     if (!persistJson(localStorage, 'pfo-os.cash-flow.v1', backup.cashFlowEntries)) throw new Error('Could not save cash-flow transactions.');
                     if (!persistJson(localStorage, 'pfo-os.cash-flow-budgets.v1', backup.budgets)) throw new Error('Could not save category budgets.');
                     if (backup.includesHistoricalSnapshots && !persistJson(localStorage, HISTORICAL_STORAGE_KEY, backup.historicalSnapshots)) throw new Error('Could not save historical snapshots.');
+                    if (backup.includesInvestmentLedger) persistInvestmentLedgerCollections(backup);
                 } catch (error) {
                     const restored = previousValues.map(([key, value]) => restoreStorageValue(key, value)).every(Boolean);
                     if (!restored) {
                         privateStorageHealthy = false;
                         goalsStorageHealthy = false;
                         historicalStorageHealthy = false;
+                        investmentStorageHealthy = false;
                         showToast('Workspace restore failed and rollback was incomplete. Stop editing and preserve this browser profile for recovery.');
                     } else {
                         showToast(error instanceof Error ? error.message + ' The previous workspace data was restored.' : 'Workspace restore failed; the previous data was restored.');
@@ -2214,6 +2257,7 @@ function importData(file, options = {}) {
                 privateStorageHealthy = true;
                 goalsStorageHealthy = true;
                 if (backup.includesHistoricalSnapshots) historicalStorageHealthy = true;
+                if (backup.includesInvestmentLedger) { investmentLedger = validateInvestmentLedgerCollections(backup); investmentStorageHealthy = true; }
                 renderSavedGoals();
                 showGoalMessage();
                 render();
@@ -2228,7 +2272,8 @@ function importData(file, options = {}) {
                 const sourceSuffix = options.sourceLabel ? ' from ' + options.sourceLabel : '';
                 showToast('Restored full workspace' + sourceSuffix + ': ' + records.length + ' records, ' + savedGoals.length
                     + ' goals, ' + backup.cashFlowEntries.length + ' cash-flow transactions, ' + backup.budgets.length + ' budgets'
-                    + (backup.includesHistoricalSnapshots ? ', and ' + backup.historicalSnapshots.length + ' historical snapshots.' : '. Historical snapshots were preserved because this older backup did not include them.'));
+                    + (backup.includesHistoricalSnapshots ? ', ' + backup.historicalSnapshots.length + ' historical snapshots' : '')
+                    + (backup.includesInvestmentLedger ? ', ' + backup.investmentAccounts.length + ' investment accounts, ' + backup.investmentInstruments.length + ' instruments, ' + backup.investmentTransactions.length + ' investment transactions, and ' + backup.investmentValuations.length + ' valuations.' : '. Investment ledger data was preserved because this older backup did not include it.'));
                 return;
             }
 
