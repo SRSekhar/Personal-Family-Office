@@ -1048,6 +1048,61 @@ try {
     assert.ok(cashFlowCsv.includes('Browser test salary'));
     process.stdout.write('PASS: cash flow CSV export downloads the current ledger.\n');
 
+    // Repeated budget insights render from the exact saved budgets and recorded expenses.
+    // Preserve the earlier ledger fixture so later backup assertions still exercise that workspace.
+    const priorBudgetStorage = await page.evaluate(() => ({
+        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        entries: globalThis.localStorage.getItem('pfo-os.cash-flow.v1')
+    }));
+    const repeatedBudgetFixtures = {
+        budgets: [
+            { month: '2026-01', category: 'Groceries', amount: 1000 },
+            { month: '2026-02', category: 'Groceries', amount: 1000 },
+            { month: '2026-03', category: 'Groceries', amount: 1000 },
+            { month: '2026-01', category: 'Rent', amount: 5000 }
+        ],
+        entries: [
+            { id: 'browser-grocery-jan', date: '2026-01-10', type: 'expense', category: 'Groceries', description: 'Browser test groceries January', amount: 1250, recurring: false },
+            { id: 'browser-grocery-feb', date: '2026-02-10', type: 'expense', category: 'Groceries', description: 'Browser test groceries February', amount: 1500, recurring: false },
+            { id: 'browser-grocery-mar', date: '2026-03-10', type: 'expense', category: 'Groceries', description: 'Browser test groceries March', amount: 900, recurring: false },
+            { id: 'browser-rent-jan', date: '2026-01-05', type: 'expense', category: 'Rent', description: 'Browser test rent January', amount: 5500, recurring: false },
+            { id: 'browser-unbudgeted-jan', date: '2026-01-15', type: 'expense', category: 'Unbudgeted', description: 'Browser test unbudgeted expense', amount: 9000, recurring: false }
+        ]
+    };
+    await page.evaluate((fixtures) => {
+        globalThis.localStorage.setItem('pfo-os.cash-flow-budgets.v1', JSON.stringify(fixtures.budgets));
+        globalThis.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(fixtures.entries));
+        globalThis.document.querySelector('#cash-flow').dispatchEvent(new globalThis.Event('click', { bubbles: true }));
+    }, repeatedBudgetFixtures);
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 1);
+    const repeatedOverrunRow = await page.locator('#cash-flow-repeated-budget-overrun-rows tr').first().innerText();
+    assert.match(repeatedOverrunRow, /Groceries/);
+    assert.match(repeatedOverrunRow, /2/);
+    assert.match(repeatedOverrunRow, /3/);
+    assert.match(repeatedOverrunRow, /750/);
+    assert.match(repeatedOverrunRow, /375/);
+    assert.ok(!repeatedOverrunRow.includes('Rent'), 'a category over budget in only one month must be excluded');
+    assert.ok(!repeatedOverrunRow.includes('Unbudgeted'), 'expenses without an explicit budget must be excluded');
+    await page.evaluate(() => {
+        const entries = JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]');
+        globalThis.localStorage.setItem('pfo-os.cash-flow.v1', JSON.stringify(entries.map((entry) => (
+            entry.category === 'Groceries' ? { ...entry, amount: 100 } : entry
+        ))));
+        globalThis.document.querySelector('#cash-flow').dispatchEvent(new globalThis.Event('click', { bubbles: true }));
+    });
+    await page.waitForFunction(() => globalThis.document.querySelector('#cash-flow-repeated-budget-overrun-rows')?.querySelectorAll('tr').length === 0
+        && !globalThis.document.querySelector('#cash-flow-repeated-budget-overrun-empty')?.hidden);
+    assert.match(await page.locator('#cash-flow-repeated-budget-overrun-empty').innerText(),
+        /No category has exceeded its saved budget in two or more recorded months/);
+    await page.evaluate((previous) => {
+        if (previous.budgets === null) globalThis.localStorage.removeItem('pfo-os.cash-flow-budgets.v1');
+        else globalThis.localStorage.setItem('pfo-os.cash-flow-budgets.v1', previous.budgets);
+        if (previous.entries === null) globalThis.localStorage.removeItem('pfo-os.cash-flow.v1');
+        else globalThis.localStorage.setItem('pfo-os.cash-flow.v1', previous.entries);
+        globalThis.document.querySelector('#cash-flow').dispatchEvent(new globalThis.Event('click', { bubbles: true }));
+    }, priorBudgetStorage);
+    process.stdout.write('PASS: repeated budget-overrun insights render correct browser results and the no-repeat-overrun empty state.\\n');
+
     // Cash-flow tests do not depend on the asset/liability workspace; switch back explicitly for its backup assertions.
     await page.locator('#switch-private-button').click();
     await page.locator('#historical-snapshot-date').fill('2023-12-31');
