@@ -1278,7 +1278,7 @@ try {
     }));
     assert.deepEqual(restoredInvestmentStorage, investmentStorage,
         'schema-v5 JSON restore must round-trip all investment ledger collections without changing IDs or values');
-    process.stdout.write('PASS: schema-v5 JSON backup restore round-trips accounts, instruments, transactions and valuations.\\n');
+    process.stdout.write('PASS: schema-v5 JSON backup restore round-trips accounts, instruments, transactions and valuations.\n');
 
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
