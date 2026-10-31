@@ -275,4 +275,5 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 
 - PR #425 is in progress. The SQLite workspace is moving from schema v4 to v5 with four investment ledger collections.
 - Delivered in branch: v4-to-v5 transactional table migration, preservation of all five legacy collections and IDs, v5 backup validation with v1-v4 compatibility, browser-local persistence, dashboard forms for accounts/instruments/transactions/manual valuations, and SQLite/backup integration.
-- Remaining: pre-migration backup artifact, browser-level persistence and restore tests, new-ledger multi-tab conflict behavior, complete CI verification and documentation close-out. Accessibility remains secondary as previously directed.
+- Added a durable pre-migration schema-v4 JSON recovery artifact (exclusive create, flush to disk, owner-only POSIX permissions) before destructive schema replacement; migration is cancelled if the artifact cannot be written. Added migration tests for recovery-artifact contents and invalid-v4 rollback.
+- Remaining: browser-level persistence and restore tests, new-ledger multi-tab conflict behavior, complete CI verification and documentation close-out. Accessibility remains secondary as previously directed.
