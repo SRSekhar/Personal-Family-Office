@@ -189,3 +189,10 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - Consolidated the P1 commitments made in prior project conversations into `.ai/P1_ACCEPTANCE_MATRIX.md`, with acceptance criteria and concrete test/PR evidence.
 - The committed engineering P1 scope is complete: data integrity and atomic rollback, corrupt/truncated/oversized backup rejection, SQLite persistence/recovery/reopen, import/export limits, calculator correctness, FIRE/Goal Tracker browser workflows, historical data, financial-health/budget insights, offline report verification, and automated keyboard/browser regressions.
 - Manual screen-reader and actual browser-chrome 400% zoom reviews remain deferred as directed. Customer discovery, legal/distribution, history-exposure review, and owner-side Pages configuration remain open external/release gates. Cloud sync, encryption, automatic backup rotation, and Portfolio Health/recommendations remain out of scope or requirements-gated.
+
+## Follow-up Validation (2026-10-31)
+
+- PR #417 adds a real Chromium regression for an investment cash-flow CSV one byte above 10 MiB, verifying pre-read rejection behavior at the user workflow, file-input reset, and preservation of previously imported cash flows.
+- PR #418 adds synthetic Chromium acceptance scenarios for no-activity months, missing prior-month baselines, no-income savings-rate unavailability, no-budget states, and expense-only unbudgeted activity. Temporary fixtures are removed before subsequent report checks.
+- Both PRs passed CI (including the complete Chromium smoke) and Secret Scan before merge.
+- Backlog status corrected: repeated budget-overrun browser interaction coverage is complete (PR #412); FIRE Goal Gap Analysis is merged (PR #290); historical net-worth timeline is implemented from captured snapshots, while additional cash-flow charts remain requirements/customer-validation gated.
