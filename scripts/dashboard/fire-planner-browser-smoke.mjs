@@ -1223,16 +1223,16 @@ try {
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\\s\\S]*Browser test brokerage[\\s\\S]*Purchase/);
     assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\\s\\S]*120/);
     const investmentStorage = await page.evaluate(() => ({
-        accounts: JSON.parse(localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
-        instruments: JSON.parse(localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
-        transactions: JSON.parse(localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
-        valuations: JSON.parse(localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+        accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        transactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
     }));
     assert.equal(investmentStorage.accounts.length, 1);
     assert.equal(investmentStorage.instruments.length, 1);
     assert.equal(investmentStorage.transactions.length, 1);
     assert.equal(investmentStorage.valuations.length, 1);
-    process.stdout.write('PASS: private investment ledger creates accounts, instruments, reconciled trades and manual valuations.\\n');
+    process.stdout.write('PASS: private investment ledger creates accounts, instruments, reconciled trades and manual valuations.\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
