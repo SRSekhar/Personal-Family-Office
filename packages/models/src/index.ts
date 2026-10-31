@@ -23,6 +23,11 @@ export * from './loans/LoanType.js';
 
 export * from './investments/Investment.js';
 export * from './investments/InvestmentType.js';
+export * from './investments/InvestmentAccount.js';
+export * from './investments/InvestmentAccountType.js';
+export * from './investments/InvestmentInstrument.js';
+export * from './investments/InvestmentTransaction.js';
+export * from './investments/InvestmentTransactionType.js';
 
 export * from './properties/Property.js';
 export * from './properties/PropertyType.js';
