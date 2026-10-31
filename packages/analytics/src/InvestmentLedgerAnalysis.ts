@@ -101,7 +101,8 @@ export function analyzeInvestmentLedger({
         );
 
     for (const { transaction } of orderedTransactions) {
-        if (!(transaction.date instanceof Date) || !Number.isFinite(transaction.date.getTime())) {
+        if (!(transaction.date instanceof Date) || !Number.isFinite(transaction.date.getTime())
+            || !(transaction.recordedAt instanceof Date) || !Number.isFinite(transaction.recordedAt.getTime())) {
             throw new RangeError('Investment transaction dates must be valid.');
         }
         const account = accountById.get(transaction.accountId);
@@ -115,7 +116,8 @@ export function analyzeInvestmentLedger({
         if (account.currency !== instrument.currency || transaction.currency !== instrument.currency) {
             throw new RangeError('Investment account, instrument and transaction currencies must match; FX conversion is not performed.');
         }
-        if (transaction.date.getTime() > asOfDate.getTime()) {
+        if (transaction.date.getTime() > asOfDate.getTime()
+            || transaction.recordedAt.getTime() > asOfDate.getTime()) {
             continue;
         }
 
@@ -202,7 +204,10 @@ function selectLatestValuations(
         if (typeof valuation.sourceName !== 'string' || valuation.sourceName.trim().length === 0) {
             throw new RangeError('Investment valuation source name cannot be empty.');
         }
-        if (valuation.asOf.getTime() > asOfDate.getTime()) {
+        // Both the valuation's effective date and the date it entered the
+        // system must be visible at the requested point in time.
+        if (valuation.asOf.getTime() > asOfDate.getTime()
+            || valuation.recordedAt.getTime() > asOfDate.getTime()) {
             continue;
         }
 
