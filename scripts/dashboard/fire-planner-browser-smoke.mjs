@@ -1049,6 +1049,11 @@ try {
     process.stdout.write('PASS: cash flow CSV export downloads the current ledger.\n');
 
     // Repeated budget insights render from the exact saved budgets and recorded expenses.
+    // Preserve the earlier ledger fixture so later backup assertions still exercise that workspace.
+    const priorBudgetStorage = await page.evaluate(() => ({
+        budgets: globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
+        entries: globalThis.localStorage.getItem('pfo-os.cash-flow.v1')
+    }));
     const repeatedBudgetFixtures = {
         budgets: [
             { month: '2026-01', category: 'Groceries', amount: 1000 },
@@ -1089,6 +1094,13 @@ try {
         && !globalThis.document.querySelector('#cash-flow-repeated-budget-overrun-empty')?.hidden);
     assert.match(await page.locator('#cash-flow-repeated-budget-overrun-empty').innerText(),
         /No category has exceeded its saved budget in two or more recorded months/);
+    await page.evaluate((previous) => {
+        if (previous.budgets === null) globalThis.localStorage.removeItem('pfo-os.cash-flow-budgets.v1');
+        else globalThis.localStorage.setItem('pfo-os.cash-flow-budgets.v1', previous.budgets);
+        if (previous.entries === null) globalThis.localStorage.removeItem('pfo-os.cash-flow.v1');
+        else globalThis.localStorage.setItem('pfo-os.cash-flow.v1', previous.entries);
+        globalThis.document.querySelector('#cash-flow').dispatchEvent(new globalThis.Event('click', { bubbles: true }));
+    }, priorBudgetStorage);
     process.stdout.write('PASS: repeated budget-overrun insights render correct browser results and the no-repeat-overrun empty state.\\n');
 
     // Cash-flow tests do not depend on the asset/liability workspace; switch back explicitly for its backup assertions.
