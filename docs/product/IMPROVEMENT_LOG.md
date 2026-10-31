@@ -1073,3 +1073,9 @@ Do not record personal financial values or claim customer demand without evidenc
 - Verified the browser rejects the file, resets the input, and preserves the previously imported cash flows.
 - Uses synthetic browser data; no runtime behavior or financial records changed.
 - Validation status: pending CI/Chromium browser smoke and Secret Scan on the feature PR.
+
+## 2026-10-31 — Financial-health unavailable-state browser acceptance
+- Extended Chromium acceptance coverage for an entirely empty reporting month, a month with expenses but no income, and a month with no configured budgets.
+- Verified missing prior-month activity and savings rate are shown as unavailable, zero-expense budget coverage is unavailable, and an expense-only unbudgeted month reports 0% coverage and the actual unbudgeted amount.
+- Temporary fixture is removed and the selected reporting month is restored before subsequent report assertions. Synthetic data only; no runtime changes.
+- Validation status: pending CI/Chromium browser smoke and Secret Scan on the feature PR.
