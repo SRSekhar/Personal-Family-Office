@@ -239,3 +239,7 @@ The backup/recovery assurance acceptance criteria are complete. All five workspa
 ## P1 engineering scope closure — 2026-10-31
 
 The previously committed P1 engineering deliverables are complete and mapped to acceptance criteria and evidence in `.ai/P1_ACCEPTANCE_MATRIX.md`. This includes financial integrity/rollback, SQLite persistence and recovery, import/export hardening, calculator correctness, FIRE and Goal Tracker browser regressions, historical data, financial-health/budget workflows, offline report verification, and automated keyboard/browser checks. Manual accessibility review remains deferred. Customer validation and release/legal/repository-owner tasks remain open and are not represented as completed engineering work.
+
+## Follow-up validation — investment CSV size guard (2026-10-31)
+
+- Added a real Chromium scenario for an investment cash-flow CSV one byte above 10 MiB. It verifies rejection, file-input reset, and preservation of previously imported cash flows. This strengthens PR #414's static pre-read-order regression with an end-to-end user workflow check.
