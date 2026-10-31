@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
@@ -81,6 +81,15 @@ describe('SQLite workspace persistence schema v5', () => {
         expect(result.payload.historicalSnapshots).toEqual(legacy.historicalSnapshots);
         expect(result.payload.investmentAccounts).toEqual([]);
         expect(result.payload.investmentTransactions).toEqual([]);
+        const backupFiles = readdirSync(directory).filter((name) => name.includes('.pre-v5-') && name.endsWith('.json'));
+        expect(backupFiles).toHaveLength(1);
+        const recovery = JSON.parse(readFileSync(join(directory, backupFiles[0]), 'utf8'));
+        expect(recovery.schemaVersion).toBe(4);
+        expect(recovery.records.map((item) => item.id)).toEqual(['record-1', 'record-2']);
+        expect(recovery.cashFlowEntries).toEqual(legacy.cashFlowEntries);
+        expect(recovery.historicalSnapshots).toEqual(legacy.historicalSnapshots);
+        expect(recovery).not.toHaveProperty('investmentAccounts');
+        if (process.platform !== 'win32') expect(statSync(join(directory, backupFiles[0])).mode & 0o777).toBe(0o600);
     });
     it('rejects stale database versions without replacing a newer committed snapshot', async () => {
         const database = await createDatabase();
