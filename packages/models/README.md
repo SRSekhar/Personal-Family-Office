@@ -71,3 +71,10 @@ pnpm --filter @pfo/models lint
 ## Status
 
 Active Development
+## Investment ledger domain
+
+The investment ledger domain separates an investment account (custodian/account context), an investment instrument (the security or product), and immutable investment transactions (the investor-perspective cash and unit events). Instruments support optional symbol, exchange, and ISIN identifiers, so non-market-traded products such as provident-fund holdings remain valid.
+
+Transactions use signed cash movements: purchases, fees, and taxes are negative; sales, dividends, and interest are positive. Purchase/sale quantities and unit prices are required and must reconcile to the cash amount within one paise-equivalent currency unit tolerance (0.01). Fees and taxes are separate ledger events and must not be embedded again in the trade cash amount. Non-trade events cannot carry units or unit prices.
+
+These models are infrastructure-free and immutable. They do not fetch prices, calculate tax lots, infer valuations, or perform broker synchronization.
