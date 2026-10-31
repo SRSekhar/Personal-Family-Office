@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { Buffer } from 'node:buffer';
 import process from 'node:process';
-import { chmodSync, existsSync, mkdirSync } from 'node:fs';
+import { chmodSync, closeSync, existsSync, fsyncSync, mkdirSync, openSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { validateBackupPayload } from '../../apps/dashboard/backup.js';
@@ -54,6 +54,36 @@ function createSnapshotTable(database) {
         currency TEXT NOT NULL CHECK (currency = 'INR'),
         payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
 }
+/** Persist a portable v4 JSON recovery artifact before changing the live database. */
+function writePreMigrationBackup(databasePath, oldPayload, validated) {
+    const backupPayload = {
+        schemaVersion: 4, currency: CURRENCY, exportedAt: oldPayload.exportedAt,
+        records: validated.records.map((record, index) => ({ id: oldPayload.records[index].id, ...record })),
+        goals: validated.goals, cashFlowEntries: validated.cashFlowEntries, budgets: validated.budgets,
+        historicalSnapshots: validated.historicalSnapshots
+    };
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const basePath = databasePath + '.pre-v5-' + stamp;
+    let backupPath;
+    let descriptor;
+    for (let suffix = 0; ; suffix += 1) {
+        backupPath = basePath + (suffix ? '-' + suffix : '') + '.json';
+        try { descriptor = openSync(backupPath, 'wx', 0o600); break; }
+        catch (error) { if (error?.code !== 'EEXIST') throw error; }
+    }
+    try {
+        writeFileSync(descriptor, JSON.stringify(backupPayload, null, 2) + '\n', 'utf8');
+        fsyncSync(descriptor);
+    } catch (error) {
+        try { closeSync(descriptor); } catch { /* preserve the original write error */ }
+        try { unlinkSync(backupPath); } catch { /* keep an incomplete artifact visible */ }
+        throw new Error('The required pre-migration v4 backup could not be completed; the database migration was cancelled.', { cause: error });
+    }
+    closeSync(descriptor);
+    if (process.platform !== 'win32') chmodSync(backupPath, 0o600);
+    return backupPath;
+}
+
 /** Transactional v4 -> v5 migration. Existing five collections and IDs are retained. */
 function migrateSchemaV4(database) {
     const table = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
@@ -68,6 +98,7 @@ function migrateSchemaV4(database) {
             const oldPayload = JSON.parse(row.payload_json);
             if (oldPayload.schemaVersion !== 4) throw new Error('The saved SQLite payload does not match its v4 database schema; migration was not applied.');
             const validated = validateBackupPayload(oldPayload, CURRENCY);
+            writePreMigrationBackup(databasePath, oldPayload, validated);
             migrated = {
                 schemaVersion: 5, currency: CURRENCY, exportedAt: oldPayload.exportedAt,
                 records: validated.records.map((record, index) => ({ id: oldPayload.records[index].id, ...record })),
