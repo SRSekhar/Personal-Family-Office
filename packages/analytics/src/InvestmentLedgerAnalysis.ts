@@ -1,4 +1,5 @@
 import {
+    Currency,
     InvestmentAccount,
     InvestmentInstrument,
     InvestmentTransaction,
@@ -29,7 +30,7 @@ export interface InvestmentLedgerPosition {
     readonly accountId: string;
     readonly instrumentId: string;
     readonly instrumentName: string;
-    readonly currency: string;
+    readonly currency: Currency;
     readonly quantity: number;
     readonly openLotCount: number;
     readonly costBasis: Money;
@@ -83,6 +84,7 @@ export function analyzeInvestmentLedger({
     }
     assertUnique(accounts.map((item) => item.id.toString()), 'account');
     assertUnique(instruments.map((item) => item.id.toString()), 'instrument');
+    assertUnique(transactions.map((item) => item.id.toString()), 'transaction');
 
     const accountById = new Map(accounts.map((item) => [item.id.toString(), item] as const));
     const instrumentById = new Map(instruments.map((item) => [item.id.toString(), item] as const));
@@ -96,6 +98,9 @@ export function analyzeInvestmentLedger({
         );
 
     for (const { transaction } of orderedTransactions) {
+        if (!(transaction.date instanceof Date) || !Number.isFinite(transaction.date.getTime())) {
+            throw new RangeError('Investment transaction dates must be valid.');
+        }
         const account = accountById.get(transaction.accountId);
         const instrument = instrumentById.get(transaction.instrumentId);
         if (account === undefined) {
