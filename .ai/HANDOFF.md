@@ -159,3 +159,9 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 ## Next Work
 
 Continue with the next functional product priorities in .ai/BACKLOG.md. Customer validation, legal/distribution review, historical repository exposure review, and owner-side GitHub Pages configuration remain open release gates. Accessibility/manual zoom audits remain low priority/deferred as directed.
+
+## Latest Follow-up (2026-10-31 — P1 acceptance scope consolidated)
+
+- Added `.ai/P1_ACCEPTANCE_MATRIX.md` to map every previously committed P1 engineering area to acceptance criteria, automated tests, browser smoke coverage, and merged PR evidence.
+- The engineering P1 scope is complete based on the committed unit/API/Chromium tests and merged PRs. This is not a claim that customer discovery or external release gates are complete.
+- Manual screen-reader and actual browser-chrome 400% zoom reviews remain deferred. Encryption, automated backup rotation, remote backup/cloud sync, multi-user support, and speculative Portfolio Health/recommendation features are excluded or requirements-gated.
