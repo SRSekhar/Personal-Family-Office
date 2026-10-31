@@ -2290,7 +2290,6 @@ try {
     await healthMonth.fill('2026-10');
     await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · October 2026');
 
-    const emptyHealthMonth = await page.locator('#financial-health-metrics .financial-health-card').allInnerTexts();
     await healthMonth.fill('2025-01');
     await page.waitForFunction(() => globalThis.document.querySelector('#financial-health-status')?.innerText === 'Local data · January 2025');
     const januaryHealthCards = await page.locator('#financial-health-metrics .financial-health-card').allInnerTexts();
