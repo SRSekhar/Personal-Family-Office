@@ -291,8 +291,9 @@ function validatePortfolioReport(value: unknown): void {
         report.financialRatios.netWorthToAssets,
         report.financialRatios.assetsToLiabilities
     ];
-    if (!ratioValues.every((item) => item === null || (typeof item === 'number' && Number.isFinite(item) && item >= 0))) {
-        throw new RangeError('Portfolio report financial ratios must be non-negative finite numbers or null.');
+    if (ratioValues.some((item, index) => item !== null
+        && (typeof item !== 'number' || !Number.isFinite(item) || (index !== 1 && item < 0)))) {
+        throw new RangeError('Portfolio report financial ratios must be finite; only net-worth-to-assets may be negative.');
     }
     if (report.diversification === null || typeof report.diversification !== 'object') {
         throw new RangeError('Portfolio report diversification metrics must be an object.');
