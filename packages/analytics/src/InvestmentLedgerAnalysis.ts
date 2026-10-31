@@ -1,9 +1,11 @@
 import type { Currency } from '@pfo/models';
 
-import {
+import type {
     InvestmentAccount,
     InvestmentInstrument,
-    InvestmentTransaction,
+    InvestmentTransaction
+} from '@pfo/models';
+import {
     InvestmentTransactionType,
     Money
 } from '@pfo/models';
@@ -196,9 +198,6 @@ function selectLatestValuations(
         if (!(valuation.asOf instanceof Date) || !Number.isFinite(valuation.asOf.getTime())
             || !(valuation.recordedAt instanceof Date) || !Number.isFinite(valuation.recordedAt.getTime())) {
             throw new RangeError('Investment valuation dates must be valid.');
-        }
-        if (valuation.sourceType !== 'manual' && valuation.sourceType !== 'provider') {
-            throw new RangeError('Investment valuation source type must be manual or provider.');
         }
         if (typeof valuation.sourceName !== 'string' || valuation.sourceName.trim().length === 0) {
             throw new RangeError('Investment valuation source name cannot be empty.');
