@@ -36,4 +36,4 @@ The CI workflow runs the package unit tests and the real Chromium dashboard smok
 
 `pnpm test` and `node scripts/dashboard/fire-planner-browser-smoke.mjs` (with the isolated Playwright Chromium setup defined in `.github/workflows/ci.yml`).
 
-All test claims above refer to committed repository tests and workflow coverage. PRs #412–#414 add the latest budget-overrun browser regression and remaining import-size guards; PR #415 synchronizes the sprint and handoff documentation.
+All test claims above refer to committed repository tests and workflow coverage. PR #412 adds the repeated budget-overrun Chromium regression; PRs #413–#414 complete the remaining 10 MiB import-size guards; PR #417 adds an oversized investment CSV Chromium test that verifies rejection, input reset, and preservation of existing cash flows; PR #418 adds financial-health browser acceptance for empty/no-income/no-budget and expense-only months. PRs #415–#416 synchronize the sprint/handoff documentation and this acceptance matrix.
