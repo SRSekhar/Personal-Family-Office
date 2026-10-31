@@ -7,6 +7,14 @@ import {
 const STORAGE_KEY = 'pfo-os.cash-flow.v1';
 const BUDGET_STORAGE_KEY = 'pfo-os.cash-flow-budgets.v1';
 const CURRENCY = 'INR';
+const MAX_IMPORT_FILE_BYTES = 10 * 1024 * 1024;
+
+function rejectOversizedImport(file, reportError, resetInput) {
+    if (!Number.isFinite(file?.size) || file.size <= MAX_IMPORT_FILE_BYTES) return false;
+    reportError('The selected file exceeds the 10 MiB import limit. Existing financial data was not changed.');
+    resetInput();
+    return true;
+}
 
 function localDateString() {
     const now = new Date();
@@ -1241,6 +1249,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
         $('#' + inputId).addEventListener('change', (event) => {
             const file = event.target.files?.[0];
             if (!file) return;
+            if (rejectOversizedImport(file, (text) => message(text, true), () => { $('#' + inputId).value = ''; })) return;
             const reader = new FileReader();
             reader.addEventListener('load', () => {
                 try {
@@ -1653,6 +1662,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-budget-import-json').addEventListener('change', (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        if (rejectOversizedImport(file, (text) => budgetMessage(text, true), () => { $('#cash-flow-budget-import-json').value = ''; })) return;
         const reader = new FileReader();
         reader.addEventListener('load', () => {
             try {
@@ -1765,6 +1775,7 @@ export function initializeCashFlowTracker(documentRef = document, windowRef = wi
     $('#cash-flow-import-json').addEventListener('change', (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        if (rejectOversizedImport(file, (text) => message(text, true), () => { $('#cash-flow-import-json').value = ''; })) return;
         const reader = new FileReader();
         reader.addEventListener('load', () => {
             try {
