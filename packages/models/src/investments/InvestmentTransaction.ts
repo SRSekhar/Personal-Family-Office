@@ -12,6 +12,8 @@ export interface InvestmentTransactionInput {
     /** Signed cash movement from the investor's perspective: purchase/fee/tax negative; sale/income positive. */
     readonly cashAmount: Money;
     readonly date: Date;
+    /** When this event was entered into the ledger; required for point-in-time analysis. */
+    readonly recordedAt: Date;
     readonly quantity?: number;
     readonly unitPrice?: Money;
     readonly externalReference?: string;
@@ -31,6 +33,7 @@ export class InvestmentTransaction {
     public readonly type: InvestmentTransactionType;
     public readonly cashAmount: Money;
     public readonly date: Date;
+    public readonly recordedAt: Date;
     public readonly quantity: number | undefined;
     public readonly unitPrice: Money | undefined;
     public readonly externalReference: string | undefined;
@@ -48,6 +51,9 @@ export class InvestmentTransaction {
         }
         if (!(input.date instanceof Date) || !Number.isFinite(input.date.getTime())) {
             throw new RangeError('Investment transaction date must be valid.');
+        }
+        if (!(input.recordedAt instanceof Date) || !Number.isFinite(input.recordedAt.getTime())) {
+            throw new RangeError('Investment transaction recorded-at date must be valid.');
         }
 
         const isTrade = input.type === InvestmentTransactionType.Purchase
@@ -95,6 +101,7 @@ export class InvestmentTransaction {
         this.type = input.type;
         this.cashAmount = input.cashAmount;
         this.date = new Date(input.date.getTime());
+        this.recordedAt = new Date(input.recordedAt.getTime());
         this.quantity = input.quantity;
         this.unitPrice = input.unitPrice;
         this.externalReference = input.externalReference?.trim();
