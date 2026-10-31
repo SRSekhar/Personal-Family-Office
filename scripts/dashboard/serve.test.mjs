@@ -66,9 +66,9 @@ describe('local dashboard preview server', () => {
         expect(missing.status).toBe(404);
 
         const payload = {
-            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
@@ -90,9 +90,9 @@ describe('local dashboard preview server', () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'concurrency-workspace.sqlite') });
         const payload = {
-            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
         };
         const firstSave = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -118,9 +118,9 @@ describe('local dashboard preview server', () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'protected-workspace.sqlite') });
         const payload = {
-            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
@@ -147,9 +147,9 @@ describe('local dashboard preview server', () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'request-boundary.sqlite') });
         const payload = {
-            schemaVersion: 4, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-stable', name: 'Savings', category: 'Cash', type: 'asset', value: 123456 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
         };
         const initial = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
