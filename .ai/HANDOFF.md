@@ -147,6 +147,15 @@ The XIRR pull request passed the full workflow after addressing strict TypeScrip
 - Operational guide: docs/operations/LOCAL_BACKUP_AND_RECOVERY.md. Keep the database outside the repository and never commit real financial data. Treat JSON exports as unencrypted sensitive files.
 - Current SQL/recovery milestone is complete for local single-user use. Future decisions only: online-backup/checkpoint evaluation, encryption, automatic rotation, remote backup, cloud sync, or multi-user architecture. Do not imply any of those are implemented.
 
+
+## Latest Follow-up (2026-10-31 — import hardening and regression coverage)
+
+- PR #412 merged with a Chromium regression for repeated budget-overrun insights and isolated browser fixtures.
+- PR #413 merged with 10 MiB pre-read limits for cash-flow CSV/JSON and category-budget JSON imports (`649014ee22cc62bfb5453c89e2690bc2984f8e07`).
+- PR #414 merged with the same 10 MiB limit for investment cash-flow CSV import (`bd9fd6eafca6bd2e4743e28b74a83c01f596c4c7`). The primary records CSV and full-workspace JSON import paths already had equivalent limits; the reviewed FileReader import paths are bounded consistently.
+- PR #413 and #414 CI, Secret Scan, and dashboard deployment passed; PR #412 CI and Secret Scan passed.
+- Continue from `.ai/BACKLOG.md` with evidence-led product priorities. Do not claim all P1 work complete: the backlog does not define a P1 inventory. Accessibility remains deferred; customer validation and release gates remain open.
+
 ## Next Work
 
 Continue with the next functional product priorities in .ai/BACKLOG.md. Customer validation, legal/distribution review, historical repository exposure review, and owner-side GitHub Pages configuration remain open release gates. Accessibility/manual zoom audits remain low priority/deferred as directed.

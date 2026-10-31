@@ -175,3 +175,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #409 merged as 43066794750b139f15fc8b6e4d8f81e5dcafefec: malformed and >10 MiB SQLite API request bodies return 400/413 and leave the committed workspace payload/version unchanged. Final CI run #1134 and Secret Scan run #1090 passed.
 - Together with PRs #406–#407, full-content round-trip verification and operator recovery guidance are complete. Clean database close/reopen, transactional snapshot persistence, optimistic concurrency, and read-only integrity diagnostics are already covered.
 - Local SQLite persistence and backup/recovery assurance are complete for the current single-user local-first scope. Encryption, remote backup, cloud sync, multi-user support, and automatic rotation remain explicitly unimplemented.
+
+## Latest Follow-up (2026-10-31 — import size limits and budget-overrun regression)
+
+- PR #412 merged: Chromium browser regression covers repeated monthly budget overruns, category filtering, cumulative/average overrun values, and the no-repeat state. Test fixtures restore pre-existing localStorage state to avoid contaminating subsequent browser checks.
+- PR #413 merged as `649014ee22cc62bfb5453c89e2690bc2984f8e07`: cash-flow CSV replacement/append, cash-flow JSON restore, and category-budget JSON restore reject files larger than 10 MiB before FileReader decoding.
+- PR #414 merged as `bd9fd6eafca6bd2e4743e28b74a83c01f596c4c7`: investment cash-flow CSV import now has the same 10 MiB pre-read guard.
+- PR #413 CI, Secret Scan, and dashboard deployment passed. PR #414 CI, Secret Scan, and dashboard deployment passed. PR #412 CI and Secret Scan passed.
+- The primary records CSV and full-workspace JSON imports already had 10 MiB guards; the SQLite API separately enforces its request-body cap. The reviewed FileReader-backed import flows are now bounded consistently. This does not imply that all P1 backlog work is complete: the backlog has no explicit P1 priority inventory, and product validation/release gates remain open.
