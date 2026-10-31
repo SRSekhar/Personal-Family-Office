@@ -230,10 +230,21 @@ describe('analyzeInvestmentLedger', () => {
             Currency.USD,
             'Foreign Broker'
         );
+        const usdPurchase = new InvestmentTransaction({
+            id: Identifier.create(),
+            accountId: usdAccount.id.toString(),
+            instrumentId: ids.instrumentId,
+            type: InvestmentTransactionType.Purchase,
+            date: new Date('2025-01-01T00:00:00.000Z'),
+            recordedAt: new Date('2025-01-01T00:00:00.000Z'),
+            quantity: 1,
+            unitPrice: new Money(100, Currency.INR),
+            cashAmount: new Money(-100, Currency.INR)
+        });
         expect(() => analyzeInvestmentLedger({
             accounts: [usdAccount],
             instruments: [ids.instrument],
-            transactions: [purchase],
+            transactions: [usdPurchase],
             valuations: [],
             asOfDate: new Date('2025-03-01T00:00:00.000Z')
         })).toThrow('currencies must match');
