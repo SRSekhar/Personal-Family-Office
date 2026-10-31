@@ -183,3 +183,9 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - PR #414 merged as `bd9fd6eafca6bd2e4743e28b74a83c01f596c4c7`: investment cash-flow CSV import now has the same 10 MiB pre-read guard.
 - PR #413 CI, Secret Scan, and dashboard deployment passed. PR #414 CI, Secret Scan, and dashboard deployment passed. PR #412 CI and Secret Scan passed.
 - The primary records CSV and full-workspace JSON imports already had 10 MiB guards; the SQLite API separately enforces its request-body cap. The reviewed FileReader-backed import flows are now bounded consistently. This does not imply that all P1 backlog work is complete: the backlog has no explicit P1 priority inventory, and product validation/release gates remain open.
+
+## P1 Scope Closure (2026-10-31)
+
+- Consolidated the P1 commitments made in prior project conversations into `.ai/P1_ACCEPTANCE_MATRIX.md`, with acceptance criteria and concrete test/PR evidence.
+- The committed engineering P1 scope is complete: data integrity and atomic rollback, corrupt/truncated/oversized backup rejection, SQLite persistence/recovery/reopen, import/export limits, calculator correctness, FIRE/Goal Tracker browser workflows, historical data, financial-health/budget insights, offline report verification, and automated keyboard/browser regressions.
+- Manual screen-reader and actual browser-chrome 400% zoom reviews remain deferred as directed. Customer discovery, legal/distribution, history-exposure review, and owner-side Pages configuration remain open external/release gates. Cloud sync, encryption, automatic backup rotation, and Portfolio Health/recommendations remain out of scope or requirements-gated.
