@@ -571,3 +571,14 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Reconciliation and XIRR only treat a settlement link as visible when its link timestamp is at or before the selected recorded-at cutoff. This prevents a link added today from rewriting historical knowledge.
 - Demo mode now clears private investment account/instrument/transaction/valuation tables and selectors, in addition to cash-ledger history and XIRR output.
 - Added model, validator, reconciliation and performance tests for link chronology and historical cutoffs. Latest CI for current head is pending; no merge has occurred.
+
+
+### IPM-04 — cash-ledger and portfolio XIRR validation complete (2026-11-01)
+
+- Added an explicit zero opening-balance baseline as a valid user-entered fact. Zero is never inferred, and zero-valued opening events are omitted from the XIRR calculator input because the shared calculator requires non-zero cash-flow amounts.
+- Corrected the post-statement XIRR fixture so it exercises a valid single-sign-change flow pattern while verifying cash roll-forward.
+- Expanded the dashboard Vitest project include from only `apps/dashboard/tests/**` to all `apps/dashboard/**/*.test.js`. This brings the previously excluded root-level investment-ledger, cash-ledger and budget-overrun tests into CI.
+- Fixed the cash-ledger cutoff test to count all three valid opening/contribution/withdrawal flows before the requested recorded-at cutoff.
+- Chromium smoke now checks the realistic one-year XIRR path, historical transaction link preserving original financial values, JSON backup round-trip, SQLite persistence/restore, reload persistence and private-to-demo data clearing.
+- Latest PR #430 head: `786ded49daa9655fcc09d50da4562c4f682cb5c1`. CI run 41289104534 completed successfully; dashboard packaging run 41289104460 completed successfully (publish skipped for the PR). PR #429 CI and dashboard packaging also passed. PR #429 and #430 remain open and unmerged.
+- Remaining before this investment-accounting increment is merge-ready: review stacked PR ordering and obtain explicit user merge approval. Next product backlog: cash/investment CSV import/export with explicit mapping and validation; broker integrations and FX remain out of scope until separately designed.
