@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { INVESTMENT_CSV_COLLECTIONS, exportInvestmentCollectionCsv, parseInvestmentCollectionCsv, previewInvestmentCsvImport, validateInvestmentCsvWorkspace } from './investment-csv.js';
+import { INVESTMENT_CSV_COLLECTIONS, exportInvestmentCollectionCsv, parseInvestmentCollectionCsv, parseInvestmentCollectionCsvDetailed, exportInvestmentCsvErrorReport, previewInvestmentCsvImport, validateInvestmentCsvWorkspace } from './investment-csv.js';
 
 const empty = {
     investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [],
@@ -88,6 +88,23 @@ describe('investment CSV interchange', () => {
         expect(() => parseInvestmentCollectionCsv(csv.replace(',"1",', ',"Infinity",'), 'investmentTransactions')).toThrow(/finite number/i);
     });
 
+    it('collects row-level field and column errors and exports a spreadsheet-safe diagnostic report', () => {
+        const valid = exportInvestmentCollectionCsv('investmentAccounts', [account]);
+        const rows = valid.split('\\r\\n');
+        rows[2] = rows[2].replace('"Broker, ""A"""', '"=HYPERLINK(1)"');
+        rows[3] = '"short"';
+        const detailed = parseInvestmentCollectionCsvDetailed(rows.join('\\r\\n'), 'investmentAccounts');
+        expect(detailed.records).toEqual([]);
+        expect(detailed.errors).toHaveLength(2);
+        expect(detailed.errors[0]).toMatchObject({ rowNumber: 3, field: 'name' });
+        expect(detailed.errors[1]).toMatchObject({ rowNumber: 4, field: '' });
+        const report = exportInvestmentCsvErrorReport(detailed.errors.map((error) => ({
+            ...error, file: 'bad.csv', collection: 'investmentAccounts'
+        })));
+        expect(report).toContain('rawRowJson');
+        expect(report).not.toContain('=HYPERLINK(1)');
+        expect(parseInvestmentCollectionCsvDetailed(valid, 'investmentAccounts').errors).toEqual([]);
+    });
     it('rejects duplicate IDs in append mode before returning a candidate', () => {
         const current = { ...empty, investmentAccounts: [account] };
         expect(() => validateInvestmentCsvWorkspace(current, { investmentAccounts: [account] }, 'append')).toThrow(/unique/i);
