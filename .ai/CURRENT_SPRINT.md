@@ -381,3 +381,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Unit and Chromium smoke coverage has been added, including report download and disabled confirmation. CI on the new head is pending/not yet visible; do not mark this acceptance complete.
 - Latest verified prior head was `8c9a37931ae3c4d3f562bc736b76437649147429`: CI run 1381 and dashboard packaging run 711 passed.
 - External provider mappings remain blocked pending actual redacted provider CSV samples and explicit user-confirmed field/type/sign conventions. SQLite autosave is optional/debounced and is not atomic with localStorage.
+
+
+## 2026-11-01 — IPM-05 CSV row diagnostics verified
+
+- Added row-level error collection and a downloadable spreadsheet-safe report. Any invalid row blocks the entire batch; valid rows are not partially imported.
+- Unit tests and Chromium smoke verify the report and disabled confirmation behavior.
+- Verified on `a1a7fc784d286be06432544311991eb2e6460e1e`: CI run 1392 and dashboard packaging run 722 passed. CI includes dependency audit, lint, typecheck, package build, Vitest, Chromium installation and real-browser smoke. Pages publishing skipped for PR.
+- Issue #431 remains open for explicit external-provider mapping (requires redacted source samples and confirmed transaction/sign conventions) and further SQLite autosave failure/consistency acceptance. Do not claim cross-store atomicity.
