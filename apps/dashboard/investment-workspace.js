@@ -57,6 +57,13 @@ function render() {
     $('#investment-transaction-count').textContent = String(ledger.investmentTransactions.length);
     $('#investment-valuation-count').textContent = String(ledger.investmentValuations.length);
     $('#investment-transaction-account').innerHTML = options(ledger.investmentAccounts, 'id', (item) => item.name + ' · ' + item.institution);
+    const cashAccountsRaw = localStorage.getItem('pfo-os.investment-cash-accounts.v1');
+    const cashAccounts = cashAccountsRaw === null ? [] : JSON.parse(cashAccountsRaw);
+    if (!Array.isArray(cashAccounts)) throw new Error('Saved investment cash accounts are not a collection.');
+    const selectedInvestmentAccountId = $('#investment-transaction-account').value || ledger.investmentAccounts[0]?.id;
+    const linkedCashAccounts = cashAccounts.filter((item) => item.investmentAccountId === selectedInvestmentAccountId);
+    $('#investment-transaction-cash-account').innerHTML = '<option value="">Not linked — reconciliation unavailable</option>'
+        + options(linkedCashAccounts, 'id', (item) => item.name + ' · ' + item.currency).replace('<option value="">Select…</option>', '');
     $('#investment-transaction-instrument').innerHTML = options(ledger.investmentInstruments, 'id', (item) => item.name + ' · ' + item.currency);
     $('#investment-valuation-instrument').innerHTML = options(ledger.investmentInstruments, 'id', (item) => item.name + ' · ' + item.currency);
     $('#investment-account-rows').innerHTML = ledger.investmentAccounts.map((item) => '<tr><td>' + escape(item.name) + '</td><td>' + escape(item.institution) + '</td><td>' + escape(item.type) + '</td><td>' + escape(item.currency) + '</td></tr>').join('');
@@ -99,6 +106,7 @@ export function initializeInvestmentWorkspace() {
     transactionSelect.innerHTML = transactionTypes.map((type) => '<option value="' + type + '">' + type + '</option>').join('');
     $('#investment-account-currency').innerHTML = currencyOptions;
     $('#investment-instrument-currency').innerHTML = currencyOptions;
+    $('#investment-transaction-account').addEventListener('change', render);
     $('#investment-transaction-type').addEventListener('change', () => {
         const trade = ['Purchase', 'Sale'].includes(transactionSelect.value);
         $('#investment-trade-fields').hidden = !trade;
@@ -126,9 +134,15 @@ export function initializeInvestmentWorkspace() {
         if (!account || !instrument) throw new Error('Select an existing investment account and instrument.');
         if (account.currency !== instrument.currency) throw new Error('Account and instrument currencies must match. FX conversion is not supported.');
         const amount = Number(form.get('cashAmount'));
+        const cashAccountId = String(form.get('cashAccountId') ?? '').trim();
+        const cashAccount = cashAccountId ? JSON.parse(localStorage.getItem('pfo-os.investment-cash-accounts.v1') ?? '[]').find((item) => item.id === cashAccountId) : null;
+        if (cashAccountId && (!cashAccount || cashAccount.investmentAccountId !== account.id || cashAccount.currency !== account.currency)) {
+            throw new Error('Select a cash sub-account belonging to the chosen investment account and currency.');
+        }
         const trade = type === 'Purchase' || type === 'Sale';
         const item = { id: crypto.randomUUID(), accountId: account.id, instrumentId: instrument.id, type,
             cashAmount: { amount, currency: account.currency }, date: dateAtUtcStart(String(form.get('date'))), recordedAt: new Date().toISOString() };
+        if (cashAccount) item.cashAccountId = cashAccount.id;
         if (trade) {
             item.quantity = Number(form.get('quantity'));
             item.unitPrice = { amount: Number(form.get('unitPrice')), currency: account.currency };
