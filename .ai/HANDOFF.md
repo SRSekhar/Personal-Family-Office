@@ -245,3 +245,17 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Chromium smoke now exercises a synthetic cash account with explicit opening balance, contribution, withdrawal and linked purchase, then verifies the statement balance reconciles. No personal financial records are in the fixtures.
 - Next: integrate external-flow-only XIRR with existing calculator and terminal value (valued positions + reconciled cash), by currency. Missing data must make XIRR unavailable, never partial.
 - CI status must be checked for this branch head before claiming acceptance. PRs #425–#430 remain unmerged; no merge permission has been granted.
+
+
+## Latest Handoff — IPM-04 portfolio XIRR (2026-11-01)
+
+- Branch: `feature/investment-cash-ledger-ui`; PR #430, stacked on schema-v6 PR #429 → cash-ledger engine PR #428 → design PR #427 → FIFO PR #426 → persistence PR #425.
+- `apps/dashboard/investment-portfolio.js` now exports `analyzeInvestmentPortfolioPerformance`. It accepts validated ledger/cash collections, selected as-of date, recorded-at cutoff and an injected shared performance calculator. The UI injects `analyzeInvestmentPerformanceMath` from the prepared local calculator runtime; no second XIRR solver is present.
+- Per-currency external cash flows are the inverse of explicit OpeningBalance, ExternalContribution, ExternalWithdrawal and Correction cash movements. Purchases, sales, dividends, interest, fees, taxes and transfers are not external investor flows.
+- Terminal value = each cash account's latest eligible reconciled statement balance rolled forward by later cash movements, internal transfer legs and linked investment transaction settlements, plus market value of open positions.
+- Result is unavailable rather than partial when there is no cash account/statement/opening baseline, an unlinked visible transaction, a cash reconciliation difference, missing open-position valuation, non-positive terminal value, or ambiguous/unbracketable XIRR.
+- Historical cutoff is consistent with the FIFO view: events must be effective and recorded on or before the selected as-of point. Backfilled cash entries do not leak into historical returns.
+- Cash ledger now enforces one opening baseline, no movements/trades/transfers before it, and corrections that reference a different prior non-correction movement in the same account.
+- Demo mode clears private cash selectors/history and private XIRR cards; Chromium smoke checks the private→demo→private transition.
+- Tests were repaired after an earlier malformed test-file insertion; CI run 41284831053 for commit 6d826bd... is currently in progress. Later commits after that run may trigger another run. Do not claim final CI green until latest head is checked.
+- PR #430 remains open/draft and unmerged. PRs #425–#430 must not be merged without explicit approval.
