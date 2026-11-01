@@ -364,3 +364,17 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - SQLite transaction rollback and transient 503 autosave retry recovery are covered. Browser-local edits remain intact on failure and later full autosave restores the unsynced edits; no cross-store atomicity claim.
 - External provider mapping remains blocked until redacted provider CSV samples and confirmed transaction/sign conventions are available.
 - Preserve PR dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — IPM-05 acceptance consolidated (2026-11-01)
+
+- PR #432 remains draft/open/unmerged on `feature/investment-ledger-csv-interchange`, stacked on PR #430. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge is authorized.
+- Latest verified feature head before this documentation refresh: `b4df415d4a9baaf4bc02b5d62b1efcabaf23d3ea`.
+- Verified at that head: CI run 1405 passed (80 test files / 715 tests and full real Chromium smoke); Secret Scan run 1197 passed; dashboard packaging run 735 passed (Pages publish skipped for PR).
+- IPM-05 PFO-native CSV import/export is implemented for all eight investment/cash collections. It includes strict versioned parsing, safe-text encoding, full-workspace preview validation, append/replace, explicit confirmation, row-level downloadable diagnostics, 10 MiB limit, browser-storage rollback attempt, and reload/export/re-import smoke coverage.
+- SQLite rollback and transient autosave failure recovery are tested. A subsequent save-triggering edit recovers earlier unsynced changes; no timed retry without a subsequent event is implemented.
+- Browser localStorage and SQLite are separate persistence systems; no cross-store atomicity claim.
+- External provider mapping remains blocked on exact redacted source CSV samples and user-confirmed field/type/sign semantics. Never guess broker layouts or infer transactions, signs, cash links, opening balances, FX or valuations.
+- JSON full-workspace backup remains authoritative. No broker API sync or remote cloud sync is part of IPM-05.
+- Next: continue independent backlog work that does not require provider samples. When mapping resumes, request redacted source exports and confirm semantics first.
+- The IPM-05 status document was consolidated in the latest documentation commit; verify CI again on the new branch head before claiming that documentation commit itself is green.
