@@ -336,10 +336,10 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 
 ## Latest Handoff — SQLite failure recovery verified (2026-11-01)
 
-- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432 stacked on PR #430. Verified code head: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`.
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432 stacked on PR #430. Verified code/workflow head: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`.
 - Added a database-level rollback test: an injected SQLite update trigger fails the write; the previous committed workspace payload and updatedAt timestamp remain unchanged.
 - Added Chromium smoke for a transient 503 during automatic SQLite persistence. The failed write leaves browser localStorage unchanged, does not partially update SQLite, and a subsequent edit triggers a successful full snapshot save containing both edits.
-- CI run `41312944949` (1397) passed: dependency audit, repository checks, lint, typecheck, package build, 80 test files / 715 tests, Chromium installation and complete real-browser smoke. Dashboard packaging run `41312944982` (727) passed; Pages publish skipped for PR.
+- CI run `41313265864` (1402) passed: dependency audit, repository checks, lint, typecheck, package build, 80 test files / 715 tests, Chromium installation and complete real-browser smoke. Dashboard packaging run `41312944982` (727) passed; Pages publish skipped for PR.
 - Row-level CSV error reports are verified. Remaining issue #431 acceptance: provider-specific mapping needs actual redacted source CSVs and confirmed transaction/sign conventions; independent Secret Scan verification was not available in the PR-triggered workflow list.
 - Browser localStorage and SQLite are separate persistence systems. Tests prove browser-data retention, SQLite transaction rollback and retry recovery, not cross-store atomicity.
 - PR #432 remains draft/open/unmerged. Keep dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
@@ -352,5 +352,15 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Database test injects a failing SQLite update trigger and verifies the prior committed payload and timestamp survive rollback.
 - Browser smoke injects one 503 for an autosave PUT, verifies the edit remains in browser localStorage and absent from SQLite, then makes another edit and verifies the next autosave persists both edits.
 - Existing multi-tab stale-write protection and startup recovery pause remain covered. These tests do not make browser localStorage and SQLite atomic together.
-- Remaining: provider-specific CSV mapping requires redacted provider samples and confirmed field/transaction/sign semantics; independently verify Secret Scan (no separate PR-triggered workflow appeared in the inspected run list).
+- Remaining: provider-specific CSV mapping requires redacted provider samples and confirmed field/transaction/sign semantics; Secret Scan run `41313265865` (1194) passed after enabling the workflow for stacked `feature/**` PR targets.
 - PR #432 remains draft/open/unmerged. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — Secret Scan enabled and green (2026-11-01)
+
+- Latest branch head: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`; draft PR #432 remains open and unmerged.
+- Secret Scan workflow now triggers for PRs targeting `main` and `feature/**`; Gitleaks run 1194 passed, scanning current changes and full Git history.
+- CI run 1402 passed: 80 test files / 715 tests, dependency audit, lint, typecheck, build and full real Chromium smoke. Dashboard packaging run 732 passed; Pages publishing skipped for PR.
+- SQLite transaction rollback and transient 503 autosave retry recovery are covered. Browser-local edits remain intact on failure and later full autosave restores the unsynced edits; no cross-store atomicity claim.
+- External provider mapping remains blocked until redacted provider CSV samples and confirmed transaction/sign conventions are available.
+- Preserve PR dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
