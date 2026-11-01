@@ -1279,7 +1279,7 @@ try {
     assert.equal(await page.locator('#investment-transaction-cash-account option').count(), 0, 'demo workspace must clear private settlement account names');
     await page.locator('#switch-private-button').click();
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /Browser test broker cash/, 'switching back to private must restore local cash ledger records');
-    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\\s\\S]*Dividend/, 'switching back to private must restore local investment history');
+    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
     const investmentStorage = await page.evaluate(() => ({
