@@ -1259,6 +1259,12 @@ try {
         'portfolio totals should be grouped and displayed in their ledger currency');
     assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Portfolio XIRR · INR[\s\S]*annualized money-weighted return[\s\S]*Terminal value[\s\S]*1,600/,
         'portfolio XIRR should include explicit external flows and a complete terminal value of cash plus valued holdings');
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#investment-cash-account-count').innerText(), '0', 'demo workspace must not expose private cash account counts');
+    assert.equal(await page.locator('#investment-cash-account-rows').innerText(), '', 'demo workspace must not expose private cash account rows');
+    assert.equal(await page.locator('#investment-cash-owner option').count(), 0, 'demo workspace must clear private account names from selectors');
+    await page.locator('#switch-private-button').click();
+    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /Browser test broker cash/, 'switching back to private must restore local cash ledger records');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
     const investmentStorage = await page.evaluate(() => ({
