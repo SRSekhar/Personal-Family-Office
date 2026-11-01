@@ -2018,6 +2018,7 @@ async function refreshDatabaseStatus() {
         databaseStatusChecked = true;
         $('#database-restore-button').disabled = !result.hasWorkspace;
         $('#database-export-backup-button').disabled = !result.hasWorkspace;
+        $('#database-online-backup-button').disabled = !result.hasWorkspace;
         $('#database-restore-button').textContent = databaseRecoveryRequired ? 'Review database recovery' : 'Restore from SQLite';
         const updated = result.updatedAt
             ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))
@@ -2039,6 +2040,7 @@ async function refreshDatabaseStatus() {
         $('#database-storage').hidden = false;
         $('#database-restore-button').disabled = true;
         $('#database-export-backup-button').disabled = true;
+        $('#database-online-backup-button').disabled = true;
         databaseStatusChecked = true;
         updateDatabaseAutoSaveButton();
         setDatabaseStatus('SQLite unavailable', error instanceof Error
@@ -2072,6 +2074,29 @@ async function checkDatabaseIntegrity() {
         resultElement.textContent = 'SQLite integrity check could not complete. Confirm the local dashboard server is running, then try again.';
     } finally {
         button.disabled = false;
+    }
+}
+
+async function createOnlineSqliteBackup() {
+    const button = $('#database-online-backup-button');
+    const resultElement = $('#database-integrity-result');
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        resultElement.textContent = 'Online SQLite backups are available only in the local private workspace.';
+        return;
+    }
+    button.disabled = true;
+    resultElement.textContent = 'Creating and verifying an online SQLite backup…';
+    try {
+        const response = await fetch('./api/v1/database/backup', { method: 'POST', headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The verified SQLite backup could not be created.');
+        const count = Object.values(result.collectionCounts ?? {}).reduce((sum, value) => sum + value, 0);
+        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 13 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
+    } catch (error) {
+        resultElement.textContent = error instanceof Error ? error.message : 'The verified SQLite backup could not be created.';
+    } finally {
+        button.disabled = false;
+        await refreshDatabaseStatus();
     }
 }
 
@@ -2554,6 +2579,7 @@ $('#database-save-button').addEventListener('click', async () => {
 $('#database-auto-save-button').addEventListener('click', () => { void toggleDatabaseAutoSave(); });
 $('#database-restore-button').addEventListener('click', restoreWorkspaceFromDatabase);
 $('#database-export-backup-button').addEventListener('click', exportSavedDatabaseBackup);
+$('#database-online-backup-button').addEventListener('click', createOnlineSqliteBackup);
 $('#database-refresh-button').addEventListener('click', refreshDatabaseStatus);
 $('#database-integrity-button').addEventListener('click', checkDatabaseIntegrity);
 $('#export-button').addEventListener('click', exportData);

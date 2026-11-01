@@ -129,6 +129,14 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
                 }
                 return;
             }
+            if (pathname === '/api/v1/database/backup' && request.method === 'POST') {
+                try {
+                    sendJson(response, 201, await database.createOnlineBackup());
+                } catch {
+                    sendJson(response, 500, { error: 'A verified online SQLite backup could not be created. The committed workspace was not modified.' });
+                }
+                return;
+            }
             if (pathname === '/api/v1/workspace' && request.method === 'GET') {
                 try {
                     const workspace = database.getWorkspace();

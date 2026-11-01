@@ -429,3 +429,12 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Clarified that portable JSON export represents the last committed SQLite snapshot, not unsaved browser-local edits.
 - Documented WAL sidecar caution, bounded retry behavior, and the fact that browser localStorage and SQLite are not one atomic transaction.
 - No runtime code changed; prior CI/Secret Scan/dashboard packaging results remain applicable to code, not a new code change.
+
+
+## 2026-11-01 — Online SQLite backup and restore verification
+
+- Added a local private-workspace UI action to create a verified online SQLite file backup. The loopback/origin-protected API does not accept a caller-supplied path.
+- Backup artifacts are uniquely named under the configured database path's `.backups` sibling directory; integrity and full schema-v6 validation plus fsync precede publication.
+- Expanded the recovery drill to restore from the actual online backup file and verify all 13 collections, stable IDs, valuation provenance and SQLite integrity.
+- Raised the supported Node.js minimum to 22.16.0 and added a CI guard for `sqlite.backup()`. Await latest CI before claiming verification.
+- Automated scheduling, rotation, retention, encryption and remote backup remain deferred.

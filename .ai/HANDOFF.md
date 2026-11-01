@@ -401,3 +401,12 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - The guide now warns against treating a live `.sqlite` file copy as a portable backup while WAL is active; use the dashboard's validated full-workspace JSON export.
 - No runtime code changed. This commit is documentation-only; CI test counts and previous workflow results are unchanged.
 - Automated online SQLite backup/checkpoint, encrypted backup, retention/rotation, and remote sync remain deferred. Do not imply they are implemented.
+
+
+## Handoff — online SQLite backup implementation (2026-11-01)
+
+- Added manual online SQLite file backup via Node's built-in `sqlite.backup()`, available from Node 22.16.0. Root engine floor is `>=22.16.0 <23`; CI checks API availability.
+- Local-only POST `/api/v1/database/backup` creates unique artifacts under `<database path>.backups`, validates SQLite quick_check and full schema-v6 payload, fsyncs and publishes without overwriting existing backups. UI reports the verified path and collection counts.
+- Recovery test restores the actual backup artifact as a separate database and verifies all 13 collection counts, stable IDs, valuation provenance and integrity. API tests cover success, empty database and cross-origin rejection.
+- Latest CI, Secret Scan and dashboard packaging must pass before calling this verified. Do not merge PR #432 without explicit approval.
+- Backup remains manual; no schedule, rotation, retention enforcement, encryption, remote copy or browser-local/SQLite cross-store atomicity is implemented.

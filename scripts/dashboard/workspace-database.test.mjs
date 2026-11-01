@@ -251,7 +251,7 @@ describe('SQLite workspace persistence schema v6', () => {
         expect(resolveDatabasePath({ LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local' }, 'C:\\Users\\test', 'win32'))
             .toBe(join('C:\\Users\\test\\AppData\\Local', 'PFO-OS', 'pfo-os.sqlite'));
     });
-    it('completes a schema-v6 recovery drill across all 13 collections with stable IDs after database reopen', async () => {
+    it('creates and restores a verified online SQLite backup across all 13 collections with stable IDs', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-recovery-drill-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const original = payload({
@@ -287,6 +287,19 @@ describe('SQLite workspace persistence schema v6', () => {
         });
         const first = new WorkspaceDatabase(path); databases.push(first);
         const committed = first.saveWorkspace(original, null);
+        const backup = await first.createOnlineBackup();
+        expect(backup).toMatchObject({
+            filename: expect.stringMatching(/^pfo-os-sqlite-.*\\.sqlite$/), directory: path + '.backups',
+            path: expect.stringContaining('.backups'), bytes: expect.any(Number), updatedAt: committed.updatedAt,
+            schemaVersion: 6, collectionCounts: {
+                records: 2, goals: 1, cashFlowEntries: 1, budgets: 1, historicalSnapshots: 1,
+                investmentAccounts: 1, investmentInstruments: 1, investmentTransactions: 1, investmentValuations: 1,
+                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2
+            }
+        });
+        expect(backup.bytes).toBeGreaterThan(0);
+        expect(existsSync(backup.path)).toBe(true);
+        if (process.platform !== 'win32') expect(statSync(backup.path).mode & 0o777).toBe(0o600);
         expect(committed).toMatchObject({
             recordCount: 2, goalCount: 1, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
             investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1,
@@ -294,7 +307,7 @@ describe('SQLite workspace persistence schema v6', () => {
         });
         first.close(); databases.splice(databases.indexOf(first), 1);
 
-        const restored = new WorkspaceDatabase(path); databases.push(restored);
+        const restored = new WorkspaceDatabase(backup.path); databases.push(restored);
         const recovered = restored.getWorkspace();
         expect(recovered.updatedAt).toBe(committed.updatedAt);
         expect(restored.checkIntegrity()).toEqual({ ok: true, messages: ['ok'] });

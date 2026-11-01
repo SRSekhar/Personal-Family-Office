@@ -58,13 +58,14 @@ Browser-local storage remains the immediate working/recovery copy. SQLite persis
 - Bounded retries improve transient recovery but cannot guarantee persistence during a prolonged outage; after exhaustion, a later edit or explicit save is required.
 - Browser localStorage and SQLite are separate persistence systems. No cross-store atomicity is claimed.
 - SQLite and portable JSON exports are not encrypted by this feature. Filesystem/device protection and independent backups remain the user's responsibility.
-- WAL sidecar state can be relevant while the database is live. The application currently recommends portable JSON export rather than manual live-file copying; an online SQLite backup/checkpoint workflow is not implemented.
+- WAL sidecar state can be relevant while the database is live. The dashboard's manual online backup uses SQLite's backup API rather than copying live database files. Portable JSON remains an independent recovery format.
 - This is a single-user local database API, not a remote, multi-user, or production-hosted database service.
-- The Node.js `node:sqlite` API's runtime support must be checked against the repository's pinned Node version and CI matrix.
+- The supported Node.js floor is 22.16.0 because `sqlite.backup()` was added in Node 22.16. CI verifies that the built-in API is present before tests.
+- Manual online backups use unique files under `<database path>.backups`, validate SQLite `quick_check` and the complete schema-v6 payload, fsync the artifact and publish it only after validation. Existing backup files are never overwritten.
 
 ## Validation and operational status
 
 - Unit tests cover schema-v6 validation, all 13 collections, reopen persistence, stable IDs, migration recovery artifacts, migration rollback, stale-write conflicts, integrity checks, file permissions, and injected SQLite write-failure rollback.
 - API tests cover local-origin enforcement, payload validation, request size/content type, and read/write behavior.
 - Chromium smoke covers save/restore, reload persistence, multi-tab stale-write protection, transient save failure, bounded retry exhaustion, and recovery after a later edit.
-- Current PR #432 head `9af3b36b9ccac75e5e149c956567f9f6f35fc075`: CI run 1411, Secret Scan run 1203, and dashboard packaging run 741 completed successfully. CI reports 80 test files / 715 tests and full real Chromium smoke.
+- The online SQLite backup and restore implementation is pending CI verification on the current PR head. Prior run results do not validate this new code.

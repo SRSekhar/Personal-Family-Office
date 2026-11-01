@@ -607,3 +607,11 @@ In progress on draft PR #432, stacked on PR #430.
 - Corrected stale schema-v4/five-collection descriptions to the current 13-collection workspace (five core collections, four investment collections, four investment-cash collections).
 - Documented WAL sidecar implications, portable JSON as the recommended live-database backup path, bounded autosave retry behavior, and the explicit absence of cross-store atomicity and automated online SQLite backup/rotation.
 - This is a documentation correction only; no database behavior or backup API was changed.
+
+
+## 2026-11-01 — Verified online SQLite backup
+
+- Added a manual loopback-only online SQLite backup action using Node's built-in `sqlite.backup()`; supported runtime minimum is Node 22.16.0.
+- Unique backup files are created under `<database path>.backups`; existing files are never overwritten. Artifacts pass SQLite integrity and full schema-v6 validation across all 13 collections, are fsynced, and are only then published.
+- Added an online-backup restore drill across all 13 collections, checking stable identifiers, valuation provenance and integrity, plus API success/no-data/cross-origin tests.
+- Scheduling, rotation, retention, encryption, remote copy and cross-store browser-storage/SQLite atomicity remain out of scope.

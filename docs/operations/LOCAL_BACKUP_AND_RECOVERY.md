@@ -31,7 +31,7 @@ A practical manual starting policy is:
 
 Do not store real exports in this public Git repository, issue trackers, chat transcripts, or unencrypted shared folders. PFO OS JSON exports and the SQLite database are not encrypted by this feature. Protect them with device/full-disk encryption and appropriate account access controls. PFO OS does not upload, encrypt, rotate, or delete backups for you.
 
-The SQLite database uses WAL journaling. Do not assume that copying only the live `.sqlite` file while the server is running captures a complete committed database state; WAL sidecar state may also be relevant. Use the dashboard's portable JSON export for a consistent portable snapshot. No automated online SQLite backup/checkpoint workflow is currently provided.
+The SQLite database uses WAL journaling. Do not copy only the live `.sqlite` file while the server is running. Use **Create verified SQLite file backup** to create an online snapshot through Node's SQLite backup API. The server writes a unique file under `<database path>.backups`, verifies SQLite integrity and the complete schema-v6 payload, flushes the file, and only then publishes it. Existing backup files are never overwritten. This is a manual action; scheduling, rotation, retention enforcement, encryption and remote copy are not provided. Continue to create portable JSON exports as an independent backup format.
 
 ## Create a portable backup
 
@@ -39,8 +39,8 @@ The SQLite database uses WAL journaling. Do not assume that copying only the liv
 2. Open the loopback address printed by the server (normally `http://127.0.0.1:4173/`).
 3. Switch to **Use my data** and confirm the expected private workspace is visible.
 4. If using SQLite, wait for the save status to confirm the latest changes are committed, or use the explicit **Save private workspace to SQLite** action.
-5. Use the dashboard's portable SQLite JSON backup export action.
-6. Save the downloaded JSON to a private backup folder and copy it to the independent protected location.
+5. Use **Create verified SQLite file backup** and wait for the verified filename and location. Copy the resulting `.sqlite` file to independent protected storage.
+6. Also use the portable SQLite JSON export action; save the downloaded JSON to a separate private backup folder and copy it to independent protected storage.
 7. Record the export date and, if useful, a non-sensitive milestone note.
 
 If automatic SQLite save is paused after retry exhaustion, do not assume the latest browser edits are included in the export. Resolve the save issue or explicitly save successfully before exporting.
@@ -89,5 +89,5 @@ If import is rejected, preserve the rejected file for diagnosis. Do not repeated
 - The SQLite database defaults outside the repository and is not a cloud backup or multi-device synchronization service.
 - Browser-local storage is tied to the browser profile and can be lost if that profile is cleared.
 - Automatic SQLite saves do not create historical backup generations.
-- Automated backup rotation, retention enforcement, remote backup, online SQLite backup API, and scheduled restore drills are not implemented.
+- Online SQLite backup is manual and user-initiated. Automated scheduling, rotation, retention enforcement, encryption, remote backup and scheduled restore drills are not implemented.
 - A structurally valid backup does not guarantee financial correctness. Review restored values against trusted source records.
