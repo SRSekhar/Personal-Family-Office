@@ -271,9 +271,11 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 - Preserve legacy portfolio records, local-first operation, SQLite schema-v4 backup compatibility, all existing reports/imports/exports, and existing dashboard features. No live broker execution, FX conversion, hidden risk thresholds, or AI ledger writes.
 
 
-## 2026-10-31 — Investment workspace persistence (IPM-03)
+## 2026-11-01 — Investment workspace persistence (IPM-03)
 
-- PR #425 is in progress. The SQLite workspace is moving from schema v4 to v5 with four investment ledger collections.
-- Delivered in branch: v4-to-v5 transactional table migration, preservation of all five legacy collections and IDs, v5 backup validation with v1-v4 compatibility, browser-local persistence, dashboard forms for accounts/instruments/transactions/manual valuations, and SQLite/backup integration.
-- Added a durable pre-migration schema-v4 JSON recovery artifact (exclusive create, flush to disk, owner-only POSIX permissions) before destructive schema replacement; migration is cancelled if the artifact cannot be written. Added migration tests for recovery-artifact contents and invalid-v4 rollback.
-- Remaining: browser-level persistence and restore tests, new-ledger multi-tab conflict behavior, complete CI verification and documentation close-out. Accessibility remains secondary as previously directed.
+- PR #425 remains open and draft. SQLite schema v5 adds four investment collections while preserving the five existing workspace collections.
+- Delivered in branch: transactional v4-to-v5 migration, v1-v4 backup compatibility, browser-local ledger persistence, account/instrument/transaction/manual valuation forms, and v5 JSON/SQLite backup integration.
+- A durable schema-v4 JSON recovery artifact is written with exclusive creation and flush-to-disk before schema replacement; POSIX permissions are owner-only. Migration aborts if backup creation fails. Migration tests cover artifact contents/permissions and invalid-v4 rollback.
+- Chromium smoke coverage now exercises investment entry, reload persistence, v5 JSON export/import, and exact SQLite save/restore equality for all nine collections. The import preview includes investment counts and replacement scope.
+- Added an API-level two-client stale-write test using investment ledger data; it verifies a stale valuation write receives HTTP 409 and cannot replace the latest committed valuation.
+- Remaining: final CI on the latest branch head and an actual two-browser-tab UI conflict/recovery workflow. Accessibility remains secondary as directed.
