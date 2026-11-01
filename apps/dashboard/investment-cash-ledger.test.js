@@ -91,6 +91,13 @@ const fixture = () => ({
         expect(result.statementBalance).toBeNull();
     });
 
+    it('rejects linked trades and transfers dated before the cash opening baseline', () => {
+        const value = fixture();
+        value.investmentTransactions.push({ id: 'historic-trade', accountId: 'broker-1', cashAccountId: 'cash-1',
+            cashAmount: { amount: -20, currency: 'INR' }, date: '2025-12-31T00:00:00.000Z', recordedAt: date });
+        expect(() => validateInvestmentCashCollections(value)).toThrow(/cannot predate the explicit cash opening/i);
+    });
+
 });
 
 describe('investment cash ledger', () => {
