@@ -75,7 +75,7 @@ export function validateInvestmentCashCollections(input) {
         if (type === 'OpeningBalance' && item.openingBalanceSource !== 'statement' && item.openingBalanceSource !== 'manual') {
             throw new Error('Opening balance requires an explicit statement or manual source.');
         }
-        if (cashAmount.amount === 0) throw new Error('Cash movement amount must be non-zero.');
+        if (cashAmount.amount === 0 && type !== 'OpeningBalance') throw new Error('Cash movement amount must be non-zero unless it is an explicit opening balance.');
         return { id, cashAccountId, type, amount: cashAmount,
             effectiveAt: timestamp(item.effectiveAt, 'Cash movement effectiveAt'),
             recordedAt: timestamp(item.recordedAt, 'Cash movement recordedAt'),
