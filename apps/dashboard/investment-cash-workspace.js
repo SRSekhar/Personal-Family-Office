@@ -65,10 +65,11 @@ function linkInvestmentTransaction(transactionId, cashAccountId) {
     if (!cashAccount || cashAccount.investmentAccountId !== target.accountId || cashAccount.currency !== target.cashAmount.currency) {
         throw new Error('Choose a cash account belonging to this investment account and currency.');
     }
+    const cashAccountLinkedAt = new Date().toISOString();
     const updatedLedger = validateInvestmentLedgerCollections({
         ...ledger,
         investmentTransactions: ledger.investmentTransactions.map((item) =>
-            item.id === transactionId ? { ...item, cashAccountId } : item)
+            item.id === transactionId ? { ...item, cashAccountId, cashAccountLinkedAt } : item)
     });
     validateInvestmentCashCollections({ ...updatedLedger, ...cash, investmentTransactions: updatedLedger.investmentTransactions });
     const key = ledgerKeys.investmentTransactions;
