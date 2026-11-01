@@ -562,3 +562,12 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Strengthened append-only cash accounting: exactly one explicit opening baseline per cash account; no movements, linked trades or transfers before it; corrections must reference a different non-correction event in the same account and cannot predate it.
 - Demo workspace now clears private cash account selectors/history and private portfolio XIRR results when switching away from private mode.
 - Added tests for multi-account transfer reconciliation, correction signs/chronology, pre-opening events, statement differences, historical backfills, complete XIRR terminal value, missing data and Chromium UI behavior. Latest CI is being verified; no merge has occurred.
+
+
+### IPM-04 — historical settlement linking and bitemporal integrity
+
+- Added a workflow to link pre-existing unlinked investment transactions to an explicit cash sub-account. The action adds only the settlement association; cash amount, units, price, effective date and original recordedAt remain unchanged.
+- Added optional `cashAccountLinkedAt` to the investment transaction model and serialized validator. New linked transactions default link time to transaction recordedAt; historical links record their own timestamp.
+- Reconciliation and XIRR only treat a settlement link as visible when its link timestamp is at or before the selected recorded-at cutoff. This prevents a link added today from rewriting historical knowledge.
+- Demo mode now clears private investment account/instrument/transaction/valuation tables and selectors, in addition to cash-ledger history and XIRR output.
+- Added model, validator, reconciliation and performance tests for link chronology and historical cutoffs. Latest CI for current head is pending; no merge has occurred.
