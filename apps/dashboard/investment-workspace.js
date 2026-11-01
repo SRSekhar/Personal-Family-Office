@@ -57,9 +57,12 @@ function render() {
     $('#investment-transaction-count').textContent = String(ledger.investmentTransactions.length);
     $('#investment-valuation-count').textContent = String(ledger.investmentValuations.length);
     $('#investment-transaction-account').innerHTML = options(ledger.investmentAccounts, 'id', (item) => item.name + ' · ' + item.institution);
-    const cashAccountsRaw = localStorage.getItem('pfo-os.investment-cash-accounts.v1');
-    const cashAccounts = cashAccountsRaw === null ? [] : JSON.parse(cashAccountsRaw);
-    if (!Array.isArray(cashAccounts)) throw new Error('Saved investment cash accounts are not a collection.');
+    let cashAccounts = [];
+    try {
+        const cashAccountsRaw = localStorage.getItem('pfo-os.investment-cash-accounts.v1');
+        const parsedCashAccounts = cashAccountsRaw === null ? [] : JSON.parse(cashAccountsRaw);
+        if (Array.isArray(parsedCashAccounts)) cashAccounts = parsedCashAccounts;
+    } catch { /* the cash-ledger panel reports unreadable cash storage without blocking the rest of the ledger */ }
     const selectedInvestmentAccountId = $('#investment-transaction-account').value || ledger.investmentAccounts[0]?.id;
     const linkedCashAccounts = cashAccounts.filter((item) => item.investmentAccountId === selectedInvestmentAccountId);
     $('#investment-transaction-cash-account').innerHTML = '<option value="">Not linked — reconciliation unavailable</option>'
