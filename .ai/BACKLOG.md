@@ -582,3 +582,19 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Chromium smoke now checks the realistic one-year XIRR path, historical transaction link preserving original financial values, JSON backup round-trip, SQLite persistence/restore, reload persistence and private-to-demo data clearing.
 - Latest PR #430 head: `786ded49daa9655fcc09d50da4562c4f682cb5c1`. CI run 41289104534 completed successfully; dashboard packaging run 41289104460 completed successfully (publish skipped for the PR). PR #429 CI and dashboard packaging also passed. PR #429 and #430 remain open and unmerged.
 - Remaining before this investment-accounting increment is merge-ready: review stacked PR ordering and obtain explicit user merge approval. Next product backlog: cash/investment CSV import/export with explicit mapping and validation; broker integrations and FX remain out of scope until separately designed.
+
+
+## Investment Portfolio Management — IPM-05 CSV interchange
+
+Status
+
+In progress on draft PR #432, stacked on PR #430.
+
+- Added a versioned PFO-native CSV format for all eight investment and cash-ledger collections.
+- String values use reversible UTF-8/base64 encoding to preserve Unicode, commas, quotes and multiline text while preventing spreadsheet formula execution. Nested money values remain exact JSON cells; timestamps and IDs remain unchanged.
+- Import validates the manifest, format version, canonical headers, row width, quoting, encoded text, JSON values and finite numbers. It builds and validates the entire candidate workspace before preview.
+- UI supports private-workspace-only per-collection export, multi-file preview, replace-only-selected-collections or append, explicit confirmation and cancel.
+- Browser persistence attempts rollback if any selected collection write fails and dispatches the existing workspace events only after successful writes. JSON backup remains authoritative.
+- Unit tests cover all eight collection round trips, Unicode/formula-like text, nested money, bitemporal settlement links, invalid manifests/headers/rows, missing references and duplicate IDs. Chromium smoke now exercises export, preview, confirmed replace and duplicate-append rejection.
+- External broker layouts and arbitrary column mapping are explicitly deferred; unsupported files are rejected rather than guessed. No broker sync, FX or inferred accounting events.
+- Acceptance is pending CI on the current PR head.
