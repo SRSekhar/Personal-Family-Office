@@ -1216,6 +1216,10 @@ try {
     await page.locator('#investment-transaction-form [name="quantity"]').fill('10');
     await page.locator('#investment-transaction-form [name="unitPrice"]').fill('100');
     await page.locator('#investment-transaction-form button[type="submit"]').click();
+    await page.locator('#investment-transaction-form [name="type"]').selectOption('Dividend');
+    await page.locator('#investment-transaction-form [name="cashAmount"]').fill('5');
+    await page.locator('#investment-transaction-form [name="date"]').fill('2026-10-30');
+    await page.locator('#investment-transaction-form button[type="submit"]').click();
     await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
     await page.locator('#investment-cash-movement-form [name="type"]').selectOption('OpeningBalance');
     await page.locator('#investment-cash-movement-form [name="amount"]').fill('1000');
@@ -1233,14 +1237,19 @@ try {
     await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2026-10-30');
     await page.locator('#investment-cash-movement-form button[type="submit"]').click();
     await page.locator('#investment-cash-statement-form [name="cashAccountId"]').selectOption({ index: 1 });
-    await page.locator('#investment-cash-statement-form [name="closingBalance"]').fill('400');
+    await page.locator('#investment-cash-statement-form [name="closingBalance"]').fill('405');
     await page.locator('#investment-cash-statement-form [name="periodStart"]').fill('2026-10-29');
     await page.locator('#investment-cash-statement-form [name="periodEnd"]').fill('2026-10-31');
     await page.locator('#investment-cash-statement-form [name="statementAsOf"]').fill('2026-10-31');
     await page.locator('#investment-cash-statement-form [name="sourceName"]').fill('Browser test statement');
     await page.locator('#investment-cash-statement-form button[type="submit"]').click();
-    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /reconciled.*400/,
-        'explicit opening capital, external contributions/withdrawals and a linked purchase should reconcile to the statement balance');
+    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /incomplete/,
+        'a legacy transaction without a settlement link must make cash reconciliation incomplete');
+    const legacyDividendRow = page.locator('#investment-cash-unlinked-transaction-rows tr').filter({ hasText: 'Dividend' });
+    await legacyDividendRow.locator('select').selectOption({ index: 1 });
+    await legacyDividendRow.locator('button[data-link-transaction]').click();
+    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /reconciled.*405/,
+        'linking the historical dividend settlement must reconcile the cash statement without changing transaction values');
     assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Unavailable[\s\S]*no eligible valuation/i,
         'portfolio XIRR must remain unavailable while an open position lacks a terminal valuation');
     await page.locator('#investment-valuation-form [name="instrumentId"]').selectOption({ index: 0 });
@@ -1249,7 +1258,7 @@ try {
     await page.locator('#investment-valuation-form button[type="submit"]').click();
     assert.equal(await page.locator('#investment-account-count').innerText(), '1');
     assert.equal(await page.locator('#investment-instrument-count').innerText(), '1');
-    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '2');
     assert.equal(await page.locator('#investment-valuation-count').innerText(), '1');
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Browser test brokerage[\s\S]*Purchase/);
     assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\s\S]*120/);
