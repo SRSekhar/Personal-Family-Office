@@ -41,17 +41,35 @@ function options(items, valueKey, label) {
 function render() {
     const panel = $('#investment-ledger');
     if (!panel) return;
+    const privateWorkspace = $('#workspace-label')?.textContent.includes('PRIVATE') === true;
+    $('#investment-ledger-demo-note').hidden = privateWorkspace;
+    if (!privateWorkspace) {
+        $('#investment-ledger-error').hidden = true;
+        panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = true; });
+        panel.querySelectorAll('form input').forEach((control) => { control.value = ''; });
+        for (const id of ['investment-account-count', 'investment-instrument-count', 'investment-transaction-count', 'investment-valuation-count']) {
+            $('#' + id).textContent = '0';
+        }
+        for (const id of ['investment-transaction-account', 'investment-transaction-cash-account', 'investment-transaction-instrument', 'investment-valuation-instrument']) {
+            $('#' + id).replaceChildren();
+        }
+        for (const id of ['investment-account-rows', 'investment-instrument-rows', 'investment-transaction-rows', 'investment-valuation-rows']) {
+            $('#' + id).replaceChildren();
+        }
+        return;
+    }
     let ledger;
     try { ledger = readLedger(); }
     catch (error) {
         $('#investment-ledger-error').textContent = error instanceof Error ? error.message : 'Investment data could not be read.';
         $('#investment-ledger-error').hidden = false;
+        for (const id of ['investment-account-rows', 'investment-instrument-rows', 'investment-transaction-rows', 'investment-valuation-rows']) {
+            $('#' + id).replaceChildren();
+        }
         panel.querySelectorAll('form button').forEach((button) => { button.disabled = true; });
         return;
     }
-    const privateWorkspace = $('#workspace-label')?.textContent.includes('PRIVATE');
-    $('#investment-ledger-demo-note').hidden = Boolean(privateWorkspace);
-    panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = !privateWorkspace; });
+    panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = false; });
     $('#investment-ledger-error').hidden = true;
     $('#investment-account-count').textContent = String(ledger.investmentAccounts.length);
     $('#investment-instrument-count').textContent = String(ledger.investmentInstruments.length);
