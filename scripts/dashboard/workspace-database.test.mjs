@@ -18,7 +18,7 @@ async function createDatabase() {
 }
 function payload(overrides = {}) {
     return {
-        schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+        schemaVersion: 6, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
         records: [
             { id: 'record-1', name: 'Savings', category: 'Cash & deposits', type: 'asset', value: 125000 },
             { id: 'record-2', name: 'Home loan', category: 'Home loan', type: 'liability', value: 25000 }
@@ -35,6 +35,7 @@ function payload(overrides = {}) {
             date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-02T00:00:00.000Z' }],
         investmentValuations: [{ instrumentId: 'instrument-1', price: { amount: 110, currency: 'INR' },
             asOf: '2026-10-03T00:00:00.000Z', recordedAt: '2026-10-03T00:00:00.000Z', sourceType: 'manual', sourceName: 'User-entered' }],
+        investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [],
         ...overrides
     };
 }
@@ -43,15 +44,16 @@ afterEach(async () => {
     await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
-describe('SQLite workspace persistence schema v5', () => {
+describe('SQLite workspace persistence schema v6', () => {
     it('persists all nine collections atomically and preserves IDs and valuation provenance after reopen', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const first = new WorkspaceDatabase(path); databases.push(first);
         const saved = first.saveWorkspace(payload());
-        expect(saved).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: true, schemaVersion: 5,
+        expect(saved).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: true, schemaVersion: 6,
             recordCount: 2, goalCount: 0, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
-            investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1 });
+            investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1, investmentCashAccountCount: 0, investmentCashMovementCount: 0,
+            investmentCashTransferCount: 0, investmentCashStatementCount: 0 });
         first.close(); databases.splice(databases.indexOf(first), 1);
         const reopened = new WorkspaceDatabase(path); databases.push(reopened);
         expect(reopened.getWorkspace().payload).toEqual(payload());
@@ -65,6 +67,7 @@ describe('SQLite workspace persistence schema v5', () => {
         const legacy = payload({ schemaVersion: 4 });
         delete legacy.investmentAccounts; delete legacy.investmentInstruments;
         delete legacy.investmentTransactions; delete legacy.investmentValuations;
+        delete legacy.investmentCashAccounts; delete legacy.investmentCashMovements; delete legacy.investmentCashTransfers; delete legacy.investmentCashStatements;
         const raw = new DatabaseSync(path);
         raw.exec(`CREATE TABLE workspace_snapshot (
             singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
@@ -75,7 +78,7 @@ describe('SQLite workspace persistence schema v5', () => {
         raw.close();
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
         const result = migrated.getWorkspace();
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 5, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 6, updatedAt: '2026-10-28T12:00:00.000Z' });
         expect(result.payload.records.map((item) => item.id)).toEqual(['record-1', 'record-2']);
         expect(result.payload.cashFlowEntries).toEqual(legacy.cashFlowEntries);
         expect(result.payload.historicalSnapshots).toEqual(legacy.historicalSnapshots);
@@ -97,6 +100,7 @@ describe('SQLite workspace persistence schema v5', () => {
         const invalidLegacy = payload({ schemaVersion: 4, currency: 'USD' });
         delete invalidLegacy.investmentAccounts; delete invalidLegacy.investmentInstruments;
         delete invalidLegacy.investmentTransactions; delete invalidLegacy.investmentValuations;
+        delete invalidLegacy.investmentCashAccounts; delete invalidLegacy.investmentCashMovements; delete invalidLegacy.investmentCashTransfers; delete invalidLegacy.investmentCashStatements;
         const raw = new DatabaseSync(path);
         raw.exec(`CREATE TABLE workspace_snapshot (
             singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
@@ -132,11 +136,11 @@ describe('SQLite workspace persistence schema v5', () => {
     it('starts empty and reports schema v5', async () => {
         const database = await createDatabase();
         expect(database.getWorkspace()).toBeNull();
-        expect(database.getStatus()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false, schemaVersion: 5, currency: 'INR', updatedAt: null });
+        expect(database.getStatus()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false, schemaVersion: 6, currency: 'INR', updatedAt: null });
     });
     it('rejects incomplete, wrong-currency, duplicate-ID and invalid financial snapshots', async () => {
         const database = await createDatabase();
-        expect(() => database.saveWorkspace({ schemaVersion: 5, currency: 'INR' })).toThrow(WorkspaceValidationError);
+        expect(() => database.saveWorkspace({ schemaVersion: 6, currency: 'INR' })).toThrow(WorkspaceValidationError);
         expect(() => database.saveWorkspace(payload({ currency: 'USD' }))).toThrow(/currency must be INR/i);
         expect(() => database.saveWorkspace(payload({ records: [
             { id: 'same', name: 'Savings', category: 'Cash', type: 'asset', value: 10 },
