@@ -13,6 +13,67 @@ const fixture = () => ({
     investmentCashTransfers: [],
     investmentCashStatements: [{ id: 'statement-1', cashAccountId: 'cash-1', closingBalance: { amount: 1400, currency: 'INR' }, periodStart: date, periodEnd: '2026-01-31T00:00:00.000Z', statementAsOf: '2026-01-31T00:00:00.000Z', recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'Bank statement' }],
     investmentTransactions: []
+    it('includes linked trade settlement and both sides of internal transfers in cash reconciliation', () => {
+        const value = fixture();
+        value.investmentAccounts.push({ id: 'broker-2', currency: 'INR' });
+        value.investmentCashAccounts.push({ id: 'cash-2', investmentAccountId: 'broker-2', name: 'Second cash', currency: 'INR', createdAt: date });
+        value.investmentCashMovements.push({ id: 'opening-2', cashAccountId: 'cash-2', type: 'OpeningBalance',
+            amount: { amount: 50, currency: 'INR' }, effectiveAt: date, recordedAt: date, openingBalanceSource: 'statement' });
+        value.investmentCashTransfers.push({ id: 'transfer-1', sourceCashAccountId: 'cash-1', destinationCashAccountId: 'cash-2',
+            amount: { amount: 25, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z', recordedAt: '2026-01-04T00:00:00.000Z' });
+        value.investmentTransactions.push({ id: 'purchase-1', accountId: 'broker-1', cashAccountId: 'cash-1',
+            cashAmount: { amount: -100, currency: 'INR' }, date: '2026-01-05T00:00:00.000Z', recordedAt: '2026-01-05T00:00:00.000Z' });
+        value.investmentCashStatements.push(
+            { id: 'statement-2', cashAccountId: 'cash-2', closingBalance: { amount: 75, currency: 'INR' },
+                periodStart: date, periodEnd: '2026-01-31T00:00:00.000Z', statementAsOf: '2026-01-31T00:00:00.000Z',
+                recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'Second broker statement' },
+            { id: 'statement-1', cashAccountId: 'cash-1', closingBalance: { amount: 1275, currency: 'INR' },
+                periodStart: date, periodEnd: '2026-01-31T00:00:00.000Z', statementAsOf: '2026-01-31T00:00:00.000Z',
+                recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'First broker statement' }
+        );
+        const first = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
+        const second = reconcileInvestmentCashAccount({ cashAccountId: 'cash-2', ...value });
+        expect(first.status).toBe('reconciled');
+        expect(first.expectedBalance.amount).toBe(1275);
+        expect(second.status).toBe('reconciled');
+        expect(second.expectedBalance.amount).toBe(75);
+    });
+
+    it('reports a statement difference rather than creating an automatic balancing movement', () => {
+        const value = fixture();
+        value.investmentCashStatements[0].closingBalance.amount = 1399;
+        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
+        expect(result.status).toBe('difference');
+        expect(result.difference.amount).toBe(1);
+        expect(value.investmentCashMovements).toHaveLength(3);
+    });
+
+    it('marks reconciliation incomplete when any transaction for the investment account is unlinked', () => {
+        const value = fixture();
+        value.investmentTransactions.push({ id: 'legacy-purchase', accountId: 'broker-1',
+            cashAmount: { amount: -10, currency: 'INR' }, date: '2026-01-05T00:00:00.000Z', recordedAt: '2026-01-05T00:00:00.000Z' });
+        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
+        expect(result.status).toBe('incomplete');
+        expect(result.unmatchedCount).toBe(1);
+    });
+
+    it('rejects corrections without a valid same-account original movement reference', () => {
+        const value = fixture();
+        value.investmentCashMovements.push({ id: 'correction', cashAccountId: 'cash-1', type: 'Correction',
+            amount: { amount: 10, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z',
+            recordedAt: '2026-01-04T00:00:00.000Z', reason: 'Correction', reversesMovementId: 'missing' });
+        expect(() => validateInvestmentCashCollections(value)).toThrow(/unknown original movement/i);
+        value.investmentCashMovements.at(-1).reversesMovementId = 'opening';
+        expect(() => validateInvestmentCashCollections(value)).not.toThrow();
+    });
+
+    it('does not reconcile against a statement recorded after the requested point-in-time', () => {
+        const value = fixture();
+        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-01-15T00:00:00.000Z' });
+        expect(result.status).toBe('incomplete');
+        expect(result.statementBalance).toBeNull();
+    });
+
 });
 
 describe('investment cash ledger', () => {
