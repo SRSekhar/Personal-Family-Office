@@ -35,11 +35,9 @@ export function validateBackupPayload(payload, expectedCurrency) {
     const budgets = includesCashFlow ? validateCashFlowBudgets(payload.budgets) : [];
     const historicalSnapshots = includesHistoricalSnapshots ? validateHistoricalSnapshots(payload.historicalSnapshots, expectedCurrency) : [];
     const investmentLedger = [5, 6].includes(payload.schemaVersion) ? validateInvestmentLedgerCollections(payload) : null;
-    const cashLedger = payload.schemaVersion === 6 ? validateInvestmentCashCollections(payload) : {
-        investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
-    };
+    const cashLedger = payload.schemaVersion === 6 ? validateInvestmentCashCollections(payload) : null;
     return {
-        records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...cashLedger,
+        records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}),
         includesGoals: [2, 3, 4, 5, 6].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
         ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
         ...(payload.schemaVersion === 6 ? { includesInvestmentCashLedger: true } : {})
