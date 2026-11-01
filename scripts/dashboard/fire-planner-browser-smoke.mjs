@@ -1245,9 +1245,21 @@ try {
     await page.locator('#investment-cash-statement-form button[type="submit"]').click();
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /incomplete/,
         'a legacy transaction without a settlement link must make cash reconciliation incomplete');
+    const legacyDividendBeforeLink = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]').find((item) => item.type === 'Dividend'));
     const legacyDividendRow = page.locator('#investment-cash-unlinked-transaction-rows tr').filter({ hasText: 'Dividend' });
     await legacyDividendRow.locator('select').selectOption({ index: 1 });
     await legacyDividendRow.locator('button[data-link-transaction]').click();
+    const legacyDividendAfterLink = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]').find((item) => item.type === 'Dividend'));
+    assert.deepEqual({
+        cashAmount: legacyDividendAfterLink.cashAmount, date: legacyDividendAfterLink.date,
+        recordedAt: legacyDividendAfterLink.recordedAt, quantity: legacyDividendAfterLink.quantity,
+        unitPrice: legacyDividendAfterLink.unitPrice
+    }, {
+        cashAmount: legacyDividendBeforeLink.cashAmount, date: legacyDividendBeforeLink.date,
+        recordedAt: legacyDividendBeforeLink.recordedAt, quantity: legacyDividendBeforeLink.quantity,
+        unitPrice: legacyDividendBeforeLink.unitPrice
+    }, 'linking a historical transaction must preserve its original financial event');
+    assert.ok(legacyDividendAfterLink.cashAccountId, 'the historical dividend should now have an explicit settlement account');
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /reconciled.*405/,
         'linking the historical dividend settlement must reconcile the cash statement without changing transaction values');
     assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Unavailable[\s\S]*no eligible valuation/i,
@@ -1294,7 +1306,7 @@ try {
     }));
     assert.equal(investmentStorage.accounts.length, 1);
     assert.equal(investmentStorage.instruments.length, 1);
-    assert.equal(investmentStorage.transactions.length, 1);
+    assert.equal(investmentStorage.transactions.length, 2);
     assert.equal(investmentStorage.valuations.length, 1);
     assert.equal(investmentStorage.cashAccounts.length, 1);
     assert.equal(investmentStorage.cashMovements.length, 3);
