@@ -234,3 +234,14 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Added tests for v5→v6 migration, recovery artifact exactness/permissions, invalid-migration rollback, v6 backup validation and legacy compatibility. Latest CI is not yet verified.
 - No cash-entry UI or end-to-end portfolio XIRR is delivered yet. Next: verify CI, add private-workspace cash workflows, then reconciliation/reporting and XIRR with complete terminal-value checks.
 - PRs #425–#429 remain unmerged; do not merge without explicit user approval.
+
+
+## Latest Handoff — IPM-04 cash-ledger UI (2026-11-01)
+
+- Branch: `feature/investment-cash-ledger-ui`, stacked on schema-v6 PR #429 → cash engine PR #428 → design PR #427 → portfolio PR #426 → persistence PR #425.
+- Added `apps/dashboard/investment-cash-workspace.js` and UI forms in `apps/dashboard/index.html` for explicit cash sub-accounts, signed cash movements, correction references, same-currency internal transfers and statement observations.
+- New investment transactions can optionally link to an existing cash sub-account belonging to the same investment account and currency. Unlinked historical transactions remain unchanged and reconciliation reports them as incomplete.
+- Cash account rows show reconciliation status; movement, transfer and statement histories are append-only. Browser writes cover the four separate schema-v6 localStorage collections and attempt rollback if one write fails.
+- Chromium smoke now exercises a synthetic cash account with explicit opening balance, contribution, withdrawal and linked purchase, then verifies the statement balance reconciles. No personal financial records are in the fixtures.
+- Next: integrate external-flow-only XIRR with existing calculator and terminal value (valued positions + reconciled cash), by currency. Missing data must make XIRR unavailable, never partial.
+- CI status must be checked for this branch head before claiming acceptance. PRs #425–#430 remain unmerged; no merge permission has been granted.
