@@ -2541,6 +2541,8 @@ $('#view-all-button').addEventListener('click', () => {
     renderRecords();
 });
 $('#database-save-button').addEventListener('click', async () => {
+    // An explicit save supersedes a pending debounce or automatic retry.
+    clearTimeout(databaseAutoSaveTimer);
     if (databaseWriteConflict) {
         const confirmed = window.confirm('The SQLite database has a newer snapshot from another tab or process. Replace that newer database snapshot with this browser workspace? Export a backup first if you need to preserve both versions.');
         if (!confirmed) return;
