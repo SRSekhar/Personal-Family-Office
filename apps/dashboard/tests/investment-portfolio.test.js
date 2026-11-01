@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeInvestmentPortfolio } from '../investment-portfolio.js';
+import { analyzeInvestmentPortfolio, analyzeInvestmentPortfolioPerformance } from '../investment-portfolio.js';
 const asOfDate = new Date('2026-03-31T23:59:59.999Z');
 function fixture() {
     return { accounts: [{ id: 'a1', name: 'Brokerage', currency: 'INR' }], instruments: [{ id: 'i1', name: 'Example equity', currency: 'INR' }],
@@ -40,5 +40,73 @@ describe('investment portfolio FIFO projection', () => {
     it('rejects currency mismatches rather than converting silently', () => {
         const input = fixture(); input.accounts[0].currency = 'USD';
         expect(() => analyzeInvestmentPortfolio({ ...input, asOfDate })).toThrow(/currencies must match/i);
+    });
+});
+
+function performanceFixture() {
+    const input = fixture();
+    input.transactions = input.transactions.map((item) => ({ ...item, cashAccountId: 'cash-1' }));
+    input.investmentCashAccounts = [{ id: 'cash-1', investmentAccountId: 'a1', name: 'Broker cash', currency: 'INR', createdAt: '2026-01-01T00:00:00.000Z' }];
+    input.investmentCashMovements = [
+        { id: 'opening', cashAccountId: 'cash-1', type: 'OpeningBalance', amount: { amount: 10000, currency: 'INR' },
+            effectiveAt: '2026-01-01T00:00:00.000Z', recordedAt: '2026-01-01T00:00:00.000Z', openingBalanceSource: 'statement' },
+        { id: 'contribution', cashAccountId: 'cash-1', type: 'ExternalContribution', amount: { amount: 1000, currency: 'INR' },
+            effectiveAt: '2026-01-02T00:00:00.000Z', recordedAt: '2026-01-02T00:00:00.000Z' },
+        { id: 'withdrawal', cashAccountId: 'cash-1', type: 'ExternalWithdrawal', amount: { amount: -100, currency: 'INR' },
+            effectiveAt: '2026-01-03T00:00:00.000Z', recordedAt: '2026-01-03T00:00:00.000Z' }
+    ];
+    input.investmentCashTransfers = [];
+    input.investmentCashStatements = [{ id: 'statement', cashAccountId: 'cash-1', closingBalance: { amount: 9910, currency: 'INR' },
+        periodStart: '2026-01-01T00:00:00.000Z', periodEnd: '2026-03-31T00:00:00.000Z',
+        statementAsOf: '2026-03-31T00:00:00.000Z', recordedAt: '2026-03-31T12:00:00.000Z', sourceName: 'Broker statement' }];
+    return input;
+}
+const recordedAt = new Date('2026-03-31T23:59:59.999Z');
+
+describe('investment portfolio money-weighted performance', () => {
+    it('calculates XIRR from external flows and complete terminal holdings plus reconciled cash', () => {
+        const input = performanceFixture();
+        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt });
+        expect(result).toHaveLength(1);
+        expect(result[0]).toMatchObject({ currency: 'INR', status: 'available', terminalValue: 11190,
+            cashBalance: 9910, holdingsValue: 1280, cashFlowCount: 4 });
+        expect(Number.isFinite(result[0].xirr)).toBe(true);
+    });
+
+    it('does not calculate a partial XIRR when an open position has no eligible valuation', () => {
+        const input = performanceFixture();
+        input.valuations = [];
+        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0]).toMatchObject({
+            status: 'unavailable', xirr: null, reason: expect.stringMatching(/no eligible valuation/i)
+        });
+    });
+
+    it('does not calculate a partial XIRR when cash reconciliation is incomplete', () => {
+        const input = performanceFixture();
+        input.investmentCashStatements = [];
+        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0]).toMatchObject({
+            status: 'unavailable', xirr: null, reason: expect.stringMatching(/no statement/i)
+        });
+    });
+
+    it('requires every visible investment transaction to link to an explicit cash account', () => {
+        const input = performanceFixture();
+        delete input.transactions[0].cashAccountId;
+        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0]).toMatchObject({
+            status: 'unavailable', xirr: null, reason: expect.stringMatching(/not linked/i)
+        });
+    });
+
+    it('adds cash movements and trade settlements after the latest statement to terminal cash', () => {
+        const input = performanceFixture();
+        input.investmentCashStatements[0].statementAsOf = '2026-03-01T00:00:00.000Z';
+        input.investmentCashStatements[0].periodEnd = '2026-03-01T00:00:00.000Z';
+        input.investmentCashStatements[0].closingBalance.amount = 10000;
+        input.investmentCashMovements.push({ id: 'late-contribution', cashAccountId: 'cash-1', type: 'ExternalContribution',
+            amount: { amount: 200, currency: 'INR' }, effectiveAt: '2026-03-20T00:00:00.000Z', recordedAt: '2026-03-20T00:00:00.000Z' });
+        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0];
+        expect(result.status).toBe('available');
+        expect(result.cashBalance).toBe(10200);
+        expect(result.terminalValue).toBe(11480);
     });
 });
