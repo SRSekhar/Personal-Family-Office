@@ -49,8 +49,8 @@ function persistCash(cashCollections) {
                 return true;
             } catch { return false; }
         }).every(Boolean);
-        if (!restored) throw new Error('Cash-ledger save failed and browser-storage rollback was incomplete. Stop editing and export/recover the workspace.');
-        throw new Error(error instanceof Error ? error.message : 'Cash-ledger data could not be saved. Previous values were restored.');
+        if (!restored) throw new Error('Cash-ledger save failed and browser-storage rollback was incomplete. Stop editing and export/recover the workspace.', { cause: error });
+        throw new Error(error instanceof Error ? error.message : 'Cash-ledger data could not be saved. Previous values were restored.', { cause: error });
     }
     window.dispatchEvent(new Event('pfo:investment-updated'));
     window.dispatchEvent(new Event('pfo:workspace-updated'));
