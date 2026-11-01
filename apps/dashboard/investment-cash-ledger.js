@@ -181,8 +181,6 @@ export function reconcileInvestmentCashAccount({ cashAccountId, investmentCashAc
 /** External investor flows only. Transfers and instrument transactions are intentionally excluded. */
 export function buildInvestmentExternalCashFlows({ cashAccountId, investmentCashMovements, investmentCashTransfers = [], recordedAt }) {
     timestamp(recordedAt, 'Cash-flow recordedAt');
-    const transferIds = new Set(investmentCashTransfers.filter((item) => item.recordedAt <= recordedAt).map((item) => item.id));
-    void transferIds;
     return investmentCashMovements.filter((item) => item.cashAccountId === cashAccountId && item.recordedAt <= recordedAt
         && (item.type === 'OpeningBalance' || item.type === 'ExternalContribution' || item.type === 'ExternalWithdrawal'))
         .map((item) => ({ date: new Date(item.effectiveAt), amount: -item.amount.amount, currency: item.amount.currency, sourceId: item.id }))
