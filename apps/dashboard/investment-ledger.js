@@ -81,6 +81,7 @@ export function validateInvestmentLedgerCollections(input) {
         if (cashAmount.currency !== account.currency || cashAmount.currency !== instrument.currency) throw new Error('Investment transaction currencies must match its account and instrument.');
         const date = requireDate(item.date, 'Investment transaction date');
         const recordedAt = requireDate(item.recordedAt, 'Investment transaction recordedAt');
+        const cashAccountId = optionalText(item.cashAccountId, 'Investment transaction cash account ID');
         const trade = item.type === 'Purchase' || item.type === 'Sale';
         let quantity; let unitPrice;
         if (trade) {
@@ -102,7 +103,7 @@ export function validateInvestmentLedgerCollections(input) {
         if ((item.type === 'Dividend' || item.type === 'Interest') && cashAmount.amount <= 0) throw new Error('Dividend and interest cash amounts must be positive.');
         const externalReference = optionalText(item.externalReference, 'External reference');
         if (item.notes !== undefined && typeof item.notes !== 'string') throw new Error('Investment transaction notes must be text.');
-        return { id, accountId, instrumentId, type: item.type, cashAmount, date, recordedAt,
+        return { id, accountId, instrumentId, type: item.type, cashAmount, date, recordedAt, ...(cashAccountId === undefined ? {} : { cashAccountId }),
             ...(quantity === undefined ? {} : { quantity }), ...(unitPrice === undefined ? {} : { unitPrice }),
             ...(externalReference === undefined ? {} : { externalReference }),
             ...(item.notes === undefined ? {} : { notes: item.notes }) };
