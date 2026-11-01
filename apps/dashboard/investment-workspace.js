@@ -1,5 +1,6 @@
 import { analyzeInvestmentPerformanceMath } from './calculators-runtime/InvestmentPerformanceMath.js';
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
+import { validateInvestmentCashCollections } from './investment-cash-ledger.js';
 import { initializeInvestmentPortfolioView } from './investment-portfolio.js';
 import { initializeInvestmentCashWorkspace } from './investment-cash-workspace.js';
 
@@ -8,6 +9,12 @@ const keys = {
     investmentInstruments: 'pfo-os.investment-instruments.v1',
     investmentTransactions: 'pfo-os.investment-transactions.v1',
     investmentValuations: 'pfo-os.investment-valuations.v1'
+};
+const cashKeys = {
+    investmentCashAccounts: 'pfo-os.investment-cash-accounts.v1',
+    investmentCashMovements: 'pfo-os.investment-cash-movements.v1',
+    investmentCashTransfers: 'pfo-os.investment-cash-transfers.v1',
+    investmentCashStatements: 'pfo-os.investment-cash-statements.v1'
 };
 const accountTypes = ['Brokerage', 'MutualFund', 'Retirement', 'ProvidentFund', 'FixedDeposit', 'Other'];
 const instrumentTypes = ['Equity', 'MutualFund', 'ETF', 'Bond', 'FixedDeposit', 'PublicProvidentFund', 'NationalPensionSystem', 'EmployeesProvidentFund', 'Gold', 'Silver', 'RealEstateInvestment', 'Cryptocurrency', 'AlternativeInvestment', 'Other'];
@@ -27,6 +34,16 @@ function readLedger() {
         collections[name] = parsed;
     }
     return validateInvestmentLedgerCollections(collections);
+}
+function readCashAccounts(ledger) {
+    const collections = {};
+    for (const [name, key] of Object.entries(cashKeys)) {
+        const raw = localStorage.getItem(key);
+        const parsed = raw === null ? [] : JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error('Saved ' + name + ' data is not an array.');
+        collections[name] = parsed;
+    }
+    return validateInvestmentCashCollections({ ...ledger, ...collections }).investmentCashAccounts;
 }
 function saveCollection(name, items) {
     const current = readLedger();
@@ -81,11 +98,8 @@ function render() {
         $('#investment-transaction-account').value = previousAccountId;
     }
     let cashAccounts = [];
-    try {
-        const cashAccountsRaw = localStorage.getItem('pfo-os.investment-cash-accounts.v1');
-        const parsedCashAccounts = cashAccountsRaw === null ? [] : JSON.parse(cashAccountsRaw);
-        if (Array.isArray(parsedCashAccounts)) cashAccounts = parsedCashAccounts;
-    } catch { /* the cash-ledger panel reports unreadable cash storage without blocking the rest of the ledger */ }
+    try { cashAccounts = readCashAccounts(ledger); }
+    catch { /* the cash-ledger panel reports unreadable cash storage without blocking the rest of the ledger */ }
     const selectedInvestmentAccountId = $('#investment-transaction-account').value || ledger.investmentAccounts[0]?.id;
     const linkedCashAccounts = cashAccounts.filter((item) => item.investmentAccountId === selectedInvestmentAccountId);
     const previousCashAccountId = $('#investment-transaction-cash-account').value;
@@ -165,7 +179,7 @@ export function initializeInvestmentWorkspace() {
         if (account.currency !== instrument.currency) throw new Error('Account and instrument currencies must match. FX conversion is not supported.');
         const amount = Number(form.get('cashAmount'));
         const cashAccountId = String(form.get('cashAccountId') ?? '').trim();
-        const cashAccount = cashAccountId ? JSON.parse(localStorage.getItem('pfo-os.investment-cash-accounts.v1') ?? '[]').find((item) => item.id === cashAccountId) : null;
+        const cashAccount = cashAccountId ? readCashAccounts(current).find((item) => item.id === cashAccountId) : null;
         if (cashAccountId && (!cashAccount || cashAccount.investmentAccountId !== account.id || cashAccount.currency !== account.currency)) {
             throw new Error('Select a cash sub-account belonging to the chosen investment account and currency.');
         }
