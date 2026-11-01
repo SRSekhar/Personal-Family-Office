@@ -66,9 +66,9 @@ describe('local dashboard preview server', () => {
         expect(missing.status).toBe(404);
 
         const payload = {
-            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 6, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
@@ -91,7 +91,7 @@ describe('local dashboard preview server', () => {
         const origin = await startServer(root, { databasePath: join(root, '..', 'concurrency-workspace.sqlite') });
         // Two browser tabs read the same baseline snapshot and updatedAt token.
         const payload = {
-            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 6, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
             goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [],
             investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
@@ -106,7 +106,8 @@ describe('local dashboard preview server', () => {
                 instrumentId: 'instrument-1', price: { amount: 110, currency: 'INR' },
                 asOf: '2026-10-03T00:00:00.000Z', recordedAt: '2026-10-03T00:00:00.000Z',
                 sourceType: 'manual', sourceName: 'User-entered'
-            }]
+            }],
+            investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
         };
         const firstSave = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -143,9 +144,9 @@ describe('local dashboard preview server', () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'protected-workspace.sqlite') });
         const payload = {
-            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 6, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
@@ -172,9 +173,9 @@ describe('local dashboard preview server', () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'request-boundary.sqlite') });
         const payload = {
-            schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 6, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-stable', name: 'Savings', category: 'Cash', type: 'asset', value: 123456 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
         };
         const initial = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
