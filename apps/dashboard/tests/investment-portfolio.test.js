@@ -113,12 +113,12 @@ describe('investment portfolio money-weighted performance', () => {
         const input = performanceFixture();
         input.investmentCashStatements[0].statementAsOf = '2026-03-01T00:00:00.000Z';
         input.investmentCashStatements[0].periodEnd = '2026-03-01T00:00:00.000Z';
-        input.investmentCashStatements[0].closingBalance.amount = 10000;
+        input.investmentCashStatements[0].closingBalance.amount = 10500;
         input.investmentCashMovements.push({ id: 'late-contribution', cashAccountId: 'cash-1', type: 'ExternalContribution',
             amount: { amount: 200, currency: 'INR' }, effectiveAt: '2026-03-20T00:00:00.000Z', recordedAt: '2026-03-20T00:00:00.000Z' });
         const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt, performanceCalculator: analyzeInvestmentPerformanceMath })[0];
         expect(result.status).toBe('available');
-        expect(result.cashBalance).toBe(10213);
-        expect(result.terminalValue).toBe(11493);
+        expect(result.cashBalance).toBe(10713);
+        expect(result.terminalValue).toBe(11993);
     });
 });
