@@ -238,6 +238,9 @@ export function analyzeInvestmentPortfolioPerformance({
         || !(recordedAt instanceof Date) || !Number.isFinite(recordedAt.getTime())) {
         throw new RangeError('Portfolio performance requires valid as-of and recorded-at dates.');
     }
+    if (asOfDate.toISOString().slice(0, 10) > recordedAt.toISOString().slice(0, 10)) {
+        throw new RangeError('Portfolio XIRR cannot use a future as-of date.');
+    }
     const ledger = validateInvestmentLedgerCollections({ investmentAccounts: accounts, investmentInstruments: instruments,
         investmentTransactions: transactions, investmentValuations: valuations });
     const cash = validateInvestmentCashCollections({ ...ledger, investmentCashAccounts, investmentCashMovements,
