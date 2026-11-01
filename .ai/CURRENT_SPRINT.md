@@ -310,3 +310,13 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Preserved optional `cashAccountId` on existing investment transactions without requiring it for schema-v5 compatibility; explicit cash validation checks ownership and currency when supplied.
 - Tests cover explicit opening balances, reconciliation, incomplete missing-opening state, contribution/withdrawal/XIRR signs, opening capital, cross-currency transfer rejection and recorded-at backfill cutoffs.
 - Not yet wired to schema-v6 persistence or dashboard UI. Next delivery is schema-v6 backup/SQLite integration with transactional pre-migration recovery and v1-v5 backup compatibility; then cash workflows and portfolio XIRR.
+
+
+## 2026-11-01 — IPM-04 schema-v6 persistence increment
+
+- Added schema-v6 backup validation and additive SQLite v5 → v6 migration for investment cash accounts, movements, transfers and statements.
+- The migration first writes a schema-v5 recovery JSON artifact (exclusive create, fsync, POSIX 0600), then transactionally replaces the snapshot table. Existing investment records and IDs are preserved; new cash collections start empty and are never inferred.
+- v1-v5 JSON backup compatibility is retained. A v5 import does not replace cash-ledger data because it did not contain those collections.
+- Browser JSON export/import, local storage and SQLite save payloads now include schema-v6 cash collections; restore rollback snapshots include the additional storage keys.
+- Added tests for v5 migration, v5 recovery artifact, rollback on invalid migration, v6 validation and legacy backup compatibility. CI must confirm all changes before acceptance.
+- Next: cash ledger entry forms, statement reconciliation UI, and complete per-currency portfolio XIRR with terminal value only when both cash and holdings are complete.

@@ -1232,7 +1232,11 @@ try {
         accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
         instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
         transactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
-        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]'),
+        cashAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]'),
+        cashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
+        cashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
+        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
     }));
     assert.equal(investmentStorage.accounts.length, 1);
     assert.equal(investmentStorage.instruments.length, 1);
@@ -1247,7 +1251,7 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 5, 'private JSON backup should use schema version 5 with investment ledger collections');
+    assert.equal(backup.schemaVersion, 6, 'private JSON backup should use schema version 6 with investment cash-ledger collections');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -1257,15 +1261,18 @@ try {
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
     for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
-        assert.ok(Array.isArray(backup[collection]), `schema-v5 backup should include ${collection}`);
-        assert.equal(backup[collection].length, 1, `schema-v5 backup should preserve the saved ${collection}`);
+        assert.ok(Array.isArray(backup[collection]), `schema-v6 backup should include ${collection}`);
+        assert.equal(backup[collection].length, 1, `schema-v6 backup should preserve the saved ${collection}`);
+    }
+    for (const collection of ['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements']) {
+        assert.deepEqual(backup[collection], [], `schema-v6 backup should include an empty ${collection} collection until explicitly entered`);
     }
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
-        name: 'investment-ledger-v5-roundtrip.json',
+        name: 'investment-ledger-v6-roundtrip.json',
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(backup))
     });
@@ -1280,11 +1287,15 @@ try {
         accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
         instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
         transactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
-        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]'),
+        cashAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]'),
+        cashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
+        cashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
+        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
     }));
     assert.deepEqual(restoredInvestmentStorage, investmentStorage,
-        'schema-v5 JSON restore must round-trip all investment ledger collections without changing IDs or values');
-    process.stdout.write('PASS: schema-v5 JSON backup restore round-trips accounts, instruments, transactions and valuations.\n');
+        'schema-v6 JSON restore must round-trip all investment ledger collections without changing IDs or values');
+    process.stdout.write('PASS: schema-v6 JSON backup restore round-trips accounts, instruments, transactions and valuations.\n');
 
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
@@ -1543,35 +1554,47 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 5, 'private backup should use schema v5 and include saved goals, history, and investment ledger');
+    assert.equal(goalBackup.schemaVersion, 6, 'private backup should use schema v6 and include saved goals, history, and investment cash ledger');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
     assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
     assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private schema-v5 backup includes records, goals, cash flow, budgets, history, and investment ledger.\\n');
+    process.stdout.write('PASS: private schema-v6 backup includes records, goals, cash flow, budgets, history, and investment ledger.\\n');
 
     const restoreFailureCases = [
         { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
         { key: 'pfo-os.dashboard.goals.v1', message: 'Could not save financial goals.' },
         { key: 'pfo-os.cash-flow.v1', message: 'Could not save cash-flow transactions.' },
         { key: 'pfo-os.cash-flow-budgets.v1', message: 'Could not save category budgets.' },
-        { key: 'pfo-os.historical-snapshots.v1', message: 'Could not save historical snapshots.' }
+        { key: 'pfo-os.historical-snapshots.v1', message: 'Could not save historical snapshots.' },
+        { key: 'pfo-os.investment-cash-accounts.v1', message: 'Could not save investmentCashAccounts to browser storage.' },
+        { key: 'pfo-os.investment-cash-movements.v1', message: 'Could not save investmentCashMovements to browser storage.' },
+        { key: 'pfo-os.investment-cash-transfers.v1', message: 'Could not save investmentCashTransfers to browser storage.' },
+        { key: 'pfo-os.investment-cash-statements.v1', message: 'Could not save investmentCashStatements to browser storage.' }
     ];
     const readWorkspaceStorage = () => page.evaluate(() => ({
         records: globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1'),
         goals: globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1'),
         cashFlow: globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
         budgets: globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
-        history: globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1')
+        history: globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'),
+        cashAccounts: globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1'),
+        cashMovements: globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1'),
+        cashTransfers: globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1'),
+        cashStatements: globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1')
     }));
     const storageCollectionNames = {
         'pfo-os.dashboard.private.v1': 'records',
         'pfo-os.dashboard.goals.v1': 'goals',
         'pfo-os.cash-flow.v1': 'cashFlow',
         'pfo-os.cash-flow-budgets.v1': 'budgets',
-        'pfo-os.historical-snapshots.v1': 'history'
+        'pfo-os.historical-snapshots.v1': 'history',
+        'pfo-os.investment-cash-accounts.v1': 'cashAccounts',
+        'pfo-os.investment-cash-movements.v1': 'cashMovements',
+        'pfo-os.investment-cash-transfers.v1': 'cashTransfers',
+        'pfo-os.investment-cash-statements.v1': 'cashStatements'
     };
     for (const failureCase of restoreFailureCases) {
         const priorWorkspace = await readWorkspaceStorage();
@@ -2555,7 +2578,7 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 5, 'SQLite backup should retain the supported full-workspace schema version');
+    assert.equal(databaseBackup.schemaVersion, 6, 'SQLite backup should retain the supported full-workspace schema version');
     for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
@@ -2580,7 +2603,11 @@ try {
         investmentAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
         investmentInstruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
         investmentTransactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
-        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]'),
+        investmentCashAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]'),
+        investmentCashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
+        investmentCashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
+        investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -2600,7 +2627,11 @@ try {
         investmentAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
         investmentInstruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
         investmentTransactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
-        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]'),
+        investmentCashAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]'),
+        investmentCashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
+        investmentCashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
+        investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
         'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nine collections');

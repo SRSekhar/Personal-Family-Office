@@ -249,3 +249,12 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - Reconciliation requires explicit opening balance and statement evidence, respects effective/recorded timestamps, counts unlinked investment transactions as incomplete, and never inserts a balancing adjustment.
 - External investor cash-flow projection treats opening capital/contributions as negative and withdrawals as positive; trade and income/expense transactions plus internal transfers are excluded.
 - Scope remains partial: no schema-v6 SQLite migration, backup/export integration, cash UI, terminal valuation aggregation or portfolio-wide XIRR calculation is delivered in this increment.
+
+
+## 2026-11-01 — IPM-04 schema-v6 persistence increment
+
+- Added schema-v6 validation and SQLite v5→v6 migration for four investment cash collections.
+- Migration preserves existing v5 records, writes a portable pre-v6 schema-v5 recovery artifact before DDL, and applies the snapshot-table replacement transactionally. Invalid migration data leaves the v5 table unchanged.
+- No cash accounts, opening balances or external flows are generated during migration. New cash collections are explicitly empty pending user entry.
+- Updated browser JSON backup/restore and SQLite persistence payloads to carry the cash collections. v1-v5 backup import remains supported, and v5 backups do not claim to include cash ledger records.
+- Added migration and backup compatibility tests. CI verification is pending; no merge or deployment is claimed.

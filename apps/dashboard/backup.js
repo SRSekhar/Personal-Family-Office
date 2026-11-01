@@ -3,13 +3,15 @@ import { summarizeCashFlow, validateCashFlowEntries, validateCashFlowBudgets } f
 import { calculateFinancialTotals } from './financial-totals.js';
 import { validateHistoricalSnapshots } from './historical-snapshots.js';
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
+import { validateInvestmentCashCollections } from './investment-cash-ledger.js';
 
 export function validateBackupPayload(payload, expectedCurrency) {
-    if (!payload || ![1, 2, 3, 4, 5].includes(payload.schemaVersion) || !Array.isArray(payload.records)
-        || ([2, 3, 4, 5].includes(payload.schemaVersion) && !Array.isArray(payload.goals))
-        || ([3, 4, 5].includes(payload.schemaVersion) && (!Array.isArray(payload.cashFlowEntries) || !Array.isArray(payload.budgets)))
-        || ([4, 5].includes(payload.schemaVersion) && !Array.isArray(payload.historicalSnapshots))
-        || (payload.schemaVersion === 5 && !['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations'].every((key) => Array.isArray(payload[key])))) {
+    if (!payload || ![1, 2, 3, 4, 5, 6].includes(payload.schemaVersion) || !Array.isArray(payload.records)
+        || ([2, 3, 4, 5, 6].includes(payload.schemaVersion) && !Array.isArray(payload.goals))
+        || ([3, 4, 5, 6].includes(payload.schemaVersion) && (!Array.isArray(payload.cashFlowEntries) || !Array.isArray(payload.budgets)))
+        || ([4, 5, 6].includes(payload.schemaVersion) && !Array.isArray(payload.historicalSnapshots))
+        || ([5, 6].includes(payload.schemaVersion) && !['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations'].every((key) => Array.isArray(payload[key])))
+        || (payload.schemaVersion === 6 && !['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements'].every((key) => Array.isArray(payload[key])))) {
         throw new Error('Unsupported backup format.');
     }
     if (payload.currency !== expectedCurrency) throw new Error(`Backup currency must be ${expectedCurrency}; this file uses ${String(payload.currency ?? 'no currency')}. No records were imported.`);
@@ -21,22 +23,24 @@ export function validateBackupPayload(payload, expectedCurrency) {
     calculateFinancialTotals(records);
     const goals = [];
     const seenGoalIds = new Set();
-    if ([2, 3, 4, 5].includes(payload.schemaVersion)) for (const goal of payload.goals) {
+    if ([2, 3, 4, 5, 6].includes(payload.schemaVersion)) for (const goal of payload.goals) {
         if (!isValidSavedGoal(goal) || seenGoalIds.has(goal.id)) throw new Error('The backup contains an invalid financial goal.');
         seenGoalIds.add(goal.id);
         goals.push({ id: goal.id, name: goal.name.trim(), targetAmount: goal.targetAmount, currentAmount: goal.currentAmount,
             targetDate: goal.targetDate, createdAt: goal.createdAt, updatedAt: goal.updatedAt });
     }
-    const includesCashFlow = [3, 4, 5].includes(payload.schemaVersion);
-    const includesHistoricalSnapshots = [4, 5].includes(payload.schemaVersion);
+    const includesCashFlow = [3, 4, 5, 6].includes(payload.schemaVersion);
+    const includesHistoricalSnapshots = [4, 5, 6].includes(payload.schemaVersion);
     const cashFlowEntries = includesCashFlow ? validateCashFlowEntries(payload.cashFlowEntries) : [];
     const budgets = includesCashFlow ? validateCashFlowBudgets(payload.budgets) : [];
     const historicalSnapshots = includesHistoricalSnapshots ? validateHistoricalSnapshots(payload.historicalSnapshots, expectedCurrency) : [];
-    const investmentLedger = payload.schemaVersion === 5 ? validateInvestmentLedgerCollections(payload) : null;
+    const investmentLedger = [5, 6].includes(payload.schemaVersion) ? validateInvestmentLedgerCollections(payload) : null;
+    const cashLedger = payload.schemaVersion === 6 ? validateInvestmentCashCollections(payload) : null;
     return {
-        records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}),
-        includesGoals: [2, 3, 4, 5].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
-        ...(investmentLedger ? { includesInvestmentLedger: true } : {})
+        records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}),
+        includesGoals: [2, 3, 4, 5, 6].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
+        ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
+        ...(payload.schemaVersion === 6 ? { includesInvestmentCashLedger: true } : {})
     };
 }
 
@@ -55,6 +59,11 @@ export function summarizeValidatedBackup(backup) {
         cashFlowNet: backup.includesCashFlow ? cashFlow.net : null, budgetCount: backup.includesCashFlow ? backup.budgets.length : null,
         includesHistoricalSnapshots: backup.includesHistoricalSnapshots,
         historicalSnapshotCount: backup.includesHistoricalSnapshots ? backup.historicalSnapshots.length : null,
+        ...(backup.includesInvestmentCashLedger === true ? {
+            includesInvestmentCashLedger: true, investmentCashAccountCount: backup.investmentCashAccounts.length,
+            investmentCashMovementCount: backup.investmentCashMovements.length, investmentCashTransferCount: backup.investmentCashTransfers.length,
+            investmentCashStatementCount: backup.investmentCashStatements.length
+        } : {}),
         ...(backup.includesInvestmentLedger === true ? {
             includesInvestmentLedger: true, investmentAccountCount: backup.investmentAccounts.length,
             investmentInstrumentCount: backup.investmentInstruments.length, investmentTransactionCount: backup.investmentTransactions.length,
