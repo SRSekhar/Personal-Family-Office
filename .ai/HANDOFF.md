@@ -332,3 +332,14 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Browser smoke verifies row error download and disabled confirmation, then valid import, reload persistence, byte-identical export/re-import, duplicate append rejection, storage rollback and oversized file rejection.
 - Remaining issue #431 scope: external-provider column mapping (blocked on actual redacted samples and confirmed semantics) and further SQLite autosave failure/consistency acceptance. Browser localStorage rollback is not atomic with optional/debounced SQLite autosave.
 - PR #432 remains draft/open/unmerged. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — SQLite failure recovery verified (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432 stacked on PR #430. Verified code head: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`.
+- Added a database-level rollback test: an injected SQLite update trigger fails the write; the previous committed workspace payload and updatedAt timestamp remain unchanged.
+- Added Chromium smoke for a transient 503 during automatic SQLite persistence. The failed write leaves browser localStorage unchanged, does not partially update SQLite, and a subsequent edit triggers a successful full snapshot save containing both edits.
+- CI run `41312944949` (1397) passed: dependency audit, repository checks, lint, typecheck, package build, 80 test files / 715 tests, Chromium installation and complete real-browser smoke. Dashboard packaging run `41312944982` (727) passed; Pages publish skipped for PR.
+- Row-level CSV error reports are verified. Remaining issue #431 acceptance: provider-specific mapping needs actual redacted source CSVs and confirmed transaction/sign conventions; independent Secret Scan verification was not available in the PR-triggered workflow list.
+- Browser localStorage and SQLite are separate persistence systems. Tests prove browser-data retention, SQLite transaction rollback and retry recovery, not cross-store atomicity.
+- PR #432 remains draft/open/unmerged. Keep dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
