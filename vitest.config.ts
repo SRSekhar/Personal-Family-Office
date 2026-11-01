@@ -9,7 +9,7 @@ export default defineConfig({
             {
                 test: {
                     name: 'dashboard-app',
-                    include: ['apps/dashboard/tests/**/*.test.js']
+                    include: ['apps/dashboard/**/*.test.js']
                 }
             },
             'scripts/dashboard'
