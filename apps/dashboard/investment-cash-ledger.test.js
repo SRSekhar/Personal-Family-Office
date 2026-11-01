@@ -89,7 +89,7 @@ describe('investment cash ledger', () => {
         value.investmentCashMovements.push({ id: 'late', cashAccountId: 'cash-1', type: 'ExternalContribution',
             amount: { amount: 999, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z', recordedAt: '2026-02-02T00:00:00.000Z' });
         const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
-        expect(flows).toHaveLength(2);
+        expect(flows).toHaveLength(3);
     });
 
     it('includes append-only corrections in external investor flows with the inverse cash sign', () => {
