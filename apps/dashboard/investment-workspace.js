@@ -152,9 +152,10 @@ export function initializeInvestmentWorkspace() {
             throw new Error('Select a cash sub-account belonging to the chosen investment account and currency.');
         }
         const trade = type === 'Purchase' || type === 'Sale';
+        const recordedAt = new Date().toISOString();
         const item = { id: crypto.randomUUID(), accountId: account.id, instrumentId: instrument.id, type,
-            cashAmount: { amount, currency: account.currency }, date: dateAtUtcStart(String(form.get('date'))), recordedAt: new Date().toISOString() };
-        if (cashAccount) item.cashAccountId = cashAccount.id;
+            cashAmount: { amount, currency: account.currency }, date: dateAtUtcStart(String(form.get('date'))), recordedAt };
+        if (cashAccount) { item.cashAccountId = cashAccount.id; item.cashAccountLinkedAt = recordedAt; }
         if (trade) {
             item.quantity = Number(form.get('quantity'));
             item.unitPrice = { amount: Number(form.get('unitPrice')), currency: account.currency };
