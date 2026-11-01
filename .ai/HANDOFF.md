@@ -290,7 +290,7 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 
 - Branch: feature/investment-ledger-csv-interchange; draft PR #432, based on PR #430 (feature/investment-cash-ledger-ui).
 - Current feature adds apps/dashboard/investment-csv.js, investment-csv.test.js and investment-csv-workspace.js, plus the private-workspace controls in apps/dashboard/index.html.
-- All eight collections have explicit schemas. CSV is PFO-native/versioned; text values are UTF-8/base64 encoded for lossless Unicode and formula-injection protection; nested money values are JSON cells.
+- All eight collections have explicit schemas. CSV is PFO-native/versioned; ordinary text remains human-readable; formula-like or reserved-prefix values use reversible UTF-8/base64 escaping for formula-injection protection; nested money values are JSON cells.
 - previewInvestmentCsvImport validates a complete candidate workspace using the existing investment and cash validators. Append catches duplicate IDs; replacement affects only selected collections and fails if resulting references/accounting invariants are invalid.
 - UI requires explicit confirmation, supports cancel, and attempts browser-storage rollback if a selected collection write fails. Workspace events are dispatched only after successful writes. JSON full-workspace backup remains authoritative.
 - Chromium smoke was extended for per-collection export, import preview, confirmed replacement and duplicate-ID append rejection. Unit tests cover round trips across all eight collections and malformed input.
