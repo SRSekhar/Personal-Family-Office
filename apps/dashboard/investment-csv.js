@@ -129,7 +129,7 @@ export function exportInvestmentCollectionCsv(collection, records) {
 /** Parse a PFO-native collection and retain every row-level decoding error for a downloadable report. */
 export function parseInvestmentCollectionCsvDetailed(source, expectedCollection) {
     if (typeof source !== 'string' || source.trim() === '') throw new Error('Investment CSV file is empty.');
-    const rows = parseRows(source.replace(/^\\uFEFF/u, ''));
+    const rows = parseRows(source.replace(/^\uFEFF/u, ''));
     const schema = COLLECTIONS[expectedCollection];
     if (!schema) throw new Error('Unsupported investment CSV collection.');
     if (rows.length < 2 || rows[0].length !== 3 || rows[0][0] !== '#PFO-INVESTMENT-CSV' || rows[0][1] !== '1'
@@ -185,7 +185,7 @@ export function exportInvestmentCsvErrorReport(errors) {
         error.file ?? '', error.rowNumber ?? '', error.collection ?? '', error.field ?? '',
         error.message ?? 'Invalid row.', JSON.stringify(error.rawRow ?? [])
     ].map((value) => quote(encodeText(value))));
-    return [headers.map(quote).join(','), ...rows.map((row) => row.join(','))].join('\\r\\n') + '\\r\\n';
+    return [headers.map(quote).join(','), ...rows.map((row) => row.join(','))].join('\r\n') + '\r\n';
 }
 
 /** Validate the entire candidate workspace before any caller persists it. */
