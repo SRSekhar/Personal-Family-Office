@@ -297,3 +297,15 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - No CI run is currently visible for the current PR head. Do not mark IPM-05 accepted until lint, typecheck, build, Vitest and Chromium smoke pass.
 - External broker CSV layouts/mapping remain deferred; do not infer transaction types, signs, cash links, opening balances, FX or valuation data.
 - PR #432 remains draft and unmerged. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge without explicit approval.
+
+
+## Latest Handoff — IPM-05 PFO-native CSV validation (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432, stacked on PR #430. Verified head: `fba75ccd29667b0e52dbcb2252f7b33f079765b9`.
+- CI run `41305848173` completed successfully. Its single build/typecheck/lint/test job passed repository checks, dependency audit, lint, typecheck, package build, the complete Vitest suite, Chromium installation and real-browser smoke.
+- Dashboard packaging run `41305848152` completed successfully; artifact upload passed and Pages publish was correctly skipped for a PR.
+- Added edge coverage for UTF-8 BOM, LF line endings, empty collection round trips, malformed nested JSON and non-finite numeric values. The Chromium smoke verifies import preview refreshes when switching Replace/Append mode and catches duplicate append without reselecting the file.
+- This confirms the PFO-native CSV increment only. Issue #431's full scope remains open: explicit external-provider column mapping, row-level downloadable error reports, persistence-failure/SQLite consistency acceptance and full reload/export-reimport equality still need implementation and tests.
+- Provider mapping must wait for actual redacted source CSV samples and explicit transaction/sign conventions. Never guess broker schemas or synthesize financial events.
+- Import writes selected localStorage collections with rollback attempts, then dispatches workspace events to trigger the configured optional/debounced SQLite autosave. This is not a single atomic transaction spanning browser storage and SQLite.
+- PR #432 remains open/draft/unmerged. Required dependency order remains #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge is authorized.
