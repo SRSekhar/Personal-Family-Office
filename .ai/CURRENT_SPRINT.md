@@ -389,3 +389,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Unit tests and Chromium smoke verify the report and disabled confirmation behavior.
 - Verified on `a1a7fc784d286be06432544311991eb2e6460e1e`: CI run 1392 and dashboard packaging run 722 passed. CI includes dependency audit, lint, typecheck, package build, Vitest, Chromium installation and real-browser smoke. Pages publishing skipped for PR.
 - Issue #431 remains open for explicit external-provider mapping (requires redacted source samples and confirmed transaction/sign conventions) and further SQLite autosave failure/consistency acceptance. Do not claim cross-store atomicity.
+
+
+## 2026-11-01 — SQLite persistence failure and recovery verified
+
+- Added a SQLite transaction rollback test using a controlled failing update trigger; the previous committed payload and timestamp remain unchanged after the failed write.
+- Added Chromium smoke coverage for a transient 503 during automatic SQLite save. Browser-local data remains intact, the failed snapshot is absent from SQLite, and the next automatic save persists both the earlier edit and the new triggering edit.
+- Verified code head `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`: CI run 1397 passed (80 test files, 715 tests, dependency audit, lint, typecheck, build and full Chromium smoke). Dashboard packaging run 727 passed; Pages publishing skipped for PR.
+- Row-level CSV diagnostics and downloadable error reports are also verified. Remaining issue #431 work is external-provider mapping (requires redacted samples and confirmed semantics) and independent Secret Scan verification. Browser localStorage and SQLite are not a single atomic transaction.
