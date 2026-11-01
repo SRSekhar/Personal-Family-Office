@@ -1977,9 +1977,10 @@ function enqueueDatabaseSave(options = {}) {
 function scheduleDatabaseAutoSave() {
     if (!databaseStatusChecked || databaseRecoveryRequired || databaseWriteConflict || !databaseAutoSaveEnabled || workspace !== 'private'
         || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
+    // A fresh edit supersedes any pending retry and starts a new bounded retry window.
     clearTimeout(databaseAutoSaveTimer);
     databaseAutoSaveTimer = setTimeout(() => {
-        void enqueueDatabaseSave({ quiet: true });
+        void enqueueDatabaseSave({ quiet: true, retryAttempt: 0 });
     }, 450);
 }
 
@@ -2017,6 +2018,7 @@ async function refreshDatabaseStatus() {
         databaseStatusChecked = true;
         $('#database-restore-button').disabled = !result.hasWorkspace;
         $('#database-export-backup-button').disabled = !result.hasWorkspace;
+        $('#database-online-backup-button').disabled = !result.hasWorkspace;
         $('#database-restore-button').textContent = databaseRecoveryRequired ? 'Review database recovery' : 'Restore from SQLite';
         const updated = result.updatedAt
             ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.updatedAt))
@@ -2038,6 +2040,7 @@ async function refreshDatabaseStatus() {
         $('#database-storage').hidden = false;
         $('#database-restore-button').disabled = true;
         $('#database-export-backup-button').disabled = true;
+        $('#database-online-backup-button').disabled = true;
         databaseStatusChecked = true;
         updateDatabaseAutoSaveButton();
         setDatabaseStatus('SQLite unavailable', error instanceof Error
@@ -2071,6 +2074,29 @@ async function checkDatabaseIntegrity() {
         resultElement.textContent = 'SQLite integrity check could not complete. Confirm the local dashboard server is running, then try again.';
     } finally {
         button.disabled = false;
+    }
+}
+
+async function createOnlineSqliteBackup() {
+    const button = $('#database-online-backup-button');
+    const resultElement = $('#database-integrity-result');
+    if (!isPrivateWorkspaceAllowed(window.location.hostname)) {
+        resultElement.textContent = 'Online SQLite backups are available only in the local private workspace.';
+        return;
+    }
+    button.disabled = true;
+    resultElement.textContent = 'Creating and verifying an online SQLite backup…';
+    try {
+        const response = await fetch('./api/v1/database/backup', { method: 'POST', headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The verified SQLite backup could not be created.');
+        const count = Object.values(result.collectionCounts ?? {}).reduce((sum, value) => sum + value, 0);
+        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 13 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
+    } catch (error) {
+        resultElement.textContent = error instanceof Error ? error.message : 'The verified SQLite backup could not be created.';
+    } finally {
+        button.disabled = false;
+        await refreshDatabaseStatus();
     }
 }
 
@@ -2110,6 +2136,23 @@ async function exportSavedDatabaseBackup() {
     }
 }
 
+const DATABASE_AUTO_SAVE_RETRY_DELAYS_MS = [1000, 2000, 4000];
+
+function scheduleDatabaseAutoSaveRetry(retryAttempt) {
+    if (!databaseStatusChecked || databaseRecoveryRequired || databaseWriteConflict || !databaseAutoSaveEnabled
+        || workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
+    const delay = DATABASE_AUTO_SAVE_RETRY_DELAYS_MS[retryAttempt];
+    if (!Number.isFinite(delay)) return;
+    clearTimeout(databaseAutoSaveTimer);
+    setDatabaseStatus('Automatic SQLite save failed · retry scheduled',
+        `Temporary persistence failure. Retry ${retryAttempt + 1} of ${DATABASE_AUTO_SAVE_RETRY_DELAYS_MS.length} in ${delay / 1000} second(s). Browser-local data remains saved.`);
+    databaseAutoSaveTimer = setTimeout(() => {
+        if (!databaseStatusChecked || databaseRecoveryRequired || databaseWriteConflict || !databaseAutoSaveEnabled
+            || workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
+        void enqueueDatabaseSave({ quiet: true, retryAttempt: retryAttempt + 1 });
+    }, delay);
+}
+
 async function saveWorkspaceToDatabase(options = {}) {
     let payload;
     try {
@@ -2120,6 +2163,7 @@ async function saveWorkspaceToDatabase(options = {}) {
         return false;
     }
     const button = $('#database-save-button');
+    let retryableFailure = false;
     button.disabled = true;
     setDatabaseStatus(options.quiet ? 'Automatically saving workspace to SQLite…' : 'Saving validated workspace to SQLite…');
     try {
@@ -2128,6 +2172,7 @@ async function saveWorkspaceToDatabase(options = {}) {
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({ payload, expectedUpdatedAt: databaseLastKnownUpdatedAt })
         });
+        if (response.status === 408 || response.status === 429 || response.status >= 500) retryableFailure = true;
         const result = await response.json();
         if (!response.ok) {
             if (response.status === 409) databaseWriteConflict = true;
@@ -2147,6 +2192,7 @@ async function saveWorkspaceToDatabase(options = {}) {
         }
         $('#database-restore-button').disabled = false;
         $('#database-export-backup-button').disabled = false;
+        $('#database-online-backup-button').disabled = false;
         $('#database-restore-button').textContent = 'Restore from SQLite';
         databaseRecoveryRequired = false;
         databaseWriteConflict = false;
@@ -2164,10 +2210,24 @@ async function saveWorkspaceToDatabase(options = {}) {
         }
         return true;
     } catch (error) {
-        setDatabaseStatus(databaseWriteConflict ? 'SQLite changed elsewhere · automatic saves paused' : options.quiet ? 'Automatic SQLite save failed' : 'SQLite save failed', error instanceof Error
+        if (error instanceof TypeError) retryableFailure = true;
+        const message = error instanceof Error
             ? error.message + ' Browser-local data is still saved; the database may be ahead.'
-            : 'Browser-local data is still saved; the database may be ahead.');
-        if (databaseWriteConflict) await refreshDatabaseStatus();
+            : 'Browser-local data is still saved; the database may be ahead.';
+        if (databaseWriteConflict) {
+            setDatabaseStatus('SQLite changed elsewhere · automatic saves paused', message);
+            await refreshDatabaseStatus();
+        } else if (options.quiet && retryableFailure && databaseAutoSaveEnabled) {
+            const retryAttempt = Number.isInteger(options.retryAttempt) && options.retryAttempt >= 0 ? options.retryAttempt : 0;
+            if (retryAttempt < DATABASE_AUTO_SAVE_RETRY_DELAYS_MS.length) {
+                scheduleDatabaseAutoSaveRetry(retryAttempt);
+            } else {
+                setDatabaseStatus('Automatic SQLite save paused after retries',
+                    message + ' Automatic retry limit reached. Browser-local data remains available; make another edit or retry a manual save.');
+            }
+        } else {
+            setDatabaseStatus(options.quiet ? 'Automatic SQLite save failed' : 'SQLite save failed', message);
+        }
         if (!options.quiet) showToast(databaseWriteConflict
             ? 'SQLite changed in another tab or process. Automatic saves are paused; review the latest database snapshot before continuing.'
             : 'SQLite save failed. The current browser workspace was not changed.');
@@ -2507,6 +2567,8 @@ $('#view-all-button').addEventListener('click', () => {
     renderRecords();
 });
 $('#database-save-button').addEventListener('click', async () => {
+    // An explicit save supersedes a pending debounce or automatic retry.
+    clearTimeout(databaseAutoSaveTimer);
     if (databaseWriteConflict) {
         const confirmed = window.confirm('The SQLite database has a newer snapshot from another tab or process. Replace that newer database snapshot with this browser workspace? Export a backup first if you need to preserve both versions.');
         if (!confirmed) return;
@@ -2518,6 +2580,7 @@ $('#database-save-button').addEventListener('click', async () => {
 $('#database-auto-save-button').addEventListener('click', () => { void toggleDatabaseAutoSave(); });
 $('#database-restore-button').addEventListener('click', restoreWorkspaceFromDatabase);
 $('#database-export-backup-button').addEventListener('click', exportSavedDatabaseBackup);
+$('#database-online-backup-button').addEventListener('click', createOnlineSqliteBackup);
 $('#database-refresh-button').addEventListener('click', refreshDatabaseStatus);
 $('#database-integrity-button').addEventListener('click', checkDatabaseIntegrity);
 $('#export-button').addEventListener('click', exportData);

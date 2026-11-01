@@ -238,3 +238,48 @@ describe('local dashboard preview server', () => {
         expect(() => parsePort('not-a-port')).toThrow('between 1 and 65535');
     });
 });
+
+
+describe('verified online SQLite backup API', () => {
+    it('creates a verified local backup without changing the committed workspace and rejects cross-origin requests', async () => {
+        const root = await createRoot();
+        const databasePath = join(root, '..', 'online-backup.sqlite');
+        const origin = await startServer(root, { databasePath });
+        const payload = {
+            schemaVersion: 6, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            records: [{ id: 'backup-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1250 }],
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [],
+            investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [],
+            investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
+        };
+        const save = await fetch(`${origin}/api/v1/workspace`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload, expectedUpdatedAt: null })
+        });
+        expect(save.status).toBe(200);
+        const before = await (await fetch(`${origin}/api/v1/workspace`)).json();
+        const response = await fetch(`${origin}/api/v1/database/backup`, { method: 'POST' });
+        expect(response.status).toBe(201);
+        const backup = await response.json();
+        expect(backup).toMatchObject({
+            filename: expect.stringMatching(/^pfo-os-sqlite-.*\.sqlite$/),
+            directory: databasePath + '.backups', path: expect.stringContaining('.backups'),
+            bytes: expect.any(Number), updatedAt: before.updatedAt, schemaVersion: 6,
+            collectionCounts: { records: 1, goals: 0, cashFlowEntries: 0, budgets: 0, historicalSnapshots: 0 }
+        });
+        expect(backup.bytes).toBeGreaterThan(0);
+        expect(await (await fetch(`${origin}/api/v1/workspace`)).json()).toEqual(before);
+        const crossOrigin = await fetch(`${origin}/api/v1/database/backup`, {
+            method: 'POST', headers: { Origin: 'https://attacker.example' }
+        });
+        expect(crossOrigin.status).toBe(403);
+    });
+
+    it('rejects backup creation when no committed workspace exists', async () => {
+        const root = await createRoot();
+        const origin = await startServer(root, { databasePath: join(root, '..', 'empty-backup.sqlite') });
+        const response = await fetch(`${origin}/api/v1/database/backup`, { method: 'POST' });
+        expect(response.status).toBe(500);
+        expect((await response.json()).error).toContain('verified online SQLite backup could not be created');
+    });
+});

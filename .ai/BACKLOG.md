@@ -33,8 +33,9 @@ Planned — architecture and requirements first; no cloud provider is enabled by
 
 Status
 
-Deferred; current local persistence and portable backup/recovery acceptance criteria are complete.
+Partially implemented; core local persistence and portable backup/recovery acceptance criteria are complete; remaining operational hardening is deferred.
 
+- Implemented bounded automatic SQLite save retries for transient HTTP 408/429/5xx and network failures: three retries at 1s/2s/4s after the initial attempt; 4xx validation/client errors and 409 conflicts are not retried. Retry exhaustion preserves browser-local data, pauses automatic retry, and a later edit starts a fresh retry window. Manual save cancels a pending retry. CI/Chromium acceptance passed on PR #432 head `4389b2ad109f50d98474b97fc73980241b699469` (CI 1410, 80 files / 715 tests; Secret Scan 1202; packaging 740).
 - Evaluate SQLite online-backup API and WAL checkpoint behavior under the actual dashboard lifecycle; document tested shutdown, reopen, and restore procedures before adding automation.
 - Consider optional encrypted backup artifacts only after selecting a key-management model that does not place secrets in the browser bundle or repository.
 - Consider automatic backup rotation only with an approved retention policy, safe failure behavior, and restore verification. Never silently delete the only known-good backup.
@@ -582,3 +583,42 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Chromium smoke now checks the realistic one-year XIRR path, historical transaction link preserving original financial values, JSON backup round-trip, SQLite persistence/restore, reload persistence and private-to-demo data clearing.
 - Latest PR #430 head: `786ded49daa9655fcc09d50da4562c4f682cb5c1`. CI run 41289104534 completed successfully; dashboard packaging run 41289104460 completed successfully (publish skipped for the PR). PR #429 CI and dashboard packaging also passed. PR #429 and #430 remain open and unmerged.
 - Remaining before this investment-accounting increment is merge-ready: review stacked PR ordering and obtain explicit user merge approval. Next product backlog: cash/investment CSV import/export with explicit mapping and validation; broker integrations and FX remain out of scope until separately designed.
+
+
+## Investment Portfolio Management — IPM-05 CSV interchange
+
+Status
+
+In progress on draft PR #432, stacked on PR #430.
+
+- Added a versioned PFO-native CSV format for all eight investment and cash-ledger collections.
+- Ordinary text remains human-readable; formula-like or reserved-prefix strings use reversible UTF-8/base64 escaping to prevent spreadsheet formula execution. Unicode, commas, quotes and multiline text round-trip; nested money values remain exact JSON cells; timestamps and IDs remain unchanged.
+- Import validates the manifest, format version, canonical headers, row width, quoting, encoded text, JSON values and finite numbers. It builds and validates the entire candidate workspace before preview.
+- UI supports private-workspace-only per-collection export, multi-file preview, replace-only-selected-collections or append, explicit confirmation and cancel.
+- Browser persistence attempts rollback if any selected collection write fails and dispatches the existing workspace events only after successful writes. JSON backup remains authoritative.
+- Unit tests cover all eight collection round trips, Unicode/formula-like text, nested money, bitemporal settlement links, invalid manifests/headers/rows, missing references and duplicate IDs. Chromium smoke now exercises export, preview, confirmed replace and duplicate-append rejection.
+- External broker layouts and arbitrary column mapping are explicitly deferred; unsupported files are rejected rather than guessed. No broker sync, FX or inferred accounting events.
+- Acceptance is pending CI on the current PR head.
+
+
+## 2026-11-01 — SQLite persistence documentation alignment
+
+- Audited the local backup/recovery guide and ADR-0004 against the current schema-v6 implementation.
+- Corrected stale schema-v4/five-collection descriptions to the current 13-collection workspace (five core collections, four investment collections, four investment-cash collections).
+- Documented WAL sidecar implications, portable JSON as the recommended live-database backup path, bounded autosave retry behavior, and the explicit absence of cross-store atomicity and automated online SQLite backup/rotation.
+- This is a documentation correction only; no database behavior or backup API was changed.
+
+
+## 2026-11-01 — Verified online SQLite backup
+
+- Added a manual loopback-only online SQLite backup action using Node's built-in `sqlite.backup()`; supported runtime minimum is Node 22.16.0.
+- Unique backup files are created under `<database path>.backups`; existing files are never overwritten. Artifacts pass SQLite integrity and full schema-v6 validation across all 13 collections, are fsynced, and are only then published.
+- Added an online-backup restore drill across all 13 collections, checking stable identifiers, valuation provenance and integrity, plus API success/no-data/cross-origin tests.
+- Scheduling, rotation, retention, encryption, remote copy and cross-store browser-storage/SQLite atomicity remain out of scope.
+
+
+## 2026-11-01 — Online SQLite backup verified
+
+- Verified on PR #432 head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed (80 test files / 718 tests, lint, typecheck, build, dependency audit and real Chromium smoke); dashboard packaging run 41326075250 passed (Pages publish skipped for PR); Secret Scan run 41326075278 passed.
+- Real Chromium smoke confirms the dashboard action creates a verified online SQLite backup file. Unit/API recovery tests restore the actual backup file and verify all 13 collections and stable identifiers.
+- Manual backups only; scheduling, rotation, retention enforcement, encryption and remote copies remain deferred.

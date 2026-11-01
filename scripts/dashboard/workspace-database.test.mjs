@@ -209,6 +209,28 @@ describe('SQLite workspace persistence schema v6', () => {
             date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-01T00:00:00.000Z' }] }))).toThrow(/unknown account or instrument/i);
         expect(database.getWorkspace()).toBeNull();
     });
+    it('rolls back a failed SQLite update and retains the previous committed snapshot', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-write-rollback-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const database = new WorkspaceDatabase(path); databases.push(database);
+        const firstPayload = payload();
+        const saved = database.saveWorkspace(firstPayload, null);
+
+        const triggerConnection = new DatabaseSync(path);
+        triggerConnection.exec(`CREATE TRIGGER reject_workspace_snapshot_update
+            BEFORE UPDATE ON workspace_snapshot
+            BEGIN
+                SELECT RAISE(ABORT, 'simulated SQLite write failure');
+            END;`);
+        triggerConnection.close();
+
+        const changedPayload = payload({
+            records: [{ id: 'record-revised', name: 'Revised savings', category: 'Cash & deposits', type: 'asset', value: 999 }]
+        });
+        expect(() => database.saveWorkspace(changedPayload, saved.updatedAt)).toThrow(/simulated SQLite write failure/i);
+        expect(database.getWorkspace()).toEqual({ payload: firstPayload, updatedAt: saved.updatedAt });
+        expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
+    });
     it('preserves the previous committed snapshot when a later write is invalid', async () => {
         const database = await createDatabase(); database.saveWorkspace(payload());
         expect(() => database.saveWorkspace(payload({ investmentValuations: [{ instrumentId: 'missing', price: { amount: 2, currency: 'INR' },
@@ -229,4 +251,93 @@ describe('SQLite workspace persistence schema v6', () => {
         expect(resolveDatabasePath({ LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local' }, 'C:\\Users\\test', 'win32'))
             .toBe(join('C:\\Users\\test\\AppData\\Local', 'PFO-OS', 'pfo-os.sqlite'));
     });
+    it('creates and restores a verified online SQLite backup across all 13 collections with stable IDs', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-recovery-drill-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const original = payload({
+            goals: [{
+                id: 'goal-recovery-1', name: 'Emergency reserve', targetAmount: 500000, currentAmount: 125000,
+                targetDate: '2027-12-31', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-02T00:00:00.000Z'
+            }],
+            investmentCashAccounts: [
+                { id: 'cash-recovery-1', investmentAccountId: 'account-1', name: 'Primary cash', currency: 'INR', createdAt: '2026-10-01T00:00:00.000Z' },
+                { id: 'cash-recovery-2', investmentAccountId: 'account-1', name: 'Secondary cash', currency: 'INR', createdAt: '2026-10-01T00:00:00.000Z' }
+            ],
+            investmentCashMovements: [
+                { id: 'cash-opening-1', cashAccountId: 'cash-recovery-1', type: 'OpeningBalance',
+                    amount: { amount: 1000, currency: 'INR' }, effectiveAt: '2026-10-01T00:00:00.000Z',
+                    recordedAt: '2026-10-01T00:00:00.000Z', openingBalanceSource: 'statement' },
+                { id: 'cash-opening-2', cashAccountId: 'cash-recovery-2', type: 'OpeningBalance',
+                    amount: { amount: 250, currency: 'INR' }, effectiveAt: '2026-10-01T00:00:00.000Z',
+                    recordedAt: '2026-10-01T00:00:00.000Z', openingBalanceSource: 'statement' }
+            ],
+            investmentCashTransfers: [{
+                id: 'cash-transfer-recovery-1', sourceCashAccountId: 'cash-recovery-1', destinationCashAccountId: 'cash-recovery-2',
+                amount: { amount: 100, currency: 'INR' }, effectiveAt: '2026-10-02T00:00:00.000Z',
+                recordedAt: '2026-10-02T00:00:00.000Z'
+            }],
+            investmentCashStatements: [
+                { id: 'cash-statement-1', cashAccountId: 'cash-recovery-1', closingBalance: { amount: 900, currency: 'INR' },
+                    periodStart: '2026-10-01T00:00:00.000Z', periodEnd: '2026-10-31T00:00:00.000Z',
+                    statementAsOf: '2026-10-31T00:00:00.000Z', recordedAt: '2026-10-31T00:00:00.000Z', sourceName: 'Primary statement' },
+                { id: 'cash-statement-2', cashAccountId: 'cash-recovery-2', closingBalance: { amount: 350, currency: 'INR' },
+                    periodStart: '2026-10-01T00:00:00.000Z', periodEnd: '2026-10-31T00:00:00.000Z',
+                    statementAsOf: '2026-10-31T00:00:00.000Z', recordedAt: '2026-10-31T00:00:00.000Z', sourceName: 'Secondary statement' }
+            ]
+        });
+        const first = new WorkspaceDatabase(path); databases.push(first);
+        const committed = first.saveWorkspace(original, null);
+        const backup = await first.createOnlineBackup();
+        expect(backup).toMatchObject({
+            filename: expect.stringMatching(/^pfo-os-sqlite-.*\.sqlite$/), directory: path + '.backups',
+            path: expect.stringContaining('.backups'), bytes: expect.any(Number), updatedAt: committed.updatedAt,
+            schemaVersion: 6, collectionCounts: {
+                records: 2, goals: 1, cashFlowEntries: 1, budgets: 1, historicalSnapshots: 1,
+                investmentAccounts: 1, investmentInstruments: 1, investmentTransactions: 1, investmentValuations: 1,
+                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2
+            }
+        });
+        expect(backup.bytes).toBeGreaterThan(0);
+        expect(existsSync(backup.path)).toBe(true);
+        if (process.platform !== 'win32') expect(statSync(backup.path).mode & 0o777).toBe(0o600);
+        expect(committed).toMatchObject({
+            recordCount: 2, goalCount: 1, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
+            investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1,
+            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2
+        });
+        first.close(); databases.splice(databases.indexOf(first), 1);
+
+        const restored = new WorkspaceDatabase(backup.path); databases.push(restored);
+        const recovered = restored.getWorkspace();
+        expect(recovered.updatedAt).toBe(committed.updatedAt);
+        expect(restored.checkIntegrity()).toEqual({ ok: true, messages: ['ok'] });
+        const stableIds = {
+            records: recovered.payload.records.map((item) => item.id),
+            goals: recovered.payload.goals.map((item) => item.id),
+            cashFlowEntries: recovered.payload.cashFlowEntries.map((item) => item.id),
+            budgets: recovered.payload.budgets.map((item) => item.month + ':' + item.category),
+            historicalSnapshots: recovered.payload.historicalSnapshots.map((item) => item.date),
+            investmentAccounts: recovered.payload.investmentAccounts.map((item) => item.id),
+            investmentInstruments: recovered.payload.investmentInstruments.map((item) => item.id),
+            investmentTransactions: recovered.payload.investmentTransactions.map((item) => item.id),
+            investmentValuations: recovered.payload.investmentValuations.map((item) => item.instrumentId + ':' + item.asOf),
+            investmentCashAccounts: recovered.payload.investmentCashAccounts.map((item) => item.id),
+            investmentCashMovements: recovered.payload.investmentCashMovements.map((item) => item.id),
+            investmentCashTransfers: recovered.payload.investmentCashTransfers.map((item) => item.id),
+            investmentCashStatements: recovered.payload.investmentCashStatements.map((item) => item.id)
+        };
+        expect(stableIds).toEqual({
+            records: ['record-1', 'record-2'], goals: ['goal-recovery-1'], cashFlowEntries: ['cash-1'],
+            budgets: ['2026-10:Groceries'], historicalSnapshots: ['2026-09-30'],
+            investmentAccounts: ['account-1'], investmentInstruments: ['instrument-1'],
+            investmentTransactions: ['transaction-1'], investmentValuations: ['instrument-1:2026-10-03T00:00:00.000Z'],
+            investmentCashAccounts: ['cash-recovery-1', 'cash-recovery-2'],
+            investmentCashMovements: ['cash-opening-1', 'cash-opening-2'],
+            investmentCashTransfers: ['cash-transfer-recovery-1'],
+            investmentCashStatements: ['cash-statement-1', 'cash-statement-2']
+        });
+        expect(recovered.payload.investmentCashTransfers[0].amount).toEqual({ amount: 100, currency: 'INR' });
+        expect(recovered.payload.investmentValuations[0].sourceName).toBe('User-entered');
+    });
+
 });

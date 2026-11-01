@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -1340,6 +1340,148 @@ try {
     assert.deepEqual(backup.investmentCashStatements, investmentStorage.cashStatements);
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
+    const [investmentLedgerCollectionCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentAccounts"]').click()
+    ]);
+    assert.equal(investmentLedgerCollectionCsvDownload.suggestedFilename(), 'investmentAccounts.pfo.csv');
+    const investmentLedgerCollectionCsvPath = join(temporaryDirectory, 'investmentAccounts.pfo.csv');
+    await investmentLedgerCollectionCsvDownload.saveAs(investmentLedgerCollectionCsvPath);
+
+    // A malformed required cell should produce a downloadable row-level report and block the whole batch.
+    const invalidInvestmentCsvRows = (await readFile(investmentLedgerCollectionCsvPath, 'utf8')).split('\r\n');
+    invalidInvestmentCsvRows[2] = invalidInvestmentCsvRows[2].replace(/^"[^"]*",/u, '"",');
+    const invalidInvestmentCsvPath = join(temporaryDirectory, 'investmentAccounts-invalid.pfo.csv');
+    await writeFile(invalidInvestmentCsvPath, invalidInvestmentCsvRows.join('\r\n'), 'utf8');
+    await page.locator('#investment-csv-files').setInputFiles(invalidInvestmentCsvPath);
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-preview')?.textContent.includes('row-level error(s)'));
+    assert.equal(await page.locator('#investment-csv-confirm').isDisabled(), true,
+        'a row-level import error must block confirmation of the entire batch');
+    const [investmentCsvErrorReportDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-csv-error-report').click()
+    ]);
+    assert.equal(investmentCsvErrorReportDownload.suggestedFilename(), 'investment-csv-import-errors.csv');
+    const investmentCsvErrorReportPath = join(temporaryDirectory, 'investment-csv-import-errors.csv');
+    await investmentCsvErrorReportDownload.saveAs(investmentCsvErrorReportPath);
+    const investmentCsvErrorReport = await readFile(investmentCsvErrorReportPath, 'utf8');
+    assert.match(investmentCsvErrorReport, /rawRowJson/);
+    assert.match(investmentCsvErrorReport, /investmentAccounts-invalid\.pfo\.csv/);
+    await page.locator('#investment-csv-files').setInputFiles(investmentLedgerCollectionCsvPath);
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
+    assert.match(await page.locator('#investment-csv-preview').innerText(), /investmentAccounts: 1 rows/);
+    await page.locator('#investment-csv-confirm').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Import committed'));
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'PFO-native CSV replace import should round-trip the existing account without duplication');
+
+    // Reload the private workspace and compare a fresh export byte-for-byte with the imported source.
+    await page.reload({ waitUntil: 'networkidle' });
+    if (await page.locator('#switch-private-button').isVisible()) await page.locator('#switch-private-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-account-count')?.textContent === '1');
+    const [investmentLedgerReloadCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentAccounts"]').click()
+    ]);
+    const investmentLedgerReloadCsvPath = join(temporaryDirectory, 'investmentAccounts-after-reload.pfo.csv');
+    await investmentLedgerReloadCsvDownload.saveAs(investmentLedgerReloadCsvPath);
+    assert.equal(await readFile(investmentLedgerReloadCsvPath, 'utf8'), await readFile(investmentLedgerCollectionCsvPath, 'utf8'),
+        'CSV import must survive reload and re-export to byte-identical PFO-native CSV');
+
+    // Re-import the exported file and verify the canonical data remains unchanged.
+    await page.locator('#investment-csv-files').setInputFiles(investmentLedgerReloadCsvPath);
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
+    await page.locator('#investment-csv-confirm').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Import committed'));
+    const reimportedInvestmentAccount = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'));
+    assert.equal(reimportedInvestmentAccount.length, 1);
+    assert.equal(typeof reimportedInvestmentAccount[0].id, 'string');
+    assert.ok(reimportedInvestmentAccount[0].id.length > 0,
+        'export/re-import must preserve a non-empty stable account ID');
+    const [investmentLedgerReimportCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentAccounts"]').click()
+    ]);
+    const investmentLedgerReimportCsvPath = join(temporaryDirectory, 'investmentAccounts-after-reimport.pfo.csv');
+    await investmentLedgerReimportCsvDownload.saveAs(investmentLedgerReimportCsvPath);
+    assert.equal(await readFile(investmentLedgerReimportCsvPath, 'utf8'), await readFile(investmentLedgerReloadCsvPath, 'utf8'),
+        'a second export after re-import must remain byte-identical');
+    process.stdout.write('PASS: CSV import survives reload and export/re-import preserves byte-identical CSV and stable IDs.\\n');
+
+    await page.locator('input[name="investment-csv-mode"][value="append"]').check();
+    await page.waitForFunction(() => /unique/i.test(globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''));
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'duplicate-ID append preview must reject without mutating the saved investment ledger');
+    await page.locator('input[name="investment-csv-mode"][value="replace"]').check();
+    process.stdout.write('PASS: investment CSV export, preview, confirmed round-trip and duplicate-append rejection.\\n');
+
+    const [investmentInstrumentCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentInstruments"]').click()
+    ]);
+    const investmentInstrumentCsvPath = join(temporaryDirectory, 'investmentInstruments.pfo.csv');
+    await investmentInstrumentCsvDownload.saveAs(investmentInstrumentCsvPath);
+    const csvStorageBeforeFailedCommit = await page.evaluate(() => Object.fromEntries([
+        'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
+        'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
+        'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+    ].map((key) => [key, globalThis.localStorage.getItem(key)])));
+    await page.evaluate(() => {
+        const originalSetItem = globalThis.Storage.prototype.setItem;
+        globalThis.__pfoCsvOriginalSetItem = originalSetItem;
+        let failOnce = true;
+        globalThis.Storage.prototype.setItem = function (key, value) {
+            if (failOnce && key === 'pfo-os.investment-instruments.v1') {
+                failOnce = false;
+                throw new globalThis.DOMException('Simulated CSV storage quota failure', 'QuotaExceededError');
+            }
+            return originalSetItem.call(this, key, value);
+        };
+    });
+    await page.locator('#investment-csv-files').setInputFiles([investmentLedgerCollectionCsvPath, investmentInstrumentCsvPath]);
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
+    await page.locator('#investment-csv-confirm').click();
+    await page.waitForFunction(() => /quota failure/i.test(globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''));
+    const csvStorageAfterFailedCommit = await page.evaluate(() => {
+        globalThis.Storage.prototype.setItem = globalThis.__pfoCsvOriginalSetItem;
+        delete globalThis.__pfoCsvOriginalSetItem;
+        return Object.fromEntries([
+            'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
+            'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
+            'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
+            'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+        ].map((key) => [key, globalThis.localStorage.getItem(key)]));
+    });
+    assert.deepEqual(csvStorageAfterFailedCommit, csvStorageBeforeFailedCommit,
+        'a failed multi-collection CSV commit must restore every prior browser-storage value byte-for-byte');
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'failed CSV persistence must not change the visible investment ledger');
+    assert.equal(await page.locator('#investment-instrument-count').innerText(), '1',
+        'failed CSV persistence must not change the visible instrument ledger');
+    process.stdout.write('PASS: failed multi-collection CSV persistence rolls every browser-storage key back byte-for-byte.\\n');
+
+    await page.locator('#investment-csv-files').setInputFiles({
+        name: 'oversized-investment.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.alloc(10 * 1024 * 1024 + 1, 0x41)
+    });
+    await page.waitForFunction(() => /10 MiB investment CSV limit/i.test(
+        globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''
+    ));
+    assert.equal(await page.locator('#investment-csv-files').evaluate((input) => input.files.length), 0,
+        'oversized investment CSV selection must be reset after rejection');
+    const csvStorageAfterOversizedImport = await page.evaluate(() => Object.fromEntries([
+        'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
+        'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
+        'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+    ].map((key) => [key, globalThis.localStorage.getItem(key)])));
+    assert.deepEqual(csvStorageAfterOversizedImport, csvStorageBeforeFailedCommit,
+        'oversized CSV rejection must preserve every investment/cash browser-storage value');
+    process.stdout.write('PASS: oversized investment CSV is rejected before reading and preserves all saved collections.\\n');
+
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
@@ -2664,6 +2806,17 @@ try {
     assert.deepEqual(databaseBackup, committedDatabaseWorkspace,
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
+    await page.locator('#database-online-backup-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
+    const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
+    assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
+        'the dashboard should report the verified online SQLite backup filename');
+    assert.match(onlineBackupStatus, /13 collections/i,
+        'the online backup UI should report validation across all 13 workspace collections');
+    assert.match(onlineBackupStatus, /\.backups/i,
+        'the online backup UI should report the private backup directory');
+    process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
+
 
     const savedDatabaseState = await page.evaluate(() => ({
         records: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
@@ -2774,6 +2927,114 @@ try {
     assert.equal(autoSavedTransaction, true,
         'a cash-flow edit after enabling automatic persistence must reach the SQLite database');
     process.stdout.write('PASS: opt-in automatic SQLite saves persist subsequent cash-flow edits.\\n');
+
+    // Transient failures retry automatically with bounded backoff; no second user edit is required.
+    let failNextAutomaticDatabaseWrite = true;
+    await page.route('**/api/v1/workspace', async (route) => {
+        if (route.request().method() === 'PUT' && failNextAutomaticDatabaseWrite) {
+            failNextAutomaticDatabaseWrite = false;
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Simulated temporary SQLite outage.' })
+            });
+            return;
+        }
+        await route.continue();
+    });
+    await page.locator('#cash-flow-date').fill('2026-10-28');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Persistence recovery');
+    await page.locator('#cash-flow-description').fill('SQLite transient failure smoke');
+    await page.locator('#cash-flow-amount').fill('321');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('retry scheduled'));
+    const browserWorkspaceAfterDatabaseFailure = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'));
+    assert.ok(browserWorkspaceAfterDatabaseFailure.some((entry) =>
+        entry.description === 'SQLite transient failure smoke' && entry.amount === 321),
+    'a failed SQLite write must leave the already-saved browser-local transaction intact');
+    const databaseWorkspaceAfterFailure = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not read the SQLite snapshot after simulated write failure.');
+        return (await response.json()).payload;
+    });
+    assert.equal(databaseWorkspaceAfterFailure.cashFlowEntries.some((entry) =>
+        entry.description === 'SQLite transient failure smoke'), false,
+    'a rejected SQLite write must not partially persist the new transaction');
+
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'),
+    null, { timeout: 10000 });
+    const automaticallyRecoveredWorkspace = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not read the SQLite snapshot after automatic retry.');
+        return (await response.json()).payload;
+    });
+    assert.ok(automaticallyRecoveredWorkspace.cashFlowEntries.some((entry) =>
+        entry.description === 'SQLite transient failure smoke' && entry.amount === 321),
+    'the automatic retry must persist the failed edit without requiring another user edit');
+    await page.unroute('**/api/v1/workspace');
+    process.stdout.write('PASS: transient SQLite failure is recovered by bounded automatic retry without another edit.\\n');
+
+    // Repeated transient failures stop after three retries; a later user edit starts a fresh retry window.
+    let failingWritesRemaining = 4;
+    let failedWriteAttempts = 0;
+    await page.route('**/api/v1/workspace', async (route) => {
+        if (route.request().method() === 'PUT' && failingWritesRemaining > 0) {
+            failingWritesRemaining -= 1;
+            failedWriteAttempts += 1;
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Simulated persistent SQLite outage.' })
+            });
+            return;
+        }
+        await route.continue();
+    });
+    await page.locator('#cash-flow-date').fill('2026-10-29');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Persistence recovery');
+    await page.locator('#cash-flow-description').fill('SQLite retry limit smoke');
+    await page.locator('#cash-flow-amount').fill('654');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('paused after retries'),
+    null, { timeout: 20000 });
+    assert.equal(failedWriteAttempts, 4, 'automatic persistence must stop after the initial attempt plus three retries');
+    const browserWorkspaceAfterRetryLimit = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'));
+    assert.ok(browserWorkspaceAfterRetryLimit.some((entry) =>
+        entry.description === 'SQLite retry limit smoke' && entry.amount === 654),
+    'retry exhaustion must not discard the browser-local transaction');
+
+    await page.locator('#cash-flow-date').fill('2026-10-30');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Persistence recovery');
+    await page.locator('#cash-flow-description').fill('SQLite retry window reset smoke');
+    await page.locator('#cash-flow-amount').fill('987');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'),
+    null, { timeout: 10000 });
+    const recoveredDatabaseWorkspace = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not read the SQLite snapshot after retry-window reset.');
+        return (await response.json()).payload;
+    });
+    for (const [description, amount] of [
+        ['SQLite transient failure smoke', 321],
+        ['SQLite retry limit smoke', 654],
+        ['SQLite retry window reset smoke', 987]
+    ]) {
+        assert.ok(recoveredDatabaseWorkspace.cashFlowEntries.some((entry) =>
+            entry.description === description && entry.amount === amount),
+        'the successful save after retry exhaustion must persist all retained browser-local edits: ' + description);
+    }
+    await page.unroute('**/api/v1/workspace');
+    process.stdout.write('PASS: SQLite autosave retries are bounded, preserve browser data, and reset after a later edit.\\n');
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {

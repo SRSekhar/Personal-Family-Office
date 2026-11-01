@@ -34,6 +34,9 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - name: Verify supported Node.js SQLite backup API
+        run: node --input-type=module -e "import { backup } from 'node:sqlite'; if (Number(process.versions.node.split('.')[1]) < 16 || typeof backup !== 'function') process.exit(1); console.log('Node.js', process.versions.node, 'supports sqlite.backup().')"
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
