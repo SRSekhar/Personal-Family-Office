@@ -299,3 +299,54 @@ describe('version 5 investment workspace backup validation', () => {
         expect(summarizeValidatedBackup(legacy)).not.toHaveProperty('investmentAccountCount');
     });
 });
+
+
+describe('version 6 investment cash-ledger backup validation', () => {
+    const version6 = {
+        schemaVersion: 6, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [{ id: 'transaction-1', accountId: 'account-1', instrumentId: 'instrument-1', type: 'Purchase',
+            cashAmount: { amount: -200, currency: 'INR' }, quantity: 2, unitPrice: { amount: 100, currency: 'INR' },
+            date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-02T00:00:00.000Z' }],
+        investmentValuations: [{ instrumentId: 'instrument-1', price: { amount: 110, currency: 'INR' },
+            asOf: '2026-10-03T00:00:00.000Z', recordedAt: '2026-10-03T00:00:00.000Z', sourceType: 'manual', sourceName: 'User-entered' }],
+        investmentCashAccounts: [{ id: 'cash-1', investmentAccountId: 'account-1', name: 'Broker cash', currency: 'INR', createdAt: '2026-10-01T00:00:00.000Z' }],
+        investmentCashMovements: [{ id: 'opening-1', cashAccountId: 'cash-1', type: 'OpeningBalance',
+            amount: { amount: 500, currency: 'INR' }, effectiveAt: '2026-10-01T00:00:00.000Z',
+            recordedAt: '2026-10-01T00:00:00.000Z', openingBalanceSource: 'statement' }],
+        investmentCashTransfers: [], investmentCashStatements: []
+    };
+
+    it('validates all four cash-ledger collections and preserves them in the normalized backup', () => {
+        const result = validateBackupPayload(version6, 'INR');
+        expect(result.includesInvestmentCashLedger).toBe(true);
+        expect(result.investmentCashAccounts).toEqual(version6.investmentCashAccounts);
+        expect(result.investmentCashMovements).toEqual(version6.investmentCashMovements);
+        expect(summarizeValidatedBackup(result)).toMatchObject({
+            includesInvestmentCashLedger: true, investmentCashAccountCount: 1, investmentCashMovementCount: 1,
+            investmentCashTransferCount: 0, investmentCashStatementCount: 0
+        });
+    });
+
+    it('requires all cash collections and validates references before import', () => {
+        const missing = { ...version6 }; delete missing.investmentCashStatements;
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow('Unsupported backup format');
+        const invalid = structuredClone(version6);
+        invalid.investmentCashMovements[0].cashAccountId = 'unknown';
+        expect(() => validateBackupPayload(invalid, 'INR')).toThrow(/unknown cash account/i);
+    });
+
+    it('keeps schema-v5 backup imports valid without inventing cash accounts or balances', () => {
+        const legacy = structuredClone(version6);
+        legacy.schemaVersion = 5;
+        delete legacy.investmentCashAccounts; delete legacy.investmentCashMovements;
+        delete legacy.investmentCashTransfers; delete legacy.investmentCashStatements;
+        const result = validateBackupPayload(legacy, 'INR');
+        expect(result.includesInvestmentLedger).toBe(true);
+        expect(result).not.toHaveProperty('includesInvestmentCashLedger');
+        expect(result.investmentCashAccounts).toEqual([]);
+        expect(result.investmentCashMovements).toEqual([]);
+    });
+});
