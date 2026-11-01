@@ -320,3 +320,12 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Browser JSON export/import, local storage and SQLite save payloads now include schema-v6 cash collections; restore rollback snapshots include the additional storage keys.
 - Added tests for v5 migration, v5 recovery artifact, rollback on invalid migration, v6 validation and legacy backup compatibility. CI must confirm all changes before acceptance.
 - Next: cash ledger entry forms, statement reconciliation UI, and complete per-currency portfolio XIRR with terminal value only when both cash and holdings are complete.
+
+
+## 2026-11-01 — IPM-04 cash-ledger workflow UI increment
+
+- Added private-only UI for cash sub-account creation, opening balance evidence, external contribution/withdrawal, correction reference/reason, same-currency internal transfer and statement observations.
+- Added optional cash settlement-account selection to new investment transactions, enabling cash reconciliation. Legacy transactions without a link are not rewritten and keep the cash account incomplete.
+- Added reconciliation status and cash movement/transfer/statement histories. Browser multi-key persistence attempts rollback on write failure.
+- Extended isolated Chromium smoke to verify a synthetic opening balance + contribution + withdrawal + purchase reconciles to an explicit statement.
+- Next: portfolio-wide per-currency XIRR and complete terminal value checks; do not count internal trades or transfers as external flows.
