@@ -8,7 +8,7 @@ Updated: 2026-11-01
 - Pull request: [#432](https://github.com/SRSekhar/Personal-Family-Office/pull/432), draft/open/unmerged.
 - Base: `feature/investment-cash-ledger-ui` (PR #430).
 - Required dependency order: #425 → #426 → #427 → #428 → #429 → #430 → #432.
-- Latest fully verified feature head: `b4df415d4a9baaf4bc02b5d62b1efcabaf23d3ea`.
+- Latest fully verified feature head: `4389b2ad109f50d98474b97fc73980241b699469`.
 
 ## Implemented
 
@@ -31,15 +31,17 @@ Browser-storage writes attempt rollback of all investment/cash keys if a multi-c
 
 ## Verification on feature head
 
-Verified commit: `b4df415d4a9baaf4bc02b5d62b1efcabaf23d3ea`
+Verified commit: `4389b2ad109f50d98474b97fc73980241b699469`
 
-- CI run **1405**: passed; 80 test files and 715 tests, repository checks, dependency audit, lint, typecheck, build, Chromium installation and real-browser smoke.
-- Secret Scan run **1197**: passed, scanning current changes and full Git history.
-- Dashboard packaging run **735**: passed; Pages publishing was skipped as expected for a pull request.
+- CI run **1410**: passed; 80 test files and 715 tests, repository checks, dependency audit, lint, typecheck, build, Chromium installation and real-browser smoke.
+- Secret Scan run **1202**: passed, scanning current changes and full Git history.
+- Dashboard packaging run **740**: passed; Pages publishing was skipped as expected for a pull request.
 - Chromium smoke covers CSV export/import, row-error report download and confirmation blocking, append/replace revalidation, reload/export/re-import equality, browser-storage rollback, oversized-file rejection, multi-tab stale-write protection, transient SQLite 503 failure and subsequent autosave recovery, startup recovery pause, and absence of uncaught browser errors.
 - SQLite transaction tests verify a failed database update preserves the previous committed snapshot. Browser-local data remains available after an API failure; a later edit triggers a save containing both edits.
 
-These tests do **not** establish one atomic transaction spanning browser localStorage and SQLite. A timed retry without another edit is not implemented; recovery currently occurs on a subsequent save-triggering event.
+Transient autosave failures now receive bounded automatic retries: HTTP 408, 429, 5xx and network `TypeError` failures retry after 1, 2 and 4 seconds (three retries after the initial attempt). Validation errors, ordinary 4xx responses and 409 write conflicts are not retried. After exhaustion, the UI pauses automatic retries but retains browser-local data; a later edit starts a fresh retry window. An explicit manual save cancels a pending retry.
+
+These tests do **not** establish one atomic transaction spanning browser localStorage and SQLite. Retry success is verified independently from browser-local storage; the database save remains a separate persistence operation.
 
 ## Remaining scope / acceptance boundary
 

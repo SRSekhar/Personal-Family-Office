@@ -411,3 +411,13 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Updated `.github/workflows/secret-scan.yml` pull-request base filters to include `feature/**` as well as `main`, so stacked PRs receive Gitleaks scanning.
 - Secret Scan run 1194 passed on `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`.
 - CI run 1402 passed (80 test files / 715 tests, full Chromium smoke); dashboard packaging run 732 passed.
+
+
+## 2026-11-01 — bounded SQLite autosave retry verified
+
+- Automatic SQLite autosave now retries transient HTTP 408/429/5xx and network failures using bounded 1s, 2s and 4s backoff (three retries maximum after the initial attempt).
+- Does not retry validation failures, ordinary 4xx responses or 409 stale-write conflicts. Retry scheduling stops if autosave is disabled, workspace is not private/local, or recovery/conflict protection is active.
+- Retry exhaustion pauses automatic retries without discarding browser-local data. A later edit starts a fresh retry window; manual save supersedes a pending retry.
+- Real Chromium smoke verifies automatic recovery without another edit, maximum four total attempts under repeated 503s, retained local data and successful recovery after a later edit.
+- Verified head `4389b2ad109f50d98474b97fc73980241b699469`: CI run 1410 passed (80 test files / 715 tests and full Chromium smoke); Secret Scan run 1202 passed; dashboard packaging run 740 passed (publish skipped for PR).
+- PR #432 remains draft/open/unmerged. No stacked PR merge is authorized.

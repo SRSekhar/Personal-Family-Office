@@ -378,3 +378,17 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - JSON full-workspace backup remains authoritative. No broker API sync or remote cloud sync is part of IPM-05.
 - Next: continue independent backlog work that does not require provider samples. When mapping resumes, request redacted source exports and confirm semantics first.
 - The IPM-05 status document was consolidated in the latest documentation commit; verify CI again on the new branch head before claiming that documentation commit itself is green.
+
+
+## Latest Handoff — bounded SQLite autosave retry (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; PR #432 remains draft/open/unmerged, stacked on PR #430. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge is authorized.
+- Verified head: `4389b2ad109f50d98474b97fc73980241b699469`.
+- Added bounded retries for transient automatic SQLite persistence failures: HTTP 408, 429, 5xx and network `TypeError` failures retry after 1s, 2s and 4s (initial attempt plus at most three retries).
+- Validation errors, ordinary 4xx responses and 409 stale-write conflicts are not retried. Conflict/recovery state, disabled autosave, demo workspace and non-private hosts stop retry scheduling.
+- After retry exhaustion, automatic retries pause and browser-local data remains intact. A subsequent edit starts a new retry window. An explicit manual save cancels any pending debounce/retry.
+- Chromium smoke verifies a one-off 503 recovers without another edit, four consecutive 503 responses stop after exactly four total attempts, browser-local edits remain intact, and a later edit starts a successful new save.
+- CI run 1410 passed on this head: 80 test files / 715 tests, lint, typecheck, build, dependency audit and full real Chromium smoke. Browser output includes both bounded-retry acceptance messages and no uncaught browser errors.
+- Secret Scan run 1202 passed. Dashboard packaging run 740 passed; Pages publishing skipped as expected for a PR.
+- SQLite and browser localStorage remain separate persistence systems; no cross-store atomicity is claimed.
+- Provider-specific CSV mapping remains blocked on exact redacted source CSVs and user-confirmed field/type/sign semantics.

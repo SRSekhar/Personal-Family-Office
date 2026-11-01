@@ -33,8 +33,9 @@ Planned — architecture and requirements first; no cloud provider is enabled by
 
 Status
 
-Deferred; current local persistence and portable backup/recovery acceptance criteria are complete.
+Partially implemented; core local persistence and portable backup/recovery acceptance criteria are complete; remaining operational hardening is deferred.
 
+- Implemented bounded automatic SQLite save retries for transient HTTP 408/429/5xx and network failures: three retries at 1s/2s/4s after the initial attempt; 4xx validation/client errors and 409 conflicts are not retried. Retry exhaustion preserves browser-local data, pauses automatic retry, and a later edit starts a fresh retry window. Manual save cancels a pending retry. CI/Chromium acceptance passed on PR #432 head `4389b2ad109f50d98474b97fc73980241b699469` (CI 1410, 80 files / 715 tests; Secret Scan 1202; packaging 740).
 - Evaluate SQLite online-backup API and WAL checkpoint behavior under the actual dashboard lifecycle; document tested shutdown, reopen, and restore procedures before adding automation.
 - Consider optional encrypted backup artifacts only after selecting a key-management model that does not place secrets in the browser bundle or repository.
 - Consider automatic backup rotation only with an approved retention policy, safe failure behavior, and restore verification. Never silently delete the only known-good backup.
