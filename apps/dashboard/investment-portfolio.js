@@ -130,7 +130,7 @@ function renderPortfolio(performanceCalculator) {
         if (asOfDate.getUTCFullYear() !== year || asOfDate.getUTCMonth() !== month - 1 || asOfDate.getUTCDate() !== day) throw new Error('Select a valid calendar date.');
         const ledger = readLedger();
         const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
-            transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate, recordedAtCutoff: recordedCutoff });
+            transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
         try {
             const cashKeys = {
                 investmentCashAccounts: 'pfo-os.investment-cash-accounts.v1',
