@@ -56,7 +56,7 @@ function performanceFixture() {
             effectiveAt: '2026-01-03T00:00:00.000Z', recordedAt: '2026-01-03T00:00:00.000Z' }
     ];
     input.investmentCashTransfers = [];
-    input.investmentCashStatements = [{ id: 'statement', cashAccountId: 'cash-1', closingBalance: { amount: 9910, currency: 'INR' },
+    input.investmentCashStatements = [{ id: 'statement', cashAccountId: 'cash-1', closingBalance: { amount: 10513, currency: 'INR' },
         periodStart: '2026-01-01T00:00:00.000Z', periodEnd: '2026-03-31T00:00:00.000Z',
         statementAsOf: '2026-03-31T00:00:00.000Z', recordedAt: '2026-03-31T12:00:00.000Z', sourceName: 'Broker statement' }];
     return input;
@@ -68,8 +68,8 @@ describe('investment portfolio money-weighted performance', () => {
         const input = performanceFixture();
         const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt });
         expect(result).toHaveLength(1);
-        expect(result[0]).toMatchObject({ currency: 'INR', status: 'available', terminalValue: 11190,
-            cashBalance: 9910, holdingsValue: 1280, cashFlowCount: 4 });
+        expect(result[0]).toMatchObject({ currency: 'INR', status: 'available', terminalValue: 11793,
+            cashBalance: 10513, holdingsValue: 1280, cashFlowCount: 4 });
         expect(Number.isFinite(result[0].xirr)).toBe(true);
     });
 
@@ -106,7 +106,7 @@ describe('investment portfolio money-weighted performance', () => {
             amount: { amount: 200, currency: 'INR' }, effectiveAt: '2026-03-20T00:00:00.000Z', recordedAt: '2026-03-20T00:00:00.000Z' });
         const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0];
         expect(result.status).toBe('available');
-        expect(result.cashBalance).toBe(10200);
-        expect(result.terminalValue).toBe(11480);
+        expect(result.cashBalance).toBe(10213);
+        expect(result.terminalValue).toBe(11493);
     });
 });
