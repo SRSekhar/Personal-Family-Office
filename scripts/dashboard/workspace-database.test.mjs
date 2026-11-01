@@ -209,6 +209,28 @@ describe('SQLite workspace persistence schema v6', () => {
             date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-01T00:00:00.000Z' }] }))).toThrow(/unknown account or instrument/i);
         expect(database.getWorkspace()).toBeNull();
     });
+    it('rolls back a failed SQLite update and retains the previous committed snapshot', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-write-rollback-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const database = new WorkspaceDatabase(path); databases.push(database);
+        const firstPayload = payload();
+        const saved = database.saveWorkspace(firstPayload, null);
+
+        const triggerConnection = new DatabaseSync(path);
+        triggerConnection.exec(`CREATE TRIGGER reject_workspace_snapshot_update
+            BEFORE UPDATE ON workspace_snapshot
+            BEGIN
+                SELECT RAISE(ABORT, 'simulated SQLite write failure');
+            END;`);
+        triggerConnection.close();
+
+        const changedPayload = payload({
+            records: [{ id: 'record-revised', name: 'Revised savings', category: 'Cash & deposits', type: 'asset', value: 999 }]
+        });
+        expect(() => database.saveWorkspace(changedPayload, saved.updatedAt)).toThrow(/simulated SQLite write failure/i);
+        expect(database.getWorkspace()).toEqual({ payload: firstPayload, updatedAt: saved.updatedAt });
+        expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
+    });
     it('preserves the previous committed snapshot when a later write is invalid', async () => {
         const database = await createDatabase(); database.saveWorkspace(payload());
         expect(() => database.saveWorkspace(payload({ investmentValuations: [{ instrumentId: 'missing', price: { amount: 2, currency: 'INR' },
