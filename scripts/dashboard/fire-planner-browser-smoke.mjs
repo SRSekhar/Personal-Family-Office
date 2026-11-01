@@ -1241,6 +1241,8 @@ try {
     await page.locator('#investment-cash-statement-form button[type="submit"]').click();
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /reconciled.*400/,
         'explicit opening capital, external contributions/withdrawals and a linked purchase should reconcile to the statement balance');
+    assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Unavailable[\\s\\S]*no eligible valuation/i,
+        'portfolio XIRR must remain unavailable while an open position lacks a terminal valuation');
     await page.locator('#investment-valuation-form [name="instrumentId"]').selectOption({ index: 0 });
     await page.locator('#investment-valuation-form [name="price"]').fill('120');
     await page.locator('#investment-valuation-form [name="asOf"]').fill('2026-10-31');
@@ -1255,6 +1257,8 @@ try {
         'FIFO position view should reconcile quantity, open cost basis, market value and unrealised gain');
     assert.match(await page.locator('#investment-portfolio-summaries').innerText(), /Portfolio totals · INR[\s\S]*1,000[\s\S]*1,200/,
         'portfolio totals should be grouped and displayed in their ledger currency');
+    assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Portfolio XIRR · INR[\\s\\S]*annualized money-weighted return[\\s\\S]*Terminal value[\\s\\S]*1,600/,
+        'portfolio XIRR should include explicit external flows and a complete terminal value of cash plus valued holdings');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
     const investmentStorage = await page.evaluate(() => ({
