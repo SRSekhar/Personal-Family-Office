@@ -21,6 +21,11 @@ describe('investment ledger backup validation', () => {
     it('accepts and normalizes a complete ledger without dropping IDs or provenance', () => {
         expect(validateInvestmentLedgerCollections(base())).toEqual(base());
     });
+    it('preserves an optional cash-account link for schema-v6 validation', () => {
+        const value = base();
+        value.investmentTransactions[0].cashAccountId = 'cash-1';
+        expect(validateInvestmentLedgerCollections(value).investmentTransactions[0].cashAccountId).toBe('cash-1');
+    });
     it('rejects duplicate account, instrument, and transaction identifiers', () => {
         const value = base();
         value.investmentAccounts.push({ ...value.investmentAccounts[0], name: 'Duplicate' });
