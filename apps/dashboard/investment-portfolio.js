@@ -253,7 +253,7 @@ export function analyzeInvestmentPortfolioPerformance({
         Date.parse(item.date) <= asOfDate.getTime() && Date.parse(item.recordedAt) <= recordedCutoff.getTime());
     const accountById = new Map(ledger.investmentAccounts.map((item) => [item.id, item]));
     const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
-        transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
+        transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate, recordedAtCutoff: recordedCutoff });
     const currencies = [...new Set([
         ...cash.investmentCashAccounts.map((item) => item.currency),
         ...positions.map((item) => item.currency)
