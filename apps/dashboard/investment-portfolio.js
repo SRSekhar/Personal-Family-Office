@@ -243,10 +243,12 @@ export function analyzeInvestmentPortfolioPerformance({
         investmentTransactions: transactions, investmentValuations: valuations });
     const cash = validateInvestmentCashCollections({ ...ledger, investmentCashAccounts, investmentCashMovements,
         investmentCashTransfers, investmentCashStatements });
-    const cutoff = recordedAt.toISOString();
+    // Match the FIFO portfolio's bitemporal rule: both effective and recorded dates must be visible at the selected as-of point.
+    const recordedCutoff = new Date(Math.min(recordedAt.getTime(), asOfDate.getTime()));
+    const cutoff = recordedCutoff.toISOString();
     const asOf = asOfDate.toISOString();
     const visibleTransactions = cash.investmentTransactions.filter((item) =>
-        Date.parse(item.date) <= asOfDate.getTime() && Date.parse(item.recordedAt) <= recordedAt.getTime());
+        Date.parse(item.date) <= asOfDate.getTime() && Date.parse(item.recordedAt) <= recordedCutoff.getTime());
     const unlinkedTransactions = visibleTransactions.filter((item) => item.cashAccountId === undefined);
     const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
         transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
