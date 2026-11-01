@@ -41,6 +41,17 @@ describe('investment portfolio FIFO projection', () => {
         const input = fixture(); input.accounts[0].currency = 'USD';
         expect(() => analyzeInvestmentPortfolio({ ...input, asOfDate })).toThrow(/currencies must match/i);
     });
+    it('excludes backfilled external cash events recorded after a historical as-of date', () => {
+        const input = performanceFixture();
+        input.investmentCashMovements.push({ id: 'late-backfill', cashAccountId: 'cash-1', type: 'ExternalContribution',
+            amount: { amount: 5000, currency: 'INR' }, effectiveAt: '2026-03-15T00:00:00.000Z',
+            recordedAt: '2026-04-01T00:00:00.000Z' });
+        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt: new Date('2026-04-30T23:59:59.999Z') })[0];
+        expect(result.status).toBe('available');
+        expect(result.cashBalance).toBe(10513);
+        expect(result.cashFlowCount).toBe(4);
+    });
+
 });
 
 function performanceFixture() {
