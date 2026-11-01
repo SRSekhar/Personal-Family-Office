@@ -2205,10 +2205,18 @@ function importData(file, options = {}) {
             } else {
                 previewLines.push('Cash flow and budgets: not included (existing data will be preserved)');
             }
+            if (backup.includesInvestmentLedger) {
+                previewLines.push(
+                    'Investment accounts: ' + backup.investmentAccounts.length,
+                    'Investment instruments: ' + backup.investmentInstruments.length,
+                    'Investment transactions: ' + backup.investmentTransactions.length,
+                    'Investment valuations: ' + backup.investmentValuations.length
+                );
+            }
             previewLines.push(
                 '',
                 backup.includesHistoricalSnapshots
-                    ? 'Importing replaces records, goals, cash-flow transactions, budgets, and historical snapshots in this browser.'
+                    ? 'Importing replaces records, goals, cash-flow transactions, budgets, historical snapshots' + (backup.includesInvestmentLedger ? ', and all investment-ledger collections' : '') + ' in this browser.'
                     : backup.includesCashFlow
                         ? 'Importing replaces records, goals, cash-flow transactions, and budgets in this browser; existing history is preserved.'
                     : backup.includesGoals
