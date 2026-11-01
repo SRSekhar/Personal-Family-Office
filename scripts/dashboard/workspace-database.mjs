@@ -169,7 +169,8 @@ function migrateSchemaV5(database, databasePath) {
                 budgets: validated.budgets, historicalSnapshots: validated.historicalSnapshots,
                 investmentAccounts: validated.investmentAccounts, investmentInstruments: validated.investmentInstruments,
                 investmentTransactions: validated.investmentTransactions, investmentValuations: validated.investmentValuations,
-                investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
+                investmentCashAccounts: validated.investmentCashAccounts ?? [], investmentCashMovements: validated.investmentCashMovements ?? [],
+                investmentCashTransfers: validated.investmentCashTransfers ?? [], investmentCashStatements: validated.investmentCashStatements ?? []
             };
         }
         database.exec('ALTER TABLE workspace_snapshot RENAME TO workspace_snapshot_v5_migration');
