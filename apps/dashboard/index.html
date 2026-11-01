@@ -886,6 +886,9 @@
                     <h4>Cash reconciliation</h4>
                     <p class="form-note">A cash account is reconciled only when an explicit opening balance and a statement are available, all relevant transactions are linked, and the difference is within currency tolerance. No balancing entries are generated.</p>
                     <div class="table-wrap"><table><thead><tr><th>Cash account</th><th>Investment account</th><th>Currency</th><th>Status</th><th>Balance / explanation</th></tr></thead><tbody id="investment-cash-account-rows"></tbody></table></div>
+                    <h4>Link historical investment transactions</h4>
+                    <p class="form-note">Link an existing transaction to the cash account that settled it. This adds only the settlement-account reference; the transaction date, amount, quantity and price remain unchanged. A link cannot predate the cash opening baseline.</p>
+                    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Investment account</th><th>Instrument</th><th>Type</th><th class="align-right">Cash movement</th><th>Settlement cash account</th><th>Action</th></tr></thead><tbody id="investment-cash-unlinked-transaction-rows"></tbody></table></div>
                     <h4>Cash movement history</h4>
                     <div class="table-wrap"><table><thead><tr><th>Date</th><th>Cash account</th><th>Type</th><th class="align-right">Cash movement</th><th>Reference / reason</th></tr></thead><tbody id="investment-cash-movement-rows"></tbody></table></div>
                     <h4>Internal transfer history</h4>
