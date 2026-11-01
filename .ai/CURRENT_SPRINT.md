@@ -362,10 +362,12 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 
 ## 2026-11-01 — IPM-05 investment CSV interchange
 
-- Created draft PR #432 on feature/investment-ledger-csv-interchange, stacked on PR #430.
-- Added typed PFO-native CSV import/export for all eight investment/cash collections, with versioned manifests and human-readable text cells with reversible UTF-8/base64 escaping only for formula-like or reserved-prefix values, preventing spreadsheet formula execution.
-- Added strict parsing, whole-workspace validation, append/replace preview and private-workspace UI. No persistence occurs before explicit confirmation.
-- Import writes only selected collections and attempts rollback across all eight localStorage keys on failure; existing workspace update events trigger the configured SQLite autosave path.
-- Added unit round-trip/validation tests and Chromium smoke coverage for export, preview, replace confirmation and duplicate append rejection.
-- Arbitrary broker CSV mappings remain deferred pending provider-specific schemas; no guessed mappings or transaction classifications.
-- Current PR head CI must be verified before acceptance.
+- Draft PR #432 is on `feature/investment-ledger-csv-interchange`, stacked on PR #430. Latest verified head: `fba75ccd29667b0e52dbcb2252f7b33f079765b9`.
+- Added typed PFO-native CSV import/export for all eight investment/cash collections, with versioned manifests and human-readable text cells plus reversible safe-text encoding for formula-like/reserved-prefix values.
+- Added strict parsing, whole-workspace validation, append/replace preview and private-workspace UI. No writes occur before explicit confirmation; selected browser storage keys are rolled back if a write fails.
+- Import success dispatches workspace events so the existing optional/debounced SQLite autosave path can run. This is not a synchronous atomic browser-storage-plus-SQLite transaction; JSON full-workspace backup remains authoritative.
+- Unit tests cover all eight collection round trips, Unicode/special characters, BOM, LF, empty collections, malformed JSON/numbers, formula safety, invalid references, duplicate IDs and preview behavior.
+- **Verified on current head:** CI run `41305848173` passed lint, typecheck, build, full unit tests and the real Chromium browser smoke. Dashboard packaging run `41305848152` passed; Pages publishing was skipped for this PR.
+- PFO-native interchange implementation is green, but issue #431's broader acceptance is **not yet complete**: provider-specific explicit column mapping, row-level downloadable error reports, stronger persistence-failure/SQLite atomicity coverage, and reload/export-reimport equality coverage remain to be addressed. Do not mark the entire issue accepted.
+- External broker layouts remain blocked on exact, redacted provider CSV samples. Do not infer transaction types, signs, cash links, opening balances, FX or valuation data.
+- PR #432 remains draft and unmerged. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge without explicit approval.
