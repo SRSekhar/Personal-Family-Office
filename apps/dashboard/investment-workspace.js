@@ -56,7 +56,11 @@ function render() {
     $('#investment-instrument-count').textContent = String(ledger.investmentInstruments.length);
     $('#investment-transaction-count').textContent = String(ledger.investmentTransactions.length);
     $('#investment-valuation-count').textContent = String(ledger.investmentValuations.length);
+    const previousAccountId = $('#investment-transaction-account').value;
     $('#investment-transaction-account').innerHTML = options(ledger.investmentAccounts, 'id', (item) => item.name + ' · ' + item.institution);
+    if (ledger.investmentAccounts.some((item) => item.id === previousAccountId)) {
+        $('#investment-transaction-account').value = previousAccountId;
+    }
     let cashAccounts = [];
     try {
         const cashAccountsRaw = localStorage.getItem('pfo-os.investment-cash-accounts.v1');
@@ -65,8 +69,12 @@ function render() {
     } catch { /* the cash-ledger panel reports unreadable cash storage without blocking the rest of the ledger */ }
     const selectedInvestmentAccountId = $('#investment-transaction-account').value || ledger.investmentAccounts[0]?.id;
     const linkedCashAccounts = cashAccounts.filter((item) => item.investmentAccountId === selectedInvestmentAccountId);
+    const previousCashAccountId = $('#investment-transaction-cash-account').value;
     $('#investment-transaction-cash-account').innerHTML = '<option value="">Not linked — reconciliation unavailable</option>'
         + options(linkedCashAccounts, 'id', (item) => item.name + ' · ' + item.currency).replace('<option value="">Select…</option>', '');
+    if (linkedCashAccounts.some((item) => item.id === previousCashAccountId)) {
+        $('#investment-transaction-cash-account').value = previousCashAccountId;
+    }
     $('#investment-transaction-instrument').innerHTML = options(ledger.investmentInstruments, 'id', (item) => item.name + ' · ' + item.currency);
     $('#investment-valuation-instrument').innerHTML = options(ledger.investmentInstruments, 'id', (item) => item.name + ' · ' + item.currency);
     $('#investment-account-rows').innerHTML = ledger.investmentAccounts.map((item) => '<tr><td>' + escape(item.name) + '</td><td>' + escape(item.institution) + '</td><td>' + escape(item.type) + '</td><td>' + escape(item.currency) + '</td></tr>').join('');
