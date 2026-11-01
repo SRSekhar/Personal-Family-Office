@@ -320,3 +320,41 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Browser JSON export/import, local storage and SQLite save payloads now include schema-v6 cash collections; restore rollback snapshots include the additional storage keys.
 - Added tests for v5 migration, v5 recovery artifact, rollback on invalid migration, v6 validation and legacy backup compatibility. CI must confirm all changes before acceptance.
 - Next: cash ledger entry forms, statement reconciliation UI, and complete per-currency portfolio XIRR with terminal value only when both cash and holdings are complete.
+
+
+## 2026-11-01 — IPM-04 cash-ledger workflow UI increment
+
+- Added private-only UI for cash sub-account creation, opening balance evidence, external contribution/withdrawal, correction reference/reason, same-currency internal transfer and statement observations.
+- Added optional cash settlement-account selection to new investment transactions, enabling cash reconciliation. Legacy transactions without a link are not rewritten and keep the cash account incomplete.
+- Added reconciliation status and cash movement/transfer/statement histories. Browser multi-key persistence attempts rollback on write failure.
+- Extended isolated Chromium smoke to verify a synthetic opening balance + contribution + withdrawal + purchase reconciles to an explicit statement.
+- Next: portfolio-wide per-currency XIRR and complete terminal value checks; do not count internal trades or transfers as external flows.
+
+
+## 2026-11-01 — IPM-04 portfolio XIRR increment
+
+- Integrated portfolio-wide, per-currency XIRR using the existing calculator runtime. No duplicate XIRR implementation.
+- Only explicit opening balances, external contributions, external withdrawals and correction adjustments are investor cash flows. Purchases/sales/distributions/fees/taxes and internal transfers are excluded from external flows.
+- Terminal value combines statement-reconciled cash (rolled forward for later cash events and linked trades) with valued open holdings.
+- XIRR is unavailable if cash statements/opening evidence are missing, transaction links are incomplete, reconciliation differs, an open holding lacks valuation, terminal value is non-positive, or the XIRR cash-flow pattern is ambiguous. No partial result is emitted.
+- Historical calculations use a consistent effective-date and recorded-at cutoff across cash and positions.
+- Enforced a single explicit opening balance per cash account; linked trades/transfers cannot predate it. Corrections must reference a prior, non-correction event in the same account.
+- Private cash and XIRR UI content is cleared when switching to demo mode.
+- Expanded unit and Chromium smoke coverage. CI verification pending for the latest commit.
+
+
+## 2026-11-01 — historical settlement link integrity
+
+- Added a way to link legacy unlinked investment transactions to cash sub-accounts without editing their financial values or original transaction recordedAt.
+- Added `cashAccountLinkedAt` as a separate bitemporal association timestamp in the domain model and browser backup validation. Reconciliation and XIRR require that timestamp to be visible at the selected recorded-at cutoff.
+- Demo mode clears all private investment history, counts, selectors, cash rows and XIRR output. Returning to private mode restores the local records.
+- Added model, validator, cash reconciliation, portfolio performance and Chromium smoke coverage. Latest CI is pending.
+
+
+## 2026-11-01 — IPM-04 final cash-ledger acceptance
+
+- Accepted explicit zero opening balance as valid evidence; omitted zero-valued events from XIRR inputs to comply with the shared calculator contract.
+- Enabled all dashboard root-level `*.test.js` suites in Vitest; previously these files were outside the configured include glob.
+- Added/updated coverage for zero opening balances, historical transaction-link preservation, XIRR flow chronology, backup round-trips and full browser reload.
+- Latest PR #430 head `786ded49daa9655fcc09d50da4562c4f682cb5c1`: CI run 41289104534 success; dashboard package run 41289104460 success (publish skipped for PR). PR #429's schema-v6 persistence CI and packaging checks also passed.
+- Investment cash ledger, reconciliation, settlement linking and per-currency portfolio XIRR are implemented on stacked branches. All PRs remain open/unmerged pending explicit approval.

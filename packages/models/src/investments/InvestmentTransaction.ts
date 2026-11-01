@@ -14,6 +14,10 @@ export interface InvestmentTransactionInput {
     readonly date: Date;
     /** When this event was entered into the ledger; required for point-in-time analysis. */
     readonly recordedAt: Date;
+    /** Cash settlement association; independent from the immutable financial event. */
+    readonly cashAccountId?: string;
+    /** When the settlement association was recorded; defaults to recordedAt for legacy linked events. */
+    readonly cashAccountLinkedAt?: Date;
     readonly quantity?: number;
     readonly unitPrice?: Money;
     readonly externalReference?: string;
@@ -34,6 +38,8 @@ export class InvestmentTransaction {
     public readonly cashAmount: Money;
     public readonly date: Date;
     public readonly recordedAt: Date;
+    public readonly cashAccountId: string | undefined;
+    public readonly cashAccountLinkedAt: Date | undefined;
     public readonly quantity: number | undefined;
     public readonly unitPrice: Money | undefined;
     public readonly externalReference: string | undefined;
@@ -54,6 +60,23 @@ export class InvestmentTransaction {
         }
         if (!(input.recordedAt instanceof Date) || !Number.isFinite(input.recordedAt.getTime())) {
             throw new RangeError('Investment transaction recorded-at date must be valid.');
+        }
+        const cashAccountId = input.cashAccountId?.trim();
+        if (input.cashAccountId !== undefined && !cashAccountId) {
+            throw new RangeError('Investment transaction cash account ID must be non-empty when provided.');
+        }
+        if (input.cashAccountLinkedAt !== undefined
+            && (!(input.cashAccountLinkedAt instanceof Date) || !Number.isFinite(input.cashAccountLinkedAt.getTime()))) {
+            throw new RangeError('Investment transaction cash-account link date must be valid.');
+        }
+        if (cashAccountId === undefined && input.cashAccountLinkedAt !== undefined) {
+            throw new RangeError('A cash-account link date requires a cash account ID.');
+        }
+        const cashAccountLinkedAt = cashAccountId === undefined
+            ? undefined
+            : input.cashAccountLinkedAt ?? input.recordedAt;
+        if (cashAccountLinkedAt !== undefined && cashAccountLinkedAt.getTime() < input.recordedAt.getTime()) {
+            throw new RangeError('Cash-account link cannot predate the investment transaction record.');
         }
 
         const isTrade = input.type === InvestmentTransactionType.Purchase
@@ -102,6 +125,8 @@ export class InvestmentTransaction {
         this.cashAmount = input.cashAmount;
         this.date = new Date(input.date.getTime());
         this.recordedAt = new Date(input.recordedAt.getTime());
+        this.cashAccountId = cashAccountId;
+        this.cashAccountLinkedAt = cashAccountLinkedAt === undefined ? undefined : new Date(cashAccountLinkedAt.getTime());
         this.quantity = input.quantity;
         this.unitPrice = input.unitPrice;
         this.externalReference = input.externalReference?.trim();

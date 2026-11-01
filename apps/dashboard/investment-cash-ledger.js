@@ -75,7 +75,7 @@ export function validateInvestmentCashCollections(input) {
         if (type === 'OpeningBalance' && item.openingBalanceSource !== 'statement' && item.openingBalanceSource !== 'manual') {
             throw new Error('Opening balance requires an explicit statement or manual source.');
         }
-        if (cashAmount.amount === 0) throw new Error('Cash movement amount must be non-zero.');
+        if (cashAmount.amount === 0 && type !== 'OpeningBalance') throw new Error('Cash movement amount must be non-zero unless it is an explicit opening balance.');
         return { id, cashAccountId, type, amount: cashAmount,
             effectiveAt: timestamp(item.effectiveAt, 'Cash movement effectiveAt'),
             recordedAt: timestamp(item.recordedAt, 'Cash movement recordedAt'),
@@ -86,8 +86,27 @@ export function validateInvestmentCashCollections(input) {
     });
     unique(movements, 'Cash movement');
     const movementById = new Map(movements.map((item) => [item.id, item]));
-    for (const movement of movements) if (movement.reversesMovementId && !movementById.has(movement.reversesMovementId)) {
-        throw new Error('Cash correction references an unknown original movement.');
+    for (const movement of movements) if (movement.reversesMovementId) {
+        const original = movementById.get(movement.reversesMovementId);
+        if (!original) throw new Error('Cash correction references an unknown original movement.');
+        if (original.id === movement.id || original.type === 'Correction' || original.cashAccountId !== movement.cashAccountId) {
+            throw new Error('Cash correction must reference a different, non-correction movement in the same cash account.');
+        }
+        if (movement.effectiveAt < original.effectiveAt || movement.recordedAt < original.recordedAt) {
+            throw new Error('Cash correction cannot predate its referenced movement.');
+        }
+    }
+    const openingByAccount = new Map();
+    for (const movement of movements) if (movement.type === 'OpeningBalance') {
+        const opening = openingByAccount.get(movement.cashAccountId);
+        if (opening) throw new Error('A cash account can have only one explicit opening-balance event.');
+        openingByAccount.set(movement.cashAccountId, movement);
+    }
+    for (const movement of movements) {
+        const opening = openingByAccount.get(movement.cashAccountId);
+        if (opening && movement.effectiveAt < opening.effectiveAt) {
+            throw new Error('Cash movements cannot predate the explicit opening-balance baseline.');
+        }
     }
 
     const transfers = investmentCashTransfers.map((item) => {
@@ -130,8 +149,22 @@ export function validateInvestmentCashCollections(input) {
         const owner = accounts.get(item.accountId);
         if (!owner || cashAccount.investmentAccountId !== owner.id) throw new Error('Transaction cash account must belong to the transaction investment account.');
         if (item.cashAmount?.currency !== cashAccount.currency) throw new Error('Transaction currency must match its linked cash account.');
-        return { ...item, cashAccountId: cashAccount.id };
+        const cashAccountLinkedAt = item.cashAccountLinkedAt ?? item.recordedAt;
+        timestamp(cashAccountLinkedAt, 'Investment transaction cash-account link recordedAt');
+        if (cashAccountLinkedAt < item.recordedAt) throw new Error('Cash-account link cannot predate the investment transaction record.');
+        return { ...item, cashAccountId: cashAccount.id, cashAccountLinkedAt };
     });
+    for (const account of cashAccounts) {
+        const opening = openingByAccount.get(account.id);
+        if (!opening) continue;
+        for (const transaction of transactions) if (transaction.cashAccountId === account.id && transaction.date < opening.effectiveAt) {
+            throw new Error('Linked investment transactions cannot predate the explicit cash opening-balance baseline.');
+        }
+        for (const transfer of transfers) if ((transfer.sourceCashAccountId === account.id || transfer.destinationCashAccountId === account.id)
+            && transfer.effectiveAt < opening.effectiveAt) {
+            throw new Error('Cash transfers cannot predate the explicit cash opening-balance baseline.');
+        }
+    }
 
     return { investmentCashAccounts: cashAccounts, investmentCashMovements: movements,
         investmentCashTransfers: transfers, investmentCashStatements: statements, investmentTransactions: transactions };
@@ -157,13 +190,15 @@ export function reconcileInvestmentCashAccount({ cashAccountId, investmentCashAc
     const missingOpening = opening.length === 0;
     const linkedTransactions = investmentTransactions.filter((item) => item.accountId === cashAccount.investmentAccountId
         && item.date <= statement.statementAsOf && item.recordedAt <= recordedAt);
-    const unmatchedTransactions = linkedTransactions.filter((item) => item.cashAccountId === undefined);
+    const unmatchedTransactions = linkedTransactions.filter((item) => item.cashAccountId === undefined
+        || (item.cashAccountLinkedAt ?? item.recordedAt) > recordedAt);
     const transfers = byRecordedAndEffectiveDate(investmentCashTransfers.filter((item) =>
         item.sourceCashAccountId === cashAccountId || item.destinationCashAccountId === cashAccountId),
     'effectiveAt', statement.statementAsOf, recordedAt);
     let expected = movements.reduce((sum, item) => sum + item.amount.amount, 0);
     for (const transfer of transfers) expected += transfer.destinationCashAccountId === cashAccountId ? transfer.amount.amount : -transfer.amount.amount;
-    for (const transaction of linkedTransactions.filter((item) => item.cashAccountId === cashAccountId)) expected += transaction.cashAmount.amount;
+    for (const transaction of linkedTransactions.filter((item) => item.cashAccountId === cashAccountId
+        && (item.cashAccountLinkedAt ?? item.recordedAt) <= recordedAt)) expected += transaction.cashAmount.amount;
     const unmatchedCount = unmatchedTransactions.length;
     if (missingOpening || unmatchedCount > 0) return {
         status: 'incomplete', reason: missingOpening ? 'An explicit opening balance is missing.' : 'One or more investment transactions are not linked to this cash account.',
@@ -181,8 +216,8 @@ export function reconcileInvestmentCashAccount({ cashAccountId, investmentCashAc
 /** External investor flows only. Transfers and instrument transactions are intentionally excluded. */
 export function buildInvestmentExternalCashFlows({ cashAccountId, investmentCashMovements, recordedAt }) {
     timestamp(recordedAt, 'Cash-flow recordedAt');
-    return investmentCashMovements.filter((item) => item.cashAccountId === cashAccountId && item.recordedAt <= recordedAt
-        && (item.type === 'OpeningBalance' || item.type === 'ExternalContribution' || item.type === 'ExternalWithdrawal'))
+    return investmentCashMovements.filter((item) => item.cashAccountId === cashAccountId && item.amount.amount !== 0 && item.recordedAt <= recordedAt
+        && (item.type === 'OpeningBalance' || item.type === 'ExternalContribution' || item.type === 'ExternalWithdrawal' || item.type === 'Correction'))
         .map((item) => ({ date: new Date(item.effectiveAt), amount: -item.amount.amount, currency: item.amount.currency, sourceId: item.id }))
         .sort((a, b) => a.date.getTime() - b.date.getTime() || a.sourceId.localeCompare(b.sourceId));
 }

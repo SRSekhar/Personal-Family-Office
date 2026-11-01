@@ -188,4 +188,42 @@ describe('InvestmentTransaction', () => {
             cashAmount: Money.zero()
         })).toThrow('Investment transaction cash amount must be a non-zero Money value.');
     });
+
+    it('tracks cash settlement association time independently from the financial event', () => {
+        const linked = new InvestmentTransaction({
+            ...base,
+            type: InvestmentTransactionType.Dividend,
+            cashAmount: new Money(100, Currency.INR),
+            cashAccountId: 'cash-1'
+        });
+        expect(linked.cashAccountId).toBe('cash-1');
+        expect(linked.cashAccountLinkedAt?.toISOString()).toBe(base.recordedAt.toISOString());
+
+        const linkedLater = new InvestmentTransaction({
+            ...base,
+            type: InvestmentTransactionType.Dividend,
+            cashAmount: new Money(100, Currency.INR),
+            cashAccountId: 'cash-1',
+            cashAccountLinkedAt: new Date('2026-01-20T00:00:00.000Z')
+        });
+        expect(linkedLater.cashAccountLinkedAt?.toISOString()).toBe('2026-01-20T00:00:00.000Z');
+    });
+
+    it('rejects settlement link timestamps without a link or before the transaction was recorded', () => {
+        expect(() => new InvestmentTransaction({
+            ...base,
+            type: InvestmentTransactionType.Dividend,
+            cashAmount: new Money(100, Currency.INR),
+            cashAccountLinkedAt: new Date('2026-01-20T00:00:00.000Z')
+        })).toThrow('A cash-account link date requires a cash account ID.');
+
+        expect(() => new InvestmentTransaction({
+            ...base,
+            type: InvestmentTransactionType.Dividend,
+            cashAmount: new Money(100, Currency.INR),
+            cashAccountId: 'cash-1',
+            cashAccountLinkedAt: new Date('2026-01-14T00:00:00.000Z')
+        })).toThrow('Cash-account link cannot predate the investment transaction record.');
+    });
+
 });

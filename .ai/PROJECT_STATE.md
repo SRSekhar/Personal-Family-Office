@@ -258,3 +258,33 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - No cash accounts, opening balances or external flows are generated during migration. New cash collections are explicitly empty pending user entry.
 - Updated browser JSON backup/restore and SQLite persistence payloads to carry the cash collections. v1-v5 backup import remains supported, and v5 backups do not claim to include cash ledger records.
 - Added migration and backup compatibility tests. CI verification is pending; no merge or deployment is claimed.
+
+
+## 2026-11-01 — IPM-04 cash-ledger workflow UI increment
+
+- Added private-only dashboard forms for explicit cash accounts, opening balances, external funding/withdrawals, corrections, internal transfers and statement observations.
+- Added optional cash-account links to newly entered investment transactions. Existing unlinked transactions are not changed; the reconciliation engine marks them incomplete.
+- Added cash reconciliation status and append-only history tables. Browser cash-ledger collections are saved separately with best-effort rollback if storage writes fail.
+- Added isolated Chromium integration coverage for the signed movement and linked-trade reconciliation path using synthetic test data.
+- Portfolio-wide XIRR/terminal value is not yet delivered; the next increment must use the existing XIRR calculator and require complete cash/holding valuations.
+
+
+## 2026-11-01 — IPM-04 portfolio XIRR increment
+
+- Added per-currency portfolio XIRR using the repository's existing calculator runtime and shared XIRR solver.
+- External investor flows are explicit opening balances, contributions, withdrawals and correction adjustments only. Internal investment transactions and transfers are excluded.
+- Terminal value requires reconciled cash statements and valued open holdings; statement cash is rolled forward using subsequent movements, transfers and linked settlements.
+- Missing cash/valuation evidence, unlinked transactions, reconciliation differences, non-positive terminal value or ambiguous XIRR makes the result unavailable; partial portfolio returns are never presented.
+- Historical cash/position calculations use the same effective-date and recorded-at cutoff. Append-only corrections and a single opening baseline are validated.
+- Demo mode clears private cash-ledger selectors/history and portfolio XIRR output.
+- Unit and Chromium smoke coverage expanded. Latest CI verification remains in progress; no merge or deployment is claimed.
+
+
+## 2026-11-01 — IPM-04 cash-ledger acceptance verified
+
+- Added and validated the schema-v6 cash-ledger persistence, private-only workflows, historical settlement association, cash reconciliation and per-currency portfolio XIRR across stacked PRs #429 and #430.
+- Zero opening balances are accepted only when explicitly entered. They are excluded from XIRR flow arrays rather than passed as zero-valued calculator inputs.
+- XIRR uses the shared repository calculator and refuses ambiguous sign-change patterns. Cash and open-position terminal values must be complete; no partial XIRR is shown.
+- Vitest now includes all dashboard root-level tests in addition to `apps/dashboard/tests/**`, ensuring investment-ledger and cash-ledger validator tests run in CI.
+- PR #430 head `786ded49daa9655fcc09d50da4562c4f682cb5c1`: CI run 41289104534 success; dashboard package run 41289104460 success (publish skipped). PR #429 CI and packaging also passed.
+- No PR has been merged. Merge order remains #425 → #426 → #427 → #428 → #429 → #430 and requires explicit user approval.

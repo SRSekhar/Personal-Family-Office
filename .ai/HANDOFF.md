@@ -234,3 +234,53 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Added tests for v5→v6 migration, recovery artifact exactness/permissions, invalid-migration rollback, v6 backup validation and legacy compatibility. Latest CI is not yet verified.
 - No cash-entry UI or end-to-end portfolio XIRR is delivered yet. Next: verify CI, add private-workspace cash workflows, then reconciliation/reporting and XIRR with complete terminal-value checks.
 - PRs #425–#429 remain unmerged; do not merge without explicit user approval.
+
+
+## Latest Handoff — IPM-04 cash-ledger UI (2026-11-01)
+
+- Branch: `feature/investment-cash-ledger-ui`, stacked on schema-v6 PR #429 → cash engine PR #428 → design PR #427 → portfolio PR #426 → persistence PR #425.
+- Added `apps/dashboard/investment-cash-workspace.js` and UI forms in `apps/dashboard/index.html` for explicit cash sub-accounts, signed cash movements, correction references, same-currency internal transfers and statement observations.
+- New investment transactions can optionally link to an existing cash sub-account belonging to the same investment account and currency. Unlinked historical transactions remain unchanged and reconciliation reports them as incomplete.
+- Cash account rows show reconciliation status; movement, transfer and statement histories are append-only. Browser writes cover the four separate schema-v6 localStorage collections and attempt rollback if one write fails.
+- Chromium smoke now exercises a synthetic cash account with explicit opening balance, contribution, withdrawal and linked purchase, then verifies the statement balance reconciles. No personal financial records are in the fixtures.
+- Next: integrate external-flow-only XIRR with existing calculator and terminal value (valued positions + reconciled cash), by currency. Missing data must make XIRR unavailable, never partial.
+- CI status must be checked for this branch head before claiming acceptance. PRs #425–#430 remain unmerged; no merge permission has been granted.
+
+
+## Latest Handoff — IPM-04 portfolio XIRR (2026-11-01)
+
+- Branch: `feature/investment-cash-ledger-ui`; PR #430, stacked on schema-v6 PR #429 → cash-ledger engine PR #428 → design PR #427 → FIFO PR #426 → persistence PR #425.
+- `apps/dashboard/investment-portfolio.js` now exports `analyzeInvestmentPortfolioPerformance`. It accepts validated ledger/cash collections, selected as-of date, recorded-at cutoff and an injected shared performance calculator. The UI injects `analyzeInvestmentPerformanceMath` from the prepared local calculator runtime; no second XIRR solver is present.
+- Per-currency external cash flows are the inverse of explicit OpeningBalance, ExternalContribution, ExternalWithdrawal and Correction cash movements. Purchases, sales, dividends, interest, fees, taxes and transfers are not external investor flows.
+- Terminal value = each cash account's latest eligible reconciled statement balance rolled forward by later cash movements, internal transfer legs and linked investment transaction settlements, plus market value of open positions.
+- Result is unavailable rather than partial when there is no cash account/statement/opening baseline, an unlinked visible transaction, a cash reconciliation difference, missing open-position valuation, non-positive terminal value, or ambiguous/unbracketable XIRR.
+- Historical cutoff is consistent with the FIFO view: events must be effective and recorded on or before the selected as-of point. Backfilled cash entries do not leak into historical returns.
+- Cash ledger now enforces one opening baseline, no movements/trades/transfers before it, and corrections that reference a different prior non-correction movement in the same account.
+- Demo mode clears private cash selectors/history and private XIRR cards; Chromium smoke checks the private→demo→private transition.
+- Tests were repaired after an earlier malformed test-file insertion; CI run 41284831053 for commit 6d826bd... is currently in progress. Later commits after that run may trigger another run. Do not claim final CI green until latest head is checked.
+- PR #430 remains open/draft and unmerged. PRs #425–#430 must not be merged without explicit approval.
+
+
+## Latest Handoff — settlement-link bitemporal integrity (2026-11-01)
+
+- Added optional `cashAccountId` and `cashAccountLinkedAt` to `InvestmentTransaction`. Existing linked records without link time normalize to their original `recordedAt`; unlinked records remain unlinked.
+- Linking an existing transaction updates only the association and records the link timestamp. Original amount, quantity, unit price, date and recordedAt are preserved.
+- `reconcileInvestmentCashAccount` treats a transaction as unmatched until its link timestamp is visible at the requested cutoff. Portfolio XIRR applies the same cutoff to settlement links, cash movements, statements, transaction records and position valuations.
+- Main investment workspace now validates cash sub-account collections before offering/selecting them. Demo mode clears all private investment account/instrument/transaction/valuation data and selectors, plus cash history and XIRR cards.
+- Added tests in `packages/models/tests/InvestmentLedger.test.ts`, `apps/dashboard/investment-ledger.test.js`, `apps/dashboard/investment-cash-ledger.test.js` and `apps/dashboard/tests/investment-portfolio.test.js`; Chromium smoke now creates a legacy unlinked dividend, links it, reconciles it and checks XIRR/private-demo transitions.
+- Current PR #430 head is `08651e96d6a16b20913027a31abcd4e7476bb897`; CI run 41286018183 is pending. Dashboard packaging for prior commit `aa99d696...` passed. Do not claim final CI green until current head is verified.
+- PR #430 remains open/draft. PR #425–#430 remain unmerged; no merge is authorized.
+
+
+## Latest Handoff — IPM-04 cash ledger, reconciliation and XIRR (2026-11-01)
+
+- Current feature branch: `feature/investment-cash-ledger-ui`; PR #430 is stacked on PR #429 → #428 → #427 → #426 → #425.
+- Current PR #430 head: `786ded49daa9655fcc09d50da4562c4f682cb5c1`.
+- PR #430 CI run `41289104534` completed successfully. It passed repository checks, lint, typecheck, package build, the full Vitest suite including newly enabled root-level dashboard tests, Chromium installation and the real-browser smoke test.
+- Dashboard packaging run `41289104460` completed successfully; publishing was skipped because this is a PR branch.
+- PR #429 schema-v6 persistence CI and dashboard packaging passed at head `486544ca45a6762d59b436bb3734571cd7f3bd6d`.
+- Cash UI supports explicit cash sub-accounts, opening balances (including a user-entered zero balance), contributions, withdrawals, corrections, internal transfers, statement observations, reconciliation status and linking historical transactions.
+- Settlement linking preserves original transaction date, recordedAt, cash amount, quantity and unit price; it adds a separate `cashAccountLinkedAt` timestamp.
+- Per-currency XIRR uses the existing shared calculator. External flows are opening balance, contributions, withdrawals and corrections; internal trades and transfers are excluded. Terminal value is reconciled cash plus valued open positions. Ambiguous XIRR or incomplete evidence is reported unavailable.
+- Root-level dashboard test files are now included in Vitest. Latest smoke verifies a one-year return horizon, historical settlement linking, JSON and SQLite round-trips, reload persistence and private-to-demo clearing.
+- PRs #425–#430 remain open and unmerged. Required merge order: #425 → #426 → #427 → #428 → #429 → #430. Do not merge without explicit user approval.
