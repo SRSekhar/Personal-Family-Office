@@ -265,7 +265,8 @@ export function analyzeInvestmentPortfolioPerformance({
         const unavailable = (reason) => ({ currency, status: 'unavailable', reason, xirr: null, terminalValue: null,
             cashBalance: null, holdingsValue: null, cashFlowCount: 0 });
         if (cashAccounts.length === 0) return unavailable('No explicit cash accounts exist for this currency.');
-        const unlinkedTransactions = visibleTransactions.filter((item) => item.cashAccountId === undefined
+        const unlinkedTransactions = visibleTransactions.filter((item) => (item.cashAccountId === undefined
+            || (item.cashAccountLinkedAt ?? item.recordedAt) > cutoff)
             && accountById.get(item.accountId)?.currency === currency);
         if (unlinkedTransactions.length > 0) return unavailable('One or more investment transactions are not linked to an explicit cash account.');
 
@@ -296,8 +297,10 @@ export function analyzeInvestmentPortfolioPerformance({
                 }
             }
             for (const transaction of ledger.investmentTransactions) {
-                if (transaction.cashAccountId === account.id && transaction.date > statement.statementAsOf
-                    && transaction.date <= asOf && transaction.recordedAt <= cutoff) currentBalance += transaction.cashAmount.amount;
+                if (transaction.cashAccountId === account.id && (transaction.cashAccountLinkedAt ?? transaction.recordedAt) <= cutoff
+                    && transaction.date > statement.statementAsOf && transaction.date <= asOf && transaction.recordedAt <= cutoff) {
+                    currentBalance += transaction.cashAmount.amount;
+                }
             }
             cashBalance += currentBalance;
 
