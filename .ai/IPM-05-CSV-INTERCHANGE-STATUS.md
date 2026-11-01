@@ -6,7 +6,7 @@ Updated: 2026-11-01
 
 - Branch: `feature/investment-ledger-csv-interchange`
 - Pull request: [#432](https://github.com/SRSekhar/Personal-Family-Office/pull/432), draft and unmerged.
-- Latest verified feature head: `ff5c74db3048bf77b6b429cce28fb3aac06de42f`.
+- Latest verified feature head: `a1a7fc784d286be06432544311991eb2e6460e1e`.
 - PR #432 is stacked on PR #430. Preserve dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge is authorized.
 
 The PFO-native CSV interchange covers all eight investment and cash collections:
@@ -28,21 +28,20 @@ JSON full-workspace backup remains the authoritative lossless backup. CSV browse
 
 ## Verified CI on latest feature head
 
-Commit: `ff5c74db3048bf77b6b429cce28fb3aac06de42f`
+Commit: `a1a7fc784d286be06432544311991eb2e6460e1e`
 
-- CI run `41309990549` (run 1378): passed repository checks, dependency audit, lint, typecheck, package build, full Vitest suite, Chromium installation and real-browser smoke.
-- Dashboard packaging run `41309990525` (run 708): passed. Pages publishing was skipped as expected for a pull request.
-- The browser smoke includes CSV export, preview, confirmed replace, append duplicate rejection, mid-batch storage quota rollback and oversized-file rejection with no data mutation.
+- CI run `41312197836` (run 1392): passed repository checks, dependency audit, lint, typecheck, package build, full Vitest suite, Chromium installation and real-browser smoke.
+- Dashboard packaging run `41312197970` (run 722): passed. Pages publishing was skipped as expected for a pull request.
+- The browser smoke includes CSV export, row-level error report download and confirmation blocking, preview, confirmed replace, append duplicate rejection, reload/export-reimport equality, mid-batch storage quota rollback and oversized-file rejection with no data mutation.
 
-This verifies the current PFO-native implementation only. It does not close the full acceptance criteria of issue #431.
+The PFO-native CSV increment is CI-green on this head. It does not close the full acceptance criteria of issue #431 because external-provider mapping and further SQLite autosave failure/consistency acceptance remain open.
 
 ## Remaining acceptance work
 
 - Explicit external-provider column mapping, only after exact redacted source CSV samples and user-confirmed field/transaction/sign conventions are available.
-- Row-level downloadable error reports for mapped imports, with safe CSV escaping and tests.
-- Reload persistence and export/re-import equality acceptance.
+- External-provider row mapping is still blocked pending exact redacted provider CSV samples and user-confirmed transaction/sign conventions.
 - Further SQLite autosave failure/consistency tests and clear recovery behavior. Do not describe localStorage plus SQLite as cross-store atomic.
-- Confirm full CI and Secret Scan on the eventual final head before marking issue #431 complete.
+- Confirm Secret Scan and any remaining SQLite autosave failure/consistency acceptance before marking issue #431 complete.
 
 ## Explicit safety boundaries
 
@@ -61,3 +60,13 @@ This verifies the current PFO-native implementation only. It does not close the 
 - Any row-level error blocks the entire multi-file batch. Valid rows are not partially committed; the user must correct the source and retry. This preserves the all-or-nothing import policy.
 - Unit coverage and a Chromium smoke scenario were added for malformed required cells, report download and confirmation blocking. These changes are **not yet verified by CI**; the latest verified CI remains run `41311246404` (1381) and dashboard packaging run `41311246326` (711) on prior head `8c9a37931ae3c4d3f562bc736b76437649147429`.
 - The current head has no workflow run/status result visible yet. Do not claim the new report implementation passed until CI, Chromium smoke, Secret Scan and dashboard packaging are verified on the final head.
+
+
+## Row-level diagnostics — verified
+
+- Detailed row parsing records file, collection, logical CSV row, field, validation message and raw source cells.
+- The downloadable error report is CSV-quoted and spreadsheet-safe. It retains raw row JSON for local troubleshooting.
+- Any row-level error blocks the entire multi-file batch; there is no partial import of otherwise valid rows.
+- Unit tests and real Chromium smoke cover error collection, report download and disabled confirmation.
+- Verified on head `a1a7fc7841b90540db17fc2111c51de99b4b418c`? No — canonical head is `a1a7fc784d286be06432544311991eb2e6460e1e`.
+- CI run `41312197836` (1392) and dashboard packaging run `41312197970` (722) both passed. Pages publishing was skipped as expected for this PR.
