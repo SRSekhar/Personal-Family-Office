@@ -2180,6 +2180,7 @@ try {
         'tax reset should restore a single final bracket');
     process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\n');
 
+    await page.locator('#cash-flow-period').selectOption('all');
     page.once('dialog', (dialog) => dialog.accept());
     await page.locator('#cash-flow-import-csv').setInputFiles({
         name: 'cash-flow-import.csv',
