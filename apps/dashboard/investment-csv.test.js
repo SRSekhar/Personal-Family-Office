@@ -23,6 +23,33 @@ describe('investment CSV interchange', () => {
             unitPrice: { amount: 100, currency: 'INR' }, notes: 'purchase' };
         expect(parseInvestmentCollectionCsv(exportInvestmentCollectionCsv('investmentTransactions', [row]), 'investmentTransactions')).toEqual([row]);
     });
+
+    it('round-trips every cash collection with exact timestamps and money values', () => {
+        const fixtures = {
+            investmentCashAccounts: [{ id: 'ca-1', investmentAccountId: 'a-1', name: 'Broker cash', currency: 'INR', createdAt: '2026-01-01T00:00:00.000Z' }],
+            investmentCashMovements: [{ id: 'm-1', cashAccountId: 'ca-1', type: 'OpeningBalance', amount: { amount: 0, currency: 'INR' },
+                effectiveAt: '2026-01-01T00:00:00.000Z', recordedAt: '2026-01-01T00:00:00.000Z', openingBalanceSource: 'manual' }],
+            investmentCashTransfers: [{ id: 'tr-1', sourceCashAccountId: 'ca-1', destinationCashAccountId: 'ca-2',
+                amount: { amount: 25, currency: 'INR' }, effectiveAt: '2026-01-02T00:00:00.000Z', recordedAt: '2026-01-02T00:00:00.000Z' }],
+            investmentCashStatements: [{ id: 's-1', cashAccountId: 'ca-1', closingBalance: { amount: 25, currency: 'INR' },
+                periodStart: '2026-01-01T00:00:00.000Z', periodEnd: '2026-01-31T00:00:00.000Z',
+                statementAsOf: '2026-01-31T00:00:00.000Z', recordedAt: '2026-02-01T00:00:00.000Z', sourceName: 'Bank statement' }]
+        };
+        for (const [collection, records] of Object.entries(fixtures)) {
+            expect(parseInvestmentCollectionCsv(exportInvestmentCollectionCsv(collection, records), collection)).toEqual(records);
+        }
+    });
+    it('round-trips instruments and valuation observations', () => {
+        const fixtures = {
+            investmentInstruments: [instrument],
+            investmentValuations: [{ instrumentId: 'i-1', price: { amount: 120.5, currency: 'INR' },
+                asOf: '2026-01-31T00:00:00.000Z', recordedAt: '2026-02-01T00:00:00.000Z',
+                sourceType: 'manual', sourceName: 'User-entered observation' }]
+        };
+        for (const [collection, records] of Object.entries(fixtures)) {
+            expect(parseInvestmentCollectionCsv(exportInvestmentCollectionCsv(collection, records), collection)).toEqual(records);
+        }
+    });
     it('rejects wrong manifests, reordered or duplicate headers and incomplete rows', () => {
         const csv = exportInvestmentCollectionCsv('investmentAccounts', [account]);
         expect(() => parseInvestmentCollectionCsv(csv, 'investmentInstruments')).toThrow(/manifest/i);
