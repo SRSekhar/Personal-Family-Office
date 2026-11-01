@@ -13,6 +13,21 @@ const fixture = () => ({
     investmentCashTransfers: [],
     investmentCashStatements: [{ id: 'statement-1', cashAccountId: 'cash-1', closingBalance: { amount: 1400, currency: 'INR' }, periodStart: date, periodEnd: '2026-01-31T00:00:00.000Z', statementAsOf: '2026-01-31T00:00:00.000Z', recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'Bank statement' }],
     investmentTransactions: []
+    it('treats a settlement link as unavailable until the link itself was recorded', () => {
+        const value = fixture();
+        value.investmentTransactions.push({ id: 'late-linked-trade', accountId: 'broker-1', cashAccountId: 'cash-1',
+            cashAccountLinkedAt: '2026-01-20T00:00:00.000Z',
+            cashAmount: { amount: -50, currency: 'INR' }, date: '2026-01-04T00:00:00.000Z',
+            recordedAt: '2026-01-05T00:00:00.000Z' });
+        value.investmentCashStatements[0].closingBalance.amount = 1350;
+        const beforeLink = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-01-15T00:00:00.000Z' });
+        expect(beforeLink.status).toBe('incomplete');
+        expect(beforeLink.unmatchedCount).toBe(1);
+        const afterLink = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-01-31T00:00:00.000Z' });
+        expect(afterLink.status).toBe('reconciled');
+        expect(afterLink.expectedBalance.amount).toBe(1350);
+    });
+
 });
 
 describe('investment cash ledger', () => {
