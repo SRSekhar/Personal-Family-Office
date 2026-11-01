@@ -118,8 +118,8 @@ function formatMoney(amount, currency) {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 }
 function renderPortfolio(performanceCalculator) {
-    const rows = $('#investment-position-rows'), warnings = $('#investment-reconciliation-warnings'), summaries = $('#investment-portfolio-summaries');
-    rows.replaceChildren(); warnings.replaceChildren(); summaries.replaceChildren();
+    const rows = $('#investment-position-rows'), warnings = $('#investment-reconciliation-warnings'), summaries = $('#investment-portfolio-summaries'), performanceSummary = $('#investment-portfolio-performance');
+    rows.replaceChildren(); warnings.replaceChildren(); summaries.replaceChildren(); performanceSummary.replaceChildren();
     const isPrivate = $('#workspace-label')?.textContent.includes('PRIVATE');
     $('#investment-portfolio-demo-note').hidden = Boolean(isPrivate);
     if (!isPrivate) { const row = document.createElement('tr'); addCell(row, 'Switch to the private workspace to view portfolio positions.'); rows.append(row); return; }
@@ -131,8 +131,6 @@ function renderPortfolio(performanceCalculator) {
         const ledger = readLedger();
         const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
             transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
-        const performanceSummary = $('#investment-portfolio-performance');
-        performanceSummary.replaceChildren();
         try {
             const cashKeys = {
                 investmentCashAccounts: 'pfo-os.investment-cash-accounts.v1',
