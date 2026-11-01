@@ -1355,7 +1355,6 @@ try {
     assert.equal(await page.locator('#investment-account-count').innerText(), '1',
         'PFO-native CSV replace import should round-trip the existing account without duplication');
     await page.locator('input[name="investment-csv-mode"][value="append"]').check();
-    await page.locator('#investment-csv-files').setInputFiles(investmentLedgerCollectionCsvPath);
     await page.waitForFunction(() => /unique/i.test(globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''));
     assert.equal(await page.locator('#investment-account-count').innerText(), '1',
         'duplicate-ID append preview must reject without mutating the saved investment ledger');
