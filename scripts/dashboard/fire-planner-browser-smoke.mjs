@@ -1349,10 +1349,10 @@ try {
     await investmentLedgerCollectionCsvDownload.saveAs(investmentLedgerCollectionCsvPath);
 
     // A malformed required cell should produce a downloadable row-level report and block the whole batch.
-    const invalidInvestmentCsvRows = (await readFile(investmentLedgerCollectionCsvPath, 'utf8')).split('\\r\\n');
+    const invalidInvestmentCsvRows = (await readFile(investmentLedgerCollectionCsvPath, 'utf8')).split('\r\n');
     invalidInvestmentCsvRows[2] = invalidInvestmentCsvRows[2].replace(/^"[^"]*",/u, '"",');
     const invalidInvestmentCsvPath = join(temporaryDirectory, 'investmentAccounts-invalid.pfo.csv');
-    await writeFile(invalidInvestmentCsvPath, invalidInvestmentCsvRows.join('\\r\\n'), 'utf8');
+    await writeFile(invalidInvestmentCsvPath, invalidInvestmentCsvRows.join('\r\n'), 'utf8');
     await page.locator('#investment-csv-files').setInputFiles(invalidInvestmentCsvPath);
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-preview')?.textContent.includes('row-level error(s)'));
     assert.equal(await page.locator('#investment-csv-confirm').isDisabled(), true,
@@ -1366,7 +1366,7 @@ try {
     await investmentCsvErrorReportDownload.saveAs(investmentCsvErrorReportPath);
     const investmentCsvErrorReport = await readFile(investmentCsvErrorReportPath, 'utf8');
     assert.match(investmentCsvErrorReport, /rawRowJson/);
-    assert.match(investmentCsvErrorReport, /investmentAccounts-invalid\\.pfo\\.csv/);
+    assert.match(investmentCsvErrorReport, /investmentAccounts-invalid\.pfo\.csv/);
     await page.locator('#investment-csv-files').setInputFiles(investmentLedgerCollectionCsvPath);
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
     assert.match(await page.locator('#investment-csv-preview').innerText(), /investmentAccounts: 1 rows/);
