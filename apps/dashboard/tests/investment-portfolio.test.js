@@ -3,7 +3,7 @@ import { analyzeInvestmentPerformanceMath } from '../../../packages/calculators/
 import { analyzeInvestmentPortfolio, analyzeInvestmentPortfolioPerformance } from '../investment-portfolio.js';
 const asOfDate = new Date('2026-03-31T23:59:59.999Z');
 function fixture() {
-    return { accounts: [{ id: 'a1', name: 'Brokerage', currency: 'INR' }], instruments: [{ id: 'i1', name: 'Example equity', currency: 'INR' }],
+    return { accounts: [{ id: 'a1', name: 'Brokerage', institution: 'Example broker', type: 'Brokerage', currency: 'INR' }], instruments: [{ id: 'i1', name: 'Example equity', type: 'Equity', currency: 'INR' }],
         transactions: [
             { id: 't1', accountId: 'a1', instrumentId: 'i1', type: 'Purchase', cashAmount: { amount: -1000, currency: 'INR' }, quantity: 10, unitPrice: { amount: 100, currency: 'INR' }, date: '2026-01-01T00:00:00.000Z', recordedAt: '2026-01-01T00:00:00.000Z' },
             { id: 't2', accountId: 'a1', instrumentId: 'i1', type: 'Purchase', cashAmount: { amount: -1200, currency: 'INR' }, quantity: 10, unitPrice: { amount: 120, currency: 'INR' }, date: '2026-02-01T00:00:00.000Z', recordedAt: '2026-02-01T00:00:00.000Z' },
