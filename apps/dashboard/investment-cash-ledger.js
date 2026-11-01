@@ -86,8 +86,24 @@ export function validateInvestmentCashCollections(input) {
     });
     unique(movements, 'Cash movement');
     const movementById = new Map(movements.map((item) => [item.id, item]));
-    for (const movement of movements) if (movement.reversesMovementId && !movementById.has(movement.reversesMovementId)) {
-        throw new Error('Cash correction references an unknown original movement.');
+    for (const movement of movements) if (movement.reversesMovementId) {
+        const original = movementById.get(movement.reversesMovementId);
+        if (!original) throw new Error('Cash correction references an unknown original movement.');
+        if (original.id === movement.id || original.type === 'Correction' || original.cashAccountId !== movement.cashAccountId) {
+            throw new Error('Cash correction must reference a different, non-correction movement in the same cash account.');
+        }
+    }
+    const openingByAccount = new Map();
+    for (const movement of movements) if (movement.type === 'OpeningBalance') {
+        const opening = openingByAccount.get(movement.cashAccountId);
+        if (opening) throw new Error('A cash account can have only one explicit opening-balance event.');
+        openingByAccount.set(movement.cashAccountId, movement);
+    }
+    for (const movement of movements) {
+        const opening = openingByAccount.get(movement.cashAccountId);
+        if (opening && movement.effectiveAt < opening.effectiveAt) {
+            throw new Error('Cash movements cannot predate the explicit opening-balance baseline.');
+        }
     }
 
     const transfers = investmentCashTransfers.map((item) => {
