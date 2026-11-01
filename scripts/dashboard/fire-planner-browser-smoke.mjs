@@ -1269,7 +1269,11 @@ try {
     assert.equal(investmentStorage.instruments.length, 1);
     assert.equal(investmentStorage.transactions.length, 1);
     assert.equal(investmentStorage.valuations.length, 1);
-    process.stdout.write('PASS: private investment ledger creates accounts, instruments, reconciled trades and manual valuations.\n');
+    assert.equal(investmentStorage.cashAccounts.length, 1);
+    assert.equal(investmentStorage.cashMovements.length, 3);
+    assert.equal(investmentStorage.cashStatements.length, 1);
+    assert.equal(investmentStorage.cashTransfers.length, 0);
+    process.stdout.write('PASS: private investment and cash ledgers record funding, withdrawals, trade settlement and statement reconciliation.\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
