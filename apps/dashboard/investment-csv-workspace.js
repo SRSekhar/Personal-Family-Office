@@ -37,7 +37,7 @@ function downloadCsv(collection) {
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function renderPreview(preview) {
     const summary = $('#investment-csv-preview');
