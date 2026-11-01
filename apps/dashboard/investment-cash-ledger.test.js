@@ -53,6 +53,13 @@ describe('investment cash ledger', () => {
         expect(reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...validated, investmentTransactions: [] }).status).toBe('reconciled');
     });
 
+    it('omits a zero opening balance from investor cash flows', () => {
+        const value = fixture();
+        value.investmentCashMovements[0].amount.amount = 0;
+        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
+        expect(flows.map((flow) => flow.amount)).toEqual([-500, 100]);
+    });
+
     it('marks missing opening balance as incomplete instead of assuming zero', () => {
         const value = fixture();
         value.investmentCashMovements.shift();
