@@ -34,7 +34,7 @@ describe('investment cash ledger', () => {
     it('reconciles only from explicit opening balance and statement evidence', () => {
         const value = fixture();
         const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
-        expect(result.status).toBe('difference');
+        expect(result.status).toBe('reconciled');
         expect(result.expectedBalance.amount).toBe(1400);
         expect(result.difference.amount).toBe(0);
     });
