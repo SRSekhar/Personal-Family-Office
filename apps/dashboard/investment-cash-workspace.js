@@ -76,6 +76,11 @@ function render() {
     if (!isPrivate) {
         $('#investment-cash-error').hidden = true;
         panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = true; });
+        panel.querySelectorAll('form input').forEach((control) => { control.value = ''; });
+        for (const selector of ['#investment-cash-owner', '#investment-cash-movement-account', '#investment-cash-statement-account',
+            '#investment-cash-transfer-source', '#investment-cash-transfer-destination', '#investment-cash-correction-target']) {
+            $(selector).replaceChildren();
+        }
         for (const id of ['investment-cash-account-count', 'investment-cash-movement-count', 'investment-cash-transfer-count', 'investment-cash-statement-count']) {
             $('#' + id).textContent = '0';
         }
