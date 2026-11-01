@@ -2568,7 +2568,11 @@ try {
         goals: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
         cashFlow: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
         budgets: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
-        history: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]'),
+        investmentAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        investmentInstruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        investmentTransactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -2584,11 +2588,15 @@ try {
         goals: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
         cashFlow: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
         budgets: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
-        history: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]'),
+        investmentAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        investmentInstruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        investmentTransactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all five collections');
-    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all five workspace collections.\\n');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nine collections');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all nine workspace collections.\\n');
 
     await page.locator('#database-auto-save-button').click();
     await page.waitForFunction(() =>
