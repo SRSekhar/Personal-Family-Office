@@ -71,7 +71,7 @@ describe('investment CSV interchange', () => {
         expect(preview.confirmed).toBe(false);
         expect(preview.counts.investmentAccounts).toEqual({ imported: 1, resulting: 1, mode: 'append' });
         expect(empty).toEqual(before);
-        expect(() => validateInvestmentCsvWorkspace(empty, { investmentAccounts: [account] }, 'append')).toThrow(/unknown account|references/i);
+        expect(() => validateInvestmentCsvWorkspace(empty, { investmentCashAccounts: [{ id: 'cash-1', investmentAccountId: 'missing-account', name: 'Cash', currency: 'INR', createdAt: '2026-01-01T00:00:00.000Z' }] }, 'append')).toThrow(/unknown investment account/i);
     });
     it('rejects duplicate IDs in append mode before returning a candidate', () => {
         const current = { ...empty, investmentAccounts: [account] };
