@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { analyzeInvestmentPerformanceMath } from '../../../packages/calculators/src/InvestmentPerformanceMath.ts';
 import { analyzeInvestmentPortfolio, analyzeInvestmentPortfolioPerformance } from '../investment-portfolio.js';
 const asOfDate = new Date('2026-03-31T23:59:59.999Z');
 function fixture() {
@@ -46,7 +47,7 @@ describe('investment portfolio FIFO projection', () => {
         input.investmentCashMovements.push({ id: 'late-backfill', cashAccountId: 'cash-1', type: 'ExternalContribution',
             amount: { amount: 5000, currency: 'INR' }, effectiveAt: '2026-03-15T00:00:00.000Z',
             recordedAt: '2026-04-01T00:00:00.000Z' });
-        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt: new Date('2026-04-30T23:59:59.999Z') })[0];
+        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt: new Date('2026-04-30T23:59:59.999Z'), performanceCalculator: analyzeInvestmentPerformanceMath })[0];
         expect(result.status).toBe('available');
         expect(result.cashBalance).toBe(10513);
         expect(result.cashFlowCount).toBe(4);
@@ -77,7 +78,7 @@ const recordedAt = new Date('2026-03-31T23:59:59.999Z');
 describe('investment portfolio money-weighted performance', () => {
     it('calculates XIRR from external flows and complete terminal holdings plus reconciled cash', () => {
         const input = performanceFixture();
-        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt });
+        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt, performanceCalculator: analyzeInvestmentPerformanceMath });
         expect(result).toHaveLength(1);
         expect(result[0]).toMatchObject({ currency: 'INR', status: 'available', terminalValue: 11793,
             cashBalance: 10513, holdingsValue: 1280, cashFlowCount: 4 });
