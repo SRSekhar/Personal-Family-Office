@@ -93,6 +93,17 @@ describe('investment portfolio money-weighted performance', () => {
         });
     });
 
+    it('calculates XIRR with an explicit zero opening balance without passing a zero cash flow to the calculator', () => {
+        const input = performanceFixture();
+        input.investmentCashMovements[0].amount.amount = 0;
+        input.investmentCashStatements[0].closingBalance.amount = 513;
+        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt, performanceCalculator: analyzeInvestmentPerformanceMath })[0];
+        expect(result.status).toBe('available');
+        expect(result.cashBalance).toBe(513);
+        expect(result.terminalValue).toBe(1793);
+        expect(result.cashFlowCount).toBe(3);
+    });
+
     it('does not calculate a partial XIRR when cash reconciliation is incomplete', () => {
         const input = performanceFixture();
         input.investmentCashStatements = [];
