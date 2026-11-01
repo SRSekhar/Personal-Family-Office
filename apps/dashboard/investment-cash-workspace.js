@@ -59,6 +59,12 @@ function options(items, label) {
     return '<option value="">Select…</option>' + items.map((item) =>
         '<option value="' + escape(item.id) + '">' + escape(label(item)) + '</option>').join('');
 }
+function setOptions(selector, items, label) {
+    const select = $(selector);
+    const previous = select.value;
+    select.innerHTML = options(items, label);
+    if (items.some((item) => item.id === previous)) select.value = previous;
+}
 function privateWorkspace() {
     return $('#workspace-label')?.textContent.includes('PRIVATE') === true;
 }
@@ -85,13 +91,13 @@ function render() {
 
     const accountById = new Map(ledger.investmentAccounts.map((item) => [item.id, item]));
     const cashAccountLabel = (item) => item.name + ' · ' + item.currency;
-    $('#investment-cash-owner').innerHTML = options(ledger.investmentAccounts, (item) => item.name + ' · ' + item.institution + ' · ' + item.currency);
-    $('#investment-cash-movement-account').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
-    $('#investment-cash-statement-account').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
-    $('#investment-cash-transfer-source').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
-    $('#investment-cash-transfer-destination').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
+    setOptions('#investment-cash-owner', ledger.investmentAccounts, (item) => item.name + ' · ' + item.institution + ' · ' + item.currency);
+    setOptions('#investment-cash-movement-account', cash.investmentCashAccounts, cashAccountLabel);
+    setOptions('#investment-cash-statement-account', cash.investmentCashAccounts, cashAccountLabel);
+    setOptions('#investment-cash-transfer-source', cash.investmentCashAccounts, cashAccountLabel);
+    setOptions('#investment-cash-transfer-destination', cash.investmentCashAccounts, cashAccountLabel);
     const correctionCashAccountId = $('#investment-cash-movement-account').value;
-    $('#investment-cash-correction-target').innerHTML = options(cash.investmentCashMovements.filter((item) =>
+    setOptions('#investment-cash-correction-target', cash.investmentCashMovements.filter((item) =>
         item.cashAccountId === correctionCashAccountId && item.type !== 'Correction'),
     (item) => item.type + ' · ' + item.effectiveAt.slice(0, 10) + ' · ' + money(item.amount.amount, item.amount.currency));
 
