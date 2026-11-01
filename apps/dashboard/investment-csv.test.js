@@ -73,6 +73,21 @@ describe('investment CSV interchange', () => {
         expect(empty).toEqual(before);
         expect(() => validateInvestmentCsvWorkspace(empty, { investmentCashAccounts: [{ id: 'cash-1', investmentAccountId: 'missing-account', name: 'Cash', currency: 'INR', createdAt: '2026-01-01T00:00:00.000Z' }] }, 'append')).toThrow(/unknown investment account/i);
     });
+    it('accepts UTF-8 BOM and LF line endings and preserves empty collections', () => {
+        const csv = exportInvestmentCollectionCsv('investmentAccounts', [account]).replace(/\r\n/gu, '\n');
+        expect(parseInvestmentCollectionCsv('\uFEFF' + csv, 'investmentAccounts')).toEqual([account]);
+        const emptyCsv = exportInvestmentCollectionCsv('investmentAccounts', []);
+        expect(parseInvestmentCollectionCsv(emptyCsv, 'investmentAccounts')).toEqual([]);
+    });
+    it('rejects invalid nested JSON and non-finite numeric cells', () => {
+        const transaction = { id: 't-2', accountId: 'a-1', instrumentId: 'i-1', type: 'Purchase',
+            cashAmount: { amount: -10, currency: 'INR' }, date: '2026-01-01T00:00:00.000Z',
+            recordedAt: '2026-01-01T00:00:00.000Z', quantity: 1 };
+        const csv = exportInvestmentCollectionCsv('investmentTransactions', [transaction]);
+        expect(() => parseInvestmentCollectionCsv(csv.replace('{"amount":-10,"currency":"INR"}', '{bad-json}'), 'investmentTransactions')).toThrow(/invalid JSON/i);
+        expect(() => parseInvestmentCollectionCsv(csv.replace(',"1",', ',"Infinity",'), 'investmentTransactions')).toThrow(/finite number/i);
+    });
+
     it('rejects duplicate IDs in append mode before returning a candidate', () => {
         const current = { ...empty, investmentAccounts: [account] };
         expect(() => validateInvestmentCsvWorkspace(current, { investmentAccounts: [account] }, 'append')).toThrow(/unique/i);
