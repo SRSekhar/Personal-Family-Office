@@ -309,3 +309,15 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Provider mapping must wait for actual redacted source CSV samples and explicit transaction/sign conventions. Never guess broker schemas or synthesize financial events.
 - Import writes selected localStorage collections with rollback attempts, then dispatches workspace events to trigger the configured optional/debounced SQLite autosave. This is not a single atomic transaction spanning browser storage and SQLite.
 - PR #432 remains open/draft/unmerged. Required dependency order remains #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge is authorized.
+
+
+## Latest Handoff — IPM-05 row-level CSV diagnostics (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432 based on PR #430. Current head at handoff: `ef1d0fd574613f42d7736781ebc42237dd6c0df2`.
+- Added detailed PFO-native CSV row parsing, collecting row number, field, validation message and original row cells; the strict parser continues to fail if any row is invalid.
+- UI shows row diagnostics and downloads a spreadsheet-safe `investment-csv-import-errors.csv` report. A row-level error blocks the entire multi-file batch; no valid rows are partially persisted.
+- Unit tests and Chromium smoke coverage for report generation/download and disabled confirmation were added. CI, Chromium smoke, Secret Scan and dashboard packaging for this head are not yet visible/verified.
+- Latest verified previous head: `8c9a37931ae3c4d3f562bc736b76437649147429`; CI run 1381 and dashboard packaging run 711 passed, including reload/export-reimport equality.
+- Provider-specific mapping remains blocked until actual redacted CSV samples and confirmed transaction/sign semantics are provided. Never infer financial events.
+- Import writes localStorage with rollback attempts and dispatches events for optional/debounced SQLite autosave; no cross-store atomic transaction is claimed.
+- PR #432 remains draft and unmerged; keep dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
