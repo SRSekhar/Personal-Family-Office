@@ -1239,7 +1239,7 @@ try {
     await page.locator('#investment-cash-statement-form [name="statementAsOf"]').fill('2026-10-31');
     await page.locator('#investment-cash-statement-form [name="sourceName"]').fill('Browser test statement');
     await page.locator('#investment-cash-statement-form button[type="submit"]').click();
-    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /reconciled[\\s\\S]*400/,
+    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /reconciled.*400/,
         'explicit opening capital, external contributions/withdrawals and a linked purchase should reconcile to the statement balance');
     await page.locator('#investment-valuation-form [name="instrumentId"]').selectOption({ index: 0 });
     await page.locator('#investment-valuation-form [name="price"]').fill('120');
