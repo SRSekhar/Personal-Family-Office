@@ -36,7 +36,7 @@ const COLLECTIONS = {
 
 function encodeText(value) {
     const text = String(value);
-    if (!/^\\s*[=+@-]/u.test(text) && !text.startsWith(TEXT_PREFIX)) return text;
+    if (!/^\s*[=+@-]/u.test(text) && !text.startsWith(TEXT_PREFIX)) return text;
     const bytes = new TextEncoder().encode(text);
     let binary = '';
     for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -44,7 +44,7 @@ function encodeText(value) {
 }
 function decodeText(value) {
     if (!value.startsWith(TEXT_PREFIX)) {
-        if (/^\\s*[=+@-]/u.test(value)) throw new Error('Formula-like CSV text must use the PFO safe-text encoding.');
+        if (/^\s*[=+@-]/u.test(value)) throw new Error('Formula-like CSV text must use the PFO safe-text encoding.');
         return value;
     }
     const binary = atob(value.slice(TEXT_PREFIX.length));
