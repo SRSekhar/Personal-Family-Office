@@ -123,7 +123,7 @@ function renderPortfolio() {
     if (!isPrivate) { const row = document.createElement('tr'); addCell(row, 'Switch to the private workspace to view portfolio positions.'); rows.append(row); return; }
     try {
         const date = $('#investment-portfolio-as-of').value;
-        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) throw new Error('Select a valid portfolio as-of date.');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Select a valid portfolio as-of date.');
         const [year, month, day] = date.split('-').map(Number), asOfDate = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
         if (asOfDate.getUTCFullYear() !== year || asOfDate.getUTCMonth() !== month - 1 || asOfDate.getUTCDate() !== day) throw new Error('Select a valid calendar date.');
         const ledger = readLedger();
