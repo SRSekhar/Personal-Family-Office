@@ -2806,6 +2806,17 @@ try {
     assert.deepEqual(databaseBackup, committedDatabaseWorkspace,
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
+    await page.locator('#database-online-backup-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
+    const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
+    assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\\.sqlite/i,
+        'the dashboard should report the verified online SQLite backup filename');
+    assert.match(onlineBackupStatus, /13 collections/i,
+        'the online backup UI should report validation across all 13 workspace collections');
+    assert.match(onlineBackupStatus, /\\.backups/i,
+        'the online backup UI should report the private backup directory');
+    process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
+
 
     const savedDatabaseState = await page.evaluate(() => ({
         records: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]'),
