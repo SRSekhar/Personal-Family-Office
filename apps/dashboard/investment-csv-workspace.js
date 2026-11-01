@@ -15,7 +15,9 @@ const STORAGE_KEYS = {
     investmentCashStatements: 'pfo-os.investment-cash-statements.v1'
 };
 const $ = (selector) => document.querySelector(selector);
-let pendingPreview = null;\nlet importErrors = [];\n
+let pendingPreview = null;
+let importErrors = [];
+
 
 function isPrivateWorkspace() {
     return $('#workspace-label')?.textContent.includes('PRIVATE') === true;
