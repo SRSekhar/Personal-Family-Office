@@ -258,3 +258,12 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - No cash accounts, opening balances or external flows are generated during migration. New cash collections are explicitly empty pending user entry.
 - Updated browser JSON backup/restore and SQLite persistence payloads to carry the cash collections. v1-v5 backup import remains supported, and v5 backups do not claim to include cash ledger records.
 - Added migration and backup compatibility tests. CI verification is pending; no merge or deployment is claimed.
+
+
+## 2026-11-01 — IPM-04 cash-ledger workflow UI increment
+
+- Added private-only dashboard forms for explicit cash accounts, opening balances, external funding/withdrawals, corrections, internal transfers and statement observations.
+- Added optional cash-account links to newly entered investment transactions. Existing unlinked transactions are not changed; the reconciliation engine marks them incomplete.
+- Added cash reconciliation status and append-only history tables. Browser cash-ledger collections are saved separately with best-effort rollback if storage writes fail.
+- Added isolated Chromium integration coverage for the signed movement and linked-trade reconciliation path using synthetic test data.
+- Portfolio-wide XIRR/terminal value is not yet delivered; the next increment must use the existing XIRR calculator and require complete cash/holding valuations.
