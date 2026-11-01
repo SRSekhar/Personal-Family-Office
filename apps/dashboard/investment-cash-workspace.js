@@ -91,7 +91,6 @@ function render() {
     $('#investment-cash-transfer-source').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
     $('#investment-cash-transfer-destination').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
     $('#investment-cash-correction-target').innerHTML = options(cash.investmentCashMovements, (item) => item.type + ' · ' + item.effectiveAt.slice(0, 10) + ' · ' + money(item.amount.amount, item.amount.currency));
-    $('#investment-cash-movement-type').innerHTML = movementTypes.map((type) => '<option value="' + type + '">' + type + '</option>').join('');
 
     const hasOwners = ledger.investmentAccounts.length > 0;
     const hasCashAccounts = cash.investmentCashAccounts.length > 0;
@@ -130,9 +129,6 @@ function render() {
             + money(item.closingBalance.amount, item.closingBalance.currency) + '</td><td>' + escape(item.sourceName) + '</td></tr>';
     }).join('');
 
-    const movementType = $('#investment-cash-movement-type').value;
-    $('#investment-cash-opening-source-row').hidden = movementType !== 'OpeningBalance';
-    $('#investment-cash-correction-fields').hidden = movementType !== 'Correction';
 }
 function message(value) {
     $('#investment-cash-message').textContent = value;
@@ -151,8 +147,17 @@ function bindForm(selector, handler) {
         }
     });
 }
+function updateMovementFields() {
+    const type = $('#investment-cash-movement-type').value;
+    $('#investment-cash-opening-source-row').hidden = type !== 'OpeningBalance';
+    $('#investment-cash-opening-source').required = type === 'OpeningBalance';
+    $('#investment-cash-correction-fields').hidden = type !== 'Correction';
+    $('#investment-cash-correction-reason').required = type === 'Correction';
+    $('#investment-cash-correction-target').required = type === 'Correction';
+}
 export function initializeInvestmentCashWorkspace() {
-    $('#investment-cash-movement-type').addEventListener('change', render);
+    $('#investment-cash-movement-type').innerHTML = movementTypes.map((type) => '<option value="' + type + '">' + type + '</option>').join('');
+    $('#investment-cash-movement-type').addEventListener('change', updateMovementFields);
     bindForm('#investment-cash-account-form', (form) => {
         const { ledger, cash } = readData();
         const owner = ledger.investmentAccounts.find((item) => item.id === form.get('investmentAccountId'));
@@ -198,6 +203,7 @@ export function initializeInvestmentCashWorkspace() {
             sourceName: String(form.get('sourceName')).trim() };
         persistCash({ ...cash, investmentCashStatements: [...cash.investmentCashStatements, statement] });
     });
+    updateMovementFields();
     window.addEventListener('pfo:investment-updated', render);
     window.addEventListener('pfo:workspace-updated', render);
     render();
