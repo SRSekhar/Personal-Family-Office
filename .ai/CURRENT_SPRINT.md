@@ -285,3 +285,12 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 ## Next Workstream — IPM-04
 
 Investment portfolio FIFO projection and valuation reconciliation are in progress on feature/investment-portfolio-reconciliation, stacked on schema-v5 persistence PR #425. Acceptance requires lint, typecheck, unit tests and real Chromium browser smoke. Do not merge dependent work independently into main before PR #425.
+
+
+## 2026-11-01 — IPM-04 FIFO portfolio acceptance
+
+- Implemented the schema-v5 ledger portfolio projection on `feature/investment-portfolio-reconciliation`, stacked on PR #425.
+- Added FIFO positions, cost basis, realised/unrealised P&L, recorded income/expenses, point-in-time valuation selection, currency-separated totals, missing-price states and oversell rejection.
+- CI run `41269575836` passed, including lint, typecheck, build, unit tests and real Chromium smoke. Dashboard packaging/deploy run `41269575813` passed.
+- Cash reconciliation and portfolio XIRR are deliberately not guessed from purchase/sale cash movements. The existing schema has no explicit external contribution/withdrawal or cash-account/transfer events. Next step is to define those semantics before changing the domain model or schema.
+- PR #426 remains draft and stacked on PR #425; do not merge it independently.
