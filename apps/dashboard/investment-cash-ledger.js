@@ -209,7 +209,7 @@ export function reconcileInvestmentCashAccount({ cashAccountId, investmentCashAc
 export function buildInvestmentExternalCashFlows({ cashAccountId, investmentCashMovements, recordedAt }) {
     timestamp(recordedAt, 'Cash-flow recordedAt');
     return investmentCashMovements.filter((item) => item.cashAccountId === cashAccountId && item.recordedAt <= recordedAt
-        && (item.type === 'OpeningBalance' || item.type === 'ExternalContribution' || item.type === 'ExternalWithdrawal'))
+        && (item.type === 'OpeningBalance' || item.type === 'ExternalContribution' || item.type === 'ExternalWithdrawal' || item.type === 'Correction'))
         .map((item) => ({ date: new Date(item.effectiveAt), amount: -item.amount.amount, currency: item.amount.currency, sourceId: item.id }))
         .sort((a, b) => a.date.getTime() - b.date.getTime() || a.sourceId.localeCompare(b.sourceId));
 }
