@@ -262,7 +262,7 @@ describe('verified online SQLite backup API', () => {
         expect(response.status).toBe(201);
         const backup = await response.json();
         expect(backup).toMatchObject({
-            filename: expect.stringMatching(/^pfo-os-sqlite-.*\\.sqlite$/),
+            filename: expect.stringMatching(/^pfo-os-sqlite-.*\.sqlite$/),
             directory: databasePath + '.backups', path: expect.stringContaining('.backups'),
             bytes: expect.any(Number), updatedAt: before.updatedAt, schemaVersion: 6,
             collectionCounts: { records: 1, goals: 0, cashFlowEntries: 0, budgets: 0, historicalSnapshots: 0 }

@@ -289,7 +289,7 @@ describe('SQLite workspace persistence schema v6', () => {
         const committed = first.saveWorkspace(original, null);
         const backup = await first.createOnlineBackup();
         expect(backup).toMatchObject({
-            filename: expect.stringMatching(/^pfo-os-sqlite-.*\\.sqlite$/), directory: path + '.backups',
+            filename: expect.stringMatching(/^pfo-os-sqlite-.*\.sqlite$/), directory: path + '.backups',
             path: expect.stringContaining('.backups'), bytes: expect.any(Number), updatedAt: committed.updatedAt,
             schemaVersion: 6, collectionCounts: {
                 records: 2, goals: 1, cashFlowEntries: 1, budgets: 1, historicalSnapshots: 1,
