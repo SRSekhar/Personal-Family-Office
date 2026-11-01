@@ -321,3 +321,14 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Provider-specific mapping remains blocked until actual redacted CSV samples and confirmed transaction/sign semantics are provided. Never infer financial events.
 - Import writes localStorage with rollback attempts and dispatches events for optional/debounced SQLite autosave; no cross-store atomic transaction is claimed.
 - PR #432 remains draft and unmerged; keep dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — IPM-05 row diagnostics CI-green (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432, based on PR #430. Verified head: `a1a7fc784d286be06432544311991eb2e6460e1e`.
+- Added detailed row parsing and downloadable spreadsheet-safe error report with file, collection, row, field, message and original row JSON.
+- Invalid rows block the entire batch; valid rows are never partially committed. UI shows up to 100 errors and lets the user download the complete report.
+- CI run `41312197836` (1392) passed dependency audit, repository checks, lint, typecheck, build, all unit tests, Chromium install and real-browser smoke. Dashboard packaging run `41312197970` (722) passed; Pages publish skipped for PR.
+- Browser smoke verifies row error download and disabled confirmation, then valid import, reload persistence, byte-identical export/re-import, duplicate append rejection, storage rollback and oversized file rejection.
+- Remaining issue #431 scope: external-provider column mapping (blocked on actual redacted samples and confirmed semantics) and further SQLite autosave failure/consistency acceptance. Browser localStorage rollback is not atomic with optional/debounced SQLite autosave.
+- PR #432 remains draft/open/unmerged. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
