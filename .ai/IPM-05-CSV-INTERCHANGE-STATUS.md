@@ -6,7 +6,7 @@ Updated: 2026-11-01
 
 - Branch: `feature/investment-ledger-csv-interchange`
 - Pull request: [#432](https://github.com/SRSekhar/Personal-Family-Office/pull/432), draft and unmerged.
-- Latest verified feature head: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`.
+- Latest verified feature head: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`.
 - PR #432 is stacked on PR #430. Preserve dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge is authorized.
 
 The PFO-native CSV interchange covers all eight investment and cash collections:
@@ -28,10 +28,10 @@ JSON full-workspace backup remains the authoritative lossless backup. CSV browse
 
 ## Verified CI on latest feature head
 
-Verified code commit: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`
+Verified code commit: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`
 
-- CI run `41312944949` (run 1397): passed repository checks, dependency audit, lint, typecheck, package build, 80 test files / 715 tests, Chromium installation and real-browser smoke.
-- Dashboard packaging run `41312944982` (run 727): passed. Pages publishing was skipped as expected for a pull request.
+- CI run `41313265864` (run 1402): passed repository checks, dependency audit, lint, typecheck, package build, 80 test files / 715 tests, Chromium installation and real-browser smoke.
+- Dashboard packaging run `41313265856` (run 732): passed. Pages publishing was skipped as expected for a pull request.
 - The browser smoke includes CSV row-error report download and confirmation blocking, preview/replace/append, reload/export-reimport equality, browser-storage rollback, oversized-file rejection, multi-tab conflict protection, transient SQLite 503 failure with retry recovery, and no uncaught browser errors.
 
 The PFO-native CSV increment and SQLite persistence-failure/recovery acceptance are CI-green on this code head. It does not close all of issue #431 because external-provider mapping and independent Secret Scan verification remain open.
@@ -55,13 +55,13 @@ The PFO-native CSV increment and SQLite persistence-failure/recovery acceptance 
 
 ## Row-level diagnostics and SQLite failure recovery — verified
 
-- Verified branch code head: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`.
+- Verified branch code head: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`.
 - Detailed row parsing records file, collection, logical CSV row, field, validation message and raw source cells. The private UI displays up to 100 diagnostics and offers the complete spreadsheet-safe `investment-csv-import-errors.csv` report.
 - Any row-level error blocks the complete multi-file batch. Valid rows are not partially committed.
 - Added SQLite transaction failure coverage: a SQLite trigger forces an update failure and the database test confirms the previous committed snapshot and timestamp remain unchanged after rollback.
 - Added real Chromium coverage for a transient 503 during automatic SQLite persistence. It verifies the edit remains in browser localStorage, is absent from the database after the rejected write, and is included with the next edit when automatic persistence recovers.
-- Latest CI run `41312944949` (run 1397) passed dependency audit, repository checks, lint, typecheck, package build, **80 test files / 715 tests**, Chromium installation and full real-browser smoke.
-- Dashboard packaging run `41312944982` (run 727) passed packaging and artifact upload; Pages publishing was skipped as expected for a PR.
+- Latest CI run `41313265864` (run 1402) passed dependency audit, repository checks, lint, typecheck, package build, **80 test files / 715 tests**, Chromium installation and full real-browser smoke.
+- Dashboard packaging run `41313265856` (run 732) passed packaging and artifact upload; Pages publishing was skipped as expected for a PR.
 - The tests establish SQLite transaction rollback and retry/recovery behavior. They do **not** make browser localStorage and SQLite one atomic cross-store transaction.
 - A separate Secret Scan workflow was not present in the PR-triggered workflow runs inspected; secret scanning is not independently verified here.
 
@@ -80,3 +80,11 @@ The PFO-native CSV increment and SQLite persistence-failure/recovery acceptance 
 - No cross-store atomicity is claimed: browser localStorage writes and optional/debounced SQLite autosave remain separate persistence systems.
 - No dedicated Secret Scan workflow appeared in the PR-triggered workflow runs inspected; independently verify secret scanning before final issue acceptance.
 - PR #432 remains draft/open/unmerged. Preserve the dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; do not merge without explicit approval.
+
+
+## Secret Scan — now enabled for stacked feature PRs
+
+- Updated `.github/workflows/secret-scan.yml` so pull requests targeting `main` or `feature/**` branches run Gitleaks. This ensures stacked PRs such as #432 are scanned before they reach main.
+- Secret Scan run `41313265865` (run 1194) passed on head `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`, scanning current changes and full Git history.
+- CI run `41313265864` (run 1402) passed: 80 test files / 715 tests, lint, typecheck, build, dependency audit and real Chromium smoke.
+- Dashboard packaging run `41313265856` (run 732) passed; Pages publishing skipped as expected for PR.
