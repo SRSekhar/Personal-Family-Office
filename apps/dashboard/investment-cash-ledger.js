@@ -157,7 +157,7 @@ export function reconcileInvestmentCashAccount({ cashAccountId, investmentCashAc
     const missingOpening = opening.length === 0;
     const linkedTransactions = investmentTransactions.filter((item) => item.accountId === cashAccount.investmentAccountId
         && item.date <= statement.statementAsOf && item.recordedAt <= recordedAt);
-    const unmatchedTransactions = linkedTransactions.filter((item) => item.cashAccountId !== cashAccountId);
+    const unmatchedTransactions = linkedTransactions.filter((item) => item.cashAccountId === undefined);
     const transfers = byRecordedAndEffectiveDate(investmentCashTransfers.filter((item) =>
         item.sourceCashAccountId === cashAccountId || item.destinationCashAccountId === cashAccountId),
     'effectiveAt', statement.statementAsOf, recordedAt);
@@ -184,7 +184,7 @@ export function buildInvestmentExternalCashFlows({ cashAccountId, investmentCash
     const transferIds = new Set(investmentCashTransfers.filter((item) => item.recordedAt <= recordedAt).map((item) => item.id));
     void transferIds;
     return investmentCashMovements.filter((item) => item.cashAccountId === cashAccountId && item.recordedAt <= recordedAt
-        && (item.type === 'ExternalContribution' || item.type === 'ExternalWithdrawal'))
+        && (item.type === 'OpeningBalance' || item.type === 'ExternalContribution' || item.type === 'ExternalWithdrawal'))
         .map((item) => ({ date: new Date(item.effectiveAt), amount: -item.amount.amount, currency: item.amount.currency, sourceId: item.id }))
         .sort((a, b) => a.date.getTime() - b.date.getTime() || a.sourceId.localeCompare(b.sourceId));
 }
