@@ -90,10 +90,10 @@ describe('investment CSV interchange', () => {
 
     it('collects row-level field and column errors and exports a spreadsheet-safe diagnostic report', () => {
         const valid = exportInvestmentCollectionCsv('investmentAccounts', [account]);
-        const rows = valid.split('\\r\\n');
+        const rows = valid.split('\r\n');
         rows[2] = rows[2].replace('"Broker, ""A"""', '"=HYPERLINK(1)"');
         rows[3] = '"short"';
-        const detailed = parseInvestmentCollectionCsvDetailed(rows.join('\\r\\n'), 'investmentAccounts');
+        const detailed = parseInvestmentCollectionCsvDetailed(rows.join('\r\n'), 'investmentAccounts');
         expect(detailed.records).toEqual([]);
         expect(detailed.errors).toHaveLength(2);
         expect(detailed.errors[0]).toMatchObject({ rowNumber: 3, field: 'name' });
