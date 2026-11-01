@@ -615,3 +615,10 @@ In progress on draft PR #432, stacked on PR #430.
 - Unique backup files are created under `<database path>.backups`; existing files are never overwritten. Artifacts pass SQLite integrity and full schema-v6 validation across all 13 collections, are fsynced, and are only then published.
 - Added an online-backup restore drill across all 13 collections, checking stable identifiers, valuation provenance and integrity, plus API success/no-data/cross-origin tests.
 - Scheduling, rotation, retention, encryption, remote copy and cross-store browser-storage/SQLite atomicity remain out of scope.
+
+
+## 2026-11-01 — Online SQLite backup verified
+
+- Verified on PR #432 head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed (80 test files / 718 tests, lint, typecheck, build, dependency audit and real Chromium smoke); dashboard packaging run 41326075250 passed (Pages publish skipped for PR); Secret Scan run 41326075278 passed.
+- Real Chromium smoke confirms the dashboard action creates a verified online SQLite backup file. Unit/API recovery tests restore the actual backup file and verify all 13 collections and stable identifiers.
+- Manual backups only; scheduling, rotation, retention enforcement, encryption and remote copies remain deferred.

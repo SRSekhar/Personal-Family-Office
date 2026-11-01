@@ -410,3 +410,13 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Recovery test restores the actual backup artifact as a separate database and verifies all 13 collection counts, stable IDs, valuation provenance and integrity. API tests cover success, empty database and cross-origin rejection.
 - Latest CI, Secret Scan and dashboard packaging must pass before calling this verified. Do not merge PR #432 without explicit approval.
 - Backup remains manual; no schedule, rotation, retention enforcement, encryption, remote copy or browser-local/SQLite cross-store atomicity is implemented.
+
+
+## Handoff — verified online SQLite backup (2026-11-01)
+
+- Latest verified branch head: `59b2b60ad1efcc5e205555095710564028ebd254`.
+- CI run 41326075282 passed: 80 test files / 718 tests, lint, typecheck, build, dependency audit and full real Chromium smoke. Smoke output explicitly confirms: `PASS: dashboard creates and verifies a native online SQLite backup file.`
+- Dashboard packaging run 41326075250 passed (Pages publishing skipped for PR). Secret Scan run 41326075278 passed.
+- Manual online SQLite backup is implemented via Node `sqlite.backup()` (minimum Node 22.16.0), with integrity and full schema-v6 validation, fsync and unique immutable backup files under `<database path>.backups`. The actual backup artifact is reopened in the 13-collection recovery test.
+- PR #432 remains draft/open/unmerged, stacked on PR #430. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432. Do not merge without explicit user approval.
+- Remaining product scope: provider-specific CSV mapping requires redacted real broker CSV samples and confirmed semantics. Automated backup scheduling, rotation, retention, encryption, remote copy and cross-store atomicity remain unimplemented.

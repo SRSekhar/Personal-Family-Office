@@ -438,3 +438,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Expanded the recovery drill to restore from the actual online backup file and verify all 13 collections, stable IDs, valuation provenance and SQLite integrity.
 - Raised the supported Node.js minimum to 22.16.0 and added a CI guard for `sqlite.backup()`. Await latest CI before claiming verification.
 - Automated scheduling, rotation, retention, encryption and remote backup remain deferred.
+
+
+## 2026-11-01 — Online SQLite backup acceptance passed
+
+- Verified head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed, including 80 test files / 718 tests and real Chromium smoke; dashboard packaging run 41326075250 passed; Secret Scan run 41326075278 passed.
+- Browser smoke confirms the user-facing online SQLite backup action creates a verified file and reports its location and 13-collection coverage.
+- The database recovery drill restores the actual backup file and checks all 13 persisted collections, stable identifiers, valuation provenance and SQLite integrity.
+- Node runtime floor is 22.16.0. Backups remain manual and are not encrypted, rotated, retained by policy or copied remotely.

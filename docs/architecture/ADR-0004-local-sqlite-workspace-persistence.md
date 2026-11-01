@@ -1,6 +1,6 @@
 # ADR-0004: Local SQLite workspace persistence
 
-- **Status:** Accepted — local SQLite snapshot persistence, opt-in automatic saves, schema-v6 migration, and bounded transient retry are implemented on the current feature stack.
+- **Status:** Accepted — local SQLite snapshot persistence, schema-v6 migration, bounded transient retry, and verified manual online backup/restore are implemented on the current feature stack.
 - **Decision date:** 2026-10-28
 - **Last reviewed:** 2026-11-01
 
@@ -58,7 +58,7 @@ Browser-local storage remains the immediate working/recovery copy. SQLite persis
 - Bounded retries improve transient recovery but cannot guarantee persistence during a prolonged outage; after exhaustion, a later edit or explicit save is required.
 - Browser localStorage and SQLite are separate persistence systems. No cross-store atomicity is claimed.
 - SQLite and portable JSON exports are not encrypted by this feature. Filesystem/device protection and independent backups remain the user's responsibility.
-- WAL sidecar state can be relevant while the database is live. The dashboard's manual online backup uses SQLite's backup API rather than copying live database files. Portable JSON remains an independent recovery format.
+- WAL sidecar state can be relevant while the database is live. The dashboard's manual online backup uses SQLite's backup API rather than copying live database files. Portable JSON remains an independent recovery format. The online backup artifact is checked with SQLite `quick_check`, revalidated against schema v6 and fsynced before its unique final filename is published; restore testing reopens the artifact and verifies all 13 collections.
 - This is a single-user local database API, not a remote, multi-user, or production-hosted database service.
 - The supported Node.js floor is 22.16.0 because `sqlite.backup()` was added in Node 22.16. CI verifies that the built-in API is present before tests.
 - Manual online backups use unique files under `<database path>.backups`, validate SQLite `quick_check` and the complete schema-v6 payload, fsync the artifact and publish it only after validation. Existing backup files are never overwritten.
@@ -68,4 +68,4 @@ Browser-local storage remains the immediate working/recovery copy. SQLite persis
 - Unit tests cover schema-v6 validation, all 13 collections, reopen persistence, stable IDs, migration recovery artifacts, migration rollback, stale-write conflicts, integrity checks, file permissions, and injected SQLite write-failure rollback.
 - API tests cover local-origin enforcement, payload validation, request size/content type, and read/write behavior.
 - Chromium smoke covers save/restore, reload persistence, multi-tab stale-write protection, transient save failure, bounded retry exhaustion, and recovery after a later edit.
-- The online SQLite backup and restore implementation is pending CI verification on the current PR head. Prior run results do not validate this new code.
+- Verified on PR #432 head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed (80 test files / 718 tests and full real Chromium smoke); dashboard packaging run 41326075250 passed; Secret Scan run 41326075278 passed.
