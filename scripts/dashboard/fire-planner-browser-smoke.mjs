@@ -1223,7 +1223,7 @@ try {
     await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
     await page.locator('#investment-cash-movement-form [name="type"]').selectOption('OpeningBalance');
     await page.locator('#investment-cash-movement-form [name="amount"]').fill('1000');
-    await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2026-10-29');
+    await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2025-10-29');
     await page.locator('#investment-cash-movement-form [name="openingBalanceSource"]').selectOption('statement');
     await page.locator('#investment-cash-movement-form button[type="submit"]').click();
     await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
@@ -1238,7 +1238,7 @@ try {
     await page.locator('#investment-cash-movement-form button[type="submit"]').click();
     await page.locator('#investment-cash-statement-form [name="cashAccountId"]').selectOption({ index: 1 });
     await page.locator('#investment-cash-statement-form [name="closingBalance"]').fill('405');
-    await page.locator('#investment-cash-statement-form [name="periodStart"]').fill('2026-10-29');
+    await page.locator('#investment-cash-statement-form [name="periodStart"]').fill('2025-10-29');
     await page.locator('#investment-cash-statement-form [name="periodEnd"]').fill('2026-10-31');
     await page.locator('#investment-cash-statement-form [name="statementAsOf"]').fill('2026-10-31');
     await page.locator('#investment-cash-statement-form [name="sourceName"]').fill('Browser test statement');
