@@ -591,7 +591,7 @@ Status
 In progress on draft PR #432, stacked on PR #430.
 
 - Added a versioned PFO-native CSV format for all eight investment and cash-ledger collections.
-- String values use reversible UTF-8/base64 encoding to preserve Unicode, commas, quotes and multiline text while preventing spreadsheet formula execution. Nested money values remain exact JSON cells; timestamps and IDs remain unchanged.
+- Ordinary text remains human-readable; formula-like or reserved-prefix strings use reversible UTF-8/base64 escaping to prevent spreadsheet formula execution. Unicode, commas, quotes and multiline text round-trip; nested money values remain exact JSON cells; timestamps and IDs remain unchanged.
 - Import validates the manifest, format version, canonical headers, row width, quoting, encoded text, JSON values and finite numbers. It builds and validates the entire candidate workspace before preview.
 - UI supports private-workspace-only per-collection export, multi-file preview, replace-only-selected-collections or append, explicit confirmation and cancel.
 - Browser persistence attempts rollback if any selected collection write fails and dispatches the existing workspace events only after successful writes. JSON backup remains authoritative.
