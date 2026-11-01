@@ -516,3 +516,8 @@ Required design and acceptance:
 - Portfolio XIRR must use explicit external contributions (negative), withdrawals/distributions (positive), and terminal value (positive), by currency. Internal purchases, sales and transfers must not be misclassified as investor cash flows. Missing terminal valuations make the affected result unavailable.
 - Require hand-calculated fixtures for funding, withdrawal, reinvestment, partial sale, transfer, fee/tax, dividends, multiple accounts, multi-currency separation, backdated corrections and incomplete statements.
 - Snapshot/history persistence requires explicit correction/version semantics and point-in-time reproducibility before implementation.
+
+
+### IPM-04 cash ledger design decision
+
+A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CASH_LEDGER_AND_XIRR.md`. It defines cash-account ownership, signed cash-balance movements, explicit external funding/withdrawals, atomic internal transfers, statement reconciliation, correction history and external-flow-only XIRR. Proposed additive schema-v6 collections are documented. This is a design artifact, not an implemented schema or migration; implementation remains gated on review and compatibility tests.
