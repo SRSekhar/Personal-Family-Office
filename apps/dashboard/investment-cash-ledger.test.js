@@ -65,6 +65,23 @@ const fixture = () => ({
         expect(() => validateInvestmentCashCollections(value)).toThrow(/unknown original movement/i);
         value.investmentCashMovements.at(-1).reversesMovementId = 'opening';
         expect(() => validateInvestmentCashCollections(value)).not.toThrow();
+
+        value.investmentAccounts.push({ id: 'broker-2', currency: 'INR' });
+        value.investmentCashAccounts.push({ id: 'cash-2', investmentAccountId: 'broker-2', name: 'Other cash', currency: 'INR', createdAt: date });
+        value.investmentCashMovements.at(-1).cashAccountId = 'cash-2';
+        expect(() => validateInvestmentCashCollections(value)).toThrow(/same cash account/i);
+    });
+
+    it('rejects multiple opening balances and movements before the opening baseline', () => {
+        const duplicate = fixture();
+        duplicate.investmentCashMovements.push({ id: 'opening-2', cashAccountId: 'cash-1', type: 'OpeningBalance',
+            amount: { amount: 1, currency: 'INR' }, effectiveAt: '2026-01-02T00:00:00.000Z',
+            recordedAt: '2026-01-02T00:00:00.000Z', openingBalanceSource: 'manual' });
+        expect(() => validateInvestmentCashCollections(duplicate)).toThrow(/only one explicit opening/i);
+
+        const before = fixture();
+        before.investmentCashMovements[1].effectiveAt = '2025-12-31T00:00:00.000Z';
+        expect(() => validateInvestmentCashCollections(before)).toThrow(/cannot predate/i);
     });
 
     it('does not reconcile against a statement recorded after the requested point-in-time', () => {
