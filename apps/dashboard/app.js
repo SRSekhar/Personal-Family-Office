@@ -2192,6 +2192,7 @@ async function saveWorkspaceToDatabase(options = {}) {
         }
         $('#database-restore-button').disabled = false;
         $('#database-export-backup-button').disabled = false;
+        $('#database-online-backup-button').disabled = false;
         $('#database-restore-button').textContent = 'Restore from SQLite';
         databaseRecoveryRequired = false;
         databaseWriteConflict = false;
