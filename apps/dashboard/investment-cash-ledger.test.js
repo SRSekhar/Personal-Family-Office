@@ -48,8 +48,16 @@ describe('investment cash ledger', () => {
     it('uses investor-perspective signs and excludes internal transfer records', () => {
         const value = fixture();
         const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
-        expect(flows.map((flow) => flow.amount)).toEqual([-500, 100]);
+        expect(flows.map((flow) => flow.amount)).toEqual([-1000, -500, 100]);
         expect(flows.every((flow) => flow.currency === 'INR')).toBe(true);
+    });
+    it('rejects cross-currency transfers and accepts only same-currency account pairs', () => {
+        const value = fixture();
+        value.investmentAccounts.push({ id: 'broker-usd', currency: 'USD' });
+        value.investmentCashAccounts.push({ id: 'cash-usd', investmentAccountId: 'broker-usd', name: 'USD cash', currency: 'USD', createdAt: date });
+        value.investmentCashTransfers.push({ id: 'fx-transfer', sourceCashAccountId: 'cash-1', destinationCashAccountId: 'cash-usd',
+            amount: { amount: 10, currency: 'INR' }, effectiveAt: date, recordedAt: date });
+        expect(() => validateInvestmentCashCollections(value)).toThrow(/cross-currency/i);
     });
     it('excludes backfilled entries recorded after the requested point-in-time cutoff', () => {
         const value = fixture();
