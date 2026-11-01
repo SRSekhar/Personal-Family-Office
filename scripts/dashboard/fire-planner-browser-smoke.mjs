@@ -2809,11 +2809,11 @@ try {
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
-    assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\\.sqlite/i,
+    assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
     assert.match(onlineBackupStatus, /13 collections/i,
         'the online backup UI should report validation across all 13 workspace collections');
-    assert.match(onlineBackupStatus, /\\.backups/i,
+    assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
     process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
 
