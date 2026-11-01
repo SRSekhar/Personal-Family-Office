@@ -274,3 +274,22 @@
 @media(max-width:700px){.historical-snapshot-detail-heading{align-items:flex-start;flex-direction:column}.historical-detail-totals{grid-template-columns:1fr}}
 
 .historical-snapshot-remove{margin-left:6px}
+
+/* Investment portfolio FIFO positions and reconciliation */
+.investment-portfolio-analysis{margin:22px 0;padding:18px;border:1px solid var(--line);border-radius:10px;background:#fbfcfb}
+.investment-portfolio-heading{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:12px}
+.investment-portfolio-heading h3{margin:0;color:#172b24;font-size:16px}
+.investment-portfolio-heading .field-label{min-width:180px;margin:0}
+.investment-portfolio-heading input{width:100%;height:40px;border:1px solid #dfe7df;border-radius:8px;padding:0 10px;background:#fff;color:#2b3f32;font-size:12px}
+.investment-portfolio-summaries{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:14px 0}
+.investment-portfolio-card{display:grid;gap:9px;padding:13px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.investment-portfolio-card h4{margin:0 0 3px;color:#172b24;font-size:13px}
+.investment-portfolio-card>div{display:flex;justify-content:space-between;gap:12px;font-size:11px}
+.investment-portfolio-card span{color:var(--muted)}
+.investment-portfolio-card strong{text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.investment-reconciliation-warnings{margin:10px 0}
+.investment-reconciliation-warning,.investment-reconciliation-error{margin:6px 0;padding:10px 12px;border:1px solid #ead9b5;border-radius:7px;background:#fffaf0;color:#78551a;font-size:11px;line-height:1.55}
+.investment-reconciliation-error{border-color:#e7c6c0;background:#fff7f5;color:#8c3427}
+.investment-portfolio-analysis .table-wrap{margin-top:12px}
+.investment-portfolio-analysis table{min-width:1120px}
+@media(max-width:700px){.investment-portfolio-analysis{padding:14px}.investment-portfolio-heading{align-items:stretch;flex-direction:column}.investment-portfolio-heading .field-label{min-width:0}}
