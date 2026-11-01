@@ -521,3 +521,12 @@ Required design and acceptance:
 ### IPM-04 cash ledger design decision
 
 A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CASH_LEDGER_AND_XIRR.md`. It defines cash-account ownership, signed cash-balance movements, explicit external funding/withdrawals, atomic internal transfers, statement reconciliation, correction history and external-flow-only XIRR. Proposed additive schema-v6 collections are documented. This is a design artifact, not an implemented schema or migration; implementation remains gated on review and compatibility tests.
+
+
+### IPM-04 cash-ledger engine — implementation increment
+
+- Added a browser-compatible cash-ledger validation/projection module and deterministic unit tests on `feature/investment-cash-ledger-engine`, stacked on the cash-ledger ADR branch.
+- Validates explicitly created cash accounts against their owning investment account/currency; validates opening-balance evidence, external contribution/withdrawal signs, immutable correction references, same-currency atomic transfer shape, statement periods and optional transaction-to-cash-account links.
+- Reconciliation is evidence-led: requires an explicit opening balance and statement observation, applies effective-time and recorded-time cutoffs, includes linked investment transaction settlements and transfer legs once, and returns `incomplete`, `reconciled` or `difference` without auto-balancing.
+- External cash-flow projection uses investor-perspective signs (opening capital and contributions negative; withdrawals positive) and excludes purchases/sales/dividends/interest/fees/taxes and internal transfers.
+- This is the pure domain engine only. Schema-v6 persistence, backup migration, dashboard entry forms and full portfolio-wide XIRR/terminal-value integration remain outstanding; do not describe cash ledger as production-persisted yet.
