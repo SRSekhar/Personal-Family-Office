@@ -2599,6 +2599,50 @@ try {
         'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nine collections');
     process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all nine workspace collections.\\n');
 
+    // Open an isolated second browser tab with the same persisted browser baseline.
+    // Its localStorage copy is deliberately isolated so it cannot see the first tab's later edit.
+    const secondTabStorage = await page.evaluate(() => Object.fromEntries(
+        Array.from({ length: globalThis.localStorage.length }, (_, index) => {
+            const key = globalThis.localStorage.key(index);
+            return [key, globalThis.localStorage.getItem(key)];
+        })
+    ));
+    const secondTabContext = await browser.newContext();
+    await secondTabContext.addInitScript((entries) => {
+        for (const [key, value] of Object.entries(entries)) globalThis.localStorage.setItem(key, value);
+    }, secondTabStorage);
+    const secondTab = await secondTabContext.newPage();
+    const secondTabErrors = [];
+    secondTab.on('pageerror', (error) => secondTabErrors.push(error.message));
+    await secondTab.goto(baseUrl, { waitUntil: 'networkidle' });
+    if (await secondTab.locator('#switch-private-button').isVisible()) {
+        await secondTab.locator('#switch-private-button').click();
+    }
+    await secondTab.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('SQLite ready'));
+    await page.locator('#investment-valuation-instrument').selectOption({ index: 0 });
+    await page.locator('#investment-valuation-form [name="price"]').fill('121');
+    await page.locator('#investment-valuation-form [name="asOf"]').fill('2026-11-01');
+    await page.locator('#investment-valuation-form button[type="submit"]').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#investment-ledger-message')?.textContent.includes('Valuation recorded'));
+    await page.locator('#database-save-button').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('Complete private workspace saved to the local SQLite database'));
+    await secondTab.locator('#database-save-button').click();
+    await secondTab.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('SQLite changed elsewhere'));
+    const multiTabLatest = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not verify the latest SQLite snapshot after a stale second-tab save.');
+        return (await response.json()).payload;
+    });
+    assert.equal(multiTabLatest.investmentValuations.at(-1).price.amount, 121,
+        'a stale second-tab save must not overwrite the valuation committed by the first tab');
+    assert.deepEqual(secondTabErrors, [], 'second browser tab should not report uncaught JavaScript errors');
+    await secondTabContext.close();
+    process.stdout.write('PASS: isolated second browser tab receives a stale-write conflict and cannot overwrite the latest investment valuation.\\n');
+
     await page.locator('#database-auto-save-button').click();
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#database-auto-save-button')?.textContent.includes('Disable automatic')
