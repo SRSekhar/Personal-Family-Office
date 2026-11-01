@@ -84,7 +84,7 @@ describe('investment CSV interchange', () => {
             cashAmount: { amount: -10, currency: 'INR' }, date: '2026-01-01T00:00:00.000Z',
             recordedAt: '2026-01-01T00:00:00.000Z', quantity: 1 };
         const csv = exportInvestmentCollectionCsv('investmentTransactions', [transaction]);
-        expect(() => parseInvestmentCollectionCsv(csv.replace('{"amount":-10,"currency":"INR"}', '{bad-json}'), 'investmentTransactions')).toThrow(/invalid JSON/i);
+        expect(() => parseInvestmentCollectionCsv(csv.replace('""amount"":-10', '""amount"":oops'), 'investmentTransactions')).toThrow(/invalid JSON/i);
         expect(() => parseInvestmentCollectionCsv(csv.replace(',"1",', ',"Infinity",'), 'investmentTransactions')).toThrow(/finite number/i);
     });
 
