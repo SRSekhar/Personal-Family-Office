@@ -343,3 +343,14 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Row-level CSV error reports are verified. Remaining issue #431 acceptance: provider-specific mapping needs actual redacted source CSVs and confirmed transaction/sign conventions; independent Secret Scan verification was not available in the PR-triggered workflow list.
 - Browser localStorage and SQLite are separate persistence systems. Tests prove browser-data retention, SQLite transaction rollback and retry recovery, not cross-store atomicity.
 - PR #432 remains draft/open/unmerged. Keep dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — SQLite persistence recovery (2026-11-01)
+
+- Verified code head `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`, PR #432 draft/open/unmerged.
+- CI run 1397 passed: 80 test files / 715 tests, dependency audit, lint, typecheck, build, Chromium installation and full browser smoke. Dashboard packaging run 727 passed.
+- Database test injects a failing SQLite update trigger and verifies the prior committed payload and timestamp survive rollback.
+- Browser smoke injects one 503 for an autosave PUT, verifies the edit remains in browser localStorage and absent from SQLite, then makes another edit and verifies the next autosave persists both edits.
+- Existing multi-tab stale-write protection and startup recovery pause remain covered. These tests do not make browser localStorage and SQLite atomic together.
+- Remaining: provider-specific CSV mapping requires redacted provider samples and confirmed field/transaction/sign semantics; independently verify Secret Scan (no separate PR-triggered workflow appeared in the inspected run list).
+- PR #432 remains draft/open/unmerged. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
