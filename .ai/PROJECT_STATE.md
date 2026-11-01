@@ -267,3 +267,14 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - Added cash reconciliation status and append-only history tables. Browser cash-ledger collections are saved separately with best-effort rollback if storage writes fail.
 - Added isolated Chromium integration coverage for the signed movement and linked-trade reconciliation path using synthetic test data.
 - Portfolio-wide XIRR/terminal value is not yet delivered; the next increment must use the existing XIRR calculator and require complete cash/holding valuations.
+
+
+## 2026-11-01 — IPM-04 portfolio XIRR increment
+
+- Added per-currency portfolio XIRR using the repository's existing calculator runtime and shared XIRR solver.
+- External investor flows are explicit opening balances, contributions, withdrawals and correction adjustments only. Internal investment transactions and transfers are excluded.
+- Terminal value requires reconciled cash statements and valued open holdings; statement cash is rolled forward using subsequent movements, transfers and linked settlements.
+- Missing cash/valuation evidence, unlinked transactions, reconciliation differences, non-positive terminal value or ambiguous XIRR makes the result unavailable; partial portfolio returns are never presented.
+- Historical cash/position calculations use the same effective-date and recorded-at cutoff. Append-only corrections and a single opening baseline are validated.
+- Demo mode clears private cash-ledger selectors/history and portfolio XIRR output.
+- Unit and Chromium smoke coverage expanded. Latest CI verification remains in progress; no merge or deployment is claimed.
