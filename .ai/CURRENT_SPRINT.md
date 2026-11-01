@@ -363,7 +363,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 ## 2026-11-01 — IPM-05 investment CSV interchange
 
 - Created draft PR #432 on feature/investment-ledger-csv-interchange, stacked on PR #430.
-- Added typed PFO-native CSV import/export for all eight investment/cash collections, with versioned manifests and reversible UTF-8/base64 text cells to avoid spreadsheet formula execution.
+- Added typed PFO-native CSV import/export for all eight investment/cash collections, with versioned manifests and human-readable text cells with reversible UTF-8/base64 escaping only for formula-like or reserved-prefix values, preventing spreadsheet formula execution.
 - Added strict parsing, whole-workspace validation, append/replace preview and private-workspace UI. No persistence occurs before explicit confirmation.
 - Import writes only selected collections and attempts rollback across all eight localStorage keys on failure; existing workspace update events trigger the configured SQLite autosave path.
 - Added unit round-trip/validation tests and Chromium smoke coverage for export, preview, replace confirmation and duplicate append rejection.
