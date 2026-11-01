@@ -117,10 +117,16 @@ function initialize() {
             $('#investment-csv-status').textContent = 'Exported ' + button.dataset.investmentCsvExport + '.';
         } catch (error) { $('#investment-csv-status').textContent = error.message; }
     });
-    $('#investment-csv-files').addEventListener('change', async (event) => {
+    const refreshPreview = async () => {
         clearPreview();
-        try { await previewFiles([...event.target.files]); }
+        try { await previewFiles([...$('#investment-csv-files').files]); }
         catch (error) { clearPreview(error instanceof Error ? error.message : 'CSV import preview failed.'); }
+    };
+    $('#investment-csv-files').addEventListener('change', refreshPreview);
+    panel.querySelectorAll('input[name="investment-csv-mode"]').forEach((control) => {
+        control.addEventListener('change', () => {
+            if ($('#investment-csv-files').files.length) refreshPreview();
+        });
     });
     $('#investment-csv-confirm').addEventListener('click', () => {
         try { commitPreview(); }
