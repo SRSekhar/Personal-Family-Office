@@ -78,7 +78,7 @@ export function analyzeInvestmentPortfolio({ accounts, instruments, transactions
         if (!Number.isFinite(price) || price < 0 || item.price.currency !== instrument.currency) throw new RangeError('Investment valuation price must be non-negative and match instrument currency.');
         const effective = validTime(item.asOf, 'Investment valuation date'), recorded = validTime(item.recordedAt, 'Investment valuation recorded-at date');
         if (!['manual', 'provider'].includes(item.sourceType) || typeof item.sourceName !== 'string' || !item.sourceName.trim()) throw new RangeError('Investment valuation provenance is invalid.');
-        if (effective > asOfDate.getTime() || recorded > asOfDate.getTime()) continue;
+        if (effective > asOfDate.getTime() || recorded > recordedAtCutoff.getTime()) continue;
         const old = latest.get(item.instrumentId);
         if (!old || effective > old.effective || (effective === old.effective && recorded > old.recorded)) {
             latest.set(item.instrumentId, { effective, recorded, price, asOf: item.asOf, sourceName: item.sourceName, sourceType: item.sourceType });
