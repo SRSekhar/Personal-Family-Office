@@ -232,3 +232,11 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - CI run `41269575836` passed lint, typecheck, build, tests and real Chromium browser smoke; dashboard packaging/deploy run `41269575813` passed.
 - Portfolio XIRR and cash reconciliation remain gated on a domain design for external contributions/withdrawals, cash-account balances and internal transfers. Purchases and sales alone do not establish investor cash flows. No assumptions or schema changes are being made until these semantics are explicit.
 - PR #425 remains the schema-v5 dependency and PR #426 remains stacked on it; both are open and unmerged.
+
+
+## 2026-11-01 — IPM-04 cash ledger design
+
+- Added proposed accounting contract in `docs/architecture/ADR_INVESTMENT_CASH_LEDGER_AND_XIRR.md`.
+- Design separates cash-account balance movements from investor cash flows, explicitly records external contributions/withdrawals, represents internal transfers atomically, and reconciles to statement observations without auto-balancing.
+- Portfolio XIRR uses only external investor flows and a complete terminal value, by currency. Trades and portfolio income/expenses are internal events and are excluded from external-flow inputs.
+- Proposed schema-v6 collection additions and migration acceptance are documented. This commit changes documentation only; no live schema or personal financial data was modified.
