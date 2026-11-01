@@ -249,7 +249,7 @@ export function analyzeInvestmentPortfolioPerformance({
     const asOf = asOfDate.toISOString();
     const visibleTransactions = cash.investmentTransactions.filter((item) =>
         Date.parse(item.date) <= asOfDate.getTime() && Date.parse(item.recordedAt) <= recordedCutoff.getTime());
-    const unlinkedTransactions = visibleTransactions.filter((item) => item.cashAccountId === undefined);
+    const accountById = new Map(ledger.investmentAccounts.map((item) => [item.id, item]));
     const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
         transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
     const currencies = [...new Set([
@@ -263,6 +263,8 @@ export function analyzeInvestmentPortfolioPerformance({
         const unavailable = (reason) => ({ currency, status: 'unavailable', reason, xirr: null, terminalValue: null,
             cashBalance: null, holdingsValue: null, cashFlowCount: 0 });
         if (cashAccounts.length === 0) return unavailable('No explicit cash accounts exist for this currency.');
+        const unlinkedTransactions = visibleTransactions.filter((item) => item.cashAccountId === undefined
+            && accountById.get(item.accountId)?.currency === currency);
         if (unlinkedTransactions.length > 0) return unavailable('One or more investment transactions are not linked to an explicit cash account.');
 
         let cashBalance = 0;
