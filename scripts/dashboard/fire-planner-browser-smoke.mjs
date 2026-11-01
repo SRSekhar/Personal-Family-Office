@@ -1297,9 +1297,10 @@ try {
         assert.ok(Array.isArray(backup[collection]), `schema-v6 backup should include ${collection}`);
         assert.equal(backup[collection].length, 1, `schema-v6 backup should preserve the saved ${collection}`);
     }
-    for (const collection of ['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements']) {
-        assert.deepEqual(backup[collection], [], `schema-v6 backup should include an empty ${collection} collection until explicitly entered`);
-    }
+    assert.deepEqual(backup.investmentCashAccounts, investmentStorage.cashAccounts);
+    assert.deepEqual(backup.investmentCashMovements, investmentStorage.cashMovements);
+    assert.deepEqual(backup.investmentCashTransfers, investmentStorage.cashTransfers);
+    assert.deepEqual(backup.investmentCashStatements, investmentStorage.cashStatements);
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
