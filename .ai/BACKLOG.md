@@ -550,3 +550,15 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Browser storage writes use four dedicated schema-v6 keys with rollback of prior values if a multi-key save fails. The dashboard never fetches bank/broker data and never auto-creates opening balances.
 - Chromium smoke coverage uses isolated synthetic fixtures to exercise opening capital + contribution + withdrawal + linked purchase against a statement closing balance.
 - Portfolio-wide XIRR and terminal-value completeness remain the next accounting increment.
+
+
+### IPM-04 — portfolio XIRR and terminal-value completeness increment
+
+- Added portfolio-wide XIRR by currency using the existing shared `analyzeInvestmentPerformanceMath` / `calculateXirr` implementation; no second solver was introduced.
+- Investor flows include only explicit opening balances, external contributions, external withdrawals and append-only correction adjustments. Trade settlement, dividends, interest, fees, taxes and internal transfers are excluded as internal portfolio activity.
+- Terminal value is reconciled cash balances plus valued open holdings. Cash is rolled forward from the latest eligible statement using later recorded movements, transfers and linked transaction settlements.
+- Any missing cash statement/opening baseline, unlinked visible transaction, statement difference, missing open-position valuation, non-positive terminal value or ambiguous XIRR pattern makes the result unavailable. No partial totals or inferred values are shown.
+- Applies the same bitemporal cutoff to cash and holdings: both effective and recorded timestamps must be visible at the selected historical as-of date.
+- Strengthened append-only cash accounting: exactly one explicit opening baseline per cash account; no movements, linked trades or transfers before it; corrections must reference a different non-correction event in the same account and cannot predate it.
+- Demo workspace now clears private cash account selectors/history and private portfolio XIRR results when switching away from private mode.
+- Added tests for multi-account transfer reconciliation, correction signs/chronology, pre-opening events, statement differences, historical backfills, complete XIRR terminal value, missing data and Chromium UI behavior. Latest CI is being verified; no merge has occurred.
