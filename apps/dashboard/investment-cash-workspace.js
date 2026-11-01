@@ -116,7 +116,7 @@ function render() {
         for (const id of ['investment-cash-account-count', 'investment-cash-movement-count', 'investment-cash-transfer-count', 'investment-cash-statement-count']) {
             $('#' + id).textContent = '0';
         }
-        for (const id of ['investment-cash-account-rows', 'investment-cash-movement-rows', 'investment-cash-transfer-rows', 'investment-cash-statement-rows']) {
+        for (const id of ['investment-cash-account-rows', 'investment-cash-unlinked-transaction-rows', 'investment-cash-movement-rows', 'investment-cash-transfer-rows', 'investment-cash-statement-rows']) {
             $('#' + id).replaceChildren();
         }
         return;
@@ -126,7 +126,8 @@ function render() {
     catch (error) {
         $('#investment-cash-error').textContent = error instanceof Error ? error.message : 'Cash-ledger data could not be read.';
         $('#investment-cash-error').hidden = false;
-        panel.querySelectorAll('form button').forEach((button) => { button.disabled = true; });
+        $('#investment-cash-unlinked-transaction-rows').replaceChildren();
+        panel.querySelectorAll('form button, button[data-link-transaction]').forEach((button) => { button.disabled = true; });
         return;
     }
     const { ledger, cash } = data;
