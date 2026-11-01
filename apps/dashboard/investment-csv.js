@@ -126,10 +126,10 @@ export function exportInvestmentCollectionCsv(collection, records) {
     return ['#PFO-INVESTMENT-CSV,1,' + collection, schema.map(([field]) => quote(field)).join(','), ...rows.map((row) => row.join(','))].join('\r\n') + '\r\n';
 }
 
-/** Parse a PFO-native collection file without mutating any workspace state. */
-export function parseInvestmentCollectionCsv(source, expectedCollection) {
+/** Parse a PFO-native collection and retain every row-level decoding error for a downloadable report. */
+export function parseInvestmentCollectionCsvDetailed(source, expectedCollection) {
     if (typeof source !== 'string' || source.trim() === '') throw new Error('Investment CSV file is empty.');
-    const rows = parseRows(source.replace(/^\uFEFF/u, ''));
+    const rows = parseRows(source.replace(/^\\uFEFF/u, ''));
     const schema = COLLECTIONS[expectedCollection];
     if (!schema) throw new Error('Unsupported investment CSV collection.');
     if (rows.length < 2 || rows[0].length !== 3 || rows[0][0] !== '#PFO-INVESTMENT-CSV' || rows[0][1] !== '1'
@@ -137,18 +137,55 @@ export function parseInvestmentCollectionCsv(source, expectedCollection) {
     const expectedHeaders = schema.map(([field]) => field);
     if (rows[1].length !== expectedHeaders.length || rows[1].some((value, index) => value !== expectedHeaders[index])
         || new Set(rows[1]).size !== rows[1].length) throw new Error('CSV columns do not match the canonical PFO collection schema.');
-    const records = rows.slice(2).map((columns, rowIndex) => {
-        if (columns.length !== schema.length) throw new Error('CSV row ' + (rowIndex + 3) + ' has missing or extra columns.');
+    const records = [];
+    const errors = [];
+    rows.slice(2).forEach((columns, rowIndex) => {
+        const rowNumber = rowIndex + 3;
+        if (columns.length !== schema.length) {
+            errors.push({ rowNumber, field: '', message: 'Row has missing or extra columns.', rawRow: columns });
+            return;
+        }
         const record = {};
+        let rowInvalid = false;
         schema.forEach(([field, type], index) => {
             const raw = columns[index];
             if (raw === '' && type.endsWith('?')) return;
-            if (raw === '') throw new Error('CSV row ' + (rowIndex + 3) + ' is missing required field ' + field + '.');
-            record[field] = readCell(raw, type.replace('?', ''), field + ' at row ' + (rowIndex + 3));
+            try {
+                if (raw === '') throw new Error('Required field is empty.');
+                record[field] = readCell(raw, type.replace('?', ''), field + ' at row ' + rowNumber);
+            } catch (error) {
+                rowInvalid = true;
+                errors.push({
+                    rowNumber,
+                    field,
+                    message: error instanceof Error ? error.message : 'Invalid field value.',
+                    rawRow: columns
+                });
+            }
         });
-        return record;
+        if (!rowInvalid) records.push(record);
     });
-    return records;
+    return { records, errors };
+}
+
+/** Strict parser retained for callers that require every row to be valid. */
+export function parseInvestmentCollectionCsv(source, expectedCollection) {
+    const result = parseInvestmentCollectionCsvDetailed(source, expectedCollection);
+    if (result.errors.length) {
+        throw new Error(result.errors.map((error) => 'CSV row ' + error.rowNumber + ' ' + error.field + ': ' + error.message).join(' '));
+    }
+    return result.records;
+}
+
+/** Export rejected-row diagnostics as a spreadsheet-safe CSV. Raw source cells are retained as JSON for local diagnosis. */
+export function exportInvestmentCsvErrorReport(errors) {
+    if (!Array.isArray(errors)) throw new TypeError('CSV import errors must be an array.');
+    const headers = ['file', 'row', 'collection', 'field', 'error', 'rawRowJson'];
+    const rows = errors.map((error) => [
+        error.file ?? '', error.rowNumber ?? '', error.collection ?? '', error.field ?? '',
+        error.message ?? 'Invalid row.', JSON.stringify(error.rawRow ?? [])
+    ].map((value) => quote(encodeText(value))));
+    return [headers.map(quote).join(','), ...rows.map((row) => row.join(','))].join('\\r\\n') + '\\r\\n';
 }
 
 /** Validate the entire candidate workspace before any caller persists it. */
