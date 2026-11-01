@@ -259,3 +259,14 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Demo mode clears private cash selectors/history and private XIRR cards; Chromium smoke checks the private→demo→private transition.
 - Tests were repaired after an earlier malformed test-file insertion; CI run 41284831053 for commit 6d826bd... is currently in progress. Later commits after that run may trigger another run. Do not claim final CI green until latest head is checked.
 - PR #430 remains open/draft and unmerged. PRs #425–#430 must not be merged without explicit approval.
+
+
+## Latest Handoff — settlement-link bitemporal integrity (2026-11-01)
+
+- Added optional `cashAccountId` and `cashAccountLinkedAt` to `InvestmentTransaction`. Existing linked records without link time normalize to their original `recordedAt`; unlinked records remain unlinked.
+- Linking an existing transaction updates only the association and records the link timestamp. Original amount, quantity, unit price, date and recordedAt are preserved.
+- `reconcileInvestmentCashAccount` treats a transaction as unmatched until its link timestamp is visible at the requested cutoff. Portfolio XIRR applies the same cutoff to settlement links, cash movements, statements, transaction records and position valuations.
+- Main investment workspace now validates cash sub-account collections before offering/selecting them. Demo mode clears all private investment account/instrument/transaction/valuation data and selectors, plus cash history and XIRR cards.
+- Added tests in `packages/models/tests/InvestmentLedger.test.ts`, `apps/dashboard/investment-ledger.test.js`, `apps/dashboard/investment-cash-ledger.test.js` and `apps/dashboard/tests/investment-portfolio.test.js`; Chromium smoke now creates a legacy unlinked dividend, links it, reconciles it and checks XIRR/private-demo transitions.
+- Current PR #430 head is `08651e96d6a16b20913027a31abcd4e7476bb897`; CI run 41286018183 is pending. Dashboard packaging for prior commit `aa99d696...` passed. Do not claim final CI green until current head is verified.
+- PR #430 remains open/draft. PR #425–#430 remain unmerged; no merge is authorized.
