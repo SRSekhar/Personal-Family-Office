@@ -486,3 +486,33 @@ Implemented on the stacked IPM-04 branch:
 - Net gain is distinct from XIRR and tax-adjusted return.
 
 Next: define investment cash-account and transfer semantics before cash reconciliation; derive portfolio XIRR only from explicit external contributions, withdrawals and terminal valuations; define snapshot correction semantics before historical persistence.
+
+
+## IPM-04 Acceptance Update — FIFO Portfolio Projection
+
+Status
+
+Implemented on feature/investment-portfolio-reconciliation; CI and Chromium acceptance passed on commit `e8b7878245bcd1f13e71171cd3e06649ff08608c`.
+
+- Browser portfolio view projects schema-v5 ledger events into FIFO positions by account and instrument.
+- Shows open quantity/lots, cost basis, realised/unrealised gain, dividends, interest, fees, taxes and net gain.
+- Applies effective-date and recorded-at cutoffs to transactions and valuations.
+- Keeps currencies separate, rejects oversells/currency mismatches, and marks valuation-dependent results unavailable when a price is missing.
+- Net gain is descriptive ledger arithmetic; it is not XIRR, tax-adjusted return or an investment recommendation.
+- CI run `41269575836` passed all steps, including lint, typecheck, package build, unit tests and real Chromium browser smoke. Dashboard packaging/deploy run `41269575813` passed.
+
+### IPM-04 follow-on — Cash reconciliation and portfolio XIRR
+
+Status
+
+Requirements/model design required before implementation. The current ledger does not represent cash-account balances, external contributions/withdrawals, or internal transfers. Do not infer them from Purchase/Sale events.
+
+Required design and acceptance:
+- Distinguish external funding/withdrawals from purchases/sales inside an investment account. A sale is not automatically a withdrawal from the investor's portfolio.
+- Define cash-account identity and ownership, account-to-cash-account links, and how broker cash balances are captured/reconciled.
+- Define atomic internal transfer semantics with source, destination, currency, effective date, recorded-at date, and idempotent reference; transfer pairs must net to zero at portfolio level.
+- Define treatment of dividends, interest, fees, taxes, settlement timing, reversals/corrections and corporate actions without double-counting.
+- Reconcile opening cash + signed ledger movements to an explicitly recorded statement/closing cash balance; report unmatched items and differences, never fabricate balancing entries.
+- Portfolio XIRR must use explicit external contributions (negative), withdrawals/distributions (positive), and terminal value (positive), by currency. Internal purchases, sales and transfers must not be misclassified as investor cash flows. Missing terminal valuations make the affected result unavailable.
+- Require hand-calculated fixtures for funding, withdrawal, reinvestment, partial sale, transfer, fee/tax, dividends, multiple accounts, multi-currency separation, backdated corrections and incomplete statements.
+- Snapshot/history persistence requires explicit correction/version semantics and point-in-time reproducibility before implementation.
