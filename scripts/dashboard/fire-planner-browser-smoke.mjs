@@ -1222,6 +1222,12 @@ try {
     assert.equal(await page.locator('#investment-valuation-count').innerText(), '1');
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Browser test brokerage[\s\S]*Purchase/);
     assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\s\S]*120/);
+    assert.match(await page.locator('#investment-position-rows').innerText(), /Browser test equity[\s\S]*Browser test brokerage[\s\S]*10[\s\S]*1,000[\s\S]*1,200[\s\S]*200/,
+        'FIFO position view should reconcile quantity, open cost basis, market value and unrealised gain');
+    assert.match(await page.locator('#investment-portfolio-summaries').innerText(), /Portfolio totals · INR[\s\S]*1,000[\s\S]*1,200/,
+        'portfolio totals should be grouped and displayed in their ledger currency');
+    assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
+        'a fully valued, reconciled position should not emit an exception warning');
     const investmentStorage = await page.evaluate(() => ({
         accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
         instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),

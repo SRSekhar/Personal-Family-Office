@@ -810,6 +810,15 @@
                         <button class="button button-primary" type="submit">Append valuation</button>
                     </form>
                 </div>
+                <section class="investment-portfolio-analysis" id="investment-portfolio-analysis" aria-labelledby="investment-portfolio-heading">
+                    <div class="investment-portfolio-heading"><div><h3 id="investment-portfolio-heading">Portfolio positions &amp; reconciliation</h3><p class="form-note">FIFO cost basis and performance use recorded ledger events. Valuations are selected only when both effective and recorded dates are on or before the selected date.</p></div>
+                        <label class="field-label" for="investment-portfolio-as-of">As-of date<input id="investment-portfolio-as-of" type="date"></label></div>
+                    <div class="notice" id="investment-portfolio-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Portfolio calculations use only your saved private investment ledger.</p></div></div>
+                    <div id="investment-portfolio-summaries" class="investment-portfolio-summaries"></div>
+                    <div id="investment-reconciliation-warnings" class="investment-reconciliation-warnings" aria-live="polite"></div>
+                    <div class="table-wrap"><table><thead><tr><th>Instrument</th><th>Account</th><th>Currency</th><th class="align-right">Quantity</th><th class="align-right">Open cost basis</th><th class="align-right">Market value</th><th class="align-right">Realised P&amp;L</th><th class="align-right">Unrealised P&amp;L</th><th class="align-right">Net gain</th><th>Valuation</th></tr></thead><tbody id="investment-position-rows"></tbody></table></div>
+                    <p class="form-note">Net gain combines realised and unrealised price gains, dividends and interest, less recorded fees and taxes. It is not XIRR or a tax calculation. Totals remain separate by currency; no FX conversion is performed.</p>
+                </section>
                 <h3>Accounts</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Institution</th><th>Type</th><th>Currency</th></tr></thead><tbody id="investment-account-rows"></tbody></table></div>
                 <h3>Instruments</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Symbol</th><th>Currency</th></tr></thead><tbody id="investment-instrument-rows"></tbody></table></div>
                 <h3>Transaction history</h3><div class="table-wrap"><table><thead><tr><th>Date</th><th>Instrument</th><th>Account</th><th>Type</th><th class="align-right">Cash movement</th></tr></thead><tbody id="investment-transaction-rows"></tbody></table></div>
