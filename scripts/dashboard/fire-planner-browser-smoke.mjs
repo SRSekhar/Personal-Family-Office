@@ -2917,7 +2917,7 @@ try {
         'a cash-flow edit after enabling automatic persistence must reach the SQLite database');
     process.stdout.write('PASS: opt-in automatic SQLite saves persist subsequent cash-flow edits.\\n');
 
-    // A transient SQLite/API failure must not discard browser-local edits; a later edit retries the full snapshot.
+    // Transient failures retry automatically with bounded backoff; no second user edit is required.
     let failNextAutomaticDatabaseWrite = true;
     await page.route('**/api/v1/workspace', async (route) => {
         if (route.request().method() === 'PUT' && failNextAutomaticDatabaseWrite) {
@@ -2938,7 +2938,7 @@ try {
     await page.locator('#cash-flow-amount').fill('321');
     await page.locator('#cash-flow-save').click();
     await page.waitForFunction(() =>
-        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Automatic SQLite save failed'));
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('retry scheduled'));
     const browserWorkspaceAfterDatabaseFailure = await page.evaluate(() =>
         JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'));
     assert.ok(browserWorkspaceAfterDatabaseFailure.some((entry) =>
@@ -2953,27 +2953,77 @@ try {
         entry.description === 'SQLite transient failure smoke'), false,
     'a rejected SQLite write must not partially persist the new transaction');
 
-    await page.locator('#cash-flow-date').fill('2026-10-29');
-    await page.locator('#cash-flow-type').selectOption('expense');
-    await page.locator('#cash-flow-category').fill('Persistence recovery');
-    await page.locator('#cash-flow-description').fill('SQLite retry recovery smoke');
-    await page.locator('#cash-flow-amount').fill('654');
-    await page.locator('#cash-flow-save').click();
     await page.waitForFunction(() =>
-        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'));
-    const recoveredDatabaseWorkspace = await page.evaluate(async () => {
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'),
+    null, { timeout: 10000 });
+    const automaticallyRecoveredWorkspace = await page.evaluate(async () => {
         const response = await globalThis.fetch('/api/v1/workspace');
         if (!response.ok) throw new Error('Could not read the SQLite snapshot after automatic retry.');
         return (await response.json()).payload;
     });
-    assert.ok(recoveredDatabaseWorkspace.cashFlowEntries.some((entry) =>
+    assert.ok(automaticallyRecoveredWorkspace.cashFlowEntries.some((entry) =>
         entry.description === 'SQLite transient failure smoke' && entry.amount === 321),
-    'the next successful full-workspace save must recover the earlier browser-local edit');
-    assert.ok(recoveredDatabaseWorkspace.cashFlowEntries.some((entry) =>
-        entry.description === 'SQLite retry recovery smoke' && entry.amount === 654),
-    'the next successful full-workspace save must include the triggering edit too');
+    'the automatic retry must persist the failed edit without requiring another user edit');
     await page.unroute('**/api/v1/workspace');
-    process.stdout.write('PASS: transient SQLite write failure preserves browser data and a later automatic save recovers both edits.\\n');
+    process.stdout.write('PASS: transient SQLite failure is recovered by bounded automatic retry without another edit.\\n');
+
+    // Repeated transient failures stop after three retries; a later user edit starts a fresh retry window.
+    let failingWritesRemaining = 4;
+    let failedWriteAttempts = 0;
+    await page.route('**/api/v1/workspace', async (route) => {
+        if (route.request().method() === 'PUT' && failingWritesRemaining > 0) {
+            failingWritesRemaining -= 1;
+            failedWriteAttempts += 1;
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Simulated persistent SQLite outage.' })
+            });
+            return;
+        }
+        await route.continue();
+    });
+    await page.locator('#cash-flow-date').fill('2026-10-29');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Persistence recovery');
+    await page.locator('#cash-flow-description').fill('SQLite retry limit smoke');
+    await page.locator('#cash-flow-amount').fill('654');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('paused after retries'),
+    null, { timeout: 20000 });
+    assert.equal(failedWriteAttempts, 4, 'automatic persistence must stop after the initial attempt plus three retries');
+    const browserWorkspaceAfterRetryLimit = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'));
+    assert.ok(browserWorkspaceAfterRetryLimit.some((entry) =>
+        entry.description === 'SQLite retry limit smoke' && entry.amount === 654),
+    'retry exhaustion must not discard the browser-local transaction');
+
+    await page.locator('#cash-flow-date').fill('2026-10-30');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Persistence recovery');
+    await page.locator('#cash-flow-description').fill('SQLite retry window reset smoke');
+    await page.locator('#cash-flow-amount').fill('987');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'),
+    null, { timeout: 10000 });
+    const recoveredDatabaseWorkspace = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not read the SQLite snapshot after retry-window reset.');
+        return (await response.json()).payload;
+    });
+    for (const [description, amount] of [
+        ['SQLite transient failure smoke', 321],
+        ['SQLite retry limit smoke', 654],
+        ['SQLite retry window reset smoke', 987]
+    ]) {
+        assert.ok(recoveredDatabaseWorkspace.cashFlowEntries.some((entry) =>
+            entry.description === description && entry.amount === amount),
+        'the successful save after retry exhaustion must persist all retained browser-local edits: ' + description);
+    }
+    await page.unroute('**/api/v1/workspace');
+    process.stdout.write('PASS: SQLite autosave retries are bounded, preserve browser data, and reset after a later edit.\\n');
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
