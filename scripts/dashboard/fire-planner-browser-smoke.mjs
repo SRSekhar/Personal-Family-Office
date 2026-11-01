@@ -2284,6 +2284,7 @@ try {
     assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Over budget/,
         'HTML-looking category text should still participate in normal budget calculations');
     await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#cash-flow-budget-month').fill('2026-10');
     assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\s\S]*Over budget/,
         'budget and ledger values should remain available after reload');
     process.stdout.write('PASS: monthly category budgets persist, aggregate recorded expenses, and flag overspending.\n');
