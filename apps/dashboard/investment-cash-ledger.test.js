@@ -180,6 +180,7 @@ describe('investment cash ledger', () => {
             cashAmount: { amount: -50, currency: 'INR' }, date: '2026-01-04T00:00:00.000Z',
             recordedAt: '2026-01-05T00:00:00.000Z' });
         value.investmentCashStatements[0].closingBalance.amount = 1350;
+        value.investmentCashStatements[0].recordedAt = '2026-01-10T00:00:00.000Z';
         const beforeLink = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-01-15T00:00:00.000Z' });
         expect(beforeLink.status).toBe('incomplete');
         expect(beforeLink.unmatchedCount).toBe(1);
