@@ -264,7 +264,7 @@ export class WorkspaceDatabase {
             if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v6 workspace.');
             const payload = validateWorkspacePayload(JSON.parse(row.payload_json));
             verificationDatabase.close(); verificationDatabase = undefined;
-            const descriptor = openSync(temporaryPath, 'r');
+            const descriptor = openSync(temporaryPath, 'r+');
             try { fsyncSync(descriptor); } finally { closeSync(descriptor); }
             if (process.platform !== 'win32') chmodSync(temporaryPath, 0o600);
             renameSync(temporaryPath, destinationPath);
