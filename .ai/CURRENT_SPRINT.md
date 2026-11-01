@@ -371,3 +371,13 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - PFO-native interchange implementation is green, but issue #431's broader acceptance is **not yet complete**: provider-specific explicit column mapping, row-level downloadable error reports, stronger persistence-failure/SQLite atomicity coverage, and reload/export-reimport equality coverage remain to be addressed. Do not mark the entire issue accepted.
 - External broker layouts remain blocked on exact, redacted provider CSV samples. Do not infer transaction types, signs, cash links, opening balances, FX or valuation data.
 - PR #432 remains draft and unmerged. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge without explicit approval.
+
+
+## 2026-11-01 — IPM-05 CSV row diagnostics (in progress)
+
+- PR #432 remains draft/open/unmerged on `feature/investment-ledger-csv-interchange`, stacked on PR #430.
+- Added detailed row parsing and a downloadable spreadsheet-safe error report containing source file, collection, logical CSV row, field, error message and raw row JSON.
+- Any row-level error blocks the complete import batch; valid rows are never partially committed. Correct the source file and retry.
+- Unit and Chromium smoke coverage has been added, including report download and disabled confirmation. CI on the new head is pending/not yet visible; do not mark this acceptance complete.
+- Latest verified prior head was `8c9a37931ae3c4d3f562bc736b76437649147429`: CI run 1381 and dashboard packaging run 711 passed.
+- External provider mappings remain blocked pending actual redacted provider CSV samples and explicit user-confirmed field/type/sign conventions. SQLite autosave is optional/debounced and is not atomic with localStorage.
