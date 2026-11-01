@@ -1354,6 +1354,32 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Import committed'));
     assert.equal(await page.locator('#investment-account-count').innerText(), '1',
         'PFO-native CSV replace import should round-trip the existing account without duplication');
+
+    // Reload the private workspace and compare a fresh export byte-for-byte with the imported source.
+    await page.reload({ waitUntil: 'networkidle' });
+    if (await page.locator('#switch-private-button').isVisible()) await page.locator('#switch-private-button').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-account-count')?.textContent === '1');
+    const [investmentLedgerReloadCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentAccounts"]').click()
+    ]);
+    const investmentLedgerReloadCsvPath = join(temporaryDirectory, 'investmentAccounts-after-reload.pfo.csv');
+    await investmentLedgerReloadCsvDownload.saveAs(investmentLedgerReloadCsvPath);
+    assert.equal(await readFile(investmentLedgerReloadCsvPath, 'utf8'), await readFile(investmentLedgerCollectionCsvPath, 'utf8'),
+        'CSV import must survive reload and re-export to byte-identical PFO-native CSV');
+
+    // Re-import the exported file and verify the canonical data remains unchanged.
+    await page.locator('#investment-csv-files').setInputFiles(investmentLedgerReloadCsvPath);
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
+    await page.locator('#investment-csv-confirm').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Import committed'));
+    const reimportedInvestmentAccount = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'));
+    assert.equal(reimportedInvestmentAccount.length, 1);
+    assert.equal(reimportedInvestmentAccount[0].id, 'investment-account-browser-test',
+        'export/re-import must preserve the stable account ID');
+    process.stdout.write('PASS: CSV import survives reload and export/re-import preserves byte-identical CSV and stable IDs.\\n');
+
     await page.locator('input[name="investment-csv-mode"][value="append"]').check();
     await page.waitForFunction(() => /unique/i.test(globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''));
     assert.equal(await page.locator('#investment-account-count').innerText(), '1',
