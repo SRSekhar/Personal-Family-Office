@@ -35,13 +35,15 @@ const COLLECTIONS = {
 };
 
 function encodeText(value) {
-    const bytes = new TextEncoder().encode(String(value));
+    const text = String(value);
+    if (!/^\\s*[=+@-]/u.test(text) && !text.startsWith(TEXT_PREFIX)) return text;
+    const bytes = new TextEncoder().encode(text);
     let binary = '';
     for (const byte of bytes) binary += String.fromCharCode(byte);
     return TEXT_PREFIX + btoa(binary);
 }
-function decodeText(value, label) {
-    if (!value.startsWith(TEXT_PREFIX)) throw new Error(label + ' is not encoded using the PFO CSV text encoding.');
+function decodeText(value) {
+    if (!value.startsWith(TEXT_PREFIX)) return value;
     const binary = atob(value.slice(TEXT_PREFIX.length));
     const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
     return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
@@ -87,7 +89,7 @@ function parseRows(source) {
     return rows;
 }
 function readCell(value, type, label) {
-    if (type === 'text') return decodeText(value, label);
+    if (type === 'text') return decodeText(value);
     if (type === 'json') {
         try { return JSON.parse(value); } catch { throw new Error(label + ' contains invalid JSON.'); }
     }
