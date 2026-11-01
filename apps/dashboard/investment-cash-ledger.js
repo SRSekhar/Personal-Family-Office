@@ -92,6 +92,9 @@ export function validateInvestmentCashCollections(input) {
         if (original.id === movement.id || original.type === 'Correction' || original.cashAccountId !== movement.cashAccountId) {
             throw new Error('Cash correction must reference a different, non-correction movement in the same cash account.');
         }
+        if (movement.effectiveAt < original.effectiveAt || movement.recordedAt < original.recordedAt) {
+            throw new Error('Cash correction cannot predate its referenced movement.');
+        }
     }
     const openingByAccount = new Map();
     for (const movement of movements) if (movement.type === 'OpeningBalance') {
