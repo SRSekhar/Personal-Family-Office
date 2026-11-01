@@ -278,3 +278,13 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - Historical cash/position calculations use the same effective-date and recorded-at cutoff. Append-only corrections and a single opening baseline are validated.
 - Demo mode clears private cash-ledger selectors/history and portfolio XIRR output.
 - Unit and Chromium smoke coverage expanded. Latest CI verification remains in progress; no merge or deployment is claimed.
+
+
+## 2026-11-01 — IPM-04 cash-ledger acceptance verified
+
+- Added and validated the schema-v6 cash-ledger persistence, private-only workflows, historical settlement association, cash reconciliation and per-currency portfolio XIRR across stacked PRs #429 and #430.
+- Zero opening balances are accepted only when explicitly entered. They are excluded from XIRR flow arrays rather than passed as zero-valued calculator inputs.
+- XIRR uses the shared repository calculator and refuses ambiguous sign-change patterns. Cash and open-position terminal values must be complete; no partial XIRR is shown.
+- Vitest now includes all dashboard root-level tests in addition to `apps/dashboard/tests/**`, ensuring investment-ledger and cash-ledger validator tests run in CI.
+- PR #430 head `786ded49daa9655fcc09d50da4562c4f682cb5c1`: CI run 41289104534 success; dashboard package run 41289104460 success (publish skipped). PR #429 CI and packaging also passed.
+- No PR has been merged. Merge order remains #425 → #426 → #427 → #428 → #429 → #430 and requires explicit user approval.
