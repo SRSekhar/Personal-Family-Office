@@ -470,3 +470,19 @@ The following work is approved under Option B. It is a functional product epic, 
 - Before any source reuse, record exact repository, commit, files, license, notices, modifications and distribution implications.
 - No AGPL source integration without an explicit licensing decision; PFO's current root license is unresolved.
 - Never copy code from an organization URL without identifying the exact repository and reviewing its license.
+
+
+## Investment Portfolio Management — IPM-04
+
+Status
+
+In Progress — FIFO portfolio projection and valuation reconciliation.
+
+Implemented on the stacked IPM-04 branch:
+- Deterministic FIFO position projection from schema-v5 investment ledger events.
+- Point-in-time transaction and valuation selection using both effective and recorded timestamps.
+- Per-account/instrument quantity, open cost basis, realised/unrealised gain, dividends, interest, fees, taxes and net gain.
+- Currency-separated totals, explicit missing-valuation warnings, and oversell rejection. No FX conversion or inferred prices.
+- Net gain is distinct from XIRR and tax-adjusted return.
+
+Next: define investment cash-account and transfer semantics before cash reconciliation; derive portfolio XIRR only from explicit external contributions, withdrawals and terminal valuations; define snapshot correction semantics before historical persistence.
