@@ -121,4 +121,15 @@ describe('investment portfolio money-weighted performance', () => {
         expect(result.cashBalance).toBe(10713);
         expect(result.terminalValue).toBe(11993);
     });
+    it('does not use a settlement link that was recorded after the selected historical as-of date', () => {
+        const input = performanceFixture();
+        input.transactions[0].cashAccountLinkedAt = '2026-04-01T00:00:00.000Z';
+        const result = analyzeInvestmentPortfolioPerformance({
+            ...input, asOfDate, recordedAt: new Date('2026-04-30T23:59:59.999Z'),
+            performanceCalculator: analyzeInvestmentPerformanceMath
+        })[0];
+        expect(result.status).toBe('unavailable');
+        expect(result.reason).toMatch(/not linked to an explicit cash account/i);
+    });
+
 });
