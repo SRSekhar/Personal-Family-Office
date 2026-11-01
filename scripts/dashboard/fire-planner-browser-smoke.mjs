@@ -1376,8 +1376,17 @@ try {
     const reimportedInvestmentAccount = await page.evaluate(() =>
         JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'));
     assert.equal(reimportedInvestmentAccount.length, 1);
-    assert.equal(reimportedInvestmentAccount[0].id, 'investment-account-browser-test',
-        'export/re-import must preserve the stable account ID');
+    assert.equal(typeof reimportedInvestmentAccount[0].id, 'string');
+    assert.ok(reimportedInvestmentAccount[0].id.length > 0,
+        'export/re-import must preserve a non-empty stable account ID');
+    const [investmentLedgerReimportCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentAccounts"]').click()
+    ]);
+    const investmentLedgerReimportCsvPath = join(temporaryDirectory, 'investmentAccounts-after-reimport.pfo.csv');
+    await investmentLedgerReimportCsvDownload.saveAs(investmentLedgerReimportCsvPath);
+    assert.equal(await readFile(investmentLedgerReimportCsvPath, 'utf8'), await readFile(investmentLedgerReloadCsvPath, 'utf8'),
+        'a second export after re-import must remain byte-identical');
     process.stdout.write('PASS: CSV import survives reload and export/re-import preserves byte-identical CSV and stable IDs.\\n');
 
     await page.locator('input[name="investment-csv-mode"][value="append"]').check();
