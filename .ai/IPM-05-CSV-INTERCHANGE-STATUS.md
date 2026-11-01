@@ -68,5 +68,5 @@ The PFO-native CSV increment is CI-green on this head. It does not close the ful
 - The downloadable error report is CSV-quoted and spreadsheet-safe. It retains raw row JSON for local troubleshooting.
 - Any row-level error blocks the entire multi-file batch; there is no partial import of otherwise valid rows.
 - Unit tests and real Chromium smoke cover error collection, report download and disabled confirmation.
-- Verified on head `a1a7fc7841b90540db17fc2111c51de99b4b418c`? No — canonical head is `a1a7fc784d286be06432544311991eb2e6460e1e`.
+- Verified code head: `a1a7fc784d286be06432544311991eb2e6460e1e`.
 - CI run `41312197836` (1392) and dashboard packaging run `41312197970` (722) both passed. Pages publishing was skipped as expected for this PR.
