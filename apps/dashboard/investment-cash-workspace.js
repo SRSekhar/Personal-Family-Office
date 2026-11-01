@@ -128,7 +128,7 @@ function render() {
         return '<tr><td>' + escape(item.statementAsOf.slice(0, 10)) + '</td><td>' + escape(account?.name ?? 'Unknown') + '</td><td class="align-right">'
             + money(item.closingBalance.amount, item.closingBalance.currency) + '</td><td>' + escape(item.sourceName) + '</td></tr>';
     }).join('');
-
+    updateMovementFields();
 }
 function message(value) {
     $('#investment-cash-message').textContent = value;
