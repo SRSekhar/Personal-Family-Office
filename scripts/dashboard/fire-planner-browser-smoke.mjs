@@ -2917,6 +2917,64 @@ try {
         'a cash-flow edit after enabling automatic persistence must reach the SQLite database');
     process.stdout.write('PASS: opt-in automatic SQLite saves persist subsequent cash-flow edits.\\n');
 
+    // A transient SQLite/API failure must not discard browser-local edits; a later edit retries the full snapshot.
+    let failNextAutomaticDatabaseWrite = true;
+    await page.route('**/api/v1/workspace', async (route) => {
+        if (route.request().method() === 'PUT' && failNextAutomaticDatabaseWrite) {
+            failNextAutomaticDatabaseWrite = false;
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Simulated temporary SQLite outage.' })
+            });
+            return;
+        }
+        await route.continue();
+    });
+    await page.locator('#cash-flow-date').fill('2026-10-28');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Persistence recovery');
+    await page.locator('#cash-flow-description').fill('SQLite transient failure smoke');
+    await page.locator('#cash-flow-amount').fill('321');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Automatic SQLite save failed'));
+    const browserWorkspaceAfterDatabaseFailure = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'));
+    assert.ok(browserWorkspaceAfterDatabaseFailure.some((entry) =>
+        entry.description === 'SQLite transient failure smoke' && entry.amount === 321),
+    'a failed SQLite write must leave the already-saved browser-local transaction intact');
+    const databaseWorkspaceAfterFailure = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not read the SQLite snapshot after simulated write failure.');
+        return (await response.json()).payload;
+    });
+    assert.equal(databaseWorkspaceAfterFailure.cashFlowEntries.some((entry) =>
+        entry.description === 'SQLite transient failure smoke'), false,
+    'a rejected SQLite write must not partially persist the new transaction');
+
+    await page.locator('#cash-flow-date').fill('2026-10-29');
+    await page.locator('#cash-flow-type').selectOption('expense');
+    await page.locator('#cash-flow-category').fill('Persistence recovery');
+    await page.locator('#cash-flow-description').fill('SQLite retry recovery smoke');
+    await page.locator('#cash-flow-amount').fill('654');
+    await page.locator('#cash-flow-save').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('Auto-save saved to SQLite'));
+    const recoveredDatabaseWorkspace = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not read the SQLite snapshot after automatic retry.');
+        return (await response.json()).payload;
+    });
+    assert.ok(recoveredDatabaseWorkspace.cashFlowEntries.some((entry) =>
+        entry.description === 'SQLite transient failure smoke' && entry.amount === 321),
+    'the next successful full-workspace save must recover the earlier browser-local edit');
+    assert.ok(recoveredDatabaseWorkspace.cashFlowEntries.some((entry) =>
+        entry.description === 'SQLite retry recovery smoke' && entry.amount === 654),
+    'the next successful full-workspace save must include the triggering edit too');
+    await page.unroute('**/api/v1/workspace');
+    process.stdout.write('PASS: transient SQLite write failure preserves browser data and a later automatic save recovers both edits.\\n');
+
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
         for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1']) {
