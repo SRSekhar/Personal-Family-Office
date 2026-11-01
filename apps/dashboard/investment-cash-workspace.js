@@ -55,6 +55,38 @@ function persistCash(cashCollections) {
     window.dispatchEvent(new Event('pfo:investment-updated'));
     window.dispatchEvent(new Event('pfo:workspace-updated'));
 }
+
+function linkInvestmentTransaction(transactionId, cashAccountId) {
+    const ledger = validateInvestmentLedgerCollections(readCollections(ledgerKeys));
+    const cash = validateInvestmentCashCollections({ ...ledger, ...readCollections(cashKeys) });
+    const target = ledger.investmentTransactions.find((item) => item.id === transactionId);
+    const cashAccount = cash.investmentCashAccounts.find((item) => item.id === cashAccountId);
+    if (!target || target.cashAccountId !== undefined) throw new Error('The investment transaction is missing or already linked.');
+    if (!cashAccount || cashAccount.investmentAccountId !== target.accountId || cashAccount.currency !== target.cashAmount.currency) {
+        throw new Error('Choose a cash account belonging to this investment account and currency.');
+    }
+    const updatedLedger = validateInvestmentLedgerCollections({
+        ...ledger,
+        investmentTransactions: ledger.investmentTransactions.map((item) =>
+            item.id === transactionId ? { ...item, cashAccountId } : item)
+    });
+    validateInvestmentCashCollections({ ...updatedLedger, ...cash, investmentTransactions: updatedLedger.investmentTransactions });
+    const key = ledgerKeys.investmentTransactions;
+    const previous = localStorage.getItem(key);
+    try {
+        localStorage.setItem(key, JSON.stringify(updatedLedger.investmentTransactions));
+    } catch (error) {
+        try {
+            if (previous === null) localStorage.removeItem(key);
+            else localStorage.setItem(key, previous);
+        } catch {
+            throw new Error('Settlement link save failed and browser-storage rollback was incomplete. Stop editing and export/recover the workspace.', { cause: error });
+        }
+        throw new Error(error instanceof Error ? error.message : 'Settlement link could not be saved; previous transaction data was restored.', { cause: error });
+    }
+    window.dispatchEvent(new Event('pfo:investment-updated'));
+    window.dispatchEvent(new Event('pfo:workspace-updated'));
+}
 function options(items, label) {
     return '<option value="">Select…</option>' + items.map((item) =>
         '<option value="' + escape(item.id) + '">' + escape(label(item)) + '</option>').join('');
@@ -137,6 +169,39 @@ function render() {
             + '</td><td>' + escape(result.status) + '</td><td>' + escape(detail ?? 'Unavailable') + '</td></tr>';
     }).join('');
     $('#investment-cash-account-rows').innerHTML = statusRows;
+    const unlinkedRows = ledger.investmentTransactions.filter((item) => item.cashAccountId === undefined);
+    const unlinkedBody = $('#investment-cash-unlinked-transaction-rows');
+    unlinkedBody.replaceChildren();
+    if (!unlinkedRows.length) {
+        const row = document.createElement('tr'), cell = document.createElement('td');
+        cell.colSpan = 7; cell.textContent = 'All recorded investment transactions have explicit cash settlement links.';
+        row.append(cell); unlinkedBody.append(row);
+    } else {
+        const instrumentById = new Map(ledger.investmentInstruments.map((item) => [item.id, item]));
+        for (const transaction of unlinkedRows) {
+            const owner = accountById.get(transaction.accountId), instrument = instrumentById.get(transaction.instrumentId);
+            const row = document.createElement('tr'); row.dataset.transactionId = transaction.id;
+            for (const value of [transaction.date.slice(0, 10), owner?.name ?? 'Unknown', instrument?.name ?? 'Unknown', transaction.type]) {
+                const cell = document.createElement('td'); cell.textContent = value; row.append(cell);
+            }
+            const amountCell = document.createElement('td'); amountCell.className = 'align-right';
+            amountCell.textContent = money(transaction.cashAmount.amount, transaction.cashAmount.currency); row.append(amountCell);
+            const linkCell = document.createElement('td'), select = document.createElement('select');
+            select.className = 'investment-cash-link-select'; select.setAttribute('aria-label', 'Settlement cash account for ' + transaction.id);
+            const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'Select cash account…'; select.append(placeholder);
+            const candidates = cash.investmentCashAccounts.filter((item) =>
+                item.investmentAccountId === transaction.accountId && item.currency === transaction.cashAmount.currency);
+            for (const candidate of candidates) {
+                const option = document.createElement('option'); option.value = candidate.id;
+                option.textContent = candidate.name + ' · ' + candidate.currency; select.append(option);
+            }
+            linkCell.append(select); row.append(linkCell);
+            const actionCell = document.createElement('td'), button = document.createElement('button');
+            button.type = 'button'; button.className = 'button button-secondary button-small';
+            button.textContent = 'Link'; button.dataset.linkTransaction = 'true'; button.disabled = !isPrivate || candidates.length === 0;
+            actionCell.append(button); row.append(actionCell); unlinkedBody.append(row);
+        }
+    }
     $('#investment-cash-movement-rows').innerHTML = [...cash.investmentCashMovements].sort((a, b) => b.effectiveAt.localeCompare(a.effectiveAt)).map((item) => {
         const account = cash.investmentCashAccounts.find((candidate) => candidate.id === item.cashAccountId);
         return '<tr><td>' + escape(item.effectiveAt.slice(0, 10)) + '</td><td>' + escape(account?.name ?? 'Unknown') + '</td><td>' + escape(item.type)
@@ -184,6 +249,23 @@ export function initializeInvestmentCashWorkspace() {
     $('#investment-cash-movement-type').innerHTML = movementTypes.map((type) => '<option value="' + type + '">' + type + '</option>').join('');
     $('#investment-cash-movement-type').addEventListener('change', updateMovementFields);
     $('#investment-cash-movement-account').addEventListener('change', render);
+    $('#investment-cash-unlinked-transaction-rows').addEventListener('click', (event) => {
+        const button = event.target instanceof Element ? event.target.closest('button[data-link-transaction]') : null;
+        if (!button) return;
+        const row = button.closest('tr'), transactionId = row?.dataset.transactionId;
+        const cashAccountId = row?.querySelector('select')?.value;
+        if (!transactionId || !cashAccountId) {
+            message('Select a settlement cash account before linking the transaction.');
+            return;
+        }
+        try {
+            linkInvestmentTransaction(transactionId, cashAccountId);
+            message('Settlement account linked. The transaction financial values were not changed.');
+            render();
+        } catch (error) {
+            message(error instanceof Error ? error.message : 'Settlement account could not be linked.');
+        }
+    });
     bindForm('#investment-cash-account-form', (form) => {
         const { ledger, cash } = readData();
         const owner = ledger.investmentAccounts.find((item) => item.id === form.get('investmentAccountId'));
