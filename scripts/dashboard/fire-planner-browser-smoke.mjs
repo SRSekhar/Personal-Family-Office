@@ -1268,7 +1268,7 @@ try {
     assert.match(investmentRestoreDialog.message(), /Investment accounts: 1/);
     await investmentRestoreDialog.accept();
     await page.waitForFunction(() =>
-        globalThis.document.querySelector('#toast')?.textContent.includes('Backup imported successfully')
+        globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace')
     );
     const restoredInvestmentStorage = await page.evaluate(() => ({
         accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
