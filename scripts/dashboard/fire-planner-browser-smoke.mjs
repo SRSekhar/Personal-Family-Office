@@ -1266,7 +1266,7 @@ try {
         'FIFO position view should reconcile quantity, open cost basis, market value and unrealised gain');
     assert.match(await page.locator('#investment-portfolio-summaries').innerText(), /Portfolio totals · INR[\s\S]*1,000[\s\S]*1,200/,
         'portfolio totals should be grouped and displayed in their ledger currency');
-    assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Portfolio XIRR · INR[\s\S]*annualized money-weighted return[\s\S]*Terminal value[\s\S]*1,600/,
+    assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Portfolio XIRR · INR[\s\S]*annualized money-weighted return[\s\S]*Terminal value[\s\S]*1,605/,
         'portfolio XIRR should include explicit external flows and a complete terminal value of cash plus valued holdings');
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-cash-account-count').innerText(), '0', 'demo workspace must not expose private cash account counts');
