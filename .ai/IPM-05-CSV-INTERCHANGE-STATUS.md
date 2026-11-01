@@ -34,7 +34,7 @@ Verified code commit: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`
 - Dashboard packaging run `41313265856` (run 732): passed. Pages publishing was skipped as expected for a pull request.
 - The browser smoke includes CSV row-error report download and confirmation blocking, preview/replace/append, reload/export-reimport equality, browser-storage rollback, oversized-file rejection, multi-tab conflict protection, transient SQLite 503 failure with retry recovery, and no uncaught browser errors.
 
-The PFO-native CSV increment and SQLite persistence-failure/recovery acceptance are CI-green on this code head. It does not close all of issue #431 because external-provider mapping and independent Secret Scan verification remain open.
+The PFO-native CSV increment, SQLite persistence-failure/recovery acceptance, and Secret Scan are CI-green on this code head. Issue #431 remains open for external-provider mapping, which requires actual redacted samples and user-confirmed transaction/sign conventions.
 
 ## Remaining acceptance work
 
@@ -42,7 +42,7 @@ The PFO-native CSV increment and SQLite persistence-failure/recovery acceptance 
 - Independent Secret Scan verification: no separate Secret Scan workflow appeared in the PR-triggered workflow runs inspected.
 - External-provider row mapping is still blocked pending exact redacted provider CSV samples and user-confirmed transaction/sign conventions.
 - Further SQLite autosave failure/consistency tests and clear recovery behavior. Do not describe localStorage plus SQLite as cross-store atomic.
-- Confirm Secret Scan and any remaining SQLite autosave failure/consistency acceptance before marking issue #431 complete.
+- Complete provider-specific mapping only after actual redacted samples and confirmed semantics are available. Do not infer financial events or claim cross-store atomicity.
 
 ## Explicit safety boundaries
 
