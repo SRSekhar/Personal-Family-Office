@@ -24,7 +24,9 @@ describe('investment ledger backup validation', () => {
     it('preserves an optional cash-account link for schema-v6 validation', () => {
         const value = base();
         value.investmentTransactions[0].cashAccountId = 'cash-1';
-        expect(validateInvestmentLedgerCollections(value).investmentTransactions[0].cashAccountId).toBe('cash-1');
+        expect(validateInvestmentLedgerCollections(value).investmentTransactions[0]).toMatchObject({
+            cashAccountId: 'cash-1', cashAccountLinkedAt: '2026-10-02T00:00:00.000Z'
+        });
     });
     it('rejects duplicate account, instrument, and transaction identifiers', () => {
         const value = base();
@@ -58,4 +60,22 @@ describe('investment ledger backup validation', () => {
         invalidDate.investmentTransactions[0].date = 'not-a-date';
         expect(() => validateInvestmentLedgerCollections(invalidDate)).toThrow(/canonical ISO-8601/i);
     });
+
+    it('tracks settlement-link time separately and rejects impossible link chronology', () => {
+        const linked = base();
+        linked.investmentTransactions[0].cashAccountId = 'cash-1';
+        linked.investmentTransactions[0].cashAccountLinkedAt = '2026-10-05T00:00:00.000Z';
+        expect(validateInvestmentLedgerCollections(linked).investmentTransactions[0].cashAccountLinkedAt)
+            .toBe('2026-10-05T00:00:00.000Z');
+
+        const beforeRecorded = base();
+        beforeRecorded.investmentTransactions[0].cashAccountId = 'cash-1';
+        beforeRecorded.investmentTransactions[0].cashAccountLinkedAt = '2026-10-01T00:00:00.000Z';
+        expect(() => validateInvestmentLedgerCollections(beforeRecorded)).toThrow(/cannot predate the investment transaction record/i);
+
+        const orphanedTimestamp = base();
+        orphanedTimestamp.investmentTransactions[0].cashAccountLinkedAt = '2026-10-05T00:00:00.000Z';
+        expect(() => validateInvestmentLedgerCollections(orphanedTimestamp)).toThrow(/requires a cash account ID/i);
+    });
+
 });
