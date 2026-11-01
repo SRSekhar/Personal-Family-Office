@@ -223,3 +223,12 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 ## Current Workstream — IPM-04
 
 Investment Portfolio Management is in progress on feature/investment-portfolio-reconciliation, stacked on PR #425's schema-v5 persistence branch. Dashboard FIFO positions and valuation/reconciliation visibility are being implemented. PR #425 remains open and unmerged.
+
+
+## 2026-11-01 — IPM-04 FIFO portfolio projection
+
+- PR #426 adds the schema-v5 dashboard portfolio projection: FIFO positions, realised/unrealised gain, recorded income/expenses, point-in-time valuation selection, currency-separated totals, missing-valuation states and oversell rejection.
+- Latest head: `e8b7878245bcd1f13e71171cd3e06649ff08608c`.
+- CI run `41269575836` passed lint, typecheck, build, tests and real Chromium browser smoke; dashboard packaging/deploy run `41269575813` passed.
+- Portfolio XIRR and cash reconciliation remain gated on a domain design for external contributions/withdrawals, cash-account balances and internal transfers. Purchases and sales alone do not establish investor cash flows. No assumptions or schema changes are being made until these semantics are explicit.
+- PR #425 remains the schema-v5 dependency and PR #426 remains stacked on it; both are open and unmerged.
