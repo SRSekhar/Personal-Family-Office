@@ -8,7 +8,7 @@
     <title>PFO OS — Financial workspace</title>
     <link rel="stylesheet" href="./styles.css">
     <script type="module" src="./app.js"></script>
-    <script type="module" src="./budget-overrun-insights.js"></script>
+    <script type="module" src="./budget-overrun-insights.js"></script>\n    <script type="module" src="./investment-csv-workspace.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -895,6 +895,32 @@
                     <div class="table-wrap"><table><thead><tr><th>Date</th><th>From</th><th>To</th><th class="align-right">Amount</th></tr></thead><tbody id="investment-cash-transfer-rows"></tbody></table></div>
                     <h4>Statement history</h4>
                     <div class="table-wrap"><table><thead><tr><th>As of</th><th>Cash account</th><th class="align-right">Closing balance</th><th>Source</th></tr></thead><tbody id="investment-cash-statement-rows"></tbody></table></div>
+                </section>
+                <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
+                    <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
+                        <p class="form-note">Export each of the eight investment and cash collections as a separate PFO-native CSV. Import validates all selected files together and previews the result before changing saved data. JSON workspace backup remains the authoritative full backup.</p></div></div>
+                    <div class="notice" id="investment-csv-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>CSV files can contain sensitive financial history. Import and export are disabled in demo mode.</p></div></div>
+                    <h4>Export collections</h4>
+                    <div class="button-row">
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentAccounts">Accounts CSV</button>
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentInstruments">Instruments CSV</button>
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentTransactions">Transactions CSV</button>
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentValuations">Valuations CSV</button>
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentCashAccounts">Cash accounts CSV</button>
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentCashMovements">Cash movements CSV</button>
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentCashTransfers">Cash transfers CSV</button>
+                        <button class="button button-secondary button-small" type="button" data-investment-csv-export="investmentCashStatements">Cash statements CSV</button>
+                    </div>
+                    <h4>Import PFO-native CSV files</h4>
+                    <label class="field-label" for="investment-csv-files">Select one or more collection files<input id="investment-csv-files" type="file" accept=".csv,text/csv" multiple></label>
+                    <fieldset class="field-grid"><legend class="field-label">Import behavior</legend>
+                        <label><input type="radio" name="investment-csv-mode" value="replace" checked> Replace only collections included in the selected files</label>
+                        <label><input type="radio" name="investment-csv-mode" value="append"> Append rows to existing collections</label>
+                    </fieldset>
+                    <div id="investment-csv-preview" aria-live="polite"></div>
+                    <p class="validation-message" id="investment-csv-status" role="status" aria-live="polite"></p>
+                    <div class="button-row"><button class="button button-primary" id="investment-csv-confirm" type="button" disabled>Confirm import</button>
+                        <button class="button button-secondary" id="investment-csv-cancel" type="button">Cancel preview</button></div>
                 </section>
                 <p class="form-note">This ledger does not provide tax calculations, FX conversion, live market data, broker connectivity or investment recommendations. A missing valuation remains missing rather than being treated as zero.</p>
             </section>
