@@ -70,6 +70,12 @@ const fixture = () => ({
         value.investmentCashAccounts.push({ id: 'cash-2', investmentAccountId: 'broker-2', name: 'Other cash', currency: 'INR', createdAt: date });
         value.investmentCashMovements.at(-1).cashAccountId = 'cash-2';
         expect(() => validateInvestmentCashCollections(value)).toThrow(/same cash account/i);
+
+        const backdated = fixture();
+        backdated.investmentCashMovements.push({ id: 'correction', cashAccountId: 'cash-1', type: 'Correction',
+            amount: { amount: 10, currency: 'INR' }, effectiveAt: '2025-12-31T00:00:00.000Z',
+            recordedAt: '2026-01-04T00:00:00.000Z', reason: 'Backdated correction', reversesMovementId: 'withdrawal' });
+        expect(() => validateInvestmentCashCollections(backdated)).toThrow(/cannot predate/i);
     });
 
     it('rejects multiple opening balances and movements before the opening baseline', () => {
