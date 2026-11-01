@@ -44,6 +44,15 @@ describe('investment cash ledger', () => {
         expect(result.difference.amount).toBe(0);
     });
 
+    it('accepts an explicit zero opening balance without treating it as an inferred balance', () => {
+        const value = fixture();
+        value.investmentCashMovements[0].amount.amount = 0;
+        value.investmentCashStatements[0].closingBalance.amount = 400;
+        const validated = validateInvestmentCashCollections(value);
+        expect(validated.investmentCashMovements[0].amount.amount).toBe(0);
+        expect(reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...validated, investmentTransactions: [] }).status).toBe('reconciled');
+    });
+
     it('marks missing opening balance as incomplete instead of assuming zero', () => {
         const value = fixture();
         value.investmentCashMovements.shift();
