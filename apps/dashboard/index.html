@@ -823,6 +823,74 @@
                 <h3>Instruments</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Symbol</th><th>Currency</th></tr></thead><tbody id="investment-instrument-rows"></tbody></table></div>
                 <h3>Transaction history</h3><div class="table-wrap"><table><thead><tr><th>Date</th><th>Instrument</th><th>Account</th><th>Type</th><th class="align-right">Cash movement</th></tr></thead><tbody id="investment-transaction-rows"></tbody></table></div>
                 <h3>Valuation history</h3><div class="table-wrap"><table><thead><tr><th>As of</th><th>Instrument</th><th class="align-right">Unit price</th><th>Source</th></tr></thead><tbody id="investment-valuation-rows"></tbody></table></div>
+                <section class="investment-cash-ledger" id="investment-cash-ledger" aria-labelledby="investment-cash-ledger-heading">
+                    <div class="section-heading"><div><p class="eyebrow">CASH ACCOUNTING</p><h3 id="investment-cash-ledger-heading">Investment cash ledger</h3>
+                        <p class="form-note">Record explicit broker cash accounts, external funding/withdrawals, internal transfers and statement observations. Cash balances are never inferred from trades.</p></div></div>
+                    <div class="notice" id="investment-cash-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Cash-ledger entries are available only in the local private workspace.</p></div></div>
+                    <p class="validation-message" id="investment-cash-error" role="alert" hidden></p>
+                    <p class="validation-message" id="investment-cash-message" role="status" aria-live="polite" hidden></p>
+                    <div class="historical-detail-totals">
+                        <div><strong id="investment-cash-account-count">0</strong><span>Cash accounts</span></div>
+                        <div><strong id="investment-cash-movement-count">0</strong><span>Cash movements</span></div>
+                        <div><strong id="investment-cash-transfer-count">0</strong><span>Transfers</span></div>
+                        <div><strong id="investment-cash-statement-count">0</strong><span>Statements</span></div>
+                    </div>
+                    <div class="field-grid investment-cash-grid">
+                        <form id="investment-cash-account-form" class="panel-card">
+                            <h4>Add cash sub-account</h4>
+                            <label class="field-label">Owning investment account<select id="investment-cash-owner" name="investmentAccountId" required></select></label>
+                            <label class="field-label">Cash account name<input name="name" required maxlength="100" placeholder="e.g. Broker funds balance"></label>
+                            <p class="form-note">Currency is inherited from the owning investment account. No opening balance is created automatically.</p>
+                            <button class="button button-primary" type="submit">Create cash account</button>
+                        </form>
+                        <form id="investment-cash-movement-form" class="panel-card">
+                            <h4>Append cash movement</h4>
+                            <label class="field-label">Cash account<select id="investment-cash-movement-account" name="cashAccountId" required></select></label>
+                            <label class="field-label">Movement type<select id="investment-cash-movement-type" name="type"></select></label>
+                            <label class="field-label">Signed cash amount<input name="amount" type="number" step="0.01" required inputmode="decimal" placeholder="Contribution positive; withdrawal negative"></label>
+                            <label class="field-label">Effective date<input name="effectiveAt" type="date" required></label>
+                            <div id="investment-cash-opening-source-row">
+                                <label class="field-label">Opening-balance evidence<select id="investment-cash-opening-source" name="openingBalanceSource"><option value="statement">Statement</option><option value="manual">Manual observation</option></select></label>
+                            </div>
+                            <div id="investment-cash-correction-fields" hidden>
+                                <label class="field-label">Correction reason<input id="investment-cash-correction-reason" name="reason" maxlength="240"></label>
+                                <label class="field-label">Movement being corrected<select id="investment-cash-correction-target" name="reversesMovementId"></select></label>
+                            </div>
+                            <p class="form-note">Events are append-only. A correction references the original movement; it never edits history.</p>
+                            <button class="button button-primary" type="submit">Append movement</button>
+                        </form>
+                    </div>
+                    <div class="field-grid investment-cash-grid">
+                        <form id="investment-cash-transfer-form" class="panel-card">
+                            <h4>Record internal transfer</h4>
+                            <label class="field-label">From cash account<select id="investment-cash-transfer-source" name="sourceCashAccountId" required></select></label>
+                            <label class="field-label">To cash account<select id="investment-cash-transfer-destination" name="destinationCashAccountId" required></select></label>
+                            <label class="field-label">Transfer amount<input name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"></label>
+                            <label class="field-label">Effective date<input name="effectiveAt" type="date" required></label>
+                            <p class="form-note">Transfers must be between distinct cash accounts in the same currency. They are not external investor flows.</p>
+                            <button class="button button-primary" type="submit">Append transfer</button>
+                        </form>
+                        <form id="investment-cash-statement-form" class="panel-card">
+                            <h4>Record cash statement</h4>
+                            <label class="field-label">Cash account<select id="investment-cash-statement-account" name="cashAccountId" required></select></label>
+                            <label class="field-label">Statement closing balance<input name="closingBalance" type="number" step="0.01" required inputmode="decimal"></label>
+                            <label class="field-label">Period start<input name="periodStart" type="date" required></label>
+                            <label class="field-label">Period end<input name="periodEnd" type="date" required></label>
+                            <label class="field-label">Balance as of<input name="statementAsOf" type="date" required></label>
+                            <label class="field-label">Statement source<input name="sourceName" required maxlength="120" placeholder="e.g. Broker statement"></label>
+                            <button class="button button-primary" type="submit">Append statement</button>
+                        </form>
+                    </div>
+                    <h4>Cash reconciliation</h4>
+                    <p class="form-note">A cash account is reconciled only when an explicit opening balance and a statement are available, all relevant transactions are linked, and the difference is within currency tolerance. No balancing entries are generated.</p>
+                    <div class="table-wrap"><table><thead><tr><th>Cash account</th><th>Investment account</th><th>Currency</th><th>Status</th><th>Balance / explanation</th></tr></thead><tbody id="investment-cash-account-rows"></tbody></table></div>
+                    <h4>Cash movement history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Cash account</th><th>Type</th><th class="align-right">Cash movement</th><th>Reference / reason</th></tr></thead><tbody id="investment-cash-movement-rows"></tbody></table></div>
+                    <h4>Internal transfer history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Date</th><th>From</th><th>To</th><th class="align-right">Amount</th></tr></thead><tbody id="investment-cash-transfer-rows"></tbody></table></div>
+                    <h4>Statement history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>As of</th><th>Cash account</th><th class="align-right">Closing balance</th><th>Source</th></tr></thead><tbody id="investment-cash-statement-rows"></tbody></table></div>
+                </section>
                 <p class="form-note">This ledger does not provide tax calculations, FX conversion, live market data, broker connectivity or investment recommendations. A missing valuation remains missing rather than being treated as zero.</p>
             </section>
 
