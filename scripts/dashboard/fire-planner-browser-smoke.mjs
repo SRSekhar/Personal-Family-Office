@@ -1262,7 +1262,7 @@ try {
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
     for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
         assert.ok(Array.isArray(backup[collection]), `schema-v6 backup should include ${collection}`);
-        assert.equal(backup[collection].length, 1, `schema-v5 backup should preserve the saved ${collection}`);
+        assert.equal(backup[collection].length, 1, `schema-v6 backup should preserve the saved ${collection}`);
     }
     for (const collection of ['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements']) {
         assert.deepEqual(backup[collection], [], `schema-v6 backup should include an empty ${collection} collection until explicitly entered`);
