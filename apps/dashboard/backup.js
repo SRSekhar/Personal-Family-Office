@@ -29,8 +29,8 @@ export function validateBackupPayload(payload, expectedCurrency) {
         goals.push({ id: goal.id, name: goal.name.trim(), targetAmount: goal.targetAmount, currentAmount: goal.currentAmount,
             targetDate: goal.targetDate, createdAt: goal.createdAt, updatedAt: goal.updatedAt });
     }
-    const includesCashFlow = [3, 4, 5].includes(payload.schemaVersion);
-    const includesHistoricalSnapshots = [4, 5].includes(payload.schemaVersion);
+    const includesCashFlow = [3, 4, 5, 6].includes(payload.schemaVersion);
+    const includesHistoricalSnapshots = [4, 5, 6].includes(payload.schemaVersion);
     const cashFlowEntries = includesCashFlow ? validateCashFlowEntries(payload.cashFlowEntries) : [];
     const budgets = includesCashFlow ? validateCashFlowBudgets(payload.budgets) : [];
     const historicalSnapshots = includesHistoricalSnapshots ? validateHistoricalSnapshots(payload.historicalSnapshots, expectedCurrency) : [];
@@ -40,7 +40,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
     };
     return {
         records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...cashLedger,
-        includesGoals: [2, 3, 4, 5].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
+        includesGoals: [2, 3, 4, 5, 6].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
         ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
         ...(payload.schemaVersion === 6 ? { includesInvestmentCashLedger: true } : {})
     };
