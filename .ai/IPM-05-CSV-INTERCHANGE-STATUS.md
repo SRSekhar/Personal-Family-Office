@@ -6,7 +6,7 @@ Updated: 2026-11-01
 
 - Branch: `feature/investment-ledger-csv-interchange`
 - Pull request: [#432](https://github.com/SRSekhar/Personal-Family-Office/pull/432), draft and unmerged.
-- Latest verified feature head: `a1a7fc784d286be06432544311991eb2e6460e1e`.
+- Latest verified feature head: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`.
 - PR #432 is stacked on PR #430. Preserve dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge is authorized.
 
 The PFO-native CSV interchange covers all eight investment and cash collections:
@@ -52,15 +52,17 @@ The PFO-native CSV increment is CI-green on this head. It does not close the ful
 - Keep PR #432 draft/open/unmerged until the user explicitly approves the full stacked merge sequence.
 
 
-## Row-level import diagnostics — implementation added, CI pending
+## Row-level diagnostics and SQLite failure recovery — verified
 
-- Current branch head: `ef1d0fd574613f42d7736781ebc42237dd6c0df2` at the time of this note; PR #432 remains draft/open/unmerged.
-- The parser now exposes a detailed result containing accepted row records and row-level decoding errors (logical CSV row number, field, message and original cell values). The strict parser remains available and rejects a file containing any invalid rows.
-- The private import UI displays up to 100 row diagnostics and offers a downloadable `investment-csv-import-errors.csv` report with file, collection, row, field, message and raw row JSON. Error text/file cells use the existing spreadsheet-safe text encoding.
-- Any row-level error blocks the entire multi-file batch. Valid rows are not partially committed; the user must correct the source and retry. This preserves the all-or-nothing import policy.
-- Unit coverage and a Chromium smoke scenario were added for malformed required cells, report download and confirmation blocking. These changes are **not yet verified by CI**; the latest verified CI remains run `41311246404` (1381) and dashboard packaging run `41311246326` (711) on prior head `8c9a37931ae3c4d3f562bc736b76437649147429`.
-- The current head has no workflow run/status result visible yet. Do not claim the new report implementation passed until CI, Chromium smoke, Secret Scan and dashboard packaging are verified on the final head.
-
+- Verified branch code head: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`.
+- Detailed row parsing records file, collection, logical CSV row, field, validation message and raw source cells. The private UI displays up to 100 diagnostics and offers the complete spreadsheet-safe `investment-csv-import-errors.csv` report.
+- Any row-level error blocks the complete multi-file batch. Valid rows are not partially committed.
+- Added SQLite transaction failure coverage: a SQLite trigger forces an update failure and the database test confirms the previous committed snapshot and timestamp remain unchanged after rollback.
+- Added real Chromium coverage for a transient 503 during automatic SQLite persistence. It verifies the edit remains in browser localStorage, is absent from the database after the rejected write, and is included with the next edit when automatic persistence recovers.
+- Latest CI run `41312944949` (run 1397) passed dependency audit, repository checks, lint, typecheck, package build, **80 test files / 715 tests**, Chromium installation and full real-browser smoke.
+- Dashboard packaging run `41312944982` (run 727) passed packaging and artifact upload; Pages publishing was skipped as expected for a PR.
+- The tests establish SQLite transaction rollback and retry/recovery behavior. They do **not** make browser localStorage and SQLite one atomic cross-store transaction.
+- A separate Secret Scan workflow was not present in the PR-triggered workflow runs inspected; secret scanning is not independently verified here.
 
 ## Row-level diagnostics — verified
 
@@ -69,4 +71,11 @@ The PFO-native CSV increment is CI-green on this head. It does not close the ful
 - Any row-level error blocks the entire multi-file batch; there is no partial import of otherwise valid rows.
 - Unit tests and real Chromium smoke cover error collection, report download and disabled confirmation.
 - Verified code head: `a1a7fc784d286be06432544311991eb2e6460e1e`.
-- CI run `41312197836` (1392) and dashboard packaging run `41312197970` (722) both passed. Pages publishing was skipped as expected for this PR.
+- CI run `41312944949` (1397) and dashboard packaging run `41312944982` (727) both passed. Pages publishing was skipped as expected for this PR.
+
+## Remaining acceptance boundary
+
+- External-provider column mapping is still blocked until actual redacted provider CSV samples and user-confirmed transaction/sign conventions are available. Do not infer broker schemas or financial events.
+- No cross-store atomicity is claimed: browser localStorage writes and optional/debounced SQLite autosave remain separate persistence systems.
+- No dedicated Secret Scan workflow appeared in the PR-triggered workflow runs inspected; independently verify secret scanning before final issue acceptance.
+- PR #432 remains draft/open/unmerged. Preserve the dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; do not merge without explicit approval.
