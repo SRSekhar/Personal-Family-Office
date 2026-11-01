@@ -19,12 +19,14 @@ function isPrivateWorkspace() {
     return $('#workspace-label')?.textContent.includes('PRIVATE') === true;
 }
 function readWorkspace() {
-    return Object.fromEntries(Object.entries(STORAGE_KEYS).map(([name, key]) => {
+    const workspace = Object.fromEntries(Object.entries(STORAGE_KEYS).map(([name, key]) => {
         const raw = localStorage.getItem(key);
         const value = raw === null ? [] : JSON.parse(raw);
         if (!Array.isArray(value)) throw new Error('Saved ' + name + ' data is not an array.');
         return [name, value];
     }));
+    previewInvestmentCsvImport(workspace, {}, 'replace');
+    return workspace;
 }
 function downloadCsv(collection) {
     const csv = exportInvestmentCollectionCsv(collection, readWorkspace()[collection]);
@@ -105,6 +107,7 @@ function initialize() {
     if (!panel) return;
     panel.querySelectorAll('button, input').forEach((control) => { control.disabled = !isPrivateWorkspace(); });
     $('#investment-csv-confirm').disabled = true;
+    $('#investment-csv-demo-note').hidden = isPrivateWorkspace();
     panel.addEventListener('click', (event) => {
         const button = event.target.closest('[data-investment-csv-export]');
         if (!button) return;
@@ -126,6 +129,7 @@ function initialize() {
     $('#investment-csv-cancel').addEventListener('click', () => clearPreview('Import preview cancelled. No data was changed.'));
     window.addEventListener('pfo:workspace-updated', () => {
         const enabled = isPrivateWorkspace();
+        $('#investment-csv-demo-note').hidden = enabled;
         panel.querySelectorAll('button, input').forEach((control) => { control.disabled = !enabled; });
         $('#investment-csv-confirm').disabled = !pendingPreview || !enabled;
         if (!enabled) clearPreview('Switch to the private workspace to access investment CSV files.');
