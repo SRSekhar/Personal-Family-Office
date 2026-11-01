@@ -540,3 +540,13 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Wired schema-v6 local backup/export/import and SQLite workspace payloads to four separate browser storage keys; schema-v6 restore includes them in rollback coverage.
 - Added migration, recovery artifact, schema validation and compatibility tests. This remains an open stacked PR pending CI; no PR is merged.
 - Remaining: verify CI, add cash-account/movement/transfer/statement UI, connect reconciliation to portfolio reporting, and complete portfolio XIRR/terminal-value completeness using the existing XIRR calculator.
+
+
+### IPM-04 cash-ledger workflow UI — implementation increment
+
+- Added private-workspace forms for explicitly creating cash sub-accounts, appending opening balances/contributions/withdrawals/corrections, recording same-currency internal transfers and appending statement observations.
+- Added optional cash settlement-account linkage to new investment transactions. Existing transactions without a link remain preserved and cause reconciliation to remain incomplete rather than being guessed.
+- Added a cash-account reconciliation table with incomplete/reconciled/difference states, plus append-only movement, transfer and statement histories.
+- Browser storage writes use four dedicated schema-v6 keys with rollback of prior values if a multi-key save fails. The dashboard never fetches bank/broker data and never auto-creates opening balances.
+- Chromium smoke coverage uses isolated synthetic fixtures to exercise opening capital + contribution + withdrawal + linked purchase against a statement closing balance.
+- Portfolio-wide XIRR and terminal-value completeness remain the next accounting increment.
