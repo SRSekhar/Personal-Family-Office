@@ -98,6 +98,15 @@ const fixture = () => ({
         expect(() => validateInvestmentCashCollections(value)).toThrow(/cannot predate the explicit cash opening/i);
     });
 
+    it('includes append-only corrections in external investor flows with the inverse cash sign', () => {
+        const value = fixture();
+        value.investmentCashMovements.push({ id: 'correction', cashAccountId: 'cash-1', type: 'Correction',
+            amount: { amount: -20, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z',
+            recordedAt: '2026-01-04T00:00:00.000Z', reason: 'Corrected withdrawal', reversesMovementId: 'withdrawal' });
+        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
+        expect(flows.map((flow) => flow.amount)).toEqual([-1000, -500, 100, 20]);
+    });
+
 });
 
 describe('investment cash ledger', () => {
