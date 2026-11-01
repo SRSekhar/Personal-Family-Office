@@ -1340,14 +1340,14 @@ try {
     assert.deepEqual(backup.investmentCashStatements, investmentStorage.cashStatements);
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
-    const [investmentCsvDownload] = await Promise.all([
+    const [investmentLedgerCollectionCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('[data-investment-csv-export="investmentAccounts"]').click()
     ]);
-    assert.equal(investmentCsvDownload.suggestedFilename(), 'investmentAccounts.pfo.csv');
-    const investmentCsvPath = join(temporaryDirectory, 'investmentAccounts.pfo.csv');
-    await investmentCsvDownload.saveAs(investmentCsvPath);
-    await page.locator('#investment-csv-files').setInputFiles(investmentCsvPath);
+    assert.equal(investmentLedgerCollectionCsvDownload.suggestedFilename(), 'investmentAccounts.pfo.csv');
+    const investmentLedgerCollectionCsvPath = join(temporaryDirectory, 'investmentAccounts.pfo.csv');
+    await investmentLedgerCollectionCsvDownload.saveAs(investmentLedgerCollectionCsvPath);
+    await page.locator('#investment-csv-files').setInputFiles(investmentLedgerCollectionCsvPath);
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
     assert.match(await page.locator('#investment-csv-preview').innerText(), /investmentAccounts: 1 rows/);
     await page.locator('#investment-csv-confirm').click();
@@ -1355,7 +1355,7 @@ try {
     assert.equal(await page.locator('#investment-account-count').innerText(), '1',
         'PFO-native CSV replace import should round-trip the existing account without duplication');
     await page.locator('input[name="investment-csv-mode"][value="append"]').check();
-    await page.locator('#investment-csv-files').setInputFiles(investmentCsvPath);
+    await page.locator('#investment-csv-files').setInputFiles(investmentLedgerCollectionCsvPath);
     await page.waitForFunction(() => /unique/i.test(globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''));
     assert.equal(await page.locator('#investment-account-count').innerText(), '1',
         'duplicate-ID append preview must reject without mutating the saved investment ledger');
@@ -2072,14 +2072,14 @@ try {
         'investment performance should calculate simple return on contributions');
     assert.equal(await page.locator('#investment-xirr').innerText(), '10%',
         'investment performance should calculate annualized money-weighted return');
-    const [investmentCsvDownload] = await Promise.all([
+    const [investmentLedgerCollectionCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#investment-performance-export-csv').click()
     ]);
-    assert.equal(investmentCsvDownload.suggestedFilename(), 'pfo-investment-performance.csv');
-    const investmentCsvPath = join(temporaryDirectory, 'pfo-investment-performance.csv');
-    await investmentCsvDownload.saveAs(investmentCsvPath);
-    const investmentCsv = await readFile(investmentCsvPath, 'utf8');
+    assert.equal(investmentLedgerCollectionCsvDownload.suggestedFilename(), 'pfo-investment-performance.csv');
+    const investmentLedgerCollectionCsvPath = join(temporaryDirectory, 'pfo-investment-performance.csv');
+    await investmentLedgerCollectionCsvDownload.saveAs(investmentLedgerCollectionCsvPath);
+    const investmentCsv = await readFile(investmentLedgerCollectionCsvPath, 'utf8');
     assert.ok(investmentCsv.includes('Gross contributions,1000'), 'investment CSV should include gross contributions');
     assert.ok(investmentCsv.includes('Annualized money-weighted return (XIRR %),10'), 'investment CSV should include annualized return');
     assert.ok(investmentCsv.includes('2025-01-01,-1000'), 'investment CSV should preserve dated contribution signs');
