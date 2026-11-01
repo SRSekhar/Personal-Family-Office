@@ -1361,6 +1361,52 @@ try {
     await page.locator('input[name="investment-csv-mode"][value="replace"]').check();
     process.stdout.write('PASS: investment CSV export, preview, confirmed round-trip and duplicate-append rejection.\\n');
 
+    const [investmentInstrumentCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentInstruments"]').click()
+    ]);
+    const investmentInstrumentCsvPath = join(temporaryDirectory, 'investmentInstruments.pfo.csv');
+    await investmentInstrumentCsvDownload.saveAs(investmentInstrumentCsvPath);
+    const csvStorageBeforeFailedCommit = await page.evaluate(() => Object.fromEntries([
+        'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
+        'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
+        'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+    ].map((key) => [key, globalThis.localStorage.getItem(key)])));
+    await page.evaluate(() => {
+        const originalSetItem = globalThis.Storage.prototype.setItem;
+        globalThis.__pfoCsvOriginalSetItem = originalSetItem;
+        let failOnce = true;
+        globalThis.Storage.prototype.setItem = function (key, value) {
+            if (failOnce && key === 'pfo-os.investment-instruments.v1') {
+                failOnce = false;
+                throw new globalThis.DOMException('Simulated CSV storage quota failure', 'QuotaExceededError');
+            }
+            return originalSetItem.call(this, key, value);
+        };
+    });
+    await page.locator('#investment-csv-files').setInputFiles([investmentLedgerCollectionCsvPath, investmentInstrumentCsvPath]);
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
+    await page.locator('#investment-csv-confirm').click();
+    await page.waitForFunction(() => /quota failure/i.test(globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''));
+    const csvStorageAfterFailedCommit = await page.evaluate(() => {
+        globalThis.Storage.prototype.setItem = globalThis.__pfoCsvOriginalSetItem;
+        delete globalThis.__pfoCsvOriginalSetItem;
+        return Object.fromEntries([
+            'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
+            'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
+            'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
+            'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+        ].map((key) => [key, globalThis.localStorage.getItem(key)]));
+    });
+    assert.deepEqual(csvStorageAfterFailedCommit, csvStorageBeforeFailedCommit,
+        'a failed multi-collection CSV commit must restore every prior browser-storage value byte-for-byte');
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'failed CSV persistence must not change the visible investment ledger');
+    assert.equal(await page.locator('#investment-instrument-count').innerText(), '1',
+        'failed CSV persistence must not change the visible instrument ledger');
+    process.stdout.write('PASS: failed multi-collection CSV persistence rolls every browser-storage key back byte-for-byte.\\n');
+
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
