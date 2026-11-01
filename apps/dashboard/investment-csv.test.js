@@ -102,7 +102,7 @@ describe('investment CSV interchange', () => {
             ...error, file: 'bad.csv', collection: 'investmentAccounts'
         })));
         expect(report).toContain('rawRowJson');
-        expect(report).toContain('["a-1","=HYPERLINK(1)"');
+        expect(report).toContain('=HYPERLINK(1)');\n        expect(report).toContain('"[""a-1""');
         expect(parseInvestmentCollectionCsvDetailed(valid, 'investmentAccounts').errors).toEqual([]);
     });
     it('rejects duplicate IDs in append mode before returning a candidate', () => {
