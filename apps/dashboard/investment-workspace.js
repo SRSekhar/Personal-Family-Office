@@ -1,3 +1,4 @@
+import { analyzeInvestmentPerformanceMath } from './calculators-runtime/InvestmentPerformanceMath.js';
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
 import { initializeInvestmentPortfolioView } from './investment-portfolio.js';
 import { initializeInvestmentCashWorkspace } from './investment-cash-workspace.js';
@@ -171,6 +172,6 @@ export function initializeInvestmentWorkspace() {
     window.addEventListener('pfo:investment-updated', render);
     window.addEventListener('pfo:workspace-updated', render);
     render();
-    initializeInvestmentPortfolioView();
+    initializeInvestmentPortfolioView(analyzeInvestmentPerformanceMath);
     initializeInvestmentCashWorkspace();
 }
