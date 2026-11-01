@@ -86,20 +86,43 @@ describe('local dashboard preview server', () => {
         expect(await integrity.json()).toEqual({ ok: true, messages: ['ok'] });
     });
 
-    it('rejects stale database versions and preserves the latest workspace', async () => {
+    it('rejects stale multi-tab investment-ledger writes and preserves the latest committed valuation', async () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'concurrency-workspace.sqlite') });
+        // Two browser tabs read the same baseline snapshot and updatedAt token.
         const payload = {
             schemaVersion: 5, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [],
+            investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+            investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+            investmentTransactions: [{
+                id: 'transaction-1', accountId: 'account-1', instrumentId: 'instrument-1',
+                type: 'Purchase', cashAmount: { amount: -200, currency: 'INR' },
+                quantity: 2, unitPrice: { amount: 100, currency: 'INR' },
+                date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-02T00:00:00.000Z'
+            }],
+            investmentValuations: [{
+                instrumentId: 'instrument-1', price: { amount: 110, currency: 'INR' },
+                asOf: '2026-10-03T00:00:00.000Z', recordedAt: '2026-10-03T00:00:00.000Z',
+                sourceType: 'manual', sourceName: 'User-entered'
+            }]
         };
         const firstSave = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ payload, expectedUpdatedAt: null })
         });
+        expect(firstSave.status).toBe(200);
         const firstVersion = (await firstSave.json()).updatedAt;
-        const updatedPayload = { ...payload, records: [{ ...payload.records[0], value: 2000 }] };
+        const updatedPayload = {
+            ...payload,
+            records: [{ ...payload.records[0], value: 2000 }],
+            investmentValuations: [{ ...payload.investmentValuations[0], price: { amount: 120, currency: 'INR' } }]
+        };
+        const secondTabStalePayload = {
+            ...payload,
+            investmentValuations: [{ ...payload.investmentValuations[0], price: { amount: 130, currency: 'INR' } }]
+        };
         const secondSave = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ payload: updatedPayload, expectedUpdatedAt: firstVersion })
@@ -107,11 +130,13 @@ describe('local dashboard preview server', () => {
         expect(secondSave.status).toBe(200);
         const staleSave = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload, expectedUpdatedAt: firstVersion })
+            body: JSON.stringify({ payload: secondTabStalePayload, expectedUpdatedAt: firstVersion })
         });
         expect(staleSave.status).toBe(409);
         const latest = await (await fetch(`${origin}/api/v1/workspace`)).json();
         expect(latest.payload).toEqual(updatedPayload);
+        expect(latest.payload.investmentValuations[0].price.amount).toBe(120);
+        expect(latest.payload.investmentTransactions[0].id).toBe('transaction-1');
     });
 
     it('rejects invalid and cross-origin database writes without replacing saved data', async () => {
