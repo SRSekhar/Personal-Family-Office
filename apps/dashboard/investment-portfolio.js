@@ -1,4 +1,6 @@
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
+import { analyzeInvestmentPerformanceMath } from './calculators-runtime/InvestmentPerformanceMath.js';
+import { reconcileInvestmentCashAccount, validateInvestmentCashCollections } from './investment-cash-ledger.js';
 
 const EPSILON = 1e-10;
 const tradeTypes = new Set(['Purchase', 'Sale']);
@@ -170,4 +172,105 @@ export function initializeInvestmentPortfolioView() {
     $('#investment-portfolio-as-of').addEventListener('change', renderPortfolio);
     window.addEventListener('pfo:investment-updated', renderPortfolio); window.addEventListener('pfo:workspace-updated', renderPortfolio);
     renderPortfolio();
+}
+
+
+/**
+ * Calculate a per-currency portfolio XIRR from explicit investor cash flows
+ * and a complete terminal value (reconciled cash + valued open positions).
+ * Missing cash evidence or missing position valuations makes that currency
+ * unavailable; this function never returns a partial performance result.
+ */
+export function analyzeInvestmentPortfolioPerformance({
+    accounts, instruments, transactions, valuations,
+    investmentCashAccounts, investmentCashMovements, investmentCashTransfers, investmentCashStatements,
+    asOfDate, recordedAt
+}) {
+    if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
+        || !(recordedAt instanceof Date) || !Number.isFinite(recordedAt.getTime())) {
+        throw new RangeError('Portfolio performance requires valid as-of and recorded-at dates.');
+    }
+    const ledger = validateInvestmentLedgerCollections({ investmentAccounts: accounts, investmentInstruments: instruments,
+        investmentTransactions: transactions, investmentValuations: valuations });
+    const cash = validateInvestmentCashCollections({ ...ledger, investmentCashAccounts, investmentCashMovements,
+        investmentCashTransfers, investmentCashStatements });
+    const cutoff = recordedAt.toISOString();
+    const asOf = asOfDate.toISOString();
+    const visibleTransactions = cash.investmentTransactions.filter((item) =>
+        Date.parse(item.date) <= asOfDate.getTime() && Date.parse(item.recordedAt) <= recordedAt.getTime());
+    const unlinkedTransactions = visibleTransactions.filter((item) => item.cashAccountId === undefined);
+    const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
+        transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
+    const currencies = [...new Set([
+        ...cash.investmentCashAccounts.map((item) => item.currency),
+        ...positions.map((item) => item.currency)
+    ])].sort();
+
+    return currencies.map((currency) => {
+        const cashAccounts = cash.investmentCashAccounts.filter((item) => item.currency === currency);
+        const currencyPositions = positions.filter((item) => item.currency === currency);
+        const unavailable = (reason) => ({ currency, status: 'unavailable', reason, xirr: null, terminalValue: null,
+            cashBalance: null, holdingsValue: null, cashFlowCount: 0 });
+        if (cashAccounts.length === 0) return unavailable('No explicit cash accounts exist for this currency.');
+        if (unlinkedTransactions.length > 0) return unavailable('One or more investment transactions are not linked to an explicit cash account.');
+
+        let cashBalance = 0;
+        const externalFlows = [];
+        for (const account of cashAccounts) {
+            const statement = cash.investmentCashStatements
+                .filter((item) => item.cashAccountId === account.id && item.statementAsOf <= asOf && item.recordedAt <= cutoff)
+                .sort((a, b) => b.statementAsOf.localeCompare(a.statementAsOf) || b.recordedAt.localeCompare(a.recordedAt))[0];
+            if (!statement) return unavailable('Cash account "' + account.name + '" has no statement on or before the selected as-of date.');
+            const reconciliation = reconcileInvestmentCashAccount({
+                cashAccountId: account.id, ...cash, investmentTransactions: ledger.investmentTransactions,
+                statementId: statement.id, recordedAt: cutoff
+            });
+            if (reconciliation.status !== 'reconciled') {
+                return unavailable('Cash account "' + account.name + '" is ' + reconciliation.status + ': ' + (reconciliation.reason ?? 'statement difference exists') + '.');
+            }
+
+            let currentBalance = statement.closingBalance.amount;
+            for (const movement of cash.investmentCashMovements) {
+                if (movement.cashAccountId === account.id && movement.effectiveAt > statement.statementAsOf
+                    && movement.effectiveAt <= asOf && movement.recordedAt <= cutoff) currentBalance += movement.amount.amount;
+            }
+            for (const transfer of cash.investmentCashTransfers) {
+                if (transfer.effectiveAt > statement.statementAsOf && transfer.effectiveAt <= asOf && transfer.recordedAt <= cutoff) {
+                    if (transfer.sourceCashAccountId === account.id) currentBalance -= transfer.amount.amount;
+                    if (transfer.destinationCashAccountId === account.id) currentBalance += transfer.amount.amount;
+                }
+            }
+            for (const transaction of ledger.investmentTransactions) {
+                if (transaction.cashAccountId === account.id && transaction.date > statement.statementAsOf
+                    && transaction.date <= asOf && transaction.recordedAt <= cutoff) currentBalance += transaction.cashAmount.amount;
+            }
+            cashBalance += currentBalance;
+
+            for (const movement of cash.investmentCashMovements) {
+                if (movement.cashAccountId === account.id && movement.effectiveAt <= asOf && movement.recordedAt <= cutoff
+                    && ['OpeningBalance', 'ExternalContribution', 'ExternalWithdrawal', 'Correction'].includes(movement.type)) {
+                    externalFlows.push({ date: new Date(movement.effectiveAt), amount: -movement.amount.amount });
+                }
+            }
+        }
+
+        if (!Number.isFinite(cashBalance)) return unavailable('Reconciled cash balance exceeds the supported numeric range.');
+        const missingValuation = currencyPositions.find((item) => item.quantity > EPSILON && item.marketValue === null);
+        if (missingValuation) return unavailable('Open position "' + missingValuation.instrumentName + '" has no eligible valuation.');
+        const holdingsValue = currencyPositions.reduce((sum, item) => sum + (item.marketValue ?? 0), 0);
+        const terminalValue = cashBalance + holdingsValue;
+        if (!Number.isFinite(terminalValue) || terminalValue <= 0) {
+            return unavailable('The complete terminal portfolio value must be positive to calculate XIRR.');
+        }
+        externalFlows.push({ date: asOfDate, amount: terminalValue });
+        try {
+            const result = analyzeInvestmentPerformanceMath({ cashFlows: externalFlows });
+            return { currency, status: 'available', reason: null, xirr: result.annualizedMoneyWeightedReturn,
+                terminalValue, cashBalance, holdingsValue, cashFlowCount: result.cashFlowCount,
+                grossContributions: result.grossContributions, grossProceeds: result.grossProceeds,
+                netGain: result.netGain, startDate: result.startDate, endDate: result.endDate };
+        } catch (error) {
+            return unavailable(error instanceof Error ? error.message : 'XIRR could not be calculated for this cash-flow series.');
+        }
+    });
 }
