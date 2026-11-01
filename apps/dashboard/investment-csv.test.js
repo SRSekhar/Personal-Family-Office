@@ -62,7 +62,7 @@ describe('investment CSV interchange', () => {
     });
     it('rejects malformed quoting and unencoded text', () => {
         expect(() => parseInvestmentCollectionCsv('#PFO-INVESTMENT-CSV,1,investmentAccounts\r\n"id","name","institution","type","currency","description\r\n', 'investmentAccounts')).toThrow(/unterminated/i);
-        const csv = exportInvestmentCollectionCsv('investmentAccounts', [account]).replace(/~pfo64~[^"]+/u, 'plain text');
+        const csv = exportInvestmentCollectionCsv('investmentAccounts', [account]).replace(/~pfo64~[^"]+/u, '=1+1');
         expect(() => parseInvestmentCollectionCsv(csv, 'investmentAccounts')).toThrow(/encoded/i);
     });
     it('previews only after whole-workspace validation and does not mutate input', () => {
