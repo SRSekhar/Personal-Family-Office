@@ -307,7 +307,7 @@ export function analyzeInvestmentPortfolioPerformance({
             for (const movement of cash.investmentCashMovements) {
                 if (movement.cashAccountId === account.id && movement.effectiveAt <= asOf && movement.recordedAt <= cutoff
                     && ['OpeningBalance', 'ExternalContribution', 'ExternalWithdrawal', 'Correction'].includes(movement.type)) {
-                    externalFlows.push({ date: new Date(movement.effectiveAt), amount: -movement.amount.amount });
+                    if (movement.amount.amount !== 0) externalFlows.push({ date: new Date(movement.effectiveAt), amount: -movement.amount.amount });
                 }
             }
         }
