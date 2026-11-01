@@ -43,7 +43,10 @@ function encodeText(value) {
     return TEXT_PREFIX + btoa(binary);
 }
 function decodeText(value) {
-    if (!value.startsWith(TEXT_PREFIX)) return value;
+    if (!value.startsWith(TEXT_PREFIX)) {
+        if (/^\\s*[=+@-]/u.test(value)) throw new Error('Formula-like CSV text must use the PFO safe-text encoding.');
+        return value;
+    }
     const binary = atob(value.slice(TEXT_PREFIX.length));
     const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
     return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
