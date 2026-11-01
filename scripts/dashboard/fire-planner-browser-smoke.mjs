@@ -1340,6 +1340,28 @@ try {
     assert.deepEqual(backup.investmentCashStatements, investmentStorage.cashStatements);
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
+    const [investmentCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('[data-investment-csv-export="investmentAccounts"]').click()
+    ]);
+    assert.equal(investmentCsvDownload.suggestedFilename(), 'investmentAccounts.pfo.csv');
+    const investmentCsvPath = join(temporaryDirectory, 'investmentAccounts.pfo.csv');
+    await investmentCsvDownload.saveAs(investmentCsvPath);
+    await page.locator('#investment-csv-files').setInputFiles(investmentCsvPath);
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Preview validated'));
+    assert.match(await page.locator('#investment-csv-preview').innerText(), /investmentAccounts: 1 rows/);
+    await page.locator('#investment-csv-confirm').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-csv-status')?.textContent.includes('Import committed'));
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'PFO-native CSV replace import should round-trip the existing account without duplication');
+    await page.locator('input[name="investment-csv-mode"][value="append"]').check();
+    await page.locator('#investment-csv-files').setInputFiles(investmentCsvPath);
+    await page.waitForFunction(() => /unique/i.test(globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''));
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'duplicate-ID append preview must reject without mutating the saved investment ledger');
+    await page.locator('input[name="investment-csv-mode"][value="replace"]').check();
+    process.stdout.write('PASS: investment CSV export, preview, confirmed round-trip and duplicate-append rejection.\\n');
+
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
