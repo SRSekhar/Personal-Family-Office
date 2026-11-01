@@ -346,7 +346,7 @@ describe('version 6 investment cash-ledger backup validation', () => {
         const result = validateBackupPayload(legacy, 'INR');
         expect(result.includesInvestmentLedger).toBe(true);
         expect(result).not.toHaveProperty('includesInvestmentCashLedger');
-        expect(result.investmentCashAccounts).toEqual([]);
-        expect(result.investmentCashMovements).toEqual([]);
+        expect(result).not.toHaveProperty('investmentCashAccounts');
+        expect(result).not.toHaveProperty('investmentCashMovements');
     });
 });
