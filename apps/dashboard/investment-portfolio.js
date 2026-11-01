@@ -13,10 +13,11 @@ function validTime(value, label) {
 }
 
 /** Deterministic FIFO projection from immutable schema-v5 ledger events. No FX or market-data lookup. */
-export function analyzeInvestmentPortfolio({ accounts, instruments, transactions, valuations, asOfDate }) {
+export function analyzeInvestmentPortfolio({ accounts, instruments, transactions, valuations, asOfDate, recordedAtCutoff = asOfDate }) {
     if (![accounts, instruments, transactions, valuations].every(Array.isArray)) throw new TypeError('All investment ledger collections must be arrays.');
     if (typeof performanceCalculator !== 'function') throw new TypeError('A supported investment performance calculator is required.');
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())) throw new RangeError('A valid portfolio as-of date is required.');
+    if (!(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) throw new RangeError('A valid portfolio recorded-at cutoff is required.');
     const accountMap = new Map(accounts.map((item) => [item.id, item]));
     const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
     if (accountMap.size !== accounts.length || instrumentMap.size !== instruments.length
@@ -31,7 +32,7 @@ export function analyzeInvestmentPortfolio({ accounts, instruments, transactions
         const effective = validTime(tx.date, 'Investment transaction date'), recorded = validTime(tx.recordedAt, 'Investment transaction recorded-at date');
         const cash = tx.cashAmount.amount;
         if (!Number.isFinite(cash) || cash === 0) throw new RangeError('Investment cash amount must be non-zero and finite.');
-        if (effective > asOfDate.getTime() || recorded > asOfDate.getTime()) continue;
+        if (effective > asOfDate.getTime() || recorded > recordedAtCutoff.getTime()) continue;
         const key = JSON.stringify([tx.accountId, tx.instrumentId]);
         let p = positions.get(key);
         if (!p) {
@@ -130,7 +131,7 @@ function renderPortfolio(performanceCalculator) {
         if (asOfDate.getUTCFullYear() !== year || asOfDate.getUTCMonth() !== month - 1 || asOfDate.getUTCDate() !== day) throw new Error('Select a valid calendar date.');
         const ledger = readLedger();
         const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
-            transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
+            transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate, recordedAtCutoff: recordedCutoff });
         try {
             const cashKeys = {
                 investmentCashAccounts: 'pfo-os.investment-cash-accounts.v1',
