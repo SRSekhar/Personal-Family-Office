@@ -15,7 +15,6 @@ function validTime(value, label) {
 /** Deterministic FIFO projection from immutable schema-v5 ledger events. No FX or market-data lookup. */
 export function analyzeInvestmentPortfolio({ accounts, instruments, transactions, valuations, asOfDate, recordedAtCutoff = asOfDate }) {
     if (![accounts, instruments, transactions, valuations].every(Array.isArray)) throw new TypeError('All investment ledger collections must be arrays.');
-    if (typeof performanceCalculator !== 'function') throw new TypeError('A supported investment performance calculator is required.');
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())) throw new RangeError('A valid portfolio as-of date is required.');
     if (!(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) throw new RangeError('A valid portfolio recorded-at cutoff is required.');
     const accountMap = new Map(accounts.map((item) => [item.id, item]));
@@ -234,6 +233,7 @@ export function analyzeInvestmentPortfolioPerformance({
     investmentCashAccounts, investmentCashMovements, investmentCashTransfers, investmentCashStatements,
     asOfDate, recordedAt, performanceCalculator
 }) {
+    if (typeof performanceCalculator !== 'function') throw new TypeError('A supported investment performance calculator is required.');
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
         || !(recordedAt instanceof Date) || !Number.isFinite(recordedAt.getTime())) {
         throw new RangeError('Portfolio performance requires valid as-of and recorded-at dates.');
