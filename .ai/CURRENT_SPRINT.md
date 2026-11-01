@@ -349,3 +349,12 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Added `cashAccountLinkedAt` as a separate bitemporal association timestamp in the domain model and browser backup validation. Reconciliation and XIRR require that timestamp to be visible at the selected recorded-at cutoff.
 - Demo mode clears all private investment history, counts, selectors, cash rows and XIRR output. Returning to private mode restores the local records.
 - Added model, validator, cash reconciliation, portfolio performance and Chromium smoke coverage. Latest CI is pending.
+
+
+## 2026-11-01 — IPM-04 final cash-ledger acceptance
+
+- Accepted explicit zero opening balance as valid evidence; omitted zero-valued events from XIRR inputs to comply with the shared calculator contract.
+- Enabled all dashboard root-level `*.test.js` suites in Vitest; previously these files were outside the configured include glob.
+- Added/updated coverage for zero opening balances, historical transaction-link preservation, XIRR flow chronology, backup round-trips and full browser reload.
+- Latest PR #430 head `786ded49daa9655fcc09d50da4562c4f682cb5c1`: CI run 41289104534 success; dashboard package run 41289104460 success (publish skipped for PR). PR #429's schema-v6 persistence CI and packaging checks also passed.
+- Investment cash ledger, reconciliation, settlement linking and per-currency portfolio XIRR are implemented on stacked branches. All PRs remain open/unmerged pending explicit approval.
