@@ -13,6 +13,85 @@ const fixture = () => ({
     investmentCashTransfers: [],
     investmentCashStatements: [{ id: 'statement-1', cashAccountId: 'cash-1', closingBalance: { amount: 1400, currency: 'INR' }, periodStart: date, periodEnd: '2026-01-31T00:00:00.000Z', statementAsOf: '2026-01-31T00:00:00.000Z', recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'Bank statement' }],
     investmentTransactions: []
+});
+
+describe('investment cash ledger', () => {
+    it('validates explicit cash accounts, opening balances, movements and statements', () => {
+        const value = fixture();
+        expect(validateInvestmentCashCollections(value).investmentCashAccounts).toHaveLength(1);
+    });
+
+    it('rejects inferred cross-currency cash accounts, invalid contribution signs and invalid transfers', () => {
+        const wrongCurrency = fixture();
+        wrongCurrency.investmentCashAccounts[0].currency = 'USD';
+        expect(() => validateInvestmentCashCollections(wrongCurrency)).toThrow(/must match its owning/i);
+        const wrongSign = fixture();
+        wrongSign.investmentCashMovements[1].amount.amount = -500;
+        expect(() => validateInvestmentCashCollections(wrongSign)).toThrow(/contribution must increase/i);
+        const crossCurrency = fixture();
+        crossCurrency.investmentAccounts.push({ id: 'broker-usd', currency: 'USD' });
+        crossCurrency.investmentCashAccounts.push({ id: 'cash-usd', investmentAccountId: 'broker-usd', name: 'USD', currency: 'USD', createdAt: date });
+        crossCurrency.investmentCashTransfers.push({ id: 'fx-transfer', sourceCashAccountId: 'cash-1', destinationCashAccountId: 'cash-usd',
+            amount: { amount: 10, currency: 'INR' }, effectiveAt: date, recordedAt: date });
+        expect(() => validateInvestmentCashCollections(crossCurrency)).toThrow(/cross-currency/i);
+    });
+
+    it('reconciles only from explicit opening balance and statement evidence', () => {
+        const value = fixture();
+        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
+        expect(result.status).toBe('reconciled');
+        expect(result.expectedBalance.amount).toBe(1400);
+        expect(result.difference.amount).toBe(0);
+    });
+
+    it('marks missing opening balance as incomplete instead of assuming zero', () => {
+        const value = fixture();
+        value.investmentCashMovements.shift();
+        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
+        expect(result.status).toBe('incomplete');
+        expect(result.expectedBalance).toBeNull();
+    });
+
+    it('uses investor-perspective signs and excludes internal transfer records', () => {
+        const value = fixture();
+        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
+        expect(flows.map((flow) => flow.amount)).toEqual([-1000, -500, 100]);
+        expect(flows.every((flow) => flow.currency === 'INR')).toBe(true);
+    });
+
+    it('rejects cross-currency transfers and accepts only same-currency account pairs', () => {
+        const value = fixture();
+        value.investmentAccounts.push({ id: 'broker-usd', currency: 'USD' });
+        value.investmentCashAccounts.push({ id: 'cash-usd', investmentAccountId: 'broker-usd', name: 'USD cash', currency: 'USD', createdAt: date });
+        value.investmentCashTransfers.push({ id: 'fx-transfer', sourceCashAccountId: 'cash-1', destinationCashAccountId: 'cash-usd',
+            amount: { amount: 10, currency: 'INR' }, effectiveAt: date, recordedAt: date });
+        expect(() => validateInvestmentCashCollections(value)).toThrow(/cross-currency/i);
+    });
+
+    it('excludes backfilled entries recorded after the requested point-in-time cutoff', () => {
+        const value = fixture();
+        value.investmentCashMovements.push({ id: 'late', cashAccountId: 'cash-1', type: 'ExternalContribution',
+            amount: { amount: 999, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z', recordedAt: '2026-02-02T00:00:00.000Z' });
+        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
+        expect(flows).toHaveLength(2);
+    });
+
+    it('includes append-only corrections in external investor flows with the inverse cash sign', () => {
+        const value = fixture();
+        value.investmentCashMovements.push({ id: 'correction', cashAccountId: 'cash-1', type: 'Correction',
+            amount: { amount: -20, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z',
+            recordedAt: '2026-01-04T00:00:00.000Z', reason: 'Corrected withdrawal', reversesMovementId: 'withdrawal' });
+        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
+        expect(flows.map((flow) => flow.amount)).toEqual([-1000, -500, 100, 20]);
+    });
+
+    it('does not reconcile against a statement recorded after the requested point-in-time', () => {
+        const value = fixture();
+        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-01-15T00:00:00.000Z' });
+        expect(result.status).toBe('incomplete');
+        expect(result.statementBalance).toBeNull();
+    });
+
     it('includes linked trade settlement and both sides of internal transfers in cash reconciliation', () => {
         const value = fixture();
         value.investmentAccounts.push({ id: 'broker-2', currency: 'INR' });
@@ -90,80 +169,10 @@ const fixture = () => ({
         expect(() => validateInvestmentCashCollections(before)).toThrow(/cannot predate/i);
     });
 
-    it('does not reconcile against a statement recorded after the requested point-in-time', () => {
-        const value = fixture();
-        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-01-15T00:00:00.000Z' });
-        expect(result.status).toBe('incomplete');
-        expect(result.statementBalance).toBeNull();
-    });
-
     it('rejects linked trades and transfers dated before the cash opening baseline', () => {
         const value = fixture();
         value.investmentTransactions.push({ id: 'historic-trade', accountId: 'broker-1', cashAccountId: 'cash-1',
             cashAmount: { amount: -20, currency: 'INR' }, date: '2025-12-31T00:00:00.000Z', recordedAt: date });
         expect(() => validateInvestmentCashCollections(value)).toThrow(/cannot predate the explicit cash opening/i);
-    });
-
-    it('includes append-only corrections in external investor flows with the inverse cash sign', () => {
-        const value = fixture();
-        value.investmentCashMovements.push({ id: 'correction', cashAccountId: 'cash-1', type: 'Correction',
-            amount: { amount: -20, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z',
-            recordedAt: '2026-01-04T00:00:00.000Z', reason: 'Corrected withdrawal', reversesMovementId: 'withdrawal' });
-        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
-        expect(flows.map((flow) => flow.amount)).toEqual([-1000, -500, 100, 20]);
-    });
-
-});
-
-describe('investment cash ledger', () => {
-    it('validates explicit cash accounts, opening balances, movements and statements', () => {
-        const value = fixture();
-        expect(validateInvestmentCashCollections(value).investmentCashAccounts).toHaveLength(1);
-    });
-    it('rejects inferred cross-currency cash accounts, invalid contribution signs and invalid transfers', () => {
-        const wrongCurrency = fixture();
-        wrongCurrency.investmentCashAccounts[0].currency = 'USD';
-        expect(() => validateInvestmentCashCollections(wrongCurrency)).toThrow(/must match its owning/i);
-        const wrongSign = fixture();
-        wrongSign.investmentCashMovements[1].amount.amount = -500;
-        expect(() => validateInvestmentCashCollections(wrongSign)).toThrow(/contribution must increase/i);
-        const crossCurrency = fixture();
-        crossCurrency.investmentCashAccounts.push({ id: 'cash-usd', investmentAccountId: 'broker-1', name: 'USD', currency: 'USD', createdAt: date });
-        expect(() => validateInvestmentCashCollections(crossCurrency)).toThrow(/must match its owning/i);
-    });
-    it('reconciles only from explicit opening balance and statement evidence', () => {
-        const value = fixture();
-        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
-        expect(result.status).toBe('reconciled');
-        expect(result.expectedBalance.amount).toBe(1400);
-        expect(result.difference.amount).toBe(0);
-    });
-    it('marks missing opening balance as incomplete instead of assuming zero', () => {
-        const value = fixture();
-        value.investmentCashMovements.shift();
-        const result = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
-        expect(result.status).toBe('incomplete');
-        expect(result.expectedBalance).toBeNull();
-    });
-    it('uses investor-perspective signs and excludes internal transfer records', () => {
-        const value = fixture();
-        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
-        expect(flows.map((flow) => flow.amount)).toEqual([-1000, -500, 100]);
-        expect(flows.every((flow) => flow.currency === 'INR')).toBe(true);
-    });
-    it('rejects cross-currency transfers and accepts only same-currency account pairs', () => {
-        const value = fixture();
-        value.investmentAccounts.push({ id: 'broker-usd', currency: 'USD' });
-        value.investmentCashAccounts.push({ id: 'cash-usd', investmentAccountId: 'broker-usd', name: 'USD cash', currency: 'USD', createdAt: date });
-        value.investmentCashTransfers.push({ id: 'fx-transfer', sourceCashAccountId: 'cash-1', destinationCashAccountId: 'cash-usd',
-            amount: { amount: 10, currency: 'INR' }, effectiveAt: date, recordedAt: date });
-        expect(() => validateInvestmentCashCollections(value)).toThrow(/cross-currency/i);
-    });
-    it('excludes backfilled entries recorded after the requested point-in-time cutoff', () => {
-        const value = fixture();
-        value.investmentCashMovements.push({ id: 'late', cashAccountId: 'cash-1', type: 'ExternalContribution',
-            amount: { amount: 999, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z', recordedAt: '2026-02-02T00:00:00.000Z' });
-        const flows = buildInvestmentExternalCashFlows({ cashAccountId: 'cash-1', ...value, recordedAt: '2026-02-01T00:00:00.000Z' });
-        expect(flows).toHaveLength(2);
     });
 });
