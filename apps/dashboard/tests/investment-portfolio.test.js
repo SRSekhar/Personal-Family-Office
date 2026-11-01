@@ -88,7 +88,7 @@ describe('investment portfolio money-weighted performance', () => {
     it('does not calculate a partial XIRR when an open position has no eligible valuation', () => {
         const input = performanceFixture();
         input.valuations = [];
-        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0]).toMatchObject({
+        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt, performanceCalculator: analyzeInvestmentPerformanceMath })[0]).toMatchObject({
             status: 'unavailable', xirr: null, reason: expect.stringMatching(/no eligible valuation/i)
         });
     });
@@ -96,7 +96,7 @@ describe('investment portfolio money-weighted performance', () => {
     it('does not calculate a partial XIRR when cash reconciliation is incomplete', () => {
         const input = performanceFixture();
         input.investmentCashStatements = [];
-        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0]).toMatchObject({
+        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt, performanceCalculator: analyzeInvestmentPerformanceMath })[0]).toMatchObject({
             status: 'unavailable', xirr: null, reason: expect.stringMatching(/no statement/i)
         });
     });
@@ -104,7 +104,7 @@ describe('investment portfolio money-weighted performance', () => {
     it('requires every visible investment transaction to link to an explicit cash account', () => {
         const input = performanceFixture();
         delete input.transactions[0].cashAccountId;
-        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0]).toMatchObject({
+        expect(analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt, performanceCalculator: analyzeInvestmentPerformanceMath })[0]).toMatchObject({
             status: 'unavailable', xirr: null, reason: expect.stringMatching(/not linked/i)
         });
     });
@@ -116,7 +116,7 @@ describe('investment portfolio money-weighted performance', () => {
         input.investmentCashStatements[0].closingBalance.amount = 10000;
         input.investmentCashMovements.push({ id: 'late-contribution', cashAccountId: 'cash-1', type: 'ExternalContribution',
             amount: { amount: 200, currency: 'INR' }, effectiveAt: '2026-03-20T00:00:00.000Z', recordedAt: '2026-03-20T00:00:00.000Z' });
-        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt })[0];
+        const result = analyzeInvestmentPortfolioPerformance({ ...input, asOfDate, recordedAt, performanceCalculator: analyzeInvestmentPerformanceMath })[0];
         expect(result.status).toBe('available');
         expect(result.cashBalance).toBe(10213);
         expect(result.terminalValue).toBe(11493);
