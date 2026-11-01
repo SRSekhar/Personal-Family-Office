@@ -28,17 +28,18 @@ JSON full-workspace backup remains the authoritative lossless backup. CSV browse
 
 ## Verified CI on latest feature head
 
-Commit: `a1a7fc784d286be06432544311991eb2e6460e1e`
+Verified code commit: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`
 
-- CI run `41312197836` (run 1392): passed repository checks, dependency audit, lint, typecheck, package build, full Vitest suite, Chromium installation and real-browser smoke.
-- Dashboard packaging run `41312197970` (run 722): passed. Pages publishing was skipped as expected for a pull request.
-- The browser smoke includes CSV export, row-level error report download and confirmation blocking, preview, confirmed replace, append duplicate rejection, reload/export-reimport equality, mid-batch storage quota rollback and oversized-file rejection with no data mutation.
+- CI run `41312944949` (run 1397): passed repository checks, dependency audit, lint, typecheck, package build, 80 test files / 715 tests, Chromium installation and real-browser smoke.
+- Dashboard packaging run `41312944982` (run 727): passed. Pages publishing was skipped as expected for a pull request.
+- The browser smoke includes CSV row-error report download and confirmation blocking, preview/replace/append, reload/export-reimport equality, browser-storage rollback, oversized-file rejection, multi-tab conflict protection, transient SQLite 503 failure with retry recovery, and no uncaught browser errors.
 
-The PFO-native CSV increment is CI-green on this head. It does not close the full acceptance criteria of issue #431 because external-provider mapping and further SQLite autosave failure/consistency acceptance remain open.
+The PFO-native CSV increment and SQLite persistence-failure/recovery acceptance are CI-green on this code head. It does not close all of issue #431 because external-provider mapping and independent Secret Scan verification remain open.
 
 ## Remaining acceptance work
 
 - Explicit external-provider column mapping, only after exact redacted source CSV samples and user-confirmed field/transaction/sign conventions are available.
+- Independent Secret Scan verification: no separate Secret Scan workflow appeared in the PR-triggered workflow runs inspected.
 - External-provider row mapping is still blocked pending exact redacted provider CSV samples and user-confirmed transaction/sign conventions.
 - Further SQLite autosave failure/consistency tests and clear recovery behavior. Do not describe localStorage plus SQLite as cross-store atomic.
 - Confirm Secret Scan and any remaining SQLite autosave failure/consistency acceptance before marking issue #431 complete.
