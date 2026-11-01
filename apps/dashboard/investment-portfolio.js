@@ -131,6 +131,55 @@ function renderPortfolio() {
         const ledger = readLedger();
         const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
             transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
+        const performanceSummary = $('#investment-portfolio-performance');
+        performanceSummary.replaceChildren();
+        try {
+            const cashKeys = {
+                investmentCashAccounts: 'pfo-os.investment-cash-accounts.v1',
+                investmentCashMovements: 'pfo-os.investment-cash-movements.v1',
+                investmentCashTransfers: 'pfo-os.investment-cash-transfers.v1',
+                investmentCashStatements: 'pfo-os.investment-cash-statements.v1'
+            };
+            const cashCollections = {};
+            for (const [name, key] of Object.entries(cashKeys)) {
+                const raw = localStorage.getItem(key), value = raw === null ? [] : JSON.parse(raw);
+                if (!Array.isArray(value)) throw new Error('Saved ' + name + ' data is not a collection.');
+                cashCollections[name] = value;
+            }
+            const performance = analyzeInvestmentPortfolioPerformance({
+                accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
+                transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations,
+                ...cashCollections, asOfDate, recordedAt: new Date()
+            });
+            if (!performance.length) {
+                const note = document.createElement('p'); note.className = 'form-note';
+                note.textContent = 'Portfolio XIRR will appear when explicit cash accounts, external cash flows and a complete terminal value are recorded.';
+                performanceSummary.append(note);
+            }
+            for (const result of performance) {
+                const card = document.createElement('article'); card.className = 'investment-portfolio-card';
+                const title = document.createElement('h4'); title.textContent = 'Portfolio XIRR · ' + result.currency; card.append(title);
+                const status = document.createElement('p'); status.className = result.status === 'available' ? 'investment-performance-available' : 'investment-reconciliation-warning';
+                status.textContent = result.status === 'available'
+                    ? new Intl.NumberFormat('en-IN', { style: 'percent', maximumFractionDigits: 2 }).format(result.xirr) + ' annualized money-weighted return'
+                    : 'Unavailable — ' + result.reason;
+                card.append(status);
+                if (result.status === 'available') {
+                    for (const [label, amount] of [['Terminal value', result.terminalValue], ['Reconciled cash', result.cashBalance], ['Valued holdings', result.holdingsValue]]) {
+                        const line = document.createElement('div'), name = document.createElement('span'), value = document.createElement('strong');
+                        name.textContent = label; value.textContent = formatMoney(amount, result.currency); line.append(name, value); card.append(line);
+                    }
+                    const count = document.createElement('p'); count.className = 'form-note';
+                    count.textContent = result.cashFlowCount + ' dated investor cash flows, including terminal value.';
+                    card.append(count);
+                }
+                performanceSummary.append(card);
+            }
+        } catch (error) {
+            const warning = document.createElement('p'); warning.className = 'investment-reconciliation-error';
+            warning.textContent = error instanceof Error ? 'Portfolio XIRR unavailable: ' + error.message : 'Portfolio XIRR could not be calculated.';
+            performanceSummary.append(warning);
+        }
         for (const currency of [...new Set(positions.map((p) => p.currency))].sort()) {
             const items = positions.filter((p) => p.currency === currency), missing = items.some((p) => p.quantity > 0 && p.marketValue === null);
             const total = (field) => items.reduce((sum, p) => sum + p[field], 0);
