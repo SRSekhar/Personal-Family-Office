@@ -2625,7 +2625,7 @@ try {
     await page.locator('#investment-valuation-form [name="asOf"]').fill('2026-11-01');
     await page.locator('#investment-valuation-form button[type="submit"]').click();
     await page.waitForFunction(() =>
-        globalThis.document.querySelector('#investment-ledger-message')?.textContent.includes('Valuation recorded'));
+        globalThis.document.querySelector('#investment-ledger-message')?.textContent.includes('Saved locally in this browser.'));
     await page.locator('#database-save-button').click();
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#toast')?.textContent.includes('Complete private workspace saved to the local SQLite database'));
