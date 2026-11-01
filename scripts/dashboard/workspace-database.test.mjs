@@ -119,6 +119,39 @@ describe('SQLite workspace persistence schema v6', () => {
         unchanged.close();
         expect(readdirSync(directory).filter((name) => name.includes('.pre-v5-'))).toHaveLength(0);
     });
+
+    it('migrates a v5 SQLite workspace to v6 with an exact v5 recovery backup and no inferred cash', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v5-migration-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const legacy = payload({ schemaVersion: 5 });
+        delete legacy.investmentCashAccounts; delete legacy.investmentCashMovements;
+        delete legacy.investmentCashTransfers; delete legacy.investmentCashStatements;
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 5),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 5, ?, ?, ?)').run('INR', JSON.stringify(legacy), '2026-10-28T12:00:00.000Z');
+        raw.close();
+
+        const migrated = new WorkspaceDatabase(path); databases.push(migrated);
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 6, updatedAt: '2026-10-28T12:00:00.000Z' });
+        const saved = migrated.getWorkspace().payload;
+        expect(saved.schemaVersion).toBe(6);
+        expect(saved.investmentTransactions).toEqual(legacy.investmentTransactions);
+        expect(saved.investmentValuations).toEqual(legacy.investmentValuations);
+        expect(saved.investmentCashAccounts).toEqual([]);
+        expect(saved.investmentCashMovements).toEqual([]);
+        expect(saved.investmentCashTransfers).toEqual([]);
+        expect(saved.investmentCashStatements).toEqual([]);
+
+        const backupFiles = readdirSync(directory).filter((name) => name.includes('.pre-v6-') && name.endsWith('.json'));
+        expect(backupFiles).toHaveLength(1);
+        const recovery = JSON.parse(readFileSync(join(directory, backupFiles[0]), 'utf8'));
+        expect(recovery).toEqual(legacy);
+        if (process.platform !== 'win32') expect(statSync(join(directory, backupFiles[0])).mode & 0o777).toBe(0o600);
+    });
     it('rejects stale database versions without replacing a newer committed snapshot', async () => {
         const database = await createDatabase();
         const first = database.saveWorkspace(payload(), null);
@@ -133,7 +166,7 @@ describe('SQLite workspace persistence schema v6', () => {
         expect(database.getWorkspace().payload).toEqual(payload());
         expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
     });
-    it('starts empty and reports schema v5', async () => {
+    it('starts empty and reports schema v6', async () => {
         const database = await createDatabase();
         expect(database.getWorkspace()).toBeNull();
         expect(database.getStatus()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false, schemaVersion: 6, currency: 'INR', updatedAt: null });
