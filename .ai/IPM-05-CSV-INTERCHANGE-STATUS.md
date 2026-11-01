@@ -51,3 +51,13 @@ This verifies the current PFO-native implementation only. It does not close the 
 - No broker API sync, FX conversion, autonomous trading or automatic settlement linking is included.
 - Provider mappings are blocked until the user supplies actual redacted provider CSV samples. A broker name alone is not a schema.
 - Keep PR #432 draft/open/unmerged until the user explicitly approves the full stacked merge sequence.
+
+
+## Row-level import diagnostics — implementation added, CI pending
+
+- Current branch head: `ef1d0fd574613f42d7736781ebc42237dd6c0df2` at the time of this note; PR #432 remains draft/open/unmerged.
+- The parser now exposes a detailed result containing accepted row records and row-level decoding errors (logical CSV row number, field, message and original cell values). The strict parser remains available and rejects a file containing any invalid rows.
+- The private import UI displays up to 100 row diagnostics and offers a downloadable `investment-csv-import-errors.csv` report with file, collection, row, field, message and raw row JSON. Error text/file cells use the existing spreadsheet-safe text encoding.
+- Any row-level error blocks the entire multi-file batch. Valid rows are not partially committed; the user must correct the source and retry. This preserves the all-or-nothing import policy.
+- Unit coverage and a Chromium smoke scenario were added for malformed required cells, report download and confirmation blocking. These changes are **not yet verified by CI**; the latest verified CI remains run `41311246404` (1381) and dashboard packaging run `41311246326` (711) on prior head `8c9a37931ae3c4d3f562bc736b76437649147429`.
+- The current head has no workflow run/status result visible yet. Do not claim the new report implementation passed until CI, Chromium smoke, Secret Scan and dashboard packaging are verified on the final head.
