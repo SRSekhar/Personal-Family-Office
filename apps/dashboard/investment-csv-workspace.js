@@ -2,6 +2,7 @@ import {
     INVESTMENT_CSV_COLLECTIONS, exportInvestmentCollectionCsv, parseInvestmentCollectionCsv, previewInvestmentCsvImport
 } from './investment-csv.js';
 
+const MAX_INVESTMENT_CSV_BYTES = 10 * 1024 * 1024;
 const STORAGE_KEYS = {
     investmentAccounts: 'pfo-os.investment-accounts.v1',
     investmentInstruments: 'pfo-os.investment-instruments.v1',
@@ -86,6 +87,9 @@ async function previewFiles(files) {
     if (!files.length) throw new Error('Select one or more PFO investment CSV files.');
     const imported = {};
     for (const file of files) {
+        if (file.size > MAX_INVESTMENT_CSV_BYTES) {
+            throw new Error(file.name + ' exceeds the 10 MiB investment CSV limit. No data was changed.');
+        }
         const source = await file.text();
         const manifest = source.replace(/^\uFEFF/u, '').split(/\r?\n/u, 1)[0].split(',');
         if (manifest.length !== 3 || manifest[0] !== '#PFO-INVESTMENT-CSV' || manifest[1] !== '1') {
@@ -120,7 +124,10 @@ function initialize() {
     const refreshPreview = async () => {
         clearPreview();
         try { await previewFiles([...$('#investment-csv-files').files]); }
-        catch (error) { clearPreview(error instanceof Error ? error.message : 'CSV import preview failed.'); }
+        catch (error) {
+            $('#investment-csv-files').value = '';
+            clearPreview(error instanceof Error ? error.message : 'CSV import preview failed.');
+        }
     };
     $('#investment-csv-files').addEventListener('change', refreshPreview);
     panel.querySelectorAll('input[name="investment-csv-mode"]').forEach((control) => {
