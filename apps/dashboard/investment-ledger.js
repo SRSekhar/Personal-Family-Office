@@ -82,11 +82,13 @@ export function validateInvestmentLedgerCollections(input) {
         const date = requireDate(item.date, 'Investment transaction date');
         const recordedAt = requireDate(item.recordedAt, 'Investment transaction recordedAt');
         const cashAccountId = optionalText(item.cashAccountId, 'Investment transaction cash account ID');
-        const cashAccountLinkedAt = cashAccountId === undefined
-            ? (item.cashAccountLinkedAt === undefined ? undefined : (() => { throw new Error('A cash-account link date requires a cash account ID.'); })())
-            : item.cashAccountLinkedAt === undefined ? recordedAt : requireDate(item.cashAccountLinkedAt, 'Investment transaction cash-account link recordedAt');
-        if (cashAccountLinkedAt !== undefined && cashAccountLinkedAt < recordedAt) {
-            throw new Error('Cash-account link cannot predate the investment transaction record.');
+        let cashAccountLinkedAt;
+        if (cashAccountId === undefined) {
+            if (item.cashAccountLinkedAt !== undefined) throw new Error('A cash-account link date requires a cash account ID.');
+        } else {
+            cashAccountLinkedAt = item.cashAccountLinkedAt === undefined
+                ? recordedAt : requireDate(item.cashAccountLinkedAt, 'Investment transaction cash-account link recordedAt');
+            if (cashAccountLinkedAt < recordedAt) throw new Error('Cash-account link cannot predate the investment transaction record.');
         }
         const trade = item.type === 'Purchase' || item.type === 'Sale';
         let quantity; let unitPrice;
