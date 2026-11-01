@@ -1274,8 +1274,12 @@ try {
     assert.equal(await page.locator('#investment-cash-unlinked-transaction-rows').innerText(), '', 'demo workspace must not expose private transaction-link details');
     assert.equal(await page.locator('#investment-portfolio-performance').innerText(), '', 'demo workspace must not expose private portfolio XIRR');
     assert.equal(await page.locator('#investment-cash-owner option').count(), 0, 'demo workspace must clear private account names from selectors');
+    assert.equal(await page.locator('#investment-account-count').innerText(), '0', 'demo workspace must not expose private investment counts');
+    assert.equal(await page.locator('#investment-transaction-rows').innerText(), '', 'demo workspace must not expose private investment transactions');
+    assert.equal(await page.locator('#investment-transaction-cash-account option').count(), 0, 'demo workspace must clear private settlement account names');
     await page.locator('#switch-private-button').click();
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /Browser test broker cash/, 'switching back to private must restore local cash ledger records');
+    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\\s\\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
     const investmentStorage = await page.evaluate(() => ({
