@@ -599,3 +599,11 @@ In progress on draft PR #432, stacked on PR #430.
 - Unit tests cover all eight collection round trips, Unicode/formula-like text, nested money, bitemporal settlement links, invalid manifests/headers/rows, missing references and duplicate IDs. Chromium smoke now exercises export, preview, confirmed replace and duplicate-append rejection.
 - External broker layouts and arbitrary column mapping are explicitly deferred; unsupported files are rejected rather than guessed. No broker sync, FX or inferred accounting events.
 - Acceptance is pending CI on the current PR head.
+
+
+## 2026-11-01 — SQLite persistence documentation alignment
+
+- Audited the local backup/recovery guide and ADR-0004 against the current schema-v6 implementation.
+- Corrected stale schema-v4/five-collection descriptions to the current 13-collection workspace (five core collections, four investment collections, four investment-cash collections).
+- Documented WAL sidecar implications, portable JSON as the recommended live-database backup path, bounded autosave retry behavior, and the explicit absence of cross-store atomicity and automated online SQLite backup/rotation.
+- This is a documentation correction only; no database behavior or backup API was changed.

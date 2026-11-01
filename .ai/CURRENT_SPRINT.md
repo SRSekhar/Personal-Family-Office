@@ -421,3 +421,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Real Chromium smoke verifies automatic recovery without another edit, maximum four total attempts under repeated 503s, retained local data and successful recovery after a later edit.
 - Verified head `4389b2ad109f50d98474b97fc73980241b699469`: CI run 1410 passed (80 test files / 715 tests and full Chromium smoke); Secret Scan run 1202 passed; dashboard packaging run 740 passed (publish skipped for PR).
 - PR #432 remains draft/open/unmerged. No stacked PR merge is authorized.
+
+
+## 2026-11-01 — SQLite recovery documentation aligned
+
+- Updated `docs/operations/LOCAL_BACKUP_AND_RECOVERY.md` and ADR-0004 to reflect schema-v6 and all 13 persisted collections.
+- Clarified that portable JSON export represents the last committed SQLite snapshot, not unsaved browser-local edits.
+- Documented WAL sidecar caution, bounded retry behavior, and the fact that browser localStorage and SQLite are not one atomic transaction.
+- No runtime code changed; prior CI/Secret Scan/dashboard packaging results remain applicable to code, not a new code change.

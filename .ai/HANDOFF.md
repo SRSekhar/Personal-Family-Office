@@ -392,3 +392,12 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Secret Scan run 1202 passed. Dashboard packaging run 740 passed; Pages publishing skipped as expected for a PR.
 - SQLite and browser localStorage remain separate persistence systems; no cross-store atomicity is claimed.
 - Provider-specific CSV mapping remains blocked on exact redacted source CSVs and user-confirmed field/type/sign semantics.
+
+
+## Handoff — SQLite backup/recovery documentation alignment (2026-11-01)
+
+- Audited current schema-v6 persistence code and tests against the operational guide and ADR-0004.
+- Corrected the guide and ADR to describe all 13 collections, v4→v5→v6 migration history, optimistic concurrency, WAL mode, POSIX file permissions, bounded transient retry, and separate browser-local/SQLite persistence.
+- The guide now warns against treating a live `.sqlite` file copy as a portable backup while WAL is active; use the dashboard's validated full-workspace JSON export.
+- No runtime code changed. This commit is documentation-only; CI test counts and previous workflow results are unchanged.
+- Automated online SQLite backup/checkpoint, encrypted backup, retention/rotation, and remote sync remain deferred. Do not imply they are implemented.
