@@ -102,13 +102,11 @@ describe('investment cash ledger', () => {
             amount: { amount: 25, currency: 'INR' }, effectiveAt: '2026-01-04T00:00:00.000Z', recordedAt: '2026-01-04T00:00:00.000Z' });
         value.investmentTransactions.push({ id: 'purchase-1', accountId: 'broker-1', cashAccountId: 'cash-1',
             cashAmount: { amount: -100, currency: 'INR' }, date: '2026-01-05T00:00:00.000Z', recordedAt: '2026-01-05T00:00:00.000Z' });
+        value.investmentCashStatements[0].closingBalance.amount = 1275;
         value.investmentCashStatements.push(
             { id: 'statement-2', cashAccountId: 'cash-2', closingBalance: { amount: 75, currency: 'INR' },
                 periodStart: date, periodEnd: '2026-01-31T00:00:00.000Z', statementAsOf: '2026-01-31T00:00:00.000Z',
-                recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'Second broker statement' },
-            { id: 'statement-1', cashAccountId: 'cash-1', closingBalance: { amount: 1275, currency: 'INR' },
-                periodStart: date, periodEnd: '2026-01-31T00:00:00.000Z', statementAsOf: '2026-01-31T00:00:00.000Z',
-                recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'First broker statement' }
+                recordedAt: '2026-01-31T00:00:00.000Z', sourceName: 'Second broker statement' }
         );
         const first = reconcileInvestmentCashAccount({ cashAccountId: 'cash-1', ...value });
         const second = reconcileInvestmentCashAccount({ cashAccountId: 'cash-2', ...value });
