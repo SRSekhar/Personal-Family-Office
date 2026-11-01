@@ -1,5 +1,4 @@
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
-import { analyzeInvestmentPerformanceMath } from './calculators-runtime/InvestmentPerformanceMath.js';
 import { reconcileInvestmentCashAccount, validateInvestmentCashCollections } from './investment-cash-ledger.js';
 
 const EPSILON = 1e-10;
@@ -16,6 +15,7 @@ function validTime(value, label) {
 /** Deterministic FIFO projection from immutable schema-v5 ledger events. No FX or market-data lookup. */
 export function analyzeInvestmentPortfolio({ accounts, instruments, transactions, valuations, asOfDate }) {
     if (![accounts, instruments, transactions, valuations].every(Array.isArray)) throw new TypeError('All investment ledger collections must be arrays.');
+    if (typeof performanceCalculator !== 'function') throw new TypeError('A supported investment performance calculator is required.');
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())) throw new RangeError('A valid portfolio as-of date is required.');
     const accountMap = new Map(accounts.map((item) => [item.id, item]));
     const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
@@ -117,7 +117,7 @@ function addCell(row, value, align = false) {
 function formatMoney(amount, currency) {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 }
-function renderPortfolio() {
+function renderPortfolio(performanceCalculator) {
     const rows = $('#investment-position-rows'), warnings = $('#investment-reconciliation-warnings'), summaries = $('#investment-portfolio-summaries');
     rows.replaceChildren(); warnings.replaceChildren(); summaries.replaceChildren();
     const isPrivate = $('#workspace-label')?.textContent.includes('PRIVATE');
@@ -149,7 +149,7 @@ function renderPortfolio() {
             const performance = analyzeInvestmentPortfolioPerformance({
                 accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
                 transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations,
-                ...cashCollections, asOfDate, recordedAt: new Date()
+                ...cashCollections, asOfDate, recordedAt: new Date(), performanceCalculator
             });
             if (!performance.length) {
                 const note = document.createElement('p'); note.className = 'form-note';
@@ -215,12 +215,12 @@ function renderPortfolio() {
         warning.textContent = error instanceof Error ? error.message : 'Investment portfolio analysis could not be completed.'; warnings.append(warning);
     }
 }
-export function initializeInvestmentPortfolioView() {
+export function initializeInvestmentPortfolioView(performanceCalculator) {
     if (!$('#investment-portfolio-analysis')) return;
     $('#investment-portfolio-as-of').value = new Date().toISOString().slice(0, 10);
-    $('#investment-portfolio-as-of').addEventListener('change', renderPortfolio);
-    window.addEventListener('pfo:investment-updated', renderPortfolio); window.addEventListener('pfo:workspace-updated', renderPortfolio);
-    renderPortfolio();
+    $('#investment-portfolio-as-of').addEventListener('change', () => renderPortfolio(performanceCalculator));
+    window.addEventListener('pfo:investment-updated', () => renderPortfolio(performanceCalculator)); window.addEventListener('pfo:workspace-updated', () => renderPortfolio(performanceCalculator));
+    renderPortfolio(performanceCalculator);
 }
 
 
@@ -233,7 +233,7 @@ export function initializeInvestmentPortfolioView() {
 export function analyzeInvestmentPortfolioPerformance({
     accounts, instruments, transactions, valuations,
     investmentCashAccounts, investmentCashMovements, investmentCashTransfers, investmentCashStatements,
-    asOfDate, recordedAt
+    asOfDate, recordedAt, performanceCalculator
 }) {
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
         || !(recordedAt instanceof Date) || !Number.isFinite(recordedAt.getTime())) {
@@ -315,7 +315,7 @@ export function analyzeInvestmentPortfolioPerformance({
         }
         externalFlows.push({ date: asOfDate, amount: terminalValue });
         try {
-            const result = analyzeInvestmentPerformanceMath({ cashFlows: externalFlows });
+            const result = performanceCalculator({ cashFlows: externalFlows });
             return { currency, status: 'available', reason: null, xirr: result.annualizedMoneyWeightedReturn,
                 terminalValue, cashBalance, holdingsValue, cashFlowCount: result.cashFlowCount,
                 grossContributions: result.grossContributions, grossProceeds: result.grossProceeds,
