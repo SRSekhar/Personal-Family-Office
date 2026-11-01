@@ -149,7 +149,10 @@ export function validateInvestmentCashCollections(input) {
         const owner = accounts.get(item.accountId);
         if (!owner || cashAccount.investmentAccountId !== owner.id) throw new Error('Transaction cash account must belong to the transaction investment account.');
         if (item.cashAmount?.currency !== cashAccount.currency) throw new Error('Transaction currency must match its linked cash account.');
-        return { ...item, cashAccountId: cashAccount.id };
+        const cashAccountLinkedAt = item.cashAccountLinkedAt ?? item.recordedAt;
+        timestamp(cashAccountLinkedAt, 'Investment transaction cash-account link recordedAt');
+        if (cashAccountLinkedAt < item.recordedAt) throw new Error('Cash-account link cannot predate the investment transaction record.');
+        return { ...item, cashAccountId: cashAccount.id, cashAccountLinkedAt };
     });
     for (const account of cashAccounts) {
         const opening = openingByAccount.get(account.id);
@@ -187,13 +190,15 @@ export function reconcileInvestmentCashAccount({ cashAccountId, investmentCashAc
     const missingOpening = opening.length === 0;
     const linkedTransactions = investmentTransactions.filter((item) => item.accountId === cashAccount.investmentAccountId
         && item.date <= statement.statementAsOf && item.recordedAt <= recordedAt);
-    const unmatchedTransactions = linkedTransactions.filter((item) => item.cashAccountId === undefined);
+    const unmatchedTransactions = linkedTransactions.filter((item) => item.cashAccountId === undefined
+        || (item.cashAccountLinkedAt ?? item.recordedAt) > recordedAt);
     const transfers = byRecordedAndEffectiveDate(investmentCashTransfers.filter((item) =>
         item.sourceCashAccountId === cashAccountId || item.destinationCashAccountId === cashAccountId),
     'effectiveAt', statement.statementAsOf, recordedAt);
     let expected = movements.reduce((sum, item) => sum + item.amount.amount, 0);
     for (const transfer of transfers) expected += transfer.destinationCashAccountId === cashAccountId ? transfer.amount.amount : -transfer.amount.amount;
-    for (const transaction of linkedTransactions.filter((item) => item.cashAccountId === cashAccountId)) expected += transaction.cashAmount.amount;
+    for (const transaction of linkedTransactions.filter((item) => item.cashAccountId === cashAccountId
+        && (item.cashAccountLinkedAt ?? item.recordedAt) <= recordedAt)) expected += transaction.cashAmount.amount;
     const unmatchedCount = unmatchedTransactions.length;
     if (missingOpening || unmatchedCount > 0) return {
         status: 'incomplete', reason: missingOpening ? 'An explicit opening balance is missing.' : 'One or more investment transactions are not linked to this cash account.',
