@@ -5,7 +5,7 @@ const empty = {
     investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [],
     investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: []
 };
-const account = { id: 'a-1', name: 'Broker, "A"', institution: 'Bank\nIndia', type: 'Brokerage', currency: 'INR', description: 'safe =1+1' };
+const account = { id: 'a-1', name: 'Broker, "A"', institution: 'Bank\nIndia', type: 'Brokerage', currency: 'INR', description: '=1+1' };
 const instrument = { id: 'i-1', name: 'தமிழ் Equity', type: 'Equity', currency: 'INR', symbol: 'ABC' };
 
 describe('investment CSV interchange', () => {
@@ -13,6 +13,7 @@ describe('investment CSV interchange', () => {
     it('round-trips Unicode, commas, quotes, multiline and formula-like text safely', () => {
         const csv = exportInvestmentCollectionCsv('investmentAccounts', [account]);
         expect(csv).not.toContain('=1+1');
+        expect(csv).toContain('Broker, ""A""');
         expect(parseInvestmentCollectionCsv(csv, 'investmentAccounts')).toEqual([account]);
     });
     it('round-trips nested money values and optional bitemporal settlement fields', () => {
