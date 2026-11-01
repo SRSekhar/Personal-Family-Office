@@ -278,4 +278,5 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 - A durable schema-v4 JSON recovery artifact is written with exclusive creation and flush-to-disk before schema replacement; POSIX permissions are owner-only. Migration aborts if backup creation fails. Migration tests cover artifact contents/permissions and invalid-v4 rollback.
 - Chromium smoke coverage now exercises investment entry, reload persistence, v5 JSON export/import, and exact SQLite save/restore equality for all nine collections. The import preview includes investment counts and replacement scope.
 - Added an API-level two-client stale-write test using investment ledger data; it verifies a stale valuation write receives HTTP 409 and cannot replace the latest committed valuation.
-- Remaining: final CI on the latest branch head and an actual two-browser-tab UI conflict/recovery workflow. Accessibility remains secondary as directed.
+- Added a Chromium two-tab scenario using isolated browser contexts with the same initial local workspace: one tab commits a new manual valuation; the stale tab must receive a visible SQLite conflict and must not overwrite the newer valuation.
+- Remaining: final CI on the latest branch head must verify this scenario and all existing workflows. Accessibility remains secondary as directed.
