@@ -270,3 +270,17 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Added tests in `packages/models/tests/InvestmentLedger.test.ts`, `apps/dashboard/investment-ledger.test.js`, `apps/dashboard/investment-cash-ledger.test.js` and `apps/dashboard/tests/investment-portfolio.test.js`; Chromium smoke now creates a legacy unlinked dividend, links it, reconciles it and checks XIRR/private-demo transitions.
 - Current PR #430 head is `08651e96d6a16b20913027a31abcd4e7476bb897`; CI run 41286018183 is pending. Dashboard packaging for prior commit `aa99d696...` passed. Do not claim final CI green until current head is verified.
 - PR #430 remains open/draft. PR #425–#430 remain unmerged; no merge is authorized.
+
+
+## Latest Handoff — IPM-04 cash ledger, reconciliation and XIRR (2026-11-01)
+
+- Current feature branch: `feature/investment-cash-ledger-ui`; PR #430 is stacked on PR #429 → #428 → #427 → #426 → #425.
+- Current PR #430 head: `786ded49daa9655fcc09d50da4562c4f682cb5c1`.
+- PR #430 CI run `41289104534` completed successfully. It passed repository checks, lint, typecheck, package build, the full Vitest suite including newly enabled root-level dashboard tests, Chromium installation and the real-browser smoke test.
+- Dashboard packaging run `41289104460` completed successfully; publishing was skipped because this is a PR branch.
+- PR #429 schema-v6 persistence CI and dashboard packaging passed at head `486544ca45a6762d59b436bb3734571cd7f3bd6d`.
+- Cash UI supports explicit cash sub-accounts, opening balances (including a user-entered zero balance), contributions, withdrawals, corrections, internal transfers, statement observations, reconciliation status and linking historical transactions.
+- Settlement linking preserves original transaction date, recordedAt, cash amount, quantity and unit price; it adds a separate `cashAccountLinkedAt` timestamp.
+- Per-currency XIRR uses the existing shared calculator. External flows are opening balance, contributions, withdrawals and corrections; internal trades and transfers are excluded. Terminal value is reconciled cash plus valued open positions. Ambiguous XIRR or incomplete evidence is reported unavailable.
+- Root-level dashboard test files are now included in Vitest. Latest smoke verifies a one-year return horizon, historical settlement linking, JSON and SQLite round-trips, reload persistence and private-to-demo clearing.
+- PRs #425–#430 remain open and unmerged. Required merge order: #425 → #426 → #427 → #428 → #429 → #430. Do not merge without explicit user approval.
