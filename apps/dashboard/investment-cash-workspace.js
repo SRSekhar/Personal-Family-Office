@@ -71,6 +71,19 @@ function privateWorkspace() {
 function render() {
     const panel = $('#investment-cash-ledger');
     if (!panel) return;
+    const isPrivate = privateWorkspace();
+    $('#investment-cash-demo-note').hidden = isPrivate;
+    if (!isPrivate) {
+        $('#investment-cash-error').hidden = true;
+        panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = true; });
+        for (const id of ['investment-cash-account-count', 'investment-cash-movement-count', 'investment-cash-transfer-count', 'investment-cash-statement-count']) {
+            $('#' + id).textContent = '0';
+        }
+        for (const id of ['investment-cash-account-rows', 'investment-cash-movement-rows', 'investment-cash-transfer-rows', 'investment-cash-statement-rows']) {
+            $('#' + id).replaceChildren();
+        }
+        return;
+    }
     let data;
     try { data = readData(); }
     catch (error) {
@@ -80,10 +93,8 @@ function render() {
         return;
     }
     const { ledger, cash } = data;
-    const isPrivate = privateWorkspace();
-    $('#investment-cash-demo-note').hidden = isPrivate;
     $('#investment-cash-error').hidden = true;
-    panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = !isPrivate; });
+    panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = false; });
     $('#investment-cash-account-count').textContent = String(cash.investmentCashAccounts.length);
     $('#investment-cash-movement-count').textContent = String(cash.investmentCashMovements.length);
     $('#investment-cash-transfer-count').textContent = String(cash.investmentCashTransfers.length);
