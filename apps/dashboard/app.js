@@ -1977,9 +1977,10 @@ function enqueueDatabaseSave(options = {}) {
 function scheduleDatabaseAutoSave() {
     if (!databaseStatusChecked || databaseRecoveryRequired || databaseWriteConflict || !databaseAutoSaveEnabled || workspace !== 'private'
         || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
+    // A fresh edit supersedes any pending retry and starts a new bounded retry window.
     clearTimeout(databaseAutoSaveTimer);
     databaseAutoSaveTimer = setTimeout(() => {
-        void enqueueDatabaseSave({ quiet: true });
+        void enqueueDatabaseSave({ quiet: true, retryAttempt: 0 });
     }, 450);
 }
 
@@ -2110,6 +2111,23 @@ async function exportSavedDatabaseBackup() {
     }
 }
 
+const DATABASE_AUTO_SAVE_RETRY_DELAYS_MS = [1000, 2000, 4000];
+
+function scheduleDatabaseAutoSaveRetry(retryAttempt) {
+    if (!databaseStatusChecked || databaseRecoveryRequired || databaseWriteConflict || !databaseAutoSaveEnabled
+        || workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
+    const delay = DATABASE_AUTO_SAVE_RETRY_DELAYS_MS[retryAttempt];
+    if (!Number.isFinite(delay)) return;
+    clearTimeout(databaseAutoSaveTimer);
+    setDatabaseStatus('Automatic SQLite save failed · retry scheduled',
+        `Temporary persistence failure. Retry ${retryAttempt + 1} of ${DATABASE_AUTO_SAVE_RETRY_DELAYS_MS.length} in ${delay / 1000} second(s). Browser-local data remains saved.`);
+    databaseAutoSaveTimer = setTimeout(() => {
+        if (!databaseStatusChecked || databaseRecoveryRequired || databaseWriteConflict || !databaseAutoSaveEnabled
+            || workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) return;
+        void enqueueDatabaseSave({ quiet: true, retryAttempt: retryAttempt + 1 });
+    }, delay);
+}
+
 async function saveWorkspaceToDatabase(options = {}) {
     let payload;
     try {
@@ -2120,6 +2138,7 @@ async function saveWorkspaceToDatabase(options = {}) {
         return false;
     }
     const button = $('#database-save-button');
+    let retryableFailure = false;
     button.disabled = true;
     setDatabaseStatus(options.quiet ? 'Automatically saving workspace to SQLite…' : 'Saving validated workspace to SQLite…');
     try {
@@ -2128,6 +2147,7 @@ async function saveWorkspaceToDatabase(options = {}) {
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({ payload, expectedUpdatedAt: databaseLastKnownUpdatedAt })
         });
+        if (response.status === 408 || response.status === 429 || response.status >= 500) retryableFailure = true;
         const result = await response.json();
         if (!response.ok) {
             if (response.status === 409) databaseWriteConflict = true;
@@ -2164,10 +2184,24 @@ async function saveWorkspaceToDatabase(options = {}) {
         }
         return true;
     } catch (error) {
-        setDatabaseStatus(databaseWriteConflict ? 'SQLite changed elsewhere · automatic saves paused' : options.quiet ? 'Automatic SQLite save failed' : 'SQLite save failed', error instanceof Error
+        if (error instanceof TypeError) retryableFailure = true;
+        const message = error instanceof Error
             ? error.message + ' Browser-local data is still saved; the database may be ahead.'
-            : 'Browser-local data is still saved; the database may be ahead.');
-        if (databaseWriteConflict) await refreshDatabaseStatus();
+            : 'Browser-local data is still saved; the database may be ahead.';
+        if (databaseWriteConflict) {
+            setDatabaseStatus('SQLite changed elsewhere · automatic saves paused', message);
+            await refreshDatabaseStatus();
+        } else if (options.quiet && retryableFailure && databaseAutoSaveEnabled) {
+            const retryAttempt = Number.isInteger(options.retryAttempt) && options.retryAttempt >= 0 ? options.retryAttempt : 0;
+            if (retryAttempt < DATABASE_AUTO_SAVE_RETRY_DELAYS_MS.length) {
+                scheduleDatabaseAutoSaveRetry(retryAttempt);
+            } else {
+                setDatabaseStatus('Automatic SQLite save paused after retries',
+                    message + ' Automatic retry limit reached. Browser-local data remains available; make another edit or retry a manual save.');
+            }
+        } else {
+            setDatabaseStatus(options.quiet ? 'Automatic SQLite save failed' : 'SQLite save failed', message);
+        }
         if (!options.quiet) showToast(databaseWriteConflict
             ? 'SQLite changed in another tab or process. Automatic saves are paused; review the latest database snapshot before continuing.'
             : 'SQLite save failed. The current browser workspace was not changed.');
