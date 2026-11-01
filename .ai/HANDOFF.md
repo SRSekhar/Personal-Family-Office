@@ -284,3 +284,16 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Per-currency XIRR uses the existing shared calculator. External flows are opening balance, contributions, withdrawals and corrections; internal trades and transfers are excluded. Terminal value is reconciled cash plus valued open positions. Ambiguous XIRR or incomplete evidence is reported unavailable.
 - Root-level dashboard test files are now included in Vitest. Latest smoke verifies a one-year return horizon, historical settlement linking, JSON and SQLite round-trips, reload persistence and private-to-demo clearing.
 - PRs #425–#430 remain open and unmerged. Required merge order: #425 → #426 → #427 → #428 → #429 → #430. Do not merge without explicit user approval.
+
+
+## Latest Handoff — IPM-05 CSV interchange (2026-11-01)
+
+- Branch: feature/investment-ledger-csv-interchange; draft PR #432, based on PR #430 (feature/investment-cash-ledger-ui).
+- Current feature adds apps/dashboard/investment-csv.js, investment-csv.test.js and investment-csv-workspace.js, plus the private-workspace controls in apps/dashboard/index.html.
+- All eight collections have explicit schemas. CSV is PFO-native/versioned; text values are UTF-8/base64 encoded for lossless Unicode and formula-injection protection; nested money values are JSON cells.
+- previewInvestmentCsvImport validates a complete candidate workspace using the existing investment and cash validators. Append catches duplicate IDs; replacement affects only selected collections and fails if resulting references/accounting invariants are invalid.
+- UI requires explicit confirmation, supports cancel, and attempts browser-storage rollback if a selected collection write fails. Workspace events are dispatched only after successful writes. JSON full-workspace backup remains authoritative.
+- Chromium smoke was extended for per-collection export, import preview, confirmed replacement and duplicate-ID append rejection. Unit tests cover round trips across all eight collections and malformed input.
+- No CI run is currently visible for the current PR head. Do not mark IPM-05 accepted until lint, typecheck, build, Vitest and Chromium smoke pass.
+- External broker CSV layouts/mapping remain deferred; do not infer transaction types, signs, cash links, opening balances, FX or valuation data.
+- PR #432 remains draft and unmerged. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge without explicit approval.
