@@ -148,6 +148,17 @@ export function validateInvestmentCashCollections(input) {
         if (item.cashAmount?.currency !== cashAccount.currency) throw new Error('Transaction currency must match its linked cash account.');
         return { ...item, cashAccountId: cashAccount.id };
     });
+    for (const account of cashAccounts) {
+        const opening = openingByAccount.get(account.id);
+        if (!opening) continue;
+        for (const transaction of transactions) if (transaction.cashAccountId === account.id && transaction.date < opening.effectiveAt) {
+            throw new Error('Linked investment transactions cannot predate the explicit cash opening-balance baseline.');
+        }
+        for (const transfer of transfers) if ((transfer.sourceCashAccountId === account.id || transfer.destinationCashAccountId === account.id)
+            && transfer.effectiveAt < opening.effectiveAt) {
+            throw new Error('Cash transfers cannot predate the explicit cash opening-balance baseline.');
+        }
+    }
 
     return { investmentCashAccounts: cashAccounts, investmentCashMovements: movements,
         investmentCashTransfers: transfers, investmentCashStatements: statements, investmentTransactions: transactions };
