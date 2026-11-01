@@ -187,3 +187,8 @@ Continue with the next functional product priorities in .ai/BACKLOG.md. Customer
 - The server API test now models two clients reading the same version and verifies that a stale investment valuation write returns 409 without overwriting the latest valuation. This is API-level concurrency coverage, not yet a full two-tab UI interaction.
 - Added a Chromium two-tab acceptance scenario with isolated browser contexts seeded from the same workspace snapshot. The first tab commits a new valuation; the stale second tab must show the conflict state and cannot overwrite the committed valuation.
 - Final acceptance passed on commit `1b5a45eb5910f275118ede1657d8b39916fe539a`: CI (lint, typecheck, build, unit tests and Chromium smoke), Secret Scan and dashboard packaging all succeeded. The two-tab scenario verified that a stale tab cannot overwrite the first tab's latest valuation. IPM-03 implementation is complete. PR #425 remains draft and unmerged pending review and explicit user approval.
+
+
+## IPM-04 Handoff
+
+Continue from stacked branch feature/investment-portfolio-reconciliation, based on schema-v5 branch feature/investment-workspace-persistence. This work adds FIFO positions, point-in-time valuations and missing-valuation visibility. Verify CI and Chromium acceptance before cash reconciliation or portfolio XIRR. PR #425 remains open and unmerged; preserve the dependency on its schema-v5 branch.
