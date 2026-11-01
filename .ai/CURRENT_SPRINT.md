@@ -329,3 +329,15 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Added reconciliation status and cash movement/transfer/statement histories. Browser multi-key persistence attempts rollback on write failure.
 - Extended isolated Chromium smoke to verify a synthetic opening balance + contribution + withdrawal + purchase reconciles to an explicit statement.
 - Next: portfolio-wide per-currency XIRR and complete terminal value checks; do not count internal trades or transfers as external flows.
+
+
+## 2026-11-01 — IPM-04 portfolio XIRR increment
+
+- Integrated portfolio-wide, per-currency XIRR using the existing calculator runtime. No duplicate XIRR implementation.
+- Only explicit opening balances, external contributions, external withdrawals and correction adjustments are investor cash flows. Purchases/sales/distributions/fees/taxes and internal transfers are excluded from external flows.
+- Terminal value combines statement-reconciled cash (rolled forward for later cash events and linked trades) with valued open holdings.
+- XIRR is unavailable if cash statements/opening evidence are missing, transaction links are incomplete, reconciliation differs, an open holding lacks valuation, terminal value is non-positive, or the XIRR cash-flow pattern is ambiguous. No partial result is emitted.
+- Historical calculations use a consistent effective-date and recorded-at cutoff across cash and positions.
+- Enforced a single explicit opening balance per cash account; linked trades/transfers cannot predate it. Corrections must reference a prior, non-correction event in the same account.
+- Private cash and XIRR UI content is cleared when switching to demo mode.
+- Expanded unit and Chromium smoke coverage. CI verification pending for the latest commit.
