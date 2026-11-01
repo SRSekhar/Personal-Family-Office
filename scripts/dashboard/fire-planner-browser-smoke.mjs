@@ -1717,8 +1717,8 @@ try {
         'investment account should persist across page reloads');
     assert.equal(await page.locator('#investment-instrument-count').innerText(), '1',
         'investment instrument should persist across page reloads');
-    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1',
-        'investment transaction should persist across page reloads');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '2',
+        'both original and historically linked investment transactions should persist across page reloads');
     assert.equal(await page.locator('#investment-valuation-count').innerText(), '1',
         'manual valuation should persist across page reloads');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
