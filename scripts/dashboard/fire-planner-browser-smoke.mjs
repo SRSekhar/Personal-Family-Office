@@ -1222,10 +1222,12 @@ try {
     await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2026-10-29');
     await page.locator('#investment-cash-movement-form [name="openingBalanceSource"]').selectOption('statement');
     await page.locator('#investment-cash-movement-form button[type="submit"]').click();
+    await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
     await page.locator('#investment-cash-movement-form [name="type"]').selectOption('ExternalContribution');
     await page.locator('#investment-cash-movement-form [name="amount"]').fill('500');
     await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2026-10-30');
     await page.locator('#investment-cash-movement-form button[type="submit"]').click();
+    await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
     await page.locator('#investment-cash-movement-form [name="type"]').selectOption('ExternalWithdrawal');
     await page.locator('#investment-cash-movement-form [name="amount"]').fill('-100');
     await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2026-10-30');
