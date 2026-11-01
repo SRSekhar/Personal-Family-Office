@@ -341,3 +341,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Enforced a single explicit opening balance per cash account; linked trades/transfers cannot predate it. Corrections must reference a prior, non-correction event in the same account.
 - Private cash and XIRR UI content is cleared when switching to demo mode.
 - Expanded unit and Chromium smoke coverage. CI verification pending for the latest commit.
+
+
+## 2026-11-01 — historical settlement link integrity
+
+- Added a way to link legacy unlinked investment transactions to cash sub-accounts without editing their financial values or original transaction recordedAt.
+- Added `cashAccountLinkedAt` as a separate bitemporal association timestamp in the domain model and browser backup validation. Reconciliation and XIRR require that timestamp to be visible at the selected recorded-at cutoff.
+- Demo mode clears all private investment history, counts, selectors, cash rows and XIRR output. Returning to private mode restores the local records.
+- Added model, validator, cash reconciliation, portfolio performance and Chromium smoke coverage. Latest CI is pending.
