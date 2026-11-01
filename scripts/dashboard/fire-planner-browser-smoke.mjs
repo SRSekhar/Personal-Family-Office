@@ -1262,6 +1262,7 @@ try {
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-cash-account-count').innerText(), '0', 'demo workspace must not expose private cash account counts');
     assert.equal(await page.locator('#investment-cash-account-rows').innerText(), '', 'demo workspace must not expose private cash account rows');
+    assert.equal(await page.locator('#investment-portfolio-performance').innerText(), '', 'demo workspace must not expose private portfolio XIRR');
     assert.equal(await page.locator('#investment-cash-owner option').count(), 0, 'demo workspace must clear private account names from selectors');
     await page.locator('#switch-private-button').click();
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /Browser test broker cash/, 'switching back to private must restore local cash ledger records');
