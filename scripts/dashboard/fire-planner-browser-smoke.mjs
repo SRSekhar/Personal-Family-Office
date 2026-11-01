@@ -1407,6 +1407,26 @@ try {
         'failed CSV persistence must not change the visible instrument ledger');
     process.stdout.write('PASS: failed multi-collection CSV persistence rolls every browser-storage key back byte-for-byte.\\n');
 
+    await page.locator('#investment-csv-files').setInputFiles({
+        name: 'oversized-investment.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.alloc(10 * 1024 * 1024 + 1, 0x41)
+    });
+    await page.waitForFunction(() => /10 MiB investment CSV limit/i.test(
+        globalThis.document.querySelector('#investment-csv-status')?.textContent ?? ''
+    ));
+    assert.equal(await page.locator('#investment-csv-files').evaluate((input) => input.files.length), 0,
+        'oversized investment CSV selection must be reset after rejection');
+    const csvStorageAfterOversizedImport = await page.evaluate(() => Object.fromEntries([
+        'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
+        'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
+        'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+    ].map((key) => [key, globalThis.localStorage.getItem(key)])));
+    assert.deepEqual(csvStorageAfterOversizedImport, csvStorageBeforeFailedCommit,
+        'oversized CSV rejection must preserve every investment/cash browser-storage value');
+    process.stdout.write('PASS: oversized investment CSV is rejected before reading and preserves all saved collections.\\n');
+
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
