@@ -368,7 +368,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Import success dispatches workspace events so the existing optional/debounced SQLite autosave path can run. This is not a synchronous atomic browser-storage-plus-SQLite transaction; JSON full-workspace backup remains authoritative.
 - Unit tests cover all eight collection round trips, Unicode/special characters, BOM, LF, empty collections, malformed JSON/numbers, formula safety, invalid references, duplicate IDs and preview behavior.
 - **Verified on current head:** CI run `41305848173` passed lint, typecheck, build, full unit tests and the real Chromium browser smoke. Dashboard packaging run `41305848152` passed; Pages publishing was skipped for this PR.
-- PFO-native interchange implementation is green, but issue #431's broader acceptance is **not yet complete**: provider-specific explicit column mapping, row-level downloadable error reports, stronger persistence-failure/SQLite atomicity coverage, and reload/export-reimport equality coverage remain to be addressed. Do not mark the entire issue accepted.
+- PFO-native interchange, row-level downloadable error reports, reload/export-reimport equality, browser-storage rollback, SQLite transaction rollback, and transient autosave failure/retry recovery are implemented and CI-green. Issue #431 remains open for provider-specific explicit mapping (requires actual redacted samples and confirmed semantics) and independent Secret Scan verification. Do not claim cross-store atomicity.
 - External broker layouts remain blocked on exact, redacted provider CSV samples. Do not infer transaction types, signs, cash links, opening balances, FX or valuation data.
 - PR #432 remains draft and unmerged. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge without explicit approval.
 
@@ -378,8 +378,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - PR #432 remains draft/open/unmerged on `feature/investment-ledger-csv-interchange`, stacked on PR #430.
 - Added detailed row parsing and a downloadable spreadsheet-safe error report containing source file, collection, logical CSV row, field, error message and raw row JSON.
 - Any row-level error blocks the complete import batch; valid rows are never partially committed. Correct the source file and retry.
-- Unit and Chromium smoke coverage has been added, including report download and disabled confirmation. CI on the new head is pending/not yet visible; do not mark this acceptance complete.
-- Latest verified prior head was `8c9a37931ae3c4d3f562bc736b76437649147429`: CI run 1381 and dashboard packaging run 711 passed.
+- Unit and Chromium smoke coverage verifies report download and disabled confirmation. CI run 1397 passed on code head `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d` (80 test files / 715 tests, real Chromium smoke); dashboard packaging run 727 passed.
 - External provider mappings remain blocked pending actual redacted provider CSV samples and explicit user-confirmed field/type/sign conventions. SQLite autosave is optional/debounced and is not atomic with localStorage.
 
 
@@ -397,3 +396,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Added Chromium smoke coverage for a transient 503 during automatic SQLite save. Browser-local data remains intact, the failed snapshot is absent from SQLite, and the next automatic save persists both the earlier edit and the new triggering edit.
 - Verified code head `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`: CI run 1397 passed (80 test files, 715 tests, dependency audit, lint, typecheck, build and full Chromium smoke). Dashboard packaging run 727 passed; Pages publishing skipped for PR.
 - Row-level CSV diagnostics and downloadable error reports are also verified. Remaining issue #431 work is external-provider mapping (requires redacted samples and confirmed semantics) and independent Secret Scan verification. Browser localStorage and SQLite are not a single atomic transaction.
+
+
+## 2026-11-01 — Latest persistence acceptance status
+
+- CI-green code head: `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`; CI run 1397 passed 80 test files / 715 tests and complete real Chromium smoke. Dashboard packaging run 727 passed.
+- Added SQLite write-failure rollback test and transient API failure/retry browser test. Browser-local data is retained after failed autosave; subsequent automatic save persists both the earlier unsynced edit and the new edit.
+- Provider-specific CSV mapping remains blocked on actual redacted broker samples and explicit semantic confirmation. Independent Secret Scan was not present in the PR-triggered workflow list inspected.
+- LocalStorage and SQLite remain separate persistence systems; no cross-store atomicity claim.
