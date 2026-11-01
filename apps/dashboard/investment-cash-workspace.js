@@ -90,7 +90,10 @@ function render() {
     $('#investment-cash-statement-account').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
     $('#investment-cash-transfer-source').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
     $('#investment-cash-transfer-destination').innerHTML = options(cash.investmentCashAccounts, cashAccountLabel);
-    $('#investment-cash-correction-target').innerHTML = options(cash.investmentCashMovements, (item) => item.type + ' · ' + item.effectiveAt.slice(0, 10) + ' · ' + money(item.amount.amount, item.amount.currency));
+    const correctionCashAccountId = $('#investment-cash-movement-account').value;
+    $('#investment-cash-correction-target').innerHTML = options(cash.investmentCashMovements.filter((item) =>
+        item.cashAccountId === correctionCashAccountId && item.type !== 'Correction'),
+    (item) => item.type + ' · ' + item.effectiveAt.slice(0, 10) + ' · ' + money(item.amount.amount, item.amount.currency));
 
     const hasOwners = ledger.investmentAccounts.length > 0;
     const hasCashAccounts = cash.investmentCashAccounts.length > 0;
@@ -158,6 +161,7 @@ function updateMovementFields() {
 export function initializeInvestmentCashWorkspace() {
     $('#investment-cash-movement-type').innerHTML = movementTypes.map((type) => '<option value="' + type + '">' + type + '</option>').join('');
     $('#investment-cash-movement-type').addEventListener('change', updateMovementFields);
+    $('#investment-cash-movement-account').addEventListener('change', render);
     bindForm('#investment-cash-account-form', (form) => {
         const { ledger, cash } = readData();
         const owner = ledger.investmentAccounts.find((item) => item.id === form.get('investmentAccountId'));
