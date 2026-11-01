@@ -2072,14 +2072,14 @@ try {
         'investment performance should calculate simple return on contributions');
     assert.equal(await page.locator('#investment-xirr').innerText(), '10%',
         'investment performance should calculate annualized money-weighted return');
-    const [investmentLedgerCollectionCsvDownload] = await Promise.all([
+    const [investmentCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#investment-performance-export-csv').click()
     ]);
-    assert.equal(investmentLedgerCollectionCsvDownload.suggestedFilename(), 'pfo-investment-performance.csv');
-    const investmentLedgerCollectionCsvPath = join(temporaryDirectory, 'pfo-investment-performance.csv');
-    await investmentLedgerCollectionCsvDownload.saveAs(investmentLedgerCollectionCsvPath);
-    const investmentCsv = await readFile(investmentLedgerCollectionCsvPath, 'utf8');
+    assert.equal(investmentCsvDownload.suggestedFilename(), 'pfo-investment-performance.csv');
+    const investmentCsvPath = join(temporaryDirectory, 'pfo-investment-performance.csv');
+    await investmentCsvDownload.saveAs(investmentCsvPath);
+    const investmentCsv = await readFile(investmentCsvPath, 'utf8');
     assert.ok(investmentCsv.includes('Gross contributions,1000'), 'investment CSV should include gross contributions');
     assert.ok(investmentCsv.includes('Annualized money-weighted return (XIRR %),10'), 'investment CSV should include annualized return');
     assert.ok(investmentCsv.includes('2025-01-01,-1000'), 'investment CSV should preserve dated contribution signs');
