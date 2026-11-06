@@ -420,3 +420,15 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Manual online SQLite backup is implemented via Node `sqlite.backup()` (minimum Node 22.16.0), with integrity and full schema-v6 validation, fsync and unique immutable backup files under `<database path>.backups`. The actual backup artifact is reopened in the 13-collection recovery test.
 - PR #432 remains draft/open/unmerged, stacked on PR #430. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432. Do not merge without explicit user approval.
 - Remaining product scope: provider-specific CSV mapping requires redacted real broker CSV samples and confirmed semantics. Automated backup scheduling, rotation, retention, encryption, remote copy and cross-store atomicity remain unimplemented.
+
+
+## Latest Handoff — Investment allocation policy domain foundation (2026-11-06)
+
+- Branch: `feature/investment-allocation-targets`; draft PR #435 targets `feature/investment-ledger-csv-interchange` (PR #432). Preserve the existing stacked dependency chain; no merge is authorized.
+- Implemented pure allocation-policy validation and analysis in `apps/dashboard/investment-allocation.js`, with unit tests in `apps/dashboard/investment-allocation.test.js`.
+- Policy versions have a stable policy-set ID, unique version, currency, portfolio/account scope, instrument-type/instrument grouping, effective date, recorded-at timestamp and targets totaling 100%.
+- Policy selection is bitemporal. Actual-vs-target analysis reports market value, actual/target weights, percentage-point drift and value drift; unplanned holdings remain visible. HHI, effective category count and largest category share are descriptive only.
+- Open positions without eligible valuation suppress the whole allocation. No FX, guessed valuation, recommendation, rebalancing instruction or trade.
+- ADR: `docs/architecture/ADR-INVESTMENT-ALLOCATION-POLICY.md`.
+- This PR does not persist policies or expose dashboard CRUD. Next: schema-v7 collection and recovery-safe v6→v7 migration; maintain v1–v6 JSON backup compatibility, append-only versions, SQLite restore/concurrency tests and private-workspace UI.
+- CI status must be checked on the latest PR head before calling this increment verified.
