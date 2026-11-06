@@ -612,8 +612,8 @@ In progress on draft PR #432, stacked on PR #430.
 ## 2026-11-01 — Verified online SQLite backup
 
 - Added a manual loopback-only online SQLite backup action using Node's built-in `sqlite.backup()`; supported runtime minimum is Node 22.16.0.
-- Unique backup files are created under `<database path>.backups`; existing files are never overwritten. Artifacts pass SQLite integrity and full schema-v6 validation across all 13 collections, are fsynced, and are only then published.
-- Added an online-backup restore drill across all 13 collections, checking stable identifiers, valuation provenance and integrity, plus API success/no-data/cross-origin tests.
+- Unique backup files are created under `<database path>.backups`; existing files are never overwritten. Artifacts pass SQLite integrity and full schema-v7 validation across all 14 collections, are fsynced, and are only then published.
+- Added an online-backup restore drill across all 14 collections, checking stable identifiers, valuation provenance and integrity, plus API success/no-data/cross-origin tests.
 - Scheduling, rotation, retention, encryption, remote copy and cross-store browser-storage/SQLite atomicity remain out of scope.
 
 
