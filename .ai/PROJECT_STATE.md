@@ -299,3 +299,7 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 ## Investment allocation persistence update — 2026-11-06
 
 PR #435 now includes the schema-v7 persistence foundation on the existing stacked branch. The workspace has 14 collections, adding `investmentAllocationPolicies`. v6→v7 migration is transactional and creates a protected pre-migration recovery artifact. Schema-v7 backup validation checks policy references and targets. Browser-local storage and SQLite payload assembly include the collection. Legacy v1–v6 backups remain compatible and do not overwrite allocation policies when absent. The policy CRUD/dashboard workflow is not yet complete. Do not mark this feature complete or merge the stack until latest CI and end-to-end acceptance pass.
+
+## Allocation dashboard follow-up — 2026-11-06
+
+The private allocation-policy dashboard is now implemented on PR #435. Users can create policy sets, append immutable versions, review saved policy history and analyze actual-vs-target drift using existing FIFO positions and eligible valuations. The dashboard is private-workspace only and requires confirmation before saving. CSV imports are blocked if they would invalidate existing policy references. Legacy v1–v6 investment backup imports preserve current policy data only when references remain valid against the incoming ledger. Browser smoke coverage was added. Latest CI and integrated acceptance are still pending; the feature remains unmerged and the stacked dependency chain must be preserved.
