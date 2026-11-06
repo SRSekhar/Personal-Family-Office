@@ -1,6 +1,6 @@
 # ADR — Investment allocation policy and drift
 
-- Status: Accepted for phased implementation
+- Status: Accepted — domain, schema-v7 persistence and private dashboard workflows implemented; CI and end-to-end acceptance pending
 - Date: 2026-11-06
 - Scope: deterministic allocation-policy domain and analytics foundation
 
@@ -42,17 +42,15 @@ The engine consumes FIFO-projected positions and the existing instrument/account
 - Holdings not present in target rows appear with zero target; target rows without holdings appear with zero actual value.
 - Drift is descriptive. It does not generate trades, recommendations, or rebalancing instructions.
 
-## Persistence and compatibility plan
+## Persistence and compatibility
 
-The pure domain module is the first increment and does not yet persist policies. The next persistence increment must add one schema-v7 collection, `investmentAllocationPolicies`, to the existing 13-collection schema-v6 workspace. It must include:
+The policy collection is persisted as `investmentAllocationPolicies`, the 14th collection in schema v7. The v6→v7 migration validates the full schema-v6 snapshot, writes a protected `.pre-v7-*.json` recovery artifact with exclusive creation and fsync, then transactionally upgrades the snapshot. Existing data is preserved and the new collection starts empty; no policies are inferred.
 
-1. Transactional SQLite v6→v7 migration and a durable schema-v6 recovery artifact before mutation.
-2. Full schema-v7 validation, JSON export/import and restore compatibility for legacy v1–v6 backups. Older backups normalize the new collection to empty without overwriting existing policy data when that older backup format did not contain it.
-3. A dedicated browser-storage key, rollback coverage, SQLite save/restore, optimistic concurrency and multi-tab stale-write tests.
-4. Append-only policy versions; editing a policy creates a new version rather than mutating history.
-5. Local/private workspace UI only, explicit confirmation, and no policy changes in demo/hosted workspaces.
+Schema-v7 JSON backups require the policy collection and validate every policy against the existing account/instrument references. Legacy v1–v6 imports remain supported. If a legacy backup includes an investment ledger but omits allocation policies, the existing policy collection is retained only when all references remain valid against the incoming ledger; otherwise the import is rejected before any workspace data changes. Legacy backups without investment collections leave the investment ledger and policies untouched.
 
-No persistence schema change is included in the initial domain-only increment.
+A dedicated browser-storage key and SQLite snapshot field persist the collection. Online SQLite backup/restore, schema-v7 backup export/import and collection-count reporting include policy versions. Private-workspace UI supports creating a policy set, appending immutable versions, reviewing policy history and analyzing actual-vs-target drift. A version must retain its policy set's currency, scope, account and grouping dimensions. The UI is disabled in demo/hosted workspaces and requires explicit confirmation before saving.
+
+The investment CSV importer validates existing policy references against the candidate ledger and blocks imports that would orphan a policy reference.
 
 ## Acceptance boundary
 
@@ -60,4 +58,4 @@ The domain engine must test exact 100% validation, account/currency scoping, ins
 
 ## Consequences
 
-This separates policy facts from ledger events and market valuations. It makes allocation drift reproducible at historical effective and recorded-at cutoffs while preserving the existing accounting source of truth. It deliberately defers persistent policy CRUD and dashboard controls to a schema-v7 increment.
+This separates policy facts from ledger events and market valuations. It makes allocation drift reproducible at historical effective and recorded-at cutoffs while preserving the existing accounting source of truth. The policy UI remains descriptive: it does not generate investment recommendations, rebalancing instructions or trades.
