@@ -44,6 +44,11 @@ describe('investment allocation policy validation', () => {
         expect(() => validateInvestmentAllocationPolicy(policy({ effectiveFrom: '2026-02-30' }), { accounts, instruments })).toThrow(/real calendar date/);
         expect(() => validateInvestmentAllocationPolicy(policy({ recordedAt: '2026-01-01' }), { accounts, instruments })).toThrow(/canonical ISO-8601/);
     });
+    it('keeps currency, scope, account and grouping stable within one policy set', () => {
+        expect(() => validateInvestmentAllocationPolicies([
+            policy(), policy({ id: 'policy-v2', version: 2, currency: 'USD', targets: [{ key: 'Bond', weightPercent: 100 }] })
+        ], { accounts, instruments })).toThrow(/retain currency, scope, account and grouping/);
+    });
     it('keeps policy-set versions unique and ordered', () => {
         const values = validateInvestmentAllocationPolicies([policy({ id: 'v2', version: 2, effectiveFrom: '2026-06-01' }), policy()], { accounts, instruments });
         expect(values.map((item) => item.version)).toEqual([1, 2]);
