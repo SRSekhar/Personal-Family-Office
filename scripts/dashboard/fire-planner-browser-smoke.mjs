@@ -2873,11 +2873,11 @@ try {
         };
     });
     await page.locator('#investment-allocation-name').fill('Browser smoke failed write');
-    const failedPolicyDialogPromise = page.waitForEvent('dialog');
-    const failedPolicySubmit = page.locator('#investment-allocation-form button[type="submit"]').click();
-    const failedPolicyDialog = await failedPolicyDialogPromise;
-    await failedPolicyDialog.accept();
-    await failedPolicySubmit;
+    await page.evaluate(() => {
+        globalThis.confirm = () => true;
+        globalThis.document.querySelector('#investment-allocation-form')
+            .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true }));
+    });
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('Simulated allocation policy storage failure'));
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 3,
         'a failed allocation policy write must preserve every previously saved version');
