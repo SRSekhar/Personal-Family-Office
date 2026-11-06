@@ -69,3 +69,14 @@ Browser-local storage remains the immediate working/recovery copy. SQLite persis
 - API tests cover local-origin enforcement, payload validation, request size/content type, and read/write behavior.
 - Chromium smoke covers save/restore, reload persistence, multi-tab stale-write protection, transient save failure, bounded retry exhaustion, and recovery after a later edit.
 - Verified on PR #432 head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed (80 test files / 718 tests and full real Chromium smoke); dashboard packaging run 41326075250 passed; Secret Scan run 41326075278 passed.
+
+## Schema-v7 extension — investment allocation policies (2026-11-06)
+
+The workspace schema is now v7 with 14 collections. The additive collection is `investmentAllocationPolicies`, containing validated immutable policy versions. It is stored in the same atomic workspace snapshot as the existing 13 collections.
+
+- The v6→v7 migration validates the complete existing v6 payload, writes a durable `.pre-v7-*.json` schema-v6 recovery artifact with exclusive creation and fsync, then transactionally replaces the snapshot table.
+- Existing v6 data is preserved; the new policy collection starts empty. No target weights or policies are inferred.
+- Schema-v7 JSON backups require the policy collection and validate policy references against existing investment accounts/instruments.
+- Legacy v1–v6 backup imports remain supported. Their absent allocation-policy collection is marked as not included, so importing an older backup does not overwrite existing policy storage.
+- SQLite save, reopen, online backup and restore include allocation policy versions and report their collection count.
+- Policy persistence is implemented in browser-local storage and SQLite. A dedicated user-facing policy CRUD workflow remains outstanding; saved-policy editing must append a new version rather than mutate prior history.
