@@ -446,3 +446,12 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Browser smoke confirms the user-facing online SQLite backup action creates a verified file and reports its location and 13-collection coverage.
 - The database recovery drill restores the actual backup file and checks all 13 persisted collections, stable identifiers, valuation provenance and SQLite integrity.
 - Node runtime floor is 22.16.0. Backups remain manual and are not encrypted, rotated, retained by policy or copied remotely.
+
+
+## 2026-11-06 — Investment allocation policy domain foundation
+
+- Started IPM allocation targets on draft PR #435, stacked on PR #432. No merge is authorized.
+- Added immutable versioned policy validation, portfolio/account scopes, currency-specific instrument-type/instrument targets, 100% weight reconciliation and bitemporal policy selection.
+- Added deterministic actual-vs-target drift, value drift and descriptive concentration metrics using the existing FIFO position projection.
+- Missing valuation on any open position suppresses partial allocation results. No FX, inferred price, recommendation, rebalance or trade behavior.
+- Added ADR and unit tests. Persistence and dashboard policy CRUD are not yet implemented; schema-v7 migration and backup compatibility are the next increment.
