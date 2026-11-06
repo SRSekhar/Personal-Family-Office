@@ -91,3 +91,9 @@ If import is rejected, preserve the rejected file for diagnosis. Do not repeated
 - Automatic SQLite saves do not create historical backup generations.
 - Online SQLite backup is manual and user-initiated. Automated scheduling, rotation, retention enforcement, encryption, remote backup and scheduled restore drills are not implemented.
 - A structurally valid backup does not guarantee financial correctness. Review restored values against trusted source records.
+
+## Schema-v7 allocation-policy backups
+
+The current SQLite workspace and full private-workspace JSON export use schema v7 and contain 14 collections, including investment allocation policy versions. The v6→v7 migration creates a protected `.pre-v7-*.json` recovery artifact before changing the database; the new allocation-policy collection starts empty. No policies are fabricated during migration.
+
+Schema-v7 backup previews include the number of allocation-policy versions. Legacy v1–v6 backups remain importable and do not replace the existing allocation-policy collection when that collection was not part of the backup. After restoring a v7 backup, verify the policy names, versions, currency and target totals alongside the investment ledger.
