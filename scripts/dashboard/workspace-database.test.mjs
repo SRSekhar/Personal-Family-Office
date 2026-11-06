@@ -196,6 +196,7 @@ describe('SQLite workspace persistence schema v7', () => {
         const saved = migrated.getWorkspace().payload;
         expect(saved.schemaVersion).toBe(7);
         expect(saved.investmentAllocationPolicies).toEqual([]);
+        expect(saved.allocationPoliciesMigratedFromV6).toBe(true);
         expect(saved.investmentTransactions).toEqual(legacy.investmentTransactions);
         const backupFiles = readdirSync(directory).filter((name) => name.includes('.pre-v7-') && name.endsWith('.json'));
         expect(backupFiles).toHaveLength(1);
