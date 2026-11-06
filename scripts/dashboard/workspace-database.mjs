@@ -196,7 +196,7 @@ function writePreV7MigrationBackup(databasePath, payload) {
         catch (error) { if (error?.code !== 'EEXIST') throw error; }
     }
     try {
-        writeFileSync(descriptor, JSON.stringify(payload, null, 2) + '\\n', 'utf8');
+        writeFileSync(descriptor, JSON.stringify(payload, null, 2) + '\n', 'utf8');
         fsyncSync(descriptor);
     } catch (error) {
         try { closeSync(descriptor); } catch { /* preserve original error */ }
