@@ -1321,7 +1321,7 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 6, 'private JSON backup should use schema version 6 with investment cash-ledger collections');
+    assert.equal(backup.schemaVersion, 7, 'private JSON backup should use schema version 7 with investment allocation policies');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -1767,7 +1767,7 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 6, 'private backup should use schema v6 and include saved goals, history, and investment cash ledger');
+    assert.equal(goalBackup.schemaVersion, 7, 'private backup should use schema v7 and include saved goals, history, and investment allocation policies');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
@@ -2833,8 +2833,8 @@ try {
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
     assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
-    assert.match(onlineBackupStatus, /13 collections/i,
-        'the online backup UI should report validation across all 13 workspace collections');
+    assert.match(onlineBackupStatus, /14 collections/i,
+        'the online backup UI should report validation across all 14 workspace collections');
     assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
     process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
