@@ -432,3 +432,13 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - ADR: `docs/architecture/ADR-INVESTMENT-ALLOCATION-POLICY.md`.
 - This PR does not persist policies or expose dashboard CRUD. Next: schema-v7 collection and recovery-safe v6→v7 migration; maintain v1–v6 JSON backup compatibility, append-only versions, SQLite restore/concurrency tests and private-workspace UI.
 - CI status must be checked on the latest PR head before calling this increment verified.
+
+## Latest Handoff — Schema-v7 allocation policy persistence (2026-11-06)
+
+- Work remains on `feature/investment-allocation-targets`, stacked on PR #432. No merge is authorized.
+- PR #435 domain/test fix for the USD position fixture was pushed and CI passed at commit `4f676c239d2684291fdfec56ed006c1b0eb837e8`.
+- Implemented schema-v7 persistence foundation: 14th collection `investmentAllocationPolicies`, validated schema-v7 backup shape, append-only policy collection validation, v6→v7 transactional migration, and protected pre-v7 recovery JSON.
+- Private browser storage and full-workspace JSON/SQLite payloads now include the policy collection. Legacy v1–v6 backups do not overwrite this collection when it is absent.
+- Added backup validation and SQLite migration/restore tests, including policy-version round-trip.
+- Latest schema-v7 commits are on the feature branch; confirm CI on the latest head before treating this increment as verified.
+- Remaining: user-facing allocation policy CRUD/dashboard workflow, append-only version editing UX, richer recovery/compatibility acceptance, and final `.ai` status reconciliation.
