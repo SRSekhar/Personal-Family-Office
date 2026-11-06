@@ -652,3 +652,12 @@ Domain foundation implemented on `feature/investment-allocation-targets`; persis
 - [ ] Build private-workspace allocation policy CRUD with append-only version creation and explicit confirmation.
 - [ ] Add browser tests for policy creation/versioning, stale tabs, failed storage writes and legacy import preservation.
 - [ ] Verify latest PR CI and end-to-end migration/backup restore before marking complete.
+
+### IPM allocation policy dashboard — implementation update
+
+- [x] Private-workspace policy set creation and append-only version workflow with explicit confirmation.
+- [x] Policy history view and bitemporal actual-vs-target drift dashboard using FIFO positions and eligible valuations.
+- [x] Prevent CSV imports from orphaning policy references.
+- [x] Preserve existing policy versions on legacy backup imports when incoming ledger references remain valid; reject unsafe imports before writes.
+- [x] Add browser smoke coverage for policy creation and valued-position drift analysis.
+- [ ] Confirm latest PR CI and end-to-end browser/SQLite acceptance before marking the IPM allocation increment complete.
