@@ -341,6 +341,7 @@ export function initializeInvestmentAllocationWorkspace() {
     });
     window.addEventListener('pfo:workspace-updated', render);
     window.addEventListener('pfo:investment-updated', render);
+    window.addEventListener('storage', (event) => { if (event.key === POLICY_KEY) render(); });
     const today = new Date().toISOString().slice(0, 10);
     $('#investment-allocation-effective-from').value = today;
     $('#investment-allocation-as-of').value = today;
