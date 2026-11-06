@@ -73,7 +73,7 @@ describe('investment allocation analysis', () => {
     it('supports instrument-specific targets and exposes unplanned holdings at zero target', () => {
         const result = analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 1, 700), position('account-1', 'fund-1', 1, 300)], instruments, accounts,
             policy: policy({ groupBy: 'instrument', targets: [{ key: 'equity-1', weightPercent: 100 }] }), asOfDate });
-        expect(result.rows.map((row) => [row.key, row.targetWeightPercent, row.driftPercentagePoints])).toEqual([['equity-1', 70, -30], ['fund-1', 0, 30]]);
+        expect(result.rows.map((row) => [row.key, row.targetWeightPercent, row.driftPercentagePoints])).toEqual([['equity-1', 100, -30], ['fund-1', 0, 30]]);
     });
     it('suppresses partial allocations when any open position lacks valuation', () => {
         const result = analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 1, 700), position('account-1', 'fund-1', 1, null)], instruments, accounts, policy: policy(), asOfDate });
