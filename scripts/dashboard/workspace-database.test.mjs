@@ -342,7 +342,7 @@ describe('SQLite workspace persistence schema v7', () => {
             schemaVersion: 7, collectionCounts: {
                 records: 2, goals: 1, cashFlowEntries: 1, budgets: 1, historicalSnapshots: 1,
                 investmentAccounts: 1, investmentInstruments: 1, investmentTransactions: 1, investmentValuations: 1,
-                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2, investmentAllocationPolicies: 0, investmentAllocationPolicies: 0
+                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2, investmentAllocationPolicies: 0
             }
         });
         expect(backup.bytes).toBeGreaterThan(0);
