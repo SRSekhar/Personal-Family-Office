@@ -324,6 +324,11 @@ describe('SQLite workspace persistence schema v7', () => {
                 amount: { amount: 100, currency: 'INR' }, effectiveAt: '2026-10-02T00:00:00.000Z',
                 recordedAt: '2026-10-02T00:00:00.000Z'
             }],
+            investmentAllocationPolicies: [{
+                id: 'allocation-policy-recovery-1', policySetId: 'recovery-policy', version: 1, name: 'Recovery allocation',
+                currency: 'INR', scope: 'portfolio', groupBy: 'instrumentType', effectiveFrom: '2026-01-01',
+                recordedAt: '2026-10-01T00:00:00.000Z', targets: [{ key: 'MutualFund', weightPercent: 100 }]
+            }],
             investmentCashStatements: [
                 { id: 'cash-statement-1', cashAccountId: 'cash-recovery-1', closingBalance: { amount: 900, currency: 'INR' },
                     periodStart: '2026-10-01T00:00:00.000Z', periodEnd: '2026-10-31T00:00:00.000Z',
@@ -342,7 +347,7 @@ describe('SQLite workspace persistence schema v7', () => {
             schemaVersion: 7, collectionCounts: {
                 records: 2, goals: 1, cashFlowEntries: 1, budgets: 1, historicalSnapshots: 1,
                 investmentAccounts: 1, investmentInstruments: 1, investmentTransactions: 1, investmentValuations: 1,
-                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2, investmentAllocationPolicies: 0
+                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2, investmentAllocationPolicies: 1
             }
         });
         expect(backup.bytes).toBeGreaterThan(0);
@@ -351,7 +356,7 @@ describe('SQLite workspace persistence schema v7', () => {
         expect(committed).toMatchObject({
             recordCount: 2, goalCount: 1, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
             investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1,
-            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 0
+            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 1
         });
         first.close(); databases.splice(databases.indexOf(first), 1);
 
@@ -372,7 +377,8 @@ describe('SQLite workspace persistence schema v7', () => {
             investmentCashAccounts: recovered.payload.investmentCashAccounts.map((item) => item.id),
             investmentCashMovements: recovered.payload.investmentCashMovements.map((item) => item.id),
             investmentCashTransfers: recovered.payload.investmentCashTransfers.map((item) => item.id),
-            investmentCashStatements: recovered.payload.investmentCashStatements.map((item) => item.id)
+            investmentCashStatements: recovered.payload.investmentCashStatements.map((item) => item.id),
+            investmentAllocationPolicies: recovered.payload.investmentAllocationPolicies.map((item) => item.id)
         };
         expect(stableIds).toEqual({
             records: ['record-1', 'record-2'], goals: ['goal-recovery-1'], cashFlowEntries: ['cash-1'],
@@ -382,7 +388,8 @@ describe('SQLite workspace persistence schema v7', () => {
             investmentCashAccounts: ['cash-recovery-1', 'cash-recovery-2'],
             investmentCashMovements: ['cash-opening-1', 'cash-opening-2'],
             investmentCashTransfers: ['cash-transfer-recovery-1'],
-            investmentCashStatements: ['cash-statement-1', 'cash-statement-2']
+            investmentCashStatements: ['cash-statement-1', 'cash-statement-2'],
+            investmentAllocationPolicies: ['allocation-policy-recovery-1']
         });
         expect(recovered.payload.investmentCashTransfers[0].amount).toEqual({ amount: 100, currency: 'INR' });
         expect(recovered.payload.investmentValuations[0].sourceName).toBe('User-entered');
