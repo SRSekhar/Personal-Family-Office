@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeInvestmentAllocation, validateInvestmentAllocationPolicies, validateInvestmentAllocationPolicy } from './investment-allocation.js';
+import { analyzeInvestmentAllocation, selectInvestmentAllocationPolicy, validateInvestmentAllocationPolicies, validateInvestmentAllocationPolicy } from './investment-allocation.js';
 
 const accounts = [
     { id: 'account-1', name: 'Broker A', currency: 'INR' },
@@ -88,5 +88,28 @@ describe('investment allocation analysis', () => {
     it('rejects negative position quantities and market values', () => {
         expect(() => analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', -1, 10)], instruments, accounts, policy: policy(), asOfDate })).toThrow(/quantity/);
         expect(() => analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 1, -10)], instruments, accounts, policy: policy(), asOfDate })).toThrow(/market value/);
+    });
+});
+
+describe('bitemporal allocation policy selection', () => {
+    it('does not expose a future-effective or not-yet-recorded policy version', () => {
+        const versions = [
+            policy(),
+            policy({ id: 'policy-v2', version: 2, effectiveFrom: '2026-12-01', recordedAt: '2026-11-01T00:00:00.000Z' }),
+            policy({ id: 'policy-v3', version: 3, effectiveFrom: '2026-06-01', recordedAt: '2026-12-01T00:00:00.000Z' })
+        ];
+        const selected = selectInvestmentAllocationPolicy(versions, {
+            asOfDate: new Date('2026-11-01T23:59:59.999Z'),
+            recordedAtCutoff: new Date('2026-11-15T00:00:00.000Z'),
+            scope: 'portfolio', currency: 'INR'
+        }, { accounts, instruments });
+        expect(selected.id).toBe('policy-v1');
+    });
+    it('returns null when no policy is effective and known at the requested cutoffs', () => {
+        expect(selectInvestmentAllocationPolicy([policy()], {
+            asOfDate: new Date('2025-12-31T23:59:59.999Z'),
+            recordedAtCutoff: new Date('2026-01-01T00:00:00.000Z'),
+            scope: 'portfolio', currency: 'INR'
+        }, { accounts, instruments })).toBeNull();
     });
 });
