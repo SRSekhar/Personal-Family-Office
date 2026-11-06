@@ -430,8 +430,8 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Policy selection is bitemporal. Actual-vs-target analysis reports market value, actual/target weights, percentage-point drift and value drift; unplanned holdings remain visible. HHI, effective category count and largest category share are descriptive only.
 - Open positions without eligible valuation suppress the whole allocation. No FX, guessed valuation, recommendation, rebalancing instruction or trade.
 - ADR: `docs/architecture/ADR-INVESTMENT-ALLOCATION-POLICY.md`.
-- This PR does not persist policies or expose dashboard CRUD. Next: schema-v7 collection and recovery-safe v6→v7 migration; maintain v1–v6 JSON backup compatibility, append-only versions, SQLite restore/concurrency tests and private-workspace UI.
-- CI status must be checked on the latest PR head before calling this increment verified.
+- Subsequent commits on this branch completed schema-v7 persistence, recovery-safe v6→v7 migration, legacy backup compatibility, append-only policy UI and actual-vs-target analysis. See the latest verification section below.
+- CI, Secret Scan and dashboard deployment passed on the implementation tree; latest CI also passed after the `.ai` documentation sync.
 
 ## Latest Handoff — Schema-v7 allocation policy persistence (2026-11-06)
 
