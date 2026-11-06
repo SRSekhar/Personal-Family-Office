@@ -2358,6 +2358,7 @@ function importData(file, options = {}) {
                 'Investment cash statements: ' + backup.investmentCashStatements.length
             );
             if (backup.includesInvestmentAllocationPolicies) previewLines.push('Investment allocation policy versions: ' + backup.investmentAllocationPolicies.length);
+            else if (backup.includesInvestmentLedger) previewLines.push('Investment allocation policies: not included (existing policies will be preserved)');
             if (backup.includesInvestmentLedger) {
                 previewLines.push(
                     'Investment accounts: ' + backup.investmentAccounts.length,
