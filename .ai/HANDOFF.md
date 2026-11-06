@@ -441,7 +441,7 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Private browser storage and full-workspace JSON/SQLite payloads now include the policy collection. Legacy v1–v6 backups do not overwrite this collection when it is absent.
 - Added backup validation and SQLite migration/restore tests, including policy-version round-trip.
 - Verified head `0a21c20638e4e4a192ae73554f7b3732806c714f`: CI run 42169616949 passed (lint, typecheck, build, full tests and real Chromium smoke); Secret Scan 42169616950 passed; dashboard deployment 42169616957 passed.
-- Remaining: user-facing allocation policy CRUD/dashboard workflow, append-only version editing UX, richer recovery/compatibility acceptance, and final `.ai` status reconciliation.
+- Remaining follow-up is limited to explicit multi-tab conflict and failed-storage-write browser tests. Core UI, persistence, backup compatibility and browser acceptance are complete. No merge is authorized.
 
 ## Follow-up — Allocation policy dashboard completed (2026-11-06)
 
