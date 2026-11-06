@@ -2789,7 +2789,7 @@ try {
     assert.match(allocationDialog.message(), /Save immutable allocation policy Browser smoke allocation v1/);
     await allocationDialog.accept();
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '1');
-    await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-analysis')?.textContent.includes('100.00%'));
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-analysis')?.textContent.includes('100%'));
     assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation/);
     assert.match(await page.locator('#investment-allocation-analysis').innerText(), /Equity/);
     process.stdout.write('PASS: private allocation policy creation is immutable/versioned and drift analysis reconciles the valued FIFO position.\\n');
