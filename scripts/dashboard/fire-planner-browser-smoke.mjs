@@ -1330,7 +1330,7 @@ try {
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
-    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
+    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies']) {
         assert.ok(Array.isArray(backup[collection]), `schema-v6 backup should include ${collection}`);
         assert.equal(backup[collection].length, collection === 'investmentTransactions' ? 2 : 1, `schema-v6 backup should preserve the saved ${collection}`);
     }
@@ -2772,6 +2772,28 @@ try {
     assert.equal(await page.locator('#capture-historical-snapshot-button').isDisabled(), false,
         'snapshot capture should resume after valid history is restored');
 
+    // Create a versioned allocation policy and verify its analysis uses the existing valued FIFO position.
+    await page.locator('#investment-allocation-name').fill('Browser smoke allocation');
+    await page.locator('#investment-allocation-currency').selectOption('INR');
+    await page.locator('#investment-allocation-scope').selectOption('portfolio');
+    await page.locator('#investment-allocation-group-by').selectOption('instrumentType');
+    await page.locator('#investment-allocation-effective-from').fill('2026-01-01');
+    await page.locator('#investment-allocation-add-target').click();
+    await page.locator('#investment-allocation-targets .investment-allocation-target-row').last()
+        .locator('.investment-allocation-target-key').selectOption('Equity');
+    await page.locator('#investment-allocation-targets .investment-allocation-target-row').last()
+        .locator('.investment-allocation-target-weight').fill('100');
+    const allocationConfirm = page.waitForEvent('dialog');
+    await page.locator('#investment-allocation-form button[type="submit"]').click();
+    const allocationDialog = await allocationConfirm;
+    assert.match(allocationDialog.message(), /Save immutable allocation policy Browser smoke allocation v1/);
+    await allocationDialog.accept();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '1');
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-analysis')?.textContent.includes('100.00%'));
+    assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation/);
+    assert.match(await page.locator('#investment-allocation-analysis').innerText(), /Equity/);
+    process.stdout.write('PASS: private allocation policy creation is immutable/versioned and drift analysis reconciles the valued FIFO position.\\n');
+
     // SQLite persistence is explicit and round-trips the full validated private workspace.
     if ((await page.locator('#workspace-label').innerText()).toLowerCase().includes('sample')) {
         await page.locator('#switch-private-button').click();
@@ -2791,7 +2813,7 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 6, 'SQLite backup should retain the supported full-workspace schema version');
+    assert.equal(databaseBackup.schemaVersion, 7, 'SQLite backup should retain the supported full-workspace schema version');
     for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
