@@ -48,7 +48,8 @@ function validateWorkspacePayload(payload) {
             investmentValuations: validated.investmentValuations, investmentCashAccounts: validated.investmentCashAccounts,
             investmentCashMovements: validated.investmentCashMovements, investmentCashTransfers: validated.investmentCashTransfers,
             investmentCashStatements: validated.investmentCashStatements,
-            investmentAllocationPolicies: validated.investmentAllocationPolicies
+            investmentAllocationPolicies: validated.investmentAllocationPolicies,
+            ...(payload.allocationPoliciesMigratedFromV6 === true ? { allocationPoliciesMigratedFromV6: true } : {})
         };
     } catch (error) { throw new WorkspaceValidationError(error instanceof Error ? error.message : 'The supplied workspace is invalid.'); }
 }
@@ -238,7 +239,7 @@ function migrateSchemaV6(database, databasePath) {
                 investmentTransactions: validated.investmentTransactions, investmentValuations: validated.investmentValuations,
                 investmentCashAccounts: validated.investmentCashAccounts, investmentCashMovements: validated.investmentCashMovements,
                 investmentCashTransfers: validated.investmentCashTransfers, investmentCashStatements: validated.investmentCashStatements,
-                investmentAllocationPolicies: []
+                investmentAllocationPolicies: [], allocationPoliciesMigratedFromV6: true
             };
         }
         database.exec('ALTER TABLE workspace_snapshot RENAME TO workspace_snapshot_v6_migration');
