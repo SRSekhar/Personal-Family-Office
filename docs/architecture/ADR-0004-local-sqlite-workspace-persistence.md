@@ -2,7 +2,7 @@
 
 - **Status:** Accepted — local SQLite snapshot persistence, schema-v7 migration, bounded transient retry, and verified manual online backup/restore are implemented on the current feature stack.
 - **Decision date:** 2026-10-28
-- **Last reviewed:** 2026-11-01
+- **Last reviewed:** 2026-11-06
 
 ## Context
 
@@ -59,14 +59,14 @@ Browser-local storage remains the immediate working/recovery copy. SQLite persis
 - Bounded retries improve transient recovery but cannot guarantee persistence during a prolonged outage; after exhaustion, a later edit or explicit save is required.
 - Browser localStorage and SQLite are separate persistence systems. No cross-store atomicity is claimed.
 - SQLite and portable JSON exports are not encrypted by this feature. Filesystem/device protection and independent backups remain the user's responsibility.
-- WAL sidecar state can be relevant while the database is live. The dashboard's manual online backup uses SQLite's backup API rather than copying live database files. Portable JSON remains an independent recovery format. The online backup artifact is checked with SQLite `quick_check`, revalidated against schema v7 and fsynced before its unique final filename is published; restore testing reopens the artifact and verifies all 13 collections.
+- WAL sidecar state can be relevant while the database is live. The dashboard's manual online backup uses SQLite's backup API rather than copying live database files. Portable JSON remains an independent recovery format. The online backup artifact is checked with SQLite `quick_check`, revalidated against schema v7 and fsynced before its unique final filename is published; restore testing reopens the artifact and verifies all 14 collections.
 - This is a single-user local database API, not a remote, multi-user, or production-hosted database service.
 - The supported Node.js floor is 22.16.0 because `sqlite.backup()` was added in Node 22.16. CI verifies that the built-in API is present before tests.
 - Manual online backups use unique files under `<database path>.backups`, validate SQLite `quick_check` and the complete schema-v7 payload, fsync the artifact and publish it only after validation. Existing backup files are never overwritten.
 
 ## Validation and operational status
 
-- Unit tests cover schema-v7 validation, all 13 collections, reopen persistence, stable IDs, migration recovery artifacts, migration rollback, stale-write conflicts, integrity checks, file permissions, and injected SQLite write-failure rollback.
+- Unit tests cover schema-v7 validation, all 14 collections, reopen persistence, stable IDs, migration recovery artifacts, migration rollback, stale-write conflicts, integrity checks, file permissions, and injected SQLite write-failure rollback.
 - API tests cover local-origin enforcement, payload validation, request size/content type, and read/write behavior.
 - Chromium smoke covers save/restore, reload persistence, multi-tab stale-write protection, transient save failure, bounded retry exhaustion, and recovery after a later edit.
 - Verified on PR #432 head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed (80 test files / 718 tests and full real Chromium smoke); dashboard packaging run 41326075250 passed; Secret Scan run 41326075278 passed.
@@ -80,4 +80,6 @@ The workspace schema is now v7 with 14 collections. The additive collection is `
 - Schema-v7 JSON backups require the policy collection and validate policy references against existing investment accounts/instruments.
 - Legacy v1–v6 backup imports remain supported. Their absent allocation-policy collection is marked as not included, so importing an older backup does not overwrite existing policy storage.
 - SQLite save, reopen, online backup and restore include allocation policy versions and report their collection count.
-- Policy persistence is implemented in browser-local storage and SQLite. A dedicated user-facing policy CRUD workflow remains outstanding; saved-policy editing must append a new version rather than mutate prior history.
+- Policy persistence is implemented in browser-local storage and SQLite. The private dashboard supports creating policy sets, appending immutable versions, reviewing policy history and running actual-vs-target analysis. Saving another version never mutates prior history.
+- CSV imports validate the candidate investment ledger against saved policy references and are blocked if they would orphan an existing policy.
+- Browser smoke now covers policy creation and actual-vs-target analysis; final CI and integrated acceptance on the latest branch head remain pending.
