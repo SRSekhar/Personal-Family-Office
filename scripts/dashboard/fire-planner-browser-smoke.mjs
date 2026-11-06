@@ -2805,6 +2805,7 @@ try {
     assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation/);
     assert.match(await page.locator('#investment-allocation-analysis').innerText(), /Equity/);
     const allocationPolicySetId = await page.locator('#investment-allocation-policy-set').inputValue();
+    await page.locator('#investment-allocation-policy-set').selectOption('');
     await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
     await page.locator('#investment-allocation-name').fill('Browser smoke allocation v2');
     const allocationV2DialogPromise = page.waitForEvent('dialog');
