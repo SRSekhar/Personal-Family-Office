@@ -121,14 +121,14 @@ function renderPolicies(policies) {
         const row = document.createElement('tr');
         for (const value of [policy.name, policy.version, policy.currency, policy.scope === 'account' ? 'Account: ' + policy.accountId : 'Portfolio',
             policy.groupBy === 'instrumentType' ? 'Instrument type' : 'Instrument', policy.effectiveFrom,
-            policy.targets.map((target) => target.key + ' ' + percent(target.weightPercent)).join(', ')]) {
+            policy.recordedAt, policy.targets.map((target) => target.key + ' ' + percent(target.weightPercent)).join(', ')]) {
             const cell = document.createElement('td'); cell.textContent = String(value); row.append(cell);
         }
         body.append(row);
     }
     if (!policies.length) {
         const row = document.createElement('tr'), cell = document.createElement('td');
-        cell.colSpan = 7; cell.textContent = 'No allocation policies have been saved.';
+        cell.colSpan = 8; cell.textContent = 'No allocation policies have been saved.';
         row.append(cell); body.append(row);
     }
 }
