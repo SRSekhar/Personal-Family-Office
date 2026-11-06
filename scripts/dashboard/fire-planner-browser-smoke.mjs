@@ -2794,6 +2794,32 @@ try {
     assert.match(await page.locator('#investment-allocation-analysis').innerText(), /Equity/);
     process.stdout.write('PASS: private allocation policy creation is immutable/versioned and drift analysis reconciles the valued FIFO position.\\n');
 
+    const [policyBackupDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#export-button').click()
+    ]);
+    const policyBackupPath = join(temporaryDirectory, policyBackupDownload.suggestedFilename());
+    await policyBackupDownload.saveAs(policyBackupPath);
+    const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
+    assert.equal(policyBackup.schemaVersion, 7);
+    assert.equal(policyBackup.investmentAllocationPolicies.length, 1);
+    const legacyV6Backup = structuredClone(policyBackup);
+    legacyV6Backup.schemaVersion = 6;
+    delete legacyV6Backup.investmentAllocationPolicies;
+    const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
+    await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
+    const legacyImportDialogPromise = page.waitForEvent('dialog');
+    await page.locator('#import-file').setInputFiles(legacyV6BackupPath);
+    const legacyImportDialog = await legacyImportDialogPromise;
+    assert.match(legacyImportDialog.message(), /Backup import preview/);
+    await legacyImportDialog.accept();
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 1,
+        'a compatible legacy v6 backup must preserve allocation policies that were not present in that backup');
+    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '1',
+        'legacy restore must leave the allocation policy visible in the private dashboard');
+    process.stdout.write('PASS: compatible legacy v6 backup import preserves allocation policy versions.\\n');
+
     // SQLite persistence is explicit and round-trips the full validated private workspace.
     if ((await page.locator('#workspace-label').innerText()).toLowerCase().includes('sample')) {
         await page.locator('#switch-private-button').click();
@@ -2830,22 +2856,6 @@ try {
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
     assert.equal(databaseBackup.investmentAllocationPolicies.length, 1,
         'schema-v7 backup should include the saved allocation policy version');
-    const legacyV6Backup = structuredClone(databaseBackup);
-    legacyV6Backup.schemaVersion = 6;
-    delete legacyV6Backup.investmentAllocationPolicies;
-    const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
-    await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
-    const legacyImportDialogPromise = page.waitForEvent('dialog');
-    await page.locator('#import-file').setInputFiles(legacyV6BackupPath);
-    const legacyImportDialog = await legacyImportDialogPromise;
-    assert.match(legacyImportDialog.message(), /Backup import preview/);
-    await legacyImportDialog.accept();
-    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 1,
-        'a compatible legacy v6 backup must preserve allocation policies that were not present in that backup');
-    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '1',
-        'legacy restore must leave the allocation policy visible in the private dashboard');
-    process.stdout.write('PASS: compatible legacy v6 backup import preserves schema-v7 allocation policy versions.\\n');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
