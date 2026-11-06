@@ -13,7 +13,9 @@ export function validateBackupPayload(payload, expectedCurrency) {
         || ([4, 5, 6, 7].includes(payload.schemaVersion) && !Array.isArray(payload.historicalSnapshots))
         || ([5, 6, 7].includes(payload.schemaVersion) && !['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations'].every((key) => Array.isArray(payload[key])))
         || ([6, 7].includes(payload.schemaVersion) && !['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements'].every((key) => Array.isArray(payload[key])))
-        || (payload.schemaVersion === 7 && !Array.isArray(payload.investmentAllocationPolicies))) {
+        || (payload.schemaVersion === 7 && !Array.isArray(payload.investmentAllocationPolicies))
+        || (payload.schemaVersion === 7 && payload.allocationPoliciesMigratedFromV6 !== undefined && typeof payload.allocationPoliciesMigratedFromV6 !== 'boolean')
+        || (payload.schemaVersion === 7 && payload.allocationPoliciesMigratedFromV6 === true && payload.investmentAllocationPolicies.length !== 0)) {
         throw new Error('Unsupported backup format.');
     }
     if (payload.currency !== expectedCurrency) throw new Error(`Backup currency must be ${expectedCurrency}; this file uses ${String(payload.currency ?? 'no currency')}. No records were imported.`);
