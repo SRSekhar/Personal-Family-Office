@@ -129,3 +129,19 @@ export function analyzeInvestmentAllocation({ positions, instruments, accounts, 
         totalValue, hhi, effectiveCategoryCount: hhi > 0 ? 1 / hhi : null,
         largestCategorySharePercent: Math.max(...rows.map((row) => row.actualWeightPercent)), rows };
 }
+
+/** Select the policy version known at the recorded-at cutoff and effective on the requested date. */
+export function selectInvestmentAllocationPolicy(policies, { asOfDate, recordedAtCutoff, scope, currency, accountId } = {}, context) {
+    if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
+        || !(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) {
+        throw new RangeError('Policy selection requires valid effective and recorded-at cutoffs.');
+    }
+    const validated = validateInvestmentAllocationPolicies(policies, context);
+    const eligible = validated.filter((policy) => policy.currency === currency && policy.scope === scope
+        && (scope !== 'account' || policy.accountId === accountId)
+        && Date.parse(policy.effectiveFrom + 'T00:00:00.000Z') <= asOfDate.getTime()
+        && Date.parse(policy.recordedAt) <= recordedAtCutoff.getTime());
+    eligible.sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom)
+        || Date.parse(b.recordedAt) - Date.parse(a.recordedAt) || b.version - a.version);
+    return eligible[0] ?? null;
+}
