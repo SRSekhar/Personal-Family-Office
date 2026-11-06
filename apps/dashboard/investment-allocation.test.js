@@ -113,6 +113,8 @@ describe('bitemporal allocation policy selection', () => {
         }, { accounts, instruments })).toBeNull();
     });
 });
+
+describe('allocation analysis cutoff guards', () => {
     it('rejects a policy that is not effective and recorded by the analysis cutoffs', () => {
         expect(() => analyzeInvestmentAllocation({
             positions: [position('account-1', 'equity-1', 1, 100)], instruments, accounts,
@@ -129,3 +131,4 @@ describe('bitemporal allocation policy selection', () => {
         })).toThrow(/unknown account/);
     });
 
+});
