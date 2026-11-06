@@ -252,6 +252,7 @@ export function initializeInvestmentAllocationWorkspace() {
             const selected = policies.filter((item) => item.policySetId === $('#investment-allocation-policy-set').value)
                 .sort((a, b) => b.version - a.version)[0];
             if (selected) {
+                $('#investment-allocation-analyze-set').value = selected.policySetId;
                 $('#investment-allocation-name').value = selected.name;
                 $('#investment-allocation-currency').value = selected.currency;
                 $('#investment-allocation-scope').value = selected.scope;
@@ -267,6 +268,15 @@ export function initializeInvestmentAllocationWorkspace() {
                     row.querySelector('.investment-allocation-target-key').value = target.key;
                     row.querySelector('.investment-allocation-target-weight').value = String(target.weightPercent);
                 }
+            } else {
+                $('#investment-allocation-name').value = '';
+                $('#investment-allocation-currency').value = 'INR';
+                $('#investment-allocation-scope').value = 'portfolio';
+                $('#investment-allocation-group-by').value = 'instrumentType';
+                $('#investment-allocation-account-row').hidden = true;
+                fillAccountOptions(ledger);
+                $('#investment-allocation-targets').replaceChildren();
+                addTargetRow(ledger); addTargetRow(ledger);
             }
             renderAnalysis(ledger, policies);
         } catch (error) { message(error.message, true); }
