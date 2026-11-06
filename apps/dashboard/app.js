@@ -2310,6 +2310,16 @@ function importData(file, options = {}) {
         try {
             const parsed = JSON.parse(String(reader.result));
             const backup = validateBackupPayload(parsed, CURRENCY);
+            if (backup.includesInvestmentLedger && !backup.includesInvestmentAllocationPolicies) {
+                const existingRaw = localStorage.getItem(INVESTMENT_ALLOCATION_STORAGE_KEY);
+                const existingPolicies = existingRaw === null ? [] : JSON.parse(existingRaw);
+                if (!Array.isArray(existingPolicies)) throw new Error('Existing investment allocation policies are not a valid collection. The older backup was not imported.');
+                try {
+                    validateInvestmentAllocationCollections({ ...backup, investmentAllocationPolicies: existingPolicies });
+                } catch (error) {
+                    throw new Error('This legacy backup would invalidate existing allocation policy references. Policies were preserved and no data was imported. Review the policy references before retrying.', { cause: error });
+                }
+            }
             const validatedRecords = backup.records.map((item) => ({
                 ...item,
                 id: options.preserveRecordIds && typeof item.id === 'string' && item.id.trim()
