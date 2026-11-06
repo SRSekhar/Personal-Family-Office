@@ -82,4 +82,4 @@ The workspace schema is now v7 with 14 collections. The additive collection is `
 - SQLite save, reopen, online backup and restore include allocation policy versions and report their collection count.
 - Policy persistence is implemented in browser-local storage and SQLite. The private dashboard supports creating policy sets, appending immutable versions, reviewing policy history and running actual-vs-target analysis. Saving another version never mutates prior history.
 - CSV imports validate the candidate investment ledger against saved policy references and are blocked if they would orphan an existing policy.
-- Browser smoke now covers policy creation and actual-vs-target analysis; final CI and integrated acceptance on the latest branch head remain pending.
+- Browser smoke covers policy creation, append-only v2, actual-vs-target analysis, schema-v7 backup/restore and compatible legacy v6 backup preservation. CI, Secret Scan and dashboard deployment passed on 2026-11-06.
