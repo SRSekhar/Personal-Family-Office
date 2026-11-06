@@ -458,7 +458,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 
 ## 2026-11-06 — Investment allocation persistence
 
-In progress on PR #435 (stacked on PR #432; no merge authorization).
+Implementation complete and verified on draft PR #435 (stacked on PR #432; no merge authorization).
 
 - Schema-v7 extends the SQLite/JSON workspace from 13 to 14 collections with `investmentAllocationPolicies`.
 - Added recovery-safe v6→v7 migration and pre-migration schema-v6 JSON artifact.
@@ -473,4 +473,4 @@ Implemented on draft PR #435:
 - Policy history table and bitemporal actual-vs-target allocation analysis over FIFO positions and valuations.
 - CSV import guard prevents orphaning existing policy references.
 - Legacy investment backups preserve policies only when the imported ledger remains reference-compatible.
-- Browser smoke coverage added; CI on latest head remains the acceptance gate.
+- Browser smoke covers policy creation, append-only v2, allocation analysis, backup and legacy restore; CI, Secret Scan and deployment passed on 2026-11-06.
