@@ -2814,7 +2814,7 @@ try {
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
     assert.equal(databaseBackup.schemaVersion, 7, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
@@ -2828,6 +2828,24 @@ try {
     assert.deepEqual(databaseBackup, committedDatabaseWorkspace,
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
+    assert.equal(databaseBackup.investmentAllocationPolicies.length, 1,
+        'schema-v7 backup should include the saved allocation policy version');
+    const legacyV6Backup = structuredClone(databaseBackup);
+    legacyV6Backup.schemaVersion = 6;
+    delete legacyV6Backup.investmentAllocationPolicies;
+    const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
+    await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
+    const legacyImportDialogPromise = page.waitForEvent('dialog');
+    await page.locator('#import-file').setInputFiles(legacyV6BackupPath);
+    const legacyImportDialog = await legacyImportDialogPromise;
+    assert.match(legacyImportDialog.message(), /Backup import preview/);
+    await legacyImportDialog.accept();
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 1,
+        'a compatible legacy v6 backup must preserve allocation policies that were not present in that backup');
+    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '1',
+        'legacy restore must leave the allocation policy visible in the private dashboard');
+    process.stdout.write('PASS: compatible legacy v6 backup import preserves schema-v7 allocation policy versions.\\n');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
