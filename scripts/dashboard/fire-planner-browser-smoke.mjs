@@ -2815,7 +2815,7 @@ try {
     const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
     assert.equal(policyBackup.schemaVersion, 7);
     assert.equal(policyBackup.investmentAllocationPolicies.length, 2);
-    const legacyV6Backup = structuredClone(policyBackup);
+    const legacyV6Backup = JSON.parse(JSON.stringify(policyBackup));
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
     const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
