@@ -42,7 +42,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
     const cashLedger = [6, 7].includes(payload.schemaVersion) ? validateInvestmentCashCollections(payload) : null;
     const allocationPolicies = payload.schemaVersion === 7 ? validateInvestmentAllocationCollections(payload) : null;
     return {
-        records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}), ...(allocationPolicies ? { investmentAllocationPolicies: allocationPolicies } : {}),
+        records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}), ...(allocationPolicies ?? {}),
         includesGoals: [2, 3, 4, 5, 6, 7].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
         ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
         ...(payload.schemaVersion >= 6 ? { includesInvestmentCashLedger: true } : {}),
