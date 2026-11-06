@@ -622,3 +622,20 @@ In progress on draft PR #432, stacked on PR #430.
 - Verified on PR #432 head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed (80 test files / 718 tests, lint, typecheck, build, dependency audit and real Chromium smoke); dashboard packaging run 41326075250 passed (Pages publish skipped for PR); Secret Scan run 41326075278 passed.
 - Real Chromium smoke confirms the dashboard action creates a verified online SQLite backup file. Unit/API recovery tests restore the actual backup file and verify all 13 collections and stable identifiers.
 - Manual backups only; scheduling, rotation, retention enforcement, encryption and remote copies remain deferred.
+
+
+## Investment Portfolio Management — Allocation targets and drift
+
+Status
+
+Domain foundation implemented on `feature/investment-allocation-targets`; persistence and dashboard workflows are the next increment.
+
+- Added validated, immutable allocation-policy versions with a stable policy-set ID, positive version number, currency, portfolio/account scope, instrument-type/instrument grouping, effective date, recorded-at timestamp and explicit percentage targets.
+- Policy target weights must total 100%; duplicate keys, invalid dates, unsupported types, unknown instruments, wrong-currency instruments/accounts and invalid scopes are rejected.
+- Added bitemporal policy selection using both effective date and recorded-at cutoff. Later-recorded changes cannot rewrite earlier knowledge.
+- Added deterministic actual-vs-target analysis over existing FIFO positions and eligible valuations. Reports actual market value/weight, target weight, percentage-point drift and currency-value drift.
+- Holdings absent from target rows remain visible at zero target; target rows with no holdings remain visible at zero actual. Missing valuation on any open position suppresses the entire affected allocation rather than presenting partial totals.
+- Added descriptive HHI, effective category count and largest-category share. No thresholds, recommendations, rebalancing instructions, trades, FX or inferred prices.
+- Unit tests cover policy validation, 100% reconciliation, account scope, instrument-specific targets, policy version uniqueness, bitemporal selection, unplanned holdings, missing valuations, empty states and currency separation.
+- Architecture decision: `docs/architecture/ADR-INVESTMENT-ALLOCATION-POLICY.md`.
+- Not yet persisted or exposed in the dashboard. The next increment requires schema-v7 collection `investmentAllocationPolicies`, v6→v7 recovery-safe migration, v1–v6 backup compatibility, append-only policy CRUD, and private-workspace UI. Do not claim policies are saved until that acceptance passes.
