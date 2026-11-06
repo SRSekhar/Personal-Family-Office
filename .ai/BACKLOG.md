@@ -628,7 +628,7 @@ In progress on draft PR #432, stacked on PR #430.
 
 Status
 
-Domain foundation implemented on `feature/investment-allocation-targets`; persistence and dashboard workflows are the next increment.
+Domain foundation, schema-v7 persistence and private dashboard workflows implemented on `feature/investment-allocation-targets`; CI, Secret Scan, deployment and Chromium acceptance passed 2026-11-06. PR #435 remains draft/open/unmerged.
 
 - Added validated, immutable allocation-policy versions with a stable policy-set ID, positive version number, currency, portfolio/account scope, instrument-type/instrument grouping, effective date, recorded-at timestamp and explicit percentage targets.
 - Policy target weights must total 100%; duplicate keys, invalid dates, unsupported types, unknown instruments, wrong-currency instruments/accounts and invalid scopes are rejected.
