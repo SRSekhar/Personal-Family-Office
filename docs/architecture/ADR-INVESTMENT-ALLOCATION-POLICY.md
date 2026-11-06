@@ -1,6 +1,6 @@
 # ADR — Investment allocation policy and drift
 
-- Status: Accepted — domain, schema-v7 persistence and private dashboard workflows implemented; CI and end-to-end acceptance pending
+- Status: Accepted — domain, schema-v7 persistence and private dashboard workflows implemented and verified; CI, Secret Scan, deployment and Chromium acceptance passed 2026-11-06
 - Date: 2026-11-06
 - Scope: deterministic allocation-policy domain and analytics foundation
 
@@ -59,3 +59,7 @@ The domain engine must test exact 100% validation, account/currency scoping, ins
 ## Consequences
 
 This separates policy facts from ledger events and market valuations. It makes allocation drift reproducible at historical effective and recorded-at cutoffs while preserving the existing accounting source of truth. The policy UI remains descriptive: it does not generate investment recommendations, rebalancing instructions or trades.
+
+## Verification record
+
+Verified on PR #435 head tree `0a21c20638e4e4a192ae73554f7b3732806c714f`: CI run 42169616949 passed lint, typecheck, build, full tests and Chromium browser smoke; Secret Scan run 42169616950 passed; dashboard deployment run 42169616957 passed. The browser smoke covers immutable v1/v2 policy creation, allocation drift analysis, schema-v7 backup and compatible legacy v6 backup preservation.
