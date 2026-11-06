@@ -898,6 +898,38 @@
                     <h4>Statement history</h4>
                     <div class="table-wrap"><table><thead><tr><th>As of</th><th>Cash account</th><th class="align-right">Closing balance</th><th>Source</th></tr></thead><tbody id="investment-cash-statement-rows"></tbody></table></div>
                 </section>
+                <section class="investment-allocation-workspace" id="investment-allocation-workspace" aria-labelledby="investment-allocation-heading">
+                    <div class="section-heading"><div><p class="eyebrow">PORTFOLIO POLICY</p><h3 id="investment-allocation-heading">Allocation targets &amp; drift</h3>
+                        <p class="form-note">Save immutable, versioned allocation policies and compare them with valued FIFO positions. Existing versions are never edited. Currency buckets remain separate; missing valuations make the affected allocation unavailable.</p></div></div>
+                    <div class="notice" id="investment-allocation-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Allocation policies and analysis are available only in your local private workspace.</p></div></div>
+                    <p class="validation-message" id="investment-allocation-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-allocation-message" role="status" aria-live="polite" hidden></p>
+                    <div class="investment-ledger-stats"><div><strong id="investment-allocation-policy-count">0</strong><span>Policy versions</span></div></div>
+                    <form id="investment-allocation-form" class="panel-card">
+                        <h4>Create or append an allocation policy version</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Policy set<select id="investment-allocation-policy-set" name="policySetId"><option value="">Create a new policy set</option></select></label>
+                            <label class="field-label">Policy name<input id="investment-allocation-name" name="name" maxlength="100" required></label>
+                            <label class="field-label">Currency<select id="investment-allocation-currency" name="currency" required></select></label>
+                            <label class="field-label">Scope<select id="investment-allocation-scope" name="scope"><option value="portfolio">Portfolio</option><option value="account">One investment account</option></select></label>
+                            <label class="field-label" id="investment-allocation-account-row" hidden>Investment account<select id="investment-allocation-account" name="accountId"><option value="">Select account</option></select></label>
+                            <label class="field-label">Group targets by<select id="investment-allocation-group-by" name="groupBy"><option value="instrumentType">Instrument type</option><option value="instrument">Specific instrument</option></select></label>
+                            <label class="field-label">Effective from<input id="investment-allocation-effective-from" name="effectiveFrom" type="date" required></label>
+                        </div>
+                        <div class="investment-allocation-target-heading"><div><h4>Target weights</h4><p class="form-note">All target weights must total exactly 100%. Zero-weight groups are allowed.</p></div>
+                            <button class="button button-secondary button-small" id="investment-allocation-add-target" type="button">Add target</button></div>
+                        <div id="investment-allocation-targets" class="investment-allocation-targets"></div>
+                        <div class="button-row"><button class="button button-primary" type="submit">Save new policy version</button></div>
+                    </form>
+                    <h4>Saved policy history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Policy</th><th>Version</th><th>Currency</th><th>Scope</th><th>Grouping</th><th>Effective from</th><th>Targets</th></tr></thead><tbody id="investment-allocation-policy-rows"></tbody></table></div>
+                    <div class="investment-allocation-target-heading"><div><h4>Actual vs target allocation</h4><p class="form-note">Analysis uses the selected policy version known at the current recorded-at cutoff and effective on the selected date.</p></div></div>
+                    <div class="field-grid">
+                        <label class="field-label">Policy set to analyze<select id="investment-allocation-analyze-set"><option value="">Choose a policy set</option></select></label>
+                        <label class="field-label">As-of date<input id="investment-allocation-as-of" type="date"></label>
+                    </div>
+                    <div id="investment-allocation-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
+                </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
                         <p class="form-note">Export each of the eight investment and cash collections as a separate PFO-native CSV. Import validates all selected files together and previews the result before changing saved data. JSON workspace backup remains the authoritative full backup.</p></div></div>
