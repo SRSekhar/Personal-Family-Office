@@ -2,6 +2,7 @@ import {
     INVESTMENT_CSV_COLLECTIONS, exportInvestmentCollectionCsv, parseInvestmentCollectionCsvDetailed,
     exportInvestmentCsvErrorReport, previewInvestmentCsvImport
 } from './investment-csv.js';
+import { validateInvestmentAllocationCollections } from './investment-allocation.js';
 
 const MAX_INVESTMENT_CSV_BYTES = 10 * 1024 * 1024;
 const STORAGE_KEYS = {
@@ -19,6 +20,12 @@ let pendingPreview = null;
 let importErrors = [];
 
 
+function readAllocationPolicies() {
+    const raw = localStorage.getItem('pfo-os.investment-allocation-policies.v1');
+    const policies = raw === null ? [] : JSON.parse(raw);
+    if (!Array.isArray(policies)) throw new Error('Saved investment allocation policies are not an array.');
+    return policies;
+}
 function isPrivateWorkspace() {
     return $('#workspace-label')?.textContent.includes('PRIVATE') === true;
 }
@@ -99,6 +106,7 @@ function clearPreview(message = '') {
 function commitPreview() {
     if (!pendingPreview || !isPrivateWorkspace()) throw new Error('A validated import preview in the private workspace is required.');
     const candidate = pendingPreview.candidate;
+    validateInvestmentAllocationCollections({ ...candidate, investmentAllocationPolicies: readAllocationPolicies() });
     const previous = Object.values(STORAGE_KEYS).map((key) => [key, localStorage.getItem(key)]);
     try {
         for (const collection of INVESTMENT_CSV_COLLECTIONS) {
@@ -149,6 +157,7 @@ async function previewFiles(files) {
     }
     const mode = document.querySelector('input[name="investment-csv-mode"]:checked')?.value ?? 'replace';
     const preview = previewInvestmentCsvImport(readWorkspace(), imported, mode);
+    validateInvestmentAllocationCollections({ ...preview.candidate, investmentAllocationPolicies: readAllocationPolicies() });
     pendingPreview = { ...preview, imported };
     renderPreview(preview);
 }
