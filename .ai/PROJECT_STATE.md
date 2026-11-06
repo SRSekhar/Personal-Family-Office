@@ -288,3 +288,10 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - Vitest now includes all dashboard root-level tests in addition to `apps/dashboard/tests/**`, ensuring investment-ledger and cash-ledger validator tests run in CI.
 - PR #430 head `786ded49daa9655fcc09d50da4562c4f682cb5c1`: CI run 41289104534 success; dashboard package run 41289104460 success (publish skipped). PR #429 CI and packaging also passed.
 - No PR has been merged. Merge order remains #425 → #426 → #427 → #428 → #429 → #430 and requires explicit user approval.
+
+
+## 2026-11-06 — Investment allocation policy foundation
+
+- Draft PR #435 adds the pure allocation-policy and drift engine on top of PR #432.
+- Domain and unit-test files plus an ADR are present. Saved policy persistence, migration and dashboard CRUD remain outstanding.
+- Do not merge the stacked PR chain without explicit approval.
