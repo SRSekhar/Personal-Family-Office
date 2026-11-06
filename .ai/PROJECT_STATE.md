@@ -298,7 +298,7 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 
 ## Investment allocation persistence update — 2026-11-06
 
-PR #435 now includes the schema-v7 persistence foundation on the existing stacked branch. The workspace has 14 collections, adding `investmentAllocationPolicies`. v6→v7 migration is transactional and creates a protected pre-migration recovery artifact. Schema-v7 backup validation checks policy references and targets. Browser-local storage and SQLite payload assembly include the collection. Legacy v1–v6 backups remain compatible and do not overwrite allocation policies when absent. The policy CRUD/dashboard workflow is not yet complete. Do not mark this feature complete or merge the stack until latest CI and end-to-end acceptance pass.
+PR #435 now includes the schema-v7 persistence foundation on the existing stacked branch. The workspace has 14 collections, adding `investmentAllocationPolicies`. v6→v7 migration is transactional and creates a protected pre-migration recovery artifact. Schema-v7 backup validation checks policy references and targets. Browser-local storage and SQLite payload assembly include the collection. Legacy v1–v6 backups remain compatible and do not overwrite allocation policies when absent. The policy CRUD/dashboard workflow is implemented. CI, Secret Scan, dashboard deployment and real Chromium end-to-end acceptance passed on verified tree `0a21c20638e4e4a192ae73554f7b3732806c714f` (2026-11-06). The PR remains draft/open/unmerged and the stacked dependency chain remains intact; no merge has been authorized.
 
 ## Allocation dashboard follow-up — 2026-11-06
 
