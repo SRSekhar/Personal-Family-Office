@@ -639,3 +639,16 @@ Domain foundation implemented on `feature/investment-allocation-targets`; persis
 - Unit tests cover policy validation, 100% reconciliation, account scope, instrument-specific targets, policy version uniqueness, bitemporal selection, unplanned holdings, missing valuations, empty states and currency separation.
 - Architecture decision: `docs/architecture/ADR-INVESTMENT-ALLOCATION-POLICY.md`.
 - Not yet persisted or exposed in the dashboard. The next increment requires schema-v7 collection `investmentAllocationPolicies`, v6→v7 recovery-safe migration, v1–v6 backup compatibility, append-only policy CRUD, and private-workspace UI. Do not claim policies are saved until that acceptance passes.
+
+### IPM — Investment allocation policy persistence and dashboard
+
+**Status:** Persistence foundation in progress on draft PR #435; user-facing policy CRUD remains open.
+
+- [x] Add schema-v7 collection `investmentAllocationPolicies` to complete workspace snapshots.
+- [x] Add validated immutable policy collection validation against existing account/instrument references.
+- [x] Add transactional v6→v7 SQLite migration with durable schema-v6 recovery artifact; initialize policies empty without inference.
+- [x] Extend schema-v7 JSON backup validation and SQLite online backup/restore coverage.
+- [x] Preserve legacy v1–v6 backup compatibility without replacing allocation policies when absent.
+- [ ] Build private-workspace allocation policy CRUD with append-only version creation and explicit confirmation.
+- [ ] Add browser tests for policy creation/versioning, stale tabs, failed storage writes and legacy import preservation.
+- [ ] Verify latest PR CI and end-to-end migration/backup restore before marking complete.
