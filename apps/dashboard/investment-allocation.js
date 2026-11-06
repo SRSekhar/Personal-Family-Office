@@ -84,12 +84,19 @@ export function analyzeInvestmentAllocation({ positions, instruments, accounts, 
         throw new RangeError('Allocation analysis requires valid effective and recorded-at cutoffs.');
     }
     const validated = validateInvestmentAllocationPolicy(policy, { accounts, instruments });
+    if (Date.parse(validated.effectiveFrom + 'T00:00:00.000Z') > asOfDate.getTime()
+        || Date.parse(validated.recordedAt) > recordedAtCutoff.getTime()) {
+        throw new RangeError('The allocation policy was not both effective and known at the requested cutoffs.');
+    }
     const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
+    const accountMap = new Map(accounts.map((item) => [item.id, item]));
     const selected = positions.filter((position) => position.currency === validated.currency && (validated.scope === 'portfolio' || position.accountId === validated.accountId));
     const included = [];
     for (const position of selected) {
         const instrument = instrumentMap.get(position.instrumentId);
+        const account = accountMap.get(position.accountId);
         if (!instrument || instrument.currency !== validated.currency) throw new RangeError('A position references an unknown or wrong-currency instrument.');
+        if (!account || account.currency !== instrument.currency) throw new RangeError('A position references an unknown account or an account with a different currency.');
         if (!Number.isFinite(position.quantity) || position.quantity < 0) throw new RangeError('Position quantity must be non-negative and finite.');
         if (position.quantity <= VALUE_TOLERANCE) continue;
         if (position.marketValue === null || position.marketValue === undefined) return {
