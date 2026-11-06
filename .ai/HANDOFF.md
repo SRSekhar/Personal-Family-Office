@@ -442,3 +442,12 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Added backup validation and SQLite migration/restore tests, including policy-version round-trip.
 - Latest schema-v7 commits are on the feature branch; confirm CI on the latest head before treating this increment as verified.
 - Remaining: user-facing allocation policy CRUD/dashboard workflow, append-only version editing UX, richer recovery/compatibility acceptance, and final `.ai` status reconciliation.
+
+## Follow-up — Allocation policy dashboard completed (2026-11-06)
+
+- Added private-workspace allocation policy UI for new policy sets and append-only versions, explicit save confirmation, target editing, policy history and actual-vs-target analysis.
+- Analysis reuses the existing FIFO position/valuation projection and bitemporal policy selection. Missing valuation suppresses partial output; currencies are not combined.
+- Added browser smoke coverage for creating an allocation policy and analyzing a valued holding.
+- Investment CSV import now validates candidate ledger changes against saved policy references and blocks imports that would orphan policy references.
+- Legacy v1–v6 backup import preserves existing allocation policies only if their references remain valid against the incoming ledger; otherwise the import is rejected before writes.
+- Latest PR #435 CI must be confirmed on the current head. No merge is authorized.
