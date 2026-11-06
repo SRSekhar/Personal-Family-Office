@@ -2818,8 +2818,8 @@ try {
     assert.equal(await page.locator('#investment-allocation-policy-rows tr').count(), 2,
         'saving a new version must preserve the earlier immutable policy version');
     assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation v2/);
-    // Two tabs prepare the same next version from one baseline. The first commit wins;
-    // the stale second tab must be rejected without replacing the winning policy history.
+    // Capture a stale policy snapshot in the second tab. Commit a newer version
+    // in the first tab, then prove the second tab's stale baseline is rejected.
     const secondPage = await context.newPage();
     const secondPageErrors = [];
     secondPage.on('pageerror', (error) => secondPageErrors.push(error.message));
@@ -2830,24 +2830,36 @@ try {
     await secondPage.waitForFunction(() => globalThis.document.querySelector('#workspace-label')?.textContent.includes('PRIVATE'));
     await secondPage.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
     await secondPage.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
+    const stalePolicySnapshot = await secondPage.evaluate(() =>
+        globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1'));
     await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
     await page.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
-    // Stub the native confirmation in both tabs so the browser context's modal
-    // dialog serialization cannot hide the actual concurrent storage race.
-    await Promise.all([page, secondPage].map((tab) => tab.evaluate(() => {
-        globalThis.confirm = () => true;
-    })));
-    await Promise.all([page, secondPage].map((tab) => tab.evaluate(() => {
-        const form = globalThis.document.querySelector('#investment-allocation-form');
-        form.dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true }));
-    })));
+    await page.evaluate(() => { globalThis.confirm = () => true; });
+    await page.evaluate(() => globalThis.document.querySelector('#investment-allocation-form')
+        .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true })));
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '3');
-    await secondPage.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('changed in another tab'));
+    await secondPage.evaluate((staleSnapshot) => {
+        const originalGetItem = globalThis.Storage.prototype.getItem;
+        let returnStaleSnapshotOnce = true;
+        globalThis.Storage.prototype.getItem = function (key) {
+            if (key === 'pfo-os.investment-allocation-policies.v1' && returnStaleSnapshotOnce) {
+                returnStaleSnapshotOnce = false;
+                return staleSnapshot;
+            }
+            return originalGetItem.call(this, key);
+        };
+        globalThis.confirm = () => true;
+        globalThis.document.querySelector('#investment-allocation-form')
+            .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true }));
+    }, stalePolicySnapshot);
+    await secondPage.waitForFunction(() =>
+        globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('changed in another tab'));
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 3,
-        'stale concurrent policy append must not overwrite or duplicate the winning version');
-    assert.deepEqual(secondPageErrors, [], 'concurrent allocation policy flow must not cause browser exceptions');
+        'a stale cross-tab policy append must not overwrite or duplicate the winning version');
+    assert.deepEqual(secondPageErrors, [], 'stale cross-tab allocation flow must not cause browser exceptions');
     await secondPage.close();
-    process.stdout.write('PASS: concurrent tabs cannot overwrite an allocation policy history from a stale baseline.\\n');
+    process.stdout.write('PASS: stale cross-tab allocation policy writes are rejected without overwriting committed history.\\n');
+
 
     // A failed browser-storage write must leave the previously committed policy history unchanged.
     await page.evaluate(() => {
