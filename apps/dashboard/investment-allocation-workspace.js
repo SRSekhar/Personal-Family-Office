@@ -287,10 +287,11 @@ export function initializeInvestmentAllocationWorkspace() {
     $('#investment-allocation-as-of').addEventListener('change', () => {
         try { const ledger = readLedger(); renderAnalysis(ledger, readPolicies(ledger)); } catch (error) { message(error.message, true); }
     });
-    $('#investment-allocation-form').addEventListener('submit', (event) => {
+    $('#investment-allocation-form').addEventListener('submit', async (event) => {
         event.preventDefault();
         try {
             if (!privateWorkspace()) throw new Error('Switch to the private workspace before saving an allocation policy.');
+            const policyStorageBaseline = localStorage.getItem(POLICY_KEY);
             const ledger = readLedger(), policies = readPolicies(ledger);
             const selectedSet = $('#investment-allocation-policy-set').value;
             const existing = selectedSet ? policies.filter((item) => item.policySetId === selectedSet) : [];
@@ -320,7 +321,14 @@ export function initializeInvestmentAllocationWorkspace() {
             const confirmed = window.confirm('Save immutable allocation policy ' + policy.name + ' v' + policy.version
                 + '? Existing policy versions will remain unchanged. Target weights must total 100%.');
             if (!confirmed) return;
-            localStorage.setItem(POLICY_KEY, JSON.stringify(validated));
+            const commitPolicyVersion = () => {
+                if (localStorage.getItem(POLICY_KEY) !== policyStorageBaseline) {
+                    throw new Error('Allocation policies changed in another tab while this version was being prepared. Reload the policy history and retry; no changes were written.');
+                }
+                localStorage.setItem(POLICY_KEY, JSON.stringify(validated));
+            };
+            if (navigator.locks?.request) await navigator.locks.request('pfo-os-investment-allocation-policy-write', commitPolicyVersion);
+            else commitPolicyVersion();
             $('#investment-allocation-policy-set').value = policy.policySetId;
             $('#investment-allocation-analyze-set').value = policy.policySetId;
             $('#investment-allocation-targets').replaceChildren();
