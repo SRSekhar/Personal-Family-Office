@@ -165,7 +165,7 @@ export function selectInvestmentAllocationPolicy(policies, { asOfDate, recordedA
 /** Validate the persisted allocation-policy collection against ledger references. */
 export function validateInvestmentAllocationCollections(payload) {
     if (!payload || !Array.isArray(payload.investmentAllocationPolicies)) throw new TypeError('Investment allocation policies must be an array.');
-    return validateInvestmentAllocationPolicies(payload.investmentAllocationPolicies, {
+    return { investmentAllocationPolicies: validateInvestmentAllocationPolicies(payload.investmentAllocationPolicies, {
         accounts: payload.investmentAccounts, instruments: payload.investmentInstruments
-    });
+    }) };
 }
