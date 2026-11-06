@@ -464,7 +464,7 @@ In progress on PR #435 (stacked on PR #432; no merge authorization).
 - Added recovery-safe v6→v7 migration and pre-migration schema-v6 JSON artifact.
 - Added schema-v7 backup validation and policy collection validation against ledger account/instrument references.
 - Private browser storage and SQLite payload assembly now carry allocation policy versions.
-- CI and full test suite must pass on the latest PR head. User-facing policy CRUD and append-only version UI are still pending.
+- Private policy CRUD, append-only version UI, backup compatibility and browser smoke are implemented. CI run 42169616949, Secret Scan 42169616950 and dashboard deployment 42169616957 passed on verified tree `0a21c20638e4e4a192ae73554f7b3732806c714f`.
 
 ## Follow-up — Allocation dashboard implementation (2026-11-06)
 
