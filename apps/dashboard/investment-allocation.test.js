@@ -17,7 +17,7 @@ const policy = (overrides = {}) => ({
     scope: 'portfolio', groupBy: 'instrumentType', effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
     targets: [{ key: 'Equity', weightPercent: 60 }, { key: 'MutualFund', weightPercent: 40 }], ...overrides
 });
-const position = (accountId, instrumentId, quantity, marketValue) => ({ accountId, instrumentId, quantity, marketValue, currency: 'INR' });
+const position = (accountId, instrumentId, quantity, marketValue, currency = 'INR') => ({ accountId, instrumentId, quantity, marketValue, currency });
 const asOfDate = new Date('2026-11-01T23:59:59.999Z');
 
 describe('investment allocation policy validation', () => {
@@ -81,7 +81,7 @@ describe('investment allocation analysis', () => {
         expect(result.rows).toEqual([]);
     });
     it('keeps currencies separate and returns empty for no positive holdings', () => {
-        const result = analyzeInvestmentAllocation({ positions: [position('account-usd', 'bond-usd', 1, 500)], instruments, accounts, policy: policy(), asOfDate });
+        const result = analyzeInvestmentAllocation({ positions: [position('account-usd', 'bond-usd', 1, 500, 'USD')], instruments, accounts, policy: policy(), asOfDate });
         expect(result.totalValue).toBe(0);
         expect(result.status).toBe('empty');
     });
