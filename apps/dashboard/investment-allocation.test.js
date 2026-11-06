@@ -134,6 +134,10 @@ describe('allocation analysis cutoff guards', () => {
         expect(() => analyzeInvestmentAllocation({
             positions: [position('unknown-account', 'equity-1', 1, 100)], instruments, accounts, policy: policy(), asOfDate
         })).toThrow(/unknown account/);
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('account-1', 'equity-1', 1, 100, 'USD')], instruments, accounts,
+            policy: policy({ scope: 'account', accountId: 'account-1', targets: [{ key: 'Equity', weightPercent: 100 }] }), asOfDate
+        })).toThrow(/wrong-currency instrument/);
     });
 
 });
