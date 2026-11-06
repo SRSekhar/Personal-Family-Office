@@ -106,6 +106,13 @@ function fillPolicySetOptions(policies) {
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((policy) => '<option value="' + escape(policy.policySetId) + '">' + escape(policy.name) + ' · v' + policy.version + '</option>').join('');
     if (sets.has(previous)) select.value = previous;
+    const analyze = $('#investment-allocation-analyze-set');
+    const analyzePrevious = analyze.value;
+    analyze.innerHTML = '<option value="">Choose a policy set</option>' + [...sets.values()]
+        .sort((x, y) => x.name.localeCompare(y.name))
+        .map((policy) => '<option value="' + escape(policy.policySetId) + '">' + escape(policy.name) + ' · v' + policy.version + '</option>').join('');
+    if (sets.has(analyzePrevious)) analyze.value = analyzePrevious;
+    else if (sets.size === 1) analyze.value = [...sets.keys()][0];
 }
 function renderPolicies(policies) {
     const body = $('#investment-allocation-policy-rows');
@@ -142,7 +149,7 @@ function renderAnalysis(ledger, policies) {
         const latest = policies.filter((item) => item.policySetId === policySetId).sort((a, b) => b.version - a.version)[0];
         if (!latest) throw new Error('The selected policy set is unavailable.');
         const recordedAtCutoff = new Date();
-        const policy = selectInvestmentAllocationPolicy(policies, {
+        const policy = selectInvestmentAllocationPolicy(policies.filter((item) => item.policySetId === policySetId), {
             asOfDate, recordedAtCutoff, scope: latest.scope, currency: latest.currency, accountId: latest.accountId
         }, { accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments });
         if (!policy || policy.policySetId !== policySetId) {
