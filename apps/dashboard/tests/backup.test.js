@@ -350,3 +350,61 @@ describe('version 6 investment cash-ledger backup validation', () => {
         expect(result).not.toHaveProperty('investmentCashMovements');
     });
 });
+
+
+describe('version 7 investment allocation policy backup validation', () => {
+    const version7 = {
+        schemaVersion: 7, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [], investmentValuations: [],
+        investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [],
+        investmentAllocationPolicies: [{
+            id: 'allocation-policy-v1', policySetId: 'long-term', version: 1, name: 'Long-term allocation',
+            currency: 'INR', scope: 'portfolio', groupBy: 'instrumentType',
+            effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
+            targets: [{ key: 'MutualFund', weightPercent: 100 }]
+        }]
+    };
+
+    it('validates, retains and previews the append-only allocation policy collection', () => {
+        const validated = validateBackupPayload(version7, 'INR');
+        expect(validated.includesInvestmentAllocationPolicies).toBe(true);
+        expect(validated.investmentAllocationPolicies).toEqual(version7.investmentAllocationPolicies);
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentAllocationPolicies: true, investmentAllocationPolicyCount: 1,
+            includesInvestmentLedger: true, includesInvestmentCashLedger: true
+        });
+    });
+
+    it('requires the policy collection and validates policy references and target totals', () => {
+        const missing = { ...version7 }; delete missing.investmentAllocationPolicies;
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow('Unsupported backup format');
+        const wrongInstrument = structuredClone(version7);
+        wrongInstrument.investmentAllocationPolicies[0].groupBy = 'instrument';
+        wrongInstrument.investmentAllocationPolicies[0].targets = [{ key: 'missing-instrument', weightPercent: 100 }];
+        expect(() => validateBackupPayload(wrongInstrument, 'INR')).toThrow(/existing instrument/i);
+        const invalidWeights = structuredClone(version7);
+        invalidWeights.investmentAllocationPolicies[0].targets[0].weightPercent = 90;
+        expect(() => validateBackupPayload(invalidWeights, 'INR')).toThrow(/total 100%/);
+    });
+
+    it('does not treat the empty collection added by v6 migration as an imported policy collection', () => {
+        const migrated = { ...version7, investmentAllocationPolicies: [], allocationPoliciesMigratedFromV6: true };
+        const validated = validateBackupPayload(migrated, 'INR');
+        expect(validated.investmentAllocationPolicies).toEqual([]);
+        expect(validated).not.toHaveProperty('includesInvestmentAllocationPolicies');
+        const inconsistent = { ...migrated, investmentAllocationPolicies: version7.investmentAllocationPolicies };
+        expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
+    });
+
+    it('keeps schema-v6 imports compatible and does not claim allocation policies were included', () => {
+        const legacy = structuredClone(version7);
+        legacy.schemaVersion = 6;
+        delete legacy.investmentAllocationPolicies;
+        const validated = validateBackupPayload(legacy, 'INR');
+        expect(validated).not.toHaveProperty('includesInvestmentAllocationPolicies');
+        expect(validated).not.toHaveProperty('investmentAllocationPolicies');
+    });
+});

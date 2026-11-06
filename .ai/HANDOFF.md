@@ -420,3 +420,34 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Manual online SQLite backup is implemented via Node `sqlite.backup()` (minimum Node 22.16.0), with integrity and full schema-v6 validation, fsync and unique immutable backup files under `<database path>.backups`. The actual backup artifact is reopened in the 13-collection recovery test.
 - PR #432 remains draft/open/unmerged, stacked on PR #430. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432. Do not merge without explicit user approval.
 - Remaining product scope: provider-specific CSV mapping requires redacted real broker CSV samples and confirmed semantics. Automated backup scheduling, rotation, retention, encryption, remote copy and cross-store atomicity remain unimplemented.
+
+
+## Latest Handoff — Investment allocation policy domain foundation (2026-11-06)
+
+- Branch: `feature/investment-allocation-targets`; draft PR #435 targets `feature/investment-ledger-csv-interchange` (PR #432). Preserve the existing stacked dependency chain; no merge is authorized.
+- Implemented pure allocation-policy validation and analysis in `apps/dashboard/investment-allocation.js`, with unit tests in `apps/dashboard/investment-allocation.test.js`.
+- Policy versions have a stable policy-set ID, unique version, currency, portfolio/account scope, instrument-type/instrument grouping, effective date, recorded-at timestamp and targets totaling 100%.
+- Policy selection is bitemporal. Actual-vs-target analysis reports market value, actual/target weights, percentage-point drift and value drift; unplanned holdings remain visible. HHI, effective category count and largest category share are descriptive only.
+- Open positions without eligible valuation suppress the whole allocation. No FX, guessed valuation, recommendation, rebalancing instruction or trade.
+- ADR: `docs/architecture/ADR-INVESTMENT-ALLOCATION-POLICY.md`.
+- Subsequent commits on this branch completed schema-v7 persistence, recovery-safe v6→v7 migration, legacy backup compatibility, append-only policy UI and actual-vs-target analysis. See the latest verification section below.
+- CI, Secret Scan and dashboard deployment passed on the implementation tree; latest CI also passed after the `.ai` documentation sync.
+
+## Latest Handoff — Schema-v7 allocation policy persistence (2026-11-06)
+
+- Work remains on `feature/investment-allocation-targets`, stacked on PR #432. No merge is authorized.
+- PR #435 domain/test fix for the USD position fixture was pushed and CI passed at commit `4f676c239d2684291fdfec56ed006c1b0eb837e8`.
+- Implemented schema-v7 persistence foundation: 14th collection `investmentAllocationPolicies`, validated schema-v7 backup shape, append-only policy collection validation, v6→v7 transactional migration, and protected pre-v7 recovery JSON.
+- Private browser storage and full-workspace JSON/SQLite payloads now include the policy collection. Legacy v1–v6 backups do not overwrite this collection when it is absent.
+- Added backup validation and SQLite migration/restore tests, including policy-version round-trip.
+- Verified head `0a21c20638e4e4a192ae73554f7b3732806c714f`: CI run 42169616949 passed (lint, typecheck, build, full tests and real Chromium smoke); Secret Scan 42169616950 passed; dashboard deployment 42169616957 passed.
+- Remaining follow-up is limited to explicit multi-tab conflict and failed-storage-write browser tests. Core UI, persistence, backup compatibility and browser acceptance are complete. No merge is authorized.
+
+## Follow-up — Allocation policy dashboard completed (2026-11-06)
+
+- Added private-workspace allocation policy UI for new policy sets and append-only versions, explicit save confirmation, target editing, policy history and actual-vs-target analysis.
+- Analysis reuses the existing FIFO position/valuation projection and bitemporal policy selection. Missing valuation suppresses partial output; currencies are not combined.
+- Added browser smoke coverage for creating an allocation policy and analyzing a valued holding.
+- Investment CSV import now validates candidate ledger changes against saved policy references and blocks imports that would orphan policy references.
+- Legacy v1–v6 backup import preserves existing allocation policies only if their references remain valid against the incoming ledger; otherwise the import is rejected before writes.
+- Latest PR #435 CI and real Chromium acceptance passed on head `0a21c20638e4e4a192ae73554f7b3732806c714f`. No merge is authorized.

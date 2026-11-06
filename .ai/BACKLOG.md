@@ -612,8 +612,8 @@ In progress on draft PR #432, stacked on PR #430.
 ## 2026-11-01 — Verified online SQLite backup
 
 - Added a manual loopback-only online SQLite backup action using Node's built-in `sqlite.backup()`; supported runtime minimum is Node 22.16.0.
-- Unique backup files are created under `<database path>.backups`; existing files are never overwritten. Artifacts pass SQLite integrity and full schema-v6 validation across all 13 collections, are fsynced, and are only then published.
-- Added an online-backup restore drill across all 13 collections, checking stable identifiers, valuation provenance and integrity, plus API success/no-data/cross-origin tests.
+- Unique backup files are created under `<database path>.backups`; existing files are never overwritten. Artifacts pass SQLite integrity and full schema-v7 validation across all 14 collections, are fsynced, and are only then published.
+- Added an online-backup restore drill across all 14 collections, checking stable identifiers, valuation provenance and integrity, plus API success/no-data/cross-origin tests.
 - Scheduling, rotation, retention, encryption, remote copy and cross-store browser-storage/SQLite atomicity remain out of scope.
 
 
@@ -622,3 +622,44 @@ In progress on draft PR #432, stacked on PR #430.
 - Verified on PR #432 head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed (80 test files / 718 tests, lint, typecheck, build, dependency audit and real Chromium smoke); dashboard packaging run 41326075250 passed (Pages publish skipped for PR); Secret Scan run 41326075278 passed.
 - Real Chromium smoke confirms the dashboard action creates a verified online SQLite backup file. Unit/API recovery tests restore the actual backup file and verify all 13 collections and stable identifiers.
 - Manual backups only; scheduling, rotation, retention enforcement, encryption and remote copies remain deferred.
+
+
+## Investment Portfolio Management — Allocation targets and drift
+
+Status
+
+Domain foundation, schema-v7 persistence and private dashboard workflows implemented on `feature/investment-allocation-targets`; CI, Secret Scan, deployment and Chromium acceptance passed 2026-11-06. PR #435 remains draft/open/unmerged.
+
+- Added validated, immutable allocation-policy versions with a stable policy-set ID, positive version number, currency, portfolio/account scope, instrument-type/instrument grouping, effective date, recorded-at timestamp and explicit percentage targets.
+- Policy target weights must total 100%; duplicate keys, invalid dates, unsupported types, unknown instruments, wrong-currency instruments/accounts and invalid scopes are rejected.
+- Added bitemporal policy selection using both effective date and recorded-at cutoff. Later-recorded changes cannot rewrite earlier knowledge.
+- Added deterministic actual-vs-target analysis over existing FIFO positions and eligible valuations. Reports actual market value/weight, target weight, percentage-point drift and currency-value drift.
+- Holdings absent from target rows remain visible at zero target; target rows with no holdings remain visible at zero actual. Missing valuation on any open position suppresses the entire affected allocation rather than presenting partial totals.
+- Added descriptive HHI, effective category count and largest-category share. No thresholds, recommendations, rebalancing instructions, trades, FX or inferred prices.
+- Unit tests cover policy validation, 100% reconciliation, account scope, instrument-specific targets, policy version uniqueness, bitemporal selection, unplanned holdings, missing valuations, empty states and currency separation.
+- Architecture decision: `docs/architecture/ADR-INVESTMENT-ALLOCATION-POLICY.md`.
+- Persistence and private dashboard workflows are now implemented on PR #435. Schema-v7 migration, legacy backup compatibility, append-only policy creation, history and actual-vs-target analysis are covered by CI and Chromium acceptance.
+
+### IPM — Investment allocation policy persistence and dashboard
+
+**Status:** Implemented and verified on draft PR #435; merge remains unauthorized.
+
+- [x] Add schema-v7 collection `investmentAllocationPolicies` to complete workspace snapshots.
+- [x] Add validated immutable policy collection validation against existing account/instrument references.
+- [x] Add transactional v6→v7 SQLite migration with durable schema-v6 recovery artifact; initialize policies empty without inference.
+- [x] Extend schema-v7 JSON backup validation and SQLite online backup/restore coverage.
+- [x] Preserve legacy v1–v6 backup compatibility without replacing allocation policies when absent.
+- [x] Build private-workspace allocation policy CRUD with append-only version creation and explicit confirmation.
+- [x] Add Chromium browser smoke for policy creation/versioning and compatible legacy-backup preservation.
+- [x] Add Web Locks-based cross-tab append guard and storage-event refresh.
+- [ ] Add explicit multi-tab conflict and failed-storage-write browser tests.
+- [x] Verify latest PR CI and end-to-end migration/backup restore before marking complete (CI, Secret Scan, deployment and Chromium smoke passed on 2026-11-06).
+
+### IPM allocation policy dashboard — implementation update
+
+- [x] Private-workspace policy set creation and append-only version workflow with explicit confirmation.
+- [x] Policy history view and bitemporal actual-vs-target drift dashboard using FIFO positions and eligible valuations.
+- [x] Prevent CSV imports from orphaning policy references.
+- [x] Preserve existing policy versions on legacy backup imports when incoming ledger references remain valid; reject unsafe imports before writes.
+- [x] Add browser smoke coverage for policy creation and valued-position drift analysis.
+- [x] Confirm latest PR CI and end-to-end browser/SQLite acceptance before marking the IPM allocation increment complete (all required checks passed on 2026-11-06).
