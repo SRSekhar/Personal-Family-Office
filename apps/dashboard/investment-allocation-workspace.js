@@ -329,11 +329,10 @@ export function initializeInvestmentAllocationWorkspace() {
             };
             if (navigator.locks?.request) await navigator.locks.request('pfo-os-investment-allocation-policy-write', commitPolicyVersion);
             else commitPolicyVersion();
+            render();
             $('#investment-allocation-policy-set').value = policy.policySetId;
             $('#investment-allocation-analyze-set').value = policy.policySetId;
-            $('#investment-allocation-targets').replaceChildren();
-            addTargetRow(ledger); addTargetRow(ledger);
-            render();
+            $('#investment-allocation-policy-set').dispatchEvent(new Event('change', { bubbles: true }));
             window.dispatchEvent(new Event('pfo:investment-allocation-updated'));
             window.dispatchEvent(new Event('pfo:workspace-updated'));
             message('Saved policy version ' + policy.version + '. Prior versions were preserved.');
