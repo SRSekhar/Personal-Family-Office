@@ -2792,6 +2792,18 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-analysis')?.textContent.includes('100%'));
     assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation/);
     assert.match(await page.locator('#investment-allocation-analysis').innerText(), /Equity/);
+    const allocationPolicySetId = await page.locator('#investment-allocation-policy-set').inputValue();
+    await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
+    await page.locator('#investment-allocation-name').fill('Browser smoke allocation v2');
+    const allocationV2DialogPromise = page.waitForEvent('dialog');
+    await page.locator('#investment-allocation-form button[type="submit"]').click();
+    const allocationV2Dialog = await allocationV2DialogPromise;
+    assert.match(allocationV2Dialog.message(), /Save immutable allocation policy Browser smoke allocation v2 v2/);
+    await allocationV2Dialog.accept();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '2');
+    assert.equal(await page.locator('#investment-allocation-policy-rows tr').count(), 2,
+        'saving a new version must preserve the earlier immutable policy version');
+    assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation v2/);
     process.stdout.write('PASS: private allocation policy creation is immutable/versioned and drift analysis reconciles the valued FIFO position.\\n');
 
     const [policyBackupDownload] = await Promise.all([
@@ -2802,7 +2814,7 @@ try {
     await policyBackupDownload.saveAs(policyBackupPath);
     const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
     assert.equal(policyBackup.schemaVersion, 7);
-    assert.equal(policyBackup.investmentAllocationPolicies.length, 1);
+    assert.equal(policyBackup.investmentAllocationPolicies.length, 2);
     const legacyV6Backup = structuredClone(policyBackup);
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
@@ -2814,9 +2826,9 @@ try {
     assert.match(legacyImportDialog.message(), /Backup import preview/);
     await legacyImportDialog.accept();
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 1,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 2,
         'a compatible legacy v6 backup must preserve allocation policies that were not present in that backup');
-    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '1',
+    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '2',
         'legacy restore must leave the allocation policy visible in the private dashboard');
     process.stdout.write('PASS: compatible legacy v6 backup import preserves allocation policy versions.\\n');
 
@@ -2854,7 +2866,7 @@ try {
     assert.deepEqual(databaseBackup, committedDatabaseWorkspace,
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
-    assert.equal(databaseBackup.investmentAllocationPolicies.length, 1,
+    assert.equal(databaseBackup.investmentAllocationPolicies.length, 2,
         'schema-v7 backup should include the saved allocation policy version');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
