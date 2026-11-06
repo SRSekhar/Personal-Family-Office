@@ -205,7 +205,7 @@ function render() {
     if (!panel) return;
     const privateMode = privateWorkspace();
     $('#investment-allocation-demo-note').hidden = privateMode;
-    panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = !privateMode; });
+    panel.querySelectorAll('form input, form select, form button, #investment-allocation-analyze-set, #investment-allocation-as-of').forEach((control) => { control.disabled = !privateMode; });
     if (!privateMode) {
         $('#investment-allocation-policy-rows').replaceChildren();
         $('#investment-allocation-analysis').replaceChildren();
