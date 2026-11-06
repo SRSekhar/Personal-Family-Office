@@ -425,7 +425,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 
 ## 2026-11-01 — SQLite recovery documentation aligned
 
-- Updated `docs/operations/LOCAL_BACKUP_AND_RECOVERY.md` and ADR-0004 to reflect schema-v6 and all 13 persisted collections.
+- Updated `docs/operations/LOCAL_BACKUP_AND_RECOVERY.md` and ADR-0004 to reflect schema-v7 and all 14 persisted collections.
 - Clarified that portable JSON export represents the last committed SQLite snapshot, not unsaved browser-local edits.
 - Documented WAL sidecar caution, bounded retry behavior, and the fact that browser localStorage and SQLite are not one atomic transaction.
 - No runtime code changed; prior CI/Secret Scan/dashboard packaging results remain applicable to code, not a new code change.
@@ -444,7 +444,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 
 - Verified head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed, including 80 test files / 718 tests and real Chromium smoke; dashboard packaging run 41326075250 passed; Secret Scan run 41326075278 passed.
 - Browser smoke confirms the user-facing online SQLite backup action creates a verified file and reports its location and 13-collection coverage.
-- The database recovery drill restores the actual backup file and checks all 13 persisted collections, stable identifiers, valuation provenance and SQLite integrity.
+- The database recovery drill restores the actual backup file and checks all 14 persisted collections, stable identifiers, valuation provenance and SQLite integrity.
 - Node runtime floor is 22.16.0. Backups remain manual and are not encrypted, rotated, retained by policy or copied remotely.
 
 
@@ -454,7 +454,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Added immutable versioned policy validation, portfolio/account scopes, currency-specific instrument-type/instrument targets, 100% weight reconciliation and bitemporal policy selection.
 - Added deterministic actual-vs-target drift, value drift and descriptive concentration metrics using the existing FIFO position projection.
 - Missing valuation on any open position suppresses partial allocation results. No FX, inferred price, recommendation, rebalance or trade behavior.
-- Added ADR and unit tests. Persistence and dashboard policy CRUD are not yet implemented; schema-v7 migration and backup compatibility are the next increment.
+- Added ADR and unit tests in the initial domain-only checkpoint; subsequent work on this branch completed schema-v7 persistence, backup compatibility, private policy CRUD and browser acceptance.
 
 ## 2026-11-06 — Investment allocation persistence
 
