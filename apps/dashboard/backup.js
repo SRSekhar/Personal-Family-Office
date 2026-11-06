@@ -44,7 +44,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
         includesGoals: [2, 3, 4, 5, 6, 7].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
         ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
         ...(payload.schemaVersion >= 6 ? { includesInvestmentCashLedger: true } : {}),
-        ...(payload.schemaVersion === 7 ? { includesInvestmentAllocationPolicies: true } : {})
+        ...(payload.schemaVersion === 7 && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {})
     };
 }
 
