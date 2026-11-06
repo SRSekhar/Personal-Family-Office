@@ -65,12 +65,18 @@ export function validateInvestmentAllocationPolicy(policy, { accounts, instrumen
 /** Validate append-only policy history: IDs and policy-set versions are unique. */
 export function validateInvestmentAllocationPolicies(policies, context) {
     if (!Array.isArray(policies)) throw new TypeError('Investment allocation policies must be an array.');
-    const ids = new Set(), versions = new Set();
+    const ids = new Set(), versions = new Set(), policySetDimensions = new Map();
     const validated = policies.map((policy) => {
         const value = validateInvestmentAllocationPolicy(policy, context);
         if (ids.has(value.id)) throw new RangeError('Allocation policy IDs must be unique.');
         const versionKey = value.policySetId + ':' + value.version;
         if (versions.has(versionKey)) throw new RangeError('Each allocation policy set version must be unique.');
+        const dimensions = JSON.stringify([value.currency, value.scope, value.accountId ?? null, value.groupBy]);
+        const existingDimensions = policySetDimensions.get(value.policySetId);
+        if (existingDimensions !== undefined && existingDimensions !== dimensions) {
+            throw new RangeError('Versions in one allocation policy set must retain currency, scope, account and grouping.');
+        }
+        policySetDimensions.set(value.policySetId, dimensions);
         ids.add(value.id); versions.add(versionKey);
         return value;
     });
