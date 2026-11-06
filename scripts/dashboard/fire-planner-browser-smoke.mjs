@@ -2839,7 +2839,7 @@ try {
     })));
     await Promise.all([page, secondPage].map((tab) => tab.evaluate(() => {
         const form = globalThis.document.querySelector('#investment-allocation-form');
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        form.dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true }));
     })));
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '3');
     await secondPage.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('changed in another tab'));
