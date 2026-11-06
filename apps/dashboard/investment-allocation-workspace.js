@@ -255,6 +255,7 @@ export function initializeInvestmentAllocationWorkspace() {
                 $('#investment-allocation-name').value = selected.name;
                 $('#investment-allocation-currency').value = selected.currency;
                 $('#investment-allocation-scope').value = selected.scope;
+                fillAccountOptions(ledger);
                 $('#investment-allocation-account').value = selected.accountId ?? '';
                 $('#investment-allocation-group-by').value = selected.groupBy;
                 $('#investment-allocation-account-row').hidden = selected.scope !== 'account';
