@@ -67,7 +67,7 @@ describe('SQLite workspace persistence schema v7', () => {
         const legacy = payload({ schemaVersion: 4 });
         delete legacy.investmentAccounts; delete legacy.investmentInstruments;
         delete legacy.investmentTransactions; delete legacy.investmentValuations;
-        delete legacy.investmentCashAccounts; delete legacy.investmentCashMovements; delete legacy.investmentCashTransfers; delete legacy.investmentCashStatements;
+        delete legacy.investmentCashAccounts; delete legacy.investmentCashMovements; delete legacy.investmentCashTransfers; delete legacy.investmentCashStatements; delete legacy.investmentAllocationPolicies;
         const raw = new DatabaseSync(path);
         raw.exec(`CREATE TABLE workspace_snapshot (
             singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
