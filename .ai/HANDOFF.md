@@ -440,7 +440,7 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Implemented schema-v7 persistence foundation: 14th collection `investmentAllocationPolicies`, validated schema-v7 backup shape, append-only policy collection validation, v6→v7 transactional migration, and protected pre-v7 recovery JSON.
 - Private browser storage and full-workspace JSON/SQLite payloads now include the policy collection. Legacy v1–v6 backups do not overwrite this collection when it is absent.
 - Added backup validation and SQLite migration/restore tests, including policy-version round-trip.
-- Latest schema-v7 commits are on the feature branch; confirm CI on the latest head before treating this increment as verified.
+- Verified head `0a21c20638e4e4a192ae73554f7b3732806c714f`: CI run 42169616949 passed (lint, typecheck, build, full tests and real Chromium smoke); Secret Scan 42169616950 passed; dashboard deployment 42169616957 passed.
 - Remaining: user-facing allocation policy CRUD/dashboard workflow, append-only version editing UX, richer recovery/compatibility acceptance, and final `.ai` status reconciliation.
 
 ## Follow-up — Allocation policy dashboard completed (2026-11-06)
@@ -450,4 +450,4 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Added browser smoke coverage for creating an allocation policy and analyzing a valued holding.
 - Investment CSV import now validates candidate ledger changes against saved policy references and blocks imports that would orphan policy references.
 - Legacy v1–v6 backup import preserves existing allocation policies only if their references remain valid against the incoming ledger; otherwise the import is rejected before writes.
-- Latest PR #435 CI must be confirmed on the current head. No merge is authorized.
+- Latest PR #435 CI and real Chromium acceptance passed on head `0a21c20638e4e4a192ae73554f7b3732806c714f`. No merge is authorized.
