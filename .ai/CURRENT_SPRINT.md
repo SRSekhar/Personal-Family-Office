@@ -455,3 +455,13 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Added deterministic actual-vs-target drift, value drift and descriptive concentration metrics using the existing FIFO position projection.
 - Missing valuation on any open position suppresses partial allocation results. No FX, inferred price, recommendation, rebalance or trade behavior.
 - Added ADR and unit tests. Persistence and dashboard policy CRUD are not yet implemented; schema-v7 migration and backup compatibility are the next increment.
+
+## 2026-11-06 — Investment allocation persistence
+
+In progress on PR #435 (stacked on PR #432; no merge authorization).
+
+- Schema-v7 extends the SQLite/JSON workspace from 13 to 14 collections with `investmentAllocationPolicies`.
+- Added recovery-safe v6→v7 migration and pre-migration schema-v6 JSON artifact.
+- Added schema-v7 backup validation and policy collection validation against ledger account/instrument references.
+- Private browser storage and SQLite payload assembly now carry allocation policy versions.
+- CI and full test suite must pass on the latest PR head. User-facing policy CRUD and append-only version UI are still pending.
