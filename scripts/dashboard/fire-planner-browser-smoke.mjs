@@ -2832,19 +2832,15 @@ try {
     await secondPage.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
     await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
     await page.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
-    const firstConcurrentDialogPromise = page.waitForEvent('dialog');
-    const firstConcurrentSubmit = page.locator('#investment-allocation-form button[type="submit"]').click();
-    const secondConcurrentDialogPromise = secondPage.waitForEvent('dialog');
-    const secondConcurrentSubmit = secondPage.locator('#investment-allocation-form button[type="submit"]').click();
-    const [firstConcurrentDialog, secondConcurrentDialog] = await Promise.all([
-        firstConcurrentDialogPromise, secondConcurrentDialogPromise
-    ]);
-    assert.match(firstConcurrentDialog.message(), /Browser smoke concurrent v3 v3/);
-    assert.match(secondConcurrentDialog.message(), /Browser smoke concurrent v3 v3/);
-    await firstConcurrentDialog.accept();
-    await firstConcurrentSubmit;
-    await secondConcurrentDialog.accept();
-    await secondConcurrentSubmit;
+    // Stub the native confirmation in both tabs so the browser context's modal
+    // dialog serialization cannot hide the actual concurrent storage race.
+    await Promise.all([page, secondPage].map((tab) => tab.evaluate(() => {
+        globalThis.confirm = () => true;
+    })));
+    await Promise.all([page, secondPage].map((tab) => tab.evaluate(() => {
+        const form = globalThis.document.querySelector('#investment-allocation-form');
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    })));
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '3');
     await secondPage.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('changed in another tab'));
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 3,
