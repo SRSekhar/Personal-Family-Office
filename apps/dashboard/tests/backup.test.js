@@ -390,6 +390,13 @@ describe('version 7 investment allocation policy backup validation', () => {
         expect(() => validateBackupPayload(invalidWeights, 'INR')).toThrow(/total 100%/);
     });
 
+    it('does not treat the empty collection added by v6 migration as an imported policy collection', () => {
+        const migrated = { ...version7, investmentAllocationPolicies: [], allocationPoliciesMigratedFromV6: true };
+        const validated = validateBackupPayload(migrated, 'INR');
+        expect(validated.investmentAllocationPolicies).toEqual([]);
+        expect(validated).not.toHaveProperty('includesInvestmentAllocationPolicies');
+    });
+
     it('keeps schema-v6 imports compatible and does not claim allocation policies were included', () => {
         const legacy = structuredClone(version7);
         legacy.schemaVersion = 6;
