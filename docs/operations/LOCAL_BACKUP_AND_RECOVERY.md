@@ -5,7 +5,7 @@ This guide applies to the local-first PFO OS dashboard and its schema-v7 SQLite 
 ## Understand the copies
 
 - **Browser workspace:** The dashboard's private workspace in browser-local storage. It is the immediate working copy and remains available when SQLite autosave is delayed or fails, but it is tied to that browser profile and device.
-- **SQLite workspace:** The local dashboard server's last committed complete schema-v6 snapshot. It contains 14 collections: financial records, goals, cash-flow entries, budgets, historical snapshots, investment accounts, investment instruments, investment transactions, investment valuations, investment cash accounts, investment cash movements, investment cash transfers, and investment cash statements.
+- **SQLite workspace:** The local dashboard server's last committed complete schema-v7 snapshot. It contains 14 collections: financial records, goals, cash-flow entries, budgets, historical snapshots, investment accounts, investment instruments, investment transactions, investment valuations, investment cash accounts, investment cash movements, investment cash transfers, investment cash statements, and investment allocation policy versions.
 - **Portable JSON export:** A validated, versioned full-workspace snapshot downloaded from the dashboard's SQLite backup/export action. It represents the last committed SQLite snapshot, not browser edits that have not yet reached SQLite. It is the portable recovery format; CSV interchange is not a replacement.
 
 SQLite saves are opt-in and debounced when automatic mode is enabled. Transient save failures receive bounded retries, but retries can be exhausted. A successful SQLite integrity check does not prove that a backup can be restored or that financial values are correct.
