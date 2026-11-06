@@ -96,7 +96,9 @@ export function analyzeInvestmentAllocation({ positions, instruments, accounts, 
     }
     const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
     const accountMap = new Map(accounts.map((item) => [item.id, item]));
-    const selected = positions.filter((position) => position.currency === validated.currency && (validated.scope === 'portfolio' || position.accountId === validated.accountId));
+    const selected = positions.filter((position) => validated.scope === 'portfolio'
+        ? position.currency === validated.currency
+        : position.accountId === validated.accountId);
     const included = [];
     for (const position of selected) {
         const instrument = instrumentMap.get(position.instrumentId);
