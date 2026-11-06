@@ -395,6 +395,8 @@ describe('version 7 investment allocation policy backup validation', () => {
         const validated = validateBackupPayload(migrated, 'INR');
         expect(validated.investmentAllocationPolicies).toEqual([]);
         expect(validated).not.toHaveProperty('includesInvestmentAllocationPolicies');
+        const inconsistent = { ...migrated, investmentAllocationPolicies: version7.investmentAllocationPolicies };
+        expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
     });
 
     it('keeps schema-v6 imports compatible and does not claim allocation policies were included', () => {
