@@ -152,3 +152,12 @@ export function selectInvestmentAllocationPolicy(policies, { asOfDate, recordedA
         || Date.parse(b.recordedAt) - Date.parse(a.recordedAt) || b.version - a.version);
     return eligible[0] ?? null;
 }
+
+
+/** Validate the persisted allocation-policy collection against ledger references. */
+export function validateInvestmentAllocationCollections(payload) {
+    if (!payload || !Array.isArray(payload.investmentAllocationPolicies)) throw new TypeError('Investment allocation policies must be an array.');
+    return validateInvestmentAllocationPolicies(payload.investmentAllocationPolicies, {
+        accounts: payload.investmentAccounts, instruments: payload.investmentInstruments
+    });
+}
