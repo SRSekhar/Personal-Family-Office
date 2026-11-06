@@ -120,12 +120,12 @@ describe('SQLite workspace persistence schema v7', () => {
         expect(readdirSync(directory).filter((name) => name.includes('.pre-v5-'))).toHaveLength(0);
     });
 
-    it('migrates a v5 SQLite workspace to v6 with an exact v5 recovery backup and no inferred cash', async () => {
+    it('migrates a v5 SQLite workspace through v6 to v7 with exact recovery backups and no inferred cash', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-v5-migration-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const legacy = payload({ schemaVersion: 5 });
         delete legacy.investmentCashAccounts; delete legacy.investmentCashMovements;
-        delete legacy.investmentCashTransfers; delete legacy.investmentCashStatements;
+        delete legacy.investmentCashTransfers; delete legacy.investmentCashStatements; delete legacy.investmentAllocationPolicies;
         const raw = new DatabaseSync(path);
         raw.exec(`CREATE TABLE workspace_snapshot (
             singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
@@ -145,6 +145,7 @@ describe('SQLite workspace persistence schema v7', () => {
         expect(saved.investmentCashMovements).toEqual([]);
         expect(saved.investmentCashTransfers).toEqual([]);
         expect(saved.investmentCashStatements).toEqual([]);
+        expect(saved.allocationPoliciesMigratedFromV6).toBe(true);
 
         const backupFiles = readdirSync(directory).filter((name) => name.includes('.pre-v6-') && name.endsWith('.json'));
         expect(backupFiles).toHaveLength(1);
