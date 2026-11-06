@@ -113,3 +113,19 @@ describe('bitemporal allocation policy selection', () => {
         }, { accounts, instruments })).toBeNull();
     });
 });
+    it('rejects a policy that is not effective and recorded by the analysis cutoffs', () => {
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('account-1', 'equity-1', 1, 100)], instruments, accounts,
+            policy: policy({ effectiveFrom: '2026-12-01' }), asOfDate
+        })).toThrow(/not both effective and known/);
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('account-1', 'equity-1', 1, 100)], instruments, accounts,
+            policy: policy({ recordedAt: '2026-12-01T00:00:00.000Z' }), asOfDate
+        })).toThrow(/not both effective and known/);
+    });
+    it('rejects positions whose account metadata is missing or currency-inconsistent', () => {
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('unknown-account', 'equity-1', 1, 100)], instruments, accounts, policy: policy(), asOfDate
+        })).toThrow(/unknown account/);
+    });
+
