@@ -2818,6 +2818,68 @@ try {
     assert.equal(await page.locator('#investment-allocation-policy-rows tr').count(), 2,
         'saving a new version must preserve the earlier immutable policy version');
     assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation v2/);
+    // Two tabs prepare the same next version from one baseline. The first commit wins;
+    // the stale second tab must be rejected without replacing the winning policy history.
+    const secondPage = await context.newPage();
+    const secondPageErrors = [];
+    secondPage.on('pageerror', (error) => secondPageErrors.push(error.message));
+    await secondPage.goto(baseUrl, { waitUntil: 'networkidle' });
+    if ((await secondPage.locator('#workspace-label').innerText()).toLowerCase().includes('sample')) {
+        await secondPage.locator('#switch-private-button').click();
+    }
+    await secondPage.waitForFunction(() => globalThis.document.querySelector('#workspace-label')?.textContent.includes('PRIVATE'));
+    await secondPage.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
+    await secondPage.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
+    await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
+    await page.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
+    const firstConcurrentDialogPromise = page.waitForEvent('dialog');
+    const firstConcurrentSubmit = page.locator('#investment-allocation-form button[type="submit"]').click();
+    const secondConcurrentDialogPromise = secondPage.waitForEvent('dialog');
+    const secondConcurrentSubmit = secondPage.locator('#investment-allocation-form button[type="submit"]').click();
+    const [firstConcurrentDialog, secondConcurrentDialog] = await Promise.all([
+        firstConcurrentDialogPromise, secondConcurrentDialogPromise
+    ]);
+    assert.match(firstConcurrentDialog.message(), /Browser smoke concurrent v3 v3/);
+    assert.match(secondConcurrentDialog.message(), /Browser smoke concurrent v3 v3/);
+    await firstConcurrentDialog.accept();
+    await firstConcurrentSubmit;
+    await secondConcurrentDialog.accept();
+    await secondConcurrentSubmit;
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '3');
+    await secondPage.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('changed in another tab'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 3,
+        'stale concurrent policy append must not overwrite or duplicate the winning version');
+    assert.deepEqual(secondPageErrors, [], 'concurrent allocation policy flow must not cause browser exceptions');
+    await secondPage.close();
+    process.stdout.write('PASS: concurrent tabs cannot overwrite an allocation policy history from a stale baseline.\\n');
+
+    // A failed browser-storage write must leave the previously committed policy history unchanged.
+    await page.evaluate(() => {
+        const originalSetItem = globalThis.Storage.prototype.setItem;
+        globalThis.__pfoAllocationOriginalSetItem = originalSetItem;
+        globalThis.Storage.prototype.setItem = function (key, value) {
+            if (key === 'pfo-os.investment-allocation-policies.v1') {
+                throw new globalThis.DOMException('Simulated allocation policy storage failure', 'QuotaExceededError');
+            }
+            return originalSetItem.call(this, key, value);
+        };
+    });
+    await page.locator('#investment-allocation-name').fill('Browser smoke failed write');
+    const failedPolicyDialogPromise = page.waitForEvent('dialog');
+    const failedPolicySubmit = page.locator('#investment-allocation-form button[type="submit"]').click();
+    const failedPolicyDialog = await failedPolicyDialogPromise;
+    await failedPolicyDialog.accept();
+    await failedPolicySubmit;
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('Simulated allocation policy storage failure'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 3,
+        'a failed allocation policy write must preserve every previously saved version');
+    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '3',
+        'failed policy persistence must not present an unsaved version as committed');
+    await page.evaluate(() => {
+        globalThis.Storage.prototype.setItem = globalThis.__pfoAllocationOriginalSetItem;
+        delete globalThis.__pfoAllocationOriginalSetItem;
+    });
+    process.stdout.write('PASS: failed allocation policy storage writes preserve the prior immutable policy history.\\n');
     process.stdout.write('PASS: private allocation policy creation is immutable/versioned and drift analysis reconciles the valued FIFO position.\\n');
 
     const [policyBackupDownload] = await Promise.all([
@@ -2828,7 +2890,7 @@ try {
     await policyBackupDownload.saveAs(policyBackupPath);
     const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
     assert.equal(policyBackup.schemaVersion, 7);
-    assert.equal(policyBackup.investmentAllocationPolicies.length, 2);
+    assert.equal(policyBackup.investmentAllocationPolicies.length, 3);
     const legacyV6Backup = JSON.parse(JSON.stringify(policyBackup));
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
@@ -2841,9 +2903,9 @@ try {
     await legacyImportDialog.accept();
     await legacyImport;
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 2,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 3,
         'a compatible legacy v6 backup must preserve allocation policies that were not present in that backup');
-    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '2',
+    assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '3',
         'legacy restore must leave the allocation policy visible in the private dashboard');
     process.stdout.write('PASS: compatible legacy v6 backup import preserves allocation policy versions.\\n');
 
