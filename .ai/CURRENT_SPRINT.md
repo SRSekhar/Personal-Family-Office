@@ -465,3 +465,12 @@ In progress on PR #435 (stacked on PR #432; no merge authorization).
 - Added schema-v7 backup validation and policy collection validation against ledger account/instrument references.
 - Private browser storage and SQLite payload assembly now carry allocation policy versions.
 - CI and full test suite must pass on the latest PR head. User-facing policy CRUD and append-only version UI are still pending.
+
+## Follow-up — Allocation dashboard implementation (2026-11-06)
+
+Implemented on draft PR #435:
+- Private-only policy creation and append-only version workflow with explicit confirmation.
+- Policy history table and bitemporal actual-vs-target allocation analysis over FIFO positions and valuations.
+- CSV import guard prevents orphaning existing policy references.
+- Legacy investment backups preserve policies only when the imported ledger remains reference-compatible.
+- Browser smoke coverage added; CI on latest head remains the acceptance gate.
