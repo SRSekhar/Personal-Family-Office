@@ -2795,10 +2795,11 @@ try {
     await page.locator('#investment-allocation-targets .investment-allocation-target-row').last()
         .locator('.investment-allocation-target-weight').fill('100');
     const allocationConfirm = page.waitForEvent('dialog');
-    await page.locator('#investment-allocation-form button[type="submit"]').click();
+    const allocationSubmit = page.locator('#investment-allocation-form button[type="submit"]').click();
     const allocationDialog = await allocationConfirm;
     assert.match(allocationDialog.message(), /Save immutable allocation policy Browser smoke allocation v1/);
     await allocationDialog.accept();
+    await allocationSubmit;
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '1');
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-analysis')?.textContent.includes('100%'));
     assert.match(await page.locator('#investment-allocation-policy-rows').innerText(), /Browser smoke allocation/);
@@ -2807,10 +2808,11 @@ try {
     await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
     await page.locator('#investment-allocation-name').fill('Browser smoke allocation v2');
     const allocationV2DialogPromise = page.waitForEvent('dialog');
-    await page.locator('#investment-allocation-form button[type="submit"]').click();
+    const allocationV2Submit = page.locator('#investment-allocation-form button[type="submit"]').click();
     const allocationV2Dialog = await allocationV2DialogPromise;
     assert.match(allocationV2Dialog.message(), /Save immutable allocation policy Browser smoke allocation v2 v2/);
     await allocationV2Dialog.accept();
+    await allocationV2Submit;
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '2');
     assert.equal(await page.locator('#investment-allocation-policy-rows tr').count(), 2,
         'saving a new version must preserve the earlier immutable policy version');
@@ -2832,10 +2834,11 @@ try {
     const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
     await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
     const legacyImportDialogPromise = page.waitForEvent('dialog');
-    await page.locator('#import-file').setInputFiles(legacyV6BackupPath);
+    const legacyImport = page.locator('#import-file').setInputFiles(legacyV6BackupPath);
     const legacyImportDialog = await legacyImportDialogPromise;
     assert.match(legacyImportDialog.message(), /Backup import preview/);
     await legacyImportDialog.accept();
+    await legacyImport;
     await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace'));
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 2,
         'a compatible legacy v6 backup must preserve allocation policies that were not present in that backup');
