@@ -503,7 +503,7 @@ All investment-management PRs in the stacked chain are now merged to `main` in o
 - #435 — schema-v7 allocation-policy persistence, immutable versions, actual-vs-target drift.
 - #436 — risk-policy readiness gate and updated project handoff.
 
-PR #437 is also merged. It imports the existing `analyzeInvestmentPortfolio` function as `analyzePortfolio` in `investment-portfolio-xirr.js`, fixing the main-branch lint failure. Its CI run #1541, Secret Scan #1334 and dashboard packaging run #864 passed. Main push CI run #1542 was started after merge and must be checked before claiming main-branch CI is green.
+PR #437 is also merged. It imports the existing `analyzeInvestmentPortfolio` function as `analyzePortfolio` in `investment-portfolio-xirr.js`, fixing the main-branch lint failure. Its CI run #1541, Secret Scan #1334 and dashboard packaging run #864 passed. Main push CI run #1542 passed on `4ee5fadc936758cea4ada0f1c7ec903bf3bd5081`.
 
 ### Current capabilities and boundaries
 
