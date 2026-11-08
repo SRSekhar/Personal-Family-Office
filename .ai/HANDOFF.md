@@ -487,38 +487,31 @@ All nine PRs are open, draft and unmerged. Preserve their base/head dependency c
 - SQLite schema v7 exists on the investment feature branch chain; do not describe it as deployed on `main` until the dependency PRs are merged.
 
 
-## Latest Handoff — 2026-11-08 (post-merge)
+## Latest Handoff — 2026-11-08 (schema-v8 concentration policy delivery)
 
 ### Main branch source of truth
 
-All investment-management PRs in the stacked chain are now merged to `main` in order:
+The current main commit is `4230be3513d1243ea9e4f82fbd2208701ceaa27c`. PR #443 is merged. It delivers the user-configurable concentration policy engine, private-workspace UI, schema-v8 SQLite persistence, v7→v8 migration and JSON backup/restore. PR #443 CI, Chromium browser smoke, dashboard deployment and Secret Scan passed. The earlier PR #442 was closed as superseded; it was not merged.
 
-- #425 — investment workspace persistence, schema v5.
-- #426 — FIFO investment portfolio projection and valuation provenance.
-- #427 — cash ledger/XIRR architecture decision.
-- #428 — investment cash ledger reconciliation engine.
-- #429 — schema-v6 SQLite cash-ledger persistence and backup compatibility.
-- #430 — cash ledger dashboard and portfolio XIRR workflows.
-- #432 — validated PFO-native investment CSV interchange.
-- #435 — schema-v7 allocation-policy persistence, immutable versions, actual-vs-target drift.
-- #436 — risk-policy readiness gate and updated project handoff.
+The investment-management chain (#425–#441) remains merged, including investment ledger, FIFO positions and valuation provenance, cash ledger and statement reconciliation, currency-separated XIRR, native CSV interchange, allocation policies/drift, and the pure concentration policy engine.
 
-PR #437 is also merged. It imports the existing `analyzeInvestmentPortfolio` function as `analyzePortfolio` in `investment-portfolio-xirr.js`, fixing the main-branch lint failure. Its CI run #1541, Secret Scan #1334 and dashboard packaging run #864 passed. Main push CI run #1542 passed on `4ee5fadc936758cea4ada0f1c7ec903bf3bd5081`.
+### Current workspace and policy capabilities
 
-### Current capabilities and boundaries
+- Main workspace schema is v8 with 15 persisted collections.
+- Concentration policies are immutable, versioned and stored per local workspace. Users author their own per-group maximum market-value weights and explicitly choose `>` or `>=` boundary semantics.
+- Scope is portfolio or one investment account; grouping is instrument type or instrument; currency is explicit and no FX is applied.
+- The concentration denominator is total market value of valued open investment positions in the selected currency/scope. Investment cash-account balances, household cash, liabilities and non-investment assets are excluded.
+- The dashboard evaluates complete FIFO positions and reports breach, within-limits, unavailable or empty. Missing required valuations suppress the entire evaluation.
+- Schema-v7 SQLite workspaces migrate transactionally to v8 after a pre-migration recovery artifact is written. Full-workspace JSON backups include concentration policy history. The investment CSV interchange remains limited to the eight investment/cash ledger collections.
+- No default risk thresholds, inferred risk appetite, risk score, advice, rebalancing order, trade or autonomous ledger mutation is introduced.
 
-- Main workspace schema is v7 with 14 collections.
-- Portfolio calculations are deterministic and currency-separated. FIFO projection uses explicit transactions and valuation provenance.
-- Cash reconciliation requires explicit opening balance, transaction-to-cash links and statement evidence; incomplete data remains unavailable/incomplete rather than being guessed.
-- Portfolio XIRR uses external investor flows and complete terminal value; no implicit FX.
-- Allocation policies are immutable, bitemporal, user-authored and produce descriptive drift/concentration metrics. HHI is not a risk score.
-- Risk-policy implementation is not shipped. Liquidity and drawdown data/metric contracts, plus exposure scope/threshold semantics, require explicit decisions first.
-- No inferred prices, investment recommendations, automated rebalancing, order routing, autonomous trading or AI ledger mutation.
+### Remaining risk-policy scope
+
+- Liquidity is not implemented: required classifications, lock-up/redemption terms, maturity and liquidity evidence are not available in the current instrument contract.
+- Broader exposure (issuer, sector, geography and custom groupings) requires an approved classification contract and data provenance.
+- Drawdown remains deferred until sampling cadence, valuation freshness, missing-point behavior, cash-flow treatment, currency/account scope and peak-to-trough semantics are defined.
+- Each policy family must remain user-configurable; the product must not embed one household's risk appetite or thresholds.
 
 ### Operational safety
 
-The GitHub repository is public: use synthetic fixtures only and never commit real household data. The local SQLite database and exports are not encrypted; backups are manual, with no automated rotation, retention enforcement or remote copy. Private records belong only in the loopback local workspace on a secured device.
-
-### Next action
-
-Define and approve the exact metric/data contracts for risk-policy families before implementing them. Keep concentration HHI separate from configured risk limits, and do not generate liquidity or drawdown values until their required inputs and historical rules exist.
+The GitHub repository is public: use synthetic fixtures only and never commit real household data. The local SQLite database and exports are not encrypted; backups are manual, with no automated rotation, retention enforcement or remote copy. The dashboard's private workspace is loopback-only. This is not a multi-user hosted service and no authentication/authorization layer is claimed.
