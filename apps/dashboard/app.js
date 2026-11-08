@@ -54,7 +54,7 @@ const INVESTMENT_CASH_STORAGE_KEYS = {
     investmentCashStatements: 'pfo-os.investment-cash-statements.v1'
 };
 const INVESTMENT_ALLOCATION_STORAGE_KEY = 'pfo-os.investment-allocation-policies.v1';
-const INVESTMENT_CONCENTRATION_STORAGE_KEY = 'pfo-os.investment-concentration-policies.v1';
+const INVESTMENT_CONCENTRATION_STORAGE_KEY = 'pfo-os.' + 'investment-concentration-policies.v1';
 const DATABASE_AUTO_SAVE_KEY = 'pfo-os.sqlite-auto-save.v1';
 const CURRENCY = 'INR';
 const COLORS = ['#176b4d', '#4d8b70', '#9dbb9f', '#c4a15d', '#7898b6', '#a18cb5', '#d18b70', '#7c8a82'];
