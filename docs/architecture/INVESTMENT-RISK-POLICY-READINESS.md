@@ -1,6 +1,6 @@
 # Investment risk policy — readiness assessment
 
-- Status: Concentration calculation contract accepted; pure calculation engine delivered, workspace persistence and UI pending
+- Status: User-configured concentration policy engine, schema-v8 persistence, backup/restore and private-workspace UI delivered
 - Date: 2026-11-08
 - Scope: assess the existing investment domain and data contracts before implementing user-configured portfolio risk policies for a general-purpose product used by different people and portfolios.
 - Product principle: risk appetite belongs to the user, not the application. Each portfolio/workspace may have its own explicit policy configuration; the product must not ship one household's limits as defaults or infer limits from personal data.
@@ -49,7 +49,7 @@ For each risk-policy family, product requirements must define:
 ## Implementation sequence (product direction confirmed; concentration contract accepted)
 
 - Define a reusable, workspace-scoped risk-policy envelope: immutable version identity, explicit scope, currency, effective date, recorded-at timestamp and user-authored rules. Support different policy versions across independent portfolios/workspaces; do not hard-code any user's values as application defaults.
-- Concentration: the first metric contract is defined in `ADR-INVESTMENT-CONCENTRATION-POLICY.md`; a pure validator, bitemporal selector and evaluator are implemented with deterministic tests. Workspace persistence, backup/restore and dashboard configuration are the next integration steps.
+- Concentration: the first metric contract is defined in `ADR-INVESTMENT-CONCENTRATION-POLICY.md`; the validator, bitemporal selector, valued-position aggregation, evaluator, schema-v8 persistence, v7→v8 migration, JSON backup/restore and private-workspace configuration UI are implemented with deterministic and browser smoke coverage.
 - Implement only the remaining metric families whose input data and formulas have been approved and can be independently hand-calculated.
 - Treat liquidity as blocked until the liquidity input/provenance model is selected.
 - Treat drawdown as blocked until historical valuation completeness, sampling and cash-flow treatment are specified.
@@ -67,4 +67,4 @@ For each risk-policy family, product requirements must define:
 
 ## Current disposition
 
-Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. The product direction is confirmed: users define their own risk limits for the portfolio/workspace they manage; the application provides the configuration and transparent calculations, not a predetermined risk appetite. The concentration calculation contract is accepted and its pure domain engine is implemented. It is not yet integrated into workspace persistence or the dashboard, so users cannot yet save or configure these policies through the UI. Liquidity, exposure classification beyond the current grouping dimensions, and drawdown remain gated on their own data and metric contracts.
+Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. User-configured concentration policies are implemented in PR #441 plus the schema-v8 persistence/UI increment: each workspace can store immutable portfolio- or account-scoped policies, each with user-entered per-group maximum weights and explicit boundary operators. The dashboard evaluates these limits against complete valued FIFO positions and reports breach, within-limit, unavailable or empty states. SQLite v7→v8 migration preserves existing data and writes a pre-migration recovery artifact; full JSON backup/restore includes policy history. No default limits are supplied. Liquidity, issuer/sector/geography exposure and drawdown remain gated on their own data and metric contracts.
