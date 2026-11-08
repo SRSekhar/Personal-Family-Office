@@ -13,11 +13,11 @@ Concentration statistics such as HHI remain descriptive. A user-configured limit
 
 ## Decision
 
-The first concentration-policy metric is **maximum market-value weight for a selected allocation group**.
+The first concentration-policy metric is **maximum market-value weight for a selected allocation group**. The denominator includes valued open investment positions only; it does not include investment cash-account balances, household cash records, liabilities or assets outside the investment ledger.
 
 For each explicitly configured group key:
 
-`actualWeightPercent = groupMarketValue / scopedPortfolioMarketValue * 100`
+`actualWeightPercent = groupMarketValue / totalValuedOpenInvestmentPositionMarketValue * 100`
 
 The rule stores:
 - `key`: an existing instrument type or instrument ID, according to the policy grouping.
