@@ -1,0 +1,143 @@
+import { describe, expect, it } from 'vitest';
+import { analyzeInvestmentAllocation, selectInvestmentAllocationPolicy, validateInvestmentAllocationPolicies, validateInvestmentAllocationPolicy } from './investment-allocation.js';
+
+const accounts = [
+    { id: 'account-1', name: 'Broker A', currency: 'INR' },
+    { id: 'account-2', name: 'Broker B', currency: 'INR' },
+    { id: 'account-usd', name: 'Foreign broker', currency: 'USD' }
+];
+const instruments = [
+    { id: 'equity-1', name: 'Equity One', type: 'Equity', currency: 'INR' },
+    { id: 'equity-2', name: 'Equity Two', type: 'Equity', currency: 'INR' },
+    { id: 'fund-1', name: 'Fund One', type: 'MutualFund', currency: 'INR' },
+    { id: 'bond-usd', name: 'USD Bond', type: 'Bond', currency: 'USD' }
+];
+const policy = (overrides = {}) => ({
+    id: 'policy-v1', policySetId: 'long-term', version: 1, name: 'Long-term allocation', currency: 'INR',
+    scope: 'portfolio', groupBy: 'instrumentType', effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
+    targets: [{ key: 'Equity', weightPercent: 60 }, { key: 'MutualFund', weightPercent: 40 }], ...overrides
+});
+const position = (accountId, instrumentId, quantity, marketValue, currency = 'INR') => ({ accountId, instrumentId, quantity, marketValue, currency });
+const asOfDate = new Date('2026-11-01T23:59:59.999Z');
+
+describe('investment allocation policy validation', () => {
+    it('accepts a complete 100% portfolio policy', () => {
+        expect(validateInvestmentAllocationPolicy(policy(), { accounts, instruments }).targets)
+            .toEqual([{ key: 'Equity', weightPercent: 60 }, { key: 'MutualFund', weightPercent: 40 }]);
+    });
+    it('requires target weights to total 100%', () => {
+        expect(() => validateInvestmentAllocationPolicy(policy({ targets: [{ key: 'Equity', weightPercent: 60 }] }), { accounts, instruments })).toThrow(/total 100%/);
+    });
+    it('rejects duplicate keys and out-of-range weights', () => {
+        expect(() => validateInvestmentAllocationPolicy(policy({ targets: [{ key: 'Equity', weightPercent: 50 }, { key: 'Equity', weightPercent: 50 }] }), { accounts, instruments })).toThrow(/unique/);
+        expect(() => validateInvestmentAllocationPolicy(policy({ targets: [{ key: 'Equity', weightPercent: 101 }] }), { accounts, instruments })).toThrow(/from 0 to 100/);
+    });
+    it('requires valid account scope and same-currency account', () => {
+        expect(() => validateInvestmentAllocationPolicy(policy({ scope: 'account' }), { accounts, instruments })).toThrow(/exactly one account ID/);
+        expect(() => validateInvestmentAllocationPolicy(policy({ scope: 'account', accountId: 'account-usd' }), { accounts, instruments })).toThrow(/policy currency/);
+    });
+    it('validates instrument-specific targets against the selected currency', () => {
+        expect(validateInvestmentAllocationPolicy(policy({ groupBy: 'instrument', targets: [{ key: 'equity-1', weightPercent: 100 }] }), { accounts, instruments }).groupBy).toBe('instrument');
+        expect(() => validateInvestmentAllocationPolicy(policy({ groupBy: 'instrument', targets: [{ key: 'bond-usd', weightPercent: 100 }] }), { accounts, instruments })).toThrow(/policy currency/);
+    });
+    it('requires real effective dates and canonical recorded timestamps', () => {
+        expect(() => validateInvestmentAllocationPolicy(policy({ effectiveFrom: '2026-02-30' }), { accounts, instruments })).toThrow(/real calendar date/);
+        expect(() => validateInvestmentAllocationPolicy(policy({ recordedAt: '2026-01-01' }), { accounts, instruments })).toThrow(/canonical ISO-8601/);
+    });
+    it('keeps currency, scope, account and grouping stable within one policy set', () => {
+        expect(() => validateInvestmentAllocationPolicies([
+            policy(), policy({ id: 'policy-v2', version: 2, currency: 'USD', targets: [{ key: 'Bond', weightPercent: 100 }] })
+        ], { accounts, instruments })).toThrow(/retain currency, scope, account and grouping/);
+    });
+    it('keeps policy-set versions unique and ordered', () => {
+        const values = validateInvestmentAllocationPolicies([policy({ id: 'v2', version: 2, effectiveFrom: '2026-06-01' }), policy()], { accounts, instruments });
+        expect(values.map((item) => item.version)).toEqual([1, 2]);
+        expect(() => validateInvestmentAllocationPolicies([policy(), policy({ id: 'duplicate-version' })], { accounts, instruments })).toThrow(/version must be unique/);
+    });
+});
+
+describe('investment allocation analysis', () => {
+    it('aggregates instrument types and reports percentage-point and value drift', () => {
+        const result = analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 10, 600), position('account-2', 'equity-2', 5, 200), position('account-1', 'fund-1', 4, 200)], instruments, accounts, policy: policy(), asOfDate });
+        expect(result.status).toBe('available');
+        expect(result.totalValue).toBe(1000);
+        expect(result.rows).toEqual([
+            { key: 'Equity', actualValue: 800, actualWeightPercent: 80, targetWeightPercent: 60, driftPercentagePoints: 20, driftValue: 200 },
+            { key: 'MutualFund', actualValue: 200, actualWeightPercent: 20, targetWeightPercent: 40, driftPercentagePoints: -20, driftValue: -200 }
+        ]);
+        expect(result.hhi).toBeCloseTo(0.68);
+        expect(result.effectiveCategoryCount).toBeCloseTo(1 / 0.68);
+    });
+    it('supports account-scoped policies without mixing accounts', () => {
+        const result = analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 1, 900), position('account-2', 'fund-1', 1, 100)], instruments, accounts,
+            policy: policy({ scope: 'account', accountId: 'account-1', targets: [{ key: 'Equity', weightPercent: 100 }] }), asOfDate });
+        expect(result.totalValue).toBe(900);
+        expect(result.rows).toHaveLength(1);
+        expect(result.rows[0].driftPercentagePoints).toBe(0);
+    });
+    it('supports instrument-specific targets and exposes unplanned holdings at zero target', () => {
+        const result = analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 1, 700), position('account-1', 'fund-1', 1, 300)], instruments, accounts,
+            policy: policy({ groupBy: 'instrument', targets: [{ key: 'equity-1', weightPercent: 100 }] }), asOfDate });
+        expect(result.rows.map((row) => [row.key, row.targetWeightPercent, row.driftPercentagePoints])).toEqual([['equity-1', 100, -30], ['fund-1', 0, 30]]);
+    });
+    it('suppresses partial allocations when any open position lacks valuation', () => {
+        const result = analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 1, 700), position('account-1', 'fund-1', 1, null)], instruments, accounts, policy: policy(), asOfDate });
+        expect(result.status).toBe('unavailable');
+        expect(result.rows).toEqual([]);
+    });
+    it('keeps currencies separate and returns empty for no positive holdings', () => {
+        const result = analyzeInvestmentAllocation({ positions: [position('account-usd', 'bond-usd', 1, 500, 'USD')], instruments, accounts, policy: policy(), asOfDate });
+        expect(result.totalValue).toBe(0);
+        expect(result.status).toBe('empty');
+    });
+    it('rejects negative position quantities and market values', () => {
+        expect(() => analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', -1, 10)], instruments, accounts, policy: policy(), asOfDate })).toThrow(/quantity/);
+        expect(() => analyzeInvestmentAllocation({ positions: [position('account-1', 'equity-1', 1, -10)], instruments, accounts, policy: policy(), asOfDate })).toThrow(/market value/);
+    });
+});
+
+describe('bitemporal allocation policy selection', () => {
+    it('does not expose a future-effective or not-yet-recorded policy version', () => {
+        const versions = [
+            policy(),
+            policy({ id: 'policy-v2', version: 2, effectiveFrom: '2026-12-01', recordedAt: '2026-11-01T00:00:00.000Z' }),
+            policy({ id: 'policy-v3', version: 3, effectiveFrom: '2026-06-01', recordedAt: '2026-12-01T00:00:00.000Z' })
+        ];
+        const selected = selectInvestmentAllocationPolicy(versions, {
+            asOfDate: new Date('2026-11-01T23:59:59.999Z'),
+            recordedAtCutoff: new Date('2026-11-15T00:00:00.000Z'),
+            scope: 'portfolio', currency: 'INR'
+        }, { accounts, instruments });
+        expect(selected.id).toBe('policy-v1');
+    });
+    it('returns null when no policy is effective and known at the requested cutoffs', () => {
+        expect(selectInvestmentAllocationPolicy([policy()], {
+            asOfDate: new Date('2025-12-31T23:59:59.999Z'),
+            recordedAtCutoff: new Date('2026-01-01T00:00:00.000Z'),
+            scope: 'portfolio', currency: 'INR'
+        }, { accounts, instruments })).toBeNull();
+    });
+});
+
+describe('allocation analysis cutoff guards', () => {
+    it('rejects a policy that is not effective and recorded by the analysis cutoffs', () => {
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('account-1', 'equity-1', 1, 100)], instruments, accounts,
+            policy: policy({ effectiveFrom: '2026-12-01' }), asOfDate
+        })).toThrow(/not both effective and known/);
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('account-1', 'equity-1', 1, 100)], instruments, accounts,
+            policy: policy({ recordedAt: '2026-12-01T00:00:00.000Z' }), asOfDate
+        })).toThrow(/not both effective and known/);
+    });
+    it('rejects positions whose account metadata is missing or currency-inconsistent', () => {
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('unknown-account', 'equity-1', 1, 100)], instruments, accounts, policy: policy(), asOfDate
+        })).toThrow(/unknown account/);
+        expect(() => analyzeInvestmentAllocation({
+            positions: [position('account-1', 'equity-1', 1, 100, 'USD')], instruments, accounts,
+            policy: policy({ scope: 'account', accountId: 'account-1', targets: [{ key: 'Equity', weightPercent: 100 }] }), asOfDate
+        })).toThrow(/wrong-currency instrument/);
+    });
+
+});

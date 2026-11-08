@@ -425,7 +425,7 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 
 ## 2026-11-01 — SQLite recovery documentation aligned
 
-- Updated `docs/operations/LOCAL_BACKUP_AND_RECOVERY.md` and ADR-0004 to reflect schema-v6 and all 13 persisted collections.
+- Updated `docs/operations/LOCAL_BACKUP_AND_RECOVERY.md` and ADR-0004 to reflect schema-v7 and all 14 persisted collections.
 - Clarified that portable JSON export represents the last committed SQLite snapshot, not unsaved browser-local edits.
 - Documented WAL sidecar caution, bounded retry behavior, and the fact that browser localStorage and SQLite are not one atomic transaction.
 - No runtime code changed; prior CI/Secret Scan/dashboard packaging results remain applicable to code, not a new code change.
@@ -444,5 +444,33 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 
 - Verified head `59b2b60ad1efcc5e205555095710564028ebd254`: CI run 41326075282 passed, including 80 test files / 718 tests and real Chromium smoke; dashboard packaging run 41326075250 passed; Secret Scan run 41326075278 passed.
 - Browser smoke confirms the user-facing online SQLite backup action creates a verified file and reports its location and 13-collection coverage.
-- The database recovery drill restores the actual backup file and checks all 13 persisted collections, stable identifiers, valuation provenance and SQLite integrity.
+- The database recovery drill restores the actual backup file and checks all 14 persisted collections, stable identifiers, valuation provenance and SQLite integrity.
 - Node runtime floor is 22.16.0. Backups remain manual and are not encrypted, rotated, retained by policy or copied remotely.
+
+
+## 2026-11-06 — Investment allocation policy domain foundation
+
+- Started IPM allocation targets on draft PR #435, stacked on PR #432. No merge is authorized.
+- Added immutable versioned policy validation, portfolio/account scopes, currency-specific instrument-type/instrument targets, 100% weight reconciliation and bitemporal policy selection.
+- Added deterministic actual-vs-target drift, value drift and descriptive concentration metrics using the existing FIFO position projection.
+- Missing valuation on any open position suppresses partial allocation results. No FX, inferred price, recommendation, rebalance or trade behavior.
+- Added ADR and unit tests in the initial domain-only checkpoint; subsequent work on this branch completed schema-v7 persistence, backup compatibility, private policy CRUD and browser acceptance.
+
+## 2026-11-06 — Investment allocation persistence
+
+Implementation complete and verified on draft PR #435 (stacked on PR #432; no merge authorization).
+
+- Schema-v7 extends the SQLite/JSON workspace from 13 to 14 collections with `investmentAllocationPolicies`.
+- Added recovery-safe v6→v7 migration and pre-migration schema-v6 JSON artifact.
+- Added schema-v7 backup validation and policy collection validation against ledger account/instrument references.
+- Private browser storage and SQLite payload assembly now carry allocation policy versions.
+- Private policy CRUD, append-only version UI, backup compatibility and browser smoke are implemented. CI run 42169616949, Secret Scan 42169616950 and dashboard deployment 42169616957 passed on verified tree `0a21c20638e4e4a192ae73554f7b3732806c714f`.
+
+## Follow-up — Allocation dashboard implementation (2026-11-06)
+
+Implemented on draft PR #435:
+- Private-only policy creation and append-only version workflow with explicit confirmation.
+- Policy history table and bitemporal actual-vs-target allocation analysis over FIFO positions and valuations.
+- CSV import guard prevents orphaning existing policy references.
+- Legacy investment backups preserve policies only when the imported ledger remains reference-compatible.
+- Browser smoke covers policy creation, append-only v2, allocation analysis, backup and legacy restore; CI, Secret Scan and deployment passed on 2026-11-06.

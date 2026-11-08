@@ -3,6 +3,7 @@ import { validateInvestmentLedgerCollections } from './investment-ledger.js';
 import { validateInvestmentCashCollections } from './investment-cash-ledger.js';
 import { initializeInvestmentPortfolioView } from './investment-portfolio.js';
 import { initializeInvestmentCashWorkspace } from './investment-cash-workspace.js';
+import { initializeInvestmentAllocationWorkspace } from './investment-allocation-workspace.js';
 
 const keys = {
     investmentAccounts: 'pfo-os.investment-accounts.v1',
@@ -207,4 +208,5 @@ export function initializeInvestmentWorkspace() {
     render();
     initializeInvestmentPortfolioView(analyzeInvestmentPerformanceMath);
     initializeInvestmentCashWorkspace();
+    initializeInvestmentAllocationWorkspace();
 }
