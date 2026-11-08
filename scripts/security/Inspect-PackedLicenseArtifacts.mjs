@@ -8,13 +8,13 @@ import { basename, join, resolve } from 'node:path';
 import process from 'node:process';
 
 const packages = [
-    ['glob', '13.0.6'],
+    ['glob', '14.0.3'],
     ['lru-cache', '11.5.3'],
     ['minimatch', '10.2.6'],
     ['minipass', '7.1.3'],
     ['package-json-from-dist', '1.0.1'],
-    ['path-scurry', '2.0.2'],
-    ['rimraf', '6.1.3'],
+    ['path-scurry', '3.0.0'],
+    ['rimraf', '6.1.4'],
     ['lightningcss', '1.33.0'],
     ['lightningcss-linux-x64-gnu', '1.33.0']
 ];
