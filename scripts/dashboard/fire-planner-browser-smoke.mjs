@@ -2835,7 +2835,10 @@ try {
         globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1'));
     await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
     await page.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
-    await page.evaluate(() => { globalThis.confirm = () => true; });
+    await page.evaluate(() => {
+        globalThis.__pfoAllocationOriginalConfirm = globalThis.confirm;
+        globalThis.confirm = () => true;
+    });
     await page.evaluate(() => globalThis.document.querySelector('#investment-allocation-form')
         .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true })));
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '3');
@@ -2919,6 +2922,8 @@ try {
     await page.evaluate(() => {
         globalThis.Storage.prototype.setItem = globalThis.__pfoAllocationOriginalSetItem;
         delete globalThis.__pfoAllocationOriginalSetItem;
+        globalThis.confirm = globalThis.__pfoAllocationOriginalConfirm;
+        delete globalThis.__pfoAllocationOriginalConfirm;
     });
     process.stdout.write('PASS: failed allocation policy storage writes preserve the prior immutable policy history.\\n');
     process.stdout.write('PASS: private allocation policy creation is immutable/versioned and drift analysis reconciles the valued FIFO position.\\n');
