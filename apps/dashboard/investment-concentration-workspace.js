@@ -118,7 +118,7 @@ function renderHistory(policies) {
     }
     if (!policies.length) {
         const row = document.createElement('tr'), cell = document.createElement('td');
-        cell.colSpan = 7; cell.textContent = 'No user-defined concentration limits have been saved.';
+        cell.colSpan = 8; cell.textContent = 'No user-defined concentration limits have been saved.';
         row.append(cell); body.append(row);
     }
 }
