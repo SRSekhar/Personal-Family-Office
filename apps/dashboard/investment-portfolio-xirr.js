@@ -1,3 +1,4 @@
+import { analyzeInvestmentPortfolio as analyzePortfolio } from './investment-portfolio.js';
 import { reconcileInvestmentCashAccount, validateInvestmentCashCollections } from './investment-cash-ledger.js';
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
 
