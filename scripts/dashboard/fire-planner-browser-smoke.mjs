@@ -1331,7 +1331,7 @@ try {
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
     for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies']) {
-        assert.ok(Array.isArray(backup[collection]), `schema-v7 backup should include ${collection}`);
+        assert.ok(Array.isArray(backup[collection]), `schema-v8 backup should include ${collection}`);
         const expectedCount = {
             investmentAccounts: investmentStorage.accounts.length,
             investmentInstruments: investmentStorage.instruments.length,
@@ -1341,9 +1341,10 @@ try {
             investmentCashMovements: investmentStorage.cashMovements.length,
             investmentCashTransfers: investmentStorage.cashTransfers.length,
             investmentCashStatements: investmentStorage.cashStatements.length,
-            investmentAllocationPolicies: 0
+            investmentAllocationPolicies: 0,
+            investmentConcentrationPolicies: 0
         }[collection];
-        assert.equal(backup[collection].length, expectedCount, `schema-v7 backup should preserve the saved ${collection}`);
+        assert.equal(backup[collection].length, expectedCount, `schema-v8 backup should preserve the saved ${collection}`);
     }
     assert.deepEqual(backup.investmentCashAccounts, investmentStorage.cashAccounts);
     assert.deepEqual(backup.investmentCashMovements, investmentStorage.cashMovements);
