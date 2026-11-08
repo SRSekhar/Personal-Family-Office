@@ -2989,8 +2989,8 @@ try {
     assert.deepEqual(databaseBackup, committedDatabaseWorkspace,
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
-    assert.equal(databaseBackup.investmentAllocationPolicies.length, 2,
-        'schema-v7 backup should include the saved allocation policy version');
+    assert.equal(databaseBackup.investmentAllocationPolicies.length, 3,
+        'schema-v7 backup should include all saved allocation policy versions, including those preserved by legacy restore');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
