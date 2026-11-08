@@ -47,7 +47,7 @@ afterEach(async () => {
 });
 
 describe('SQLite workspace persistence schema v8', () => {
-    it('persists all fourteen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
+    it('persists all fifteen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const first = new WorkspaceDatabase(path); databases.push(first);
@@ -449,7 +449,6 @@ describe('SQLite workspace persistence schema v8', () => {
             investmentCashTransfers: recovered.payload.investmentCashTransfers.map((item) => item.id),
             investmentCashStatements: recovered.payload.investmentCashStatements.map((item) => item.id),
             investmentAllocationPolicies: recovered.payload.investmentAllocationPolicies.map((item) => item.id),
-            investmentConcentrationPolicies: recovered.payload.investmentConcentrationPolicies.map((item) => item.id),
             investmentConcentrationPolicies: recovered.payload.investmentConcentrationPolicies.map((item) => item.id)
         };
         expect(stableIds).toEqual({
