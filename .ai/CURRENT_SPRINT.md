@@ -483,3 +483,5 @@ Implemented on draft PR #435:
 - PR #437 fixed the main-branch lint failure in `investment-portfolio-xirr.js` by importing the existing FIFO projection as `analyzePortfolio`. Its PR CI (including lint, typecheck, build, unit tests and Chromium browser smoke), Secret Scan and dashboard packaging passed before merge.
 - Risk-policy readiness documentation is merged via #436. Risk thresholds, liquidity scores, exposure limits and drawdown policies remain unimplemented pending approved metric/data contracts.
 - Operational residuals remain explicit: local SQLite and exports are not encrypted; backups are manual, with no automated rotation/retention or remote copy. Use synthetic data in the public repository and loopback-only private workspace for household records.
+
+- Post-merge main push CI run #1542 passed on `4ee5fadc936758cea4ada0f1c7ec903bf3bd5081` after PR #437 was merged.
