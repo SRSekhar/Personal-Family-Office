@@ -15,9 +15,9 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Completed Epics:** Local SQLite Persistence (PRs #394, #397, #400, #403, #404) and Backup and Recovery Assurance (PRs #406–#409).
-- **Current Epic:** Continue functional product development from the prioritized backlog; local SQL persistence/recovery is not an active blocker.
-- **SQLite status:** The loopback dashboard server stores all five private workspace collections in one validated transactional schema-v4 snapshot. Explicit save/restore, opt-in serialized automatic saves, startup recovery protection, optimistic concurrency, portable committed-snapshot export, read-only integrity diagnostics, and user-visible integrity checks are implemented. The database defaults outside the checkout; POSIX database and sidecar files are owner-only. Browser-local storage remains the immediate recovery copy.
-- **Recovery assurance:** Full-content JSON export/restore equality is verified across records, goals, cash flow, budgets, and historical snapshots, including stable IDs and nested history. Truncated/wrong-schema/oversized backup imports and malformed/oversized API bodies are rejected without replacing existing data. Clean close/reopen persistence and SQLite PRAGMA quick_check are tested. Operational instructions are in docs/operations/LOCAL_BACKUP_AND_RECOVERY.md.
+- **Current Epic:** User-configurable investment risk policies. Concentration policy calculation, private-workspace configuration, schema-v8 persistence and backup/restore are merged in PR #443; liquidity, broader exposure classification and drawdown remain gated by their data contracts.
+- **SQLite status:** The loopback dashboard server stores the complete private workspace in a validated transactional schema-v8 snapshot with 15 collections, including investment ledger, cash ledger, allocation policy versions and user-defined concentration policy versions. Schema-v7→v8 migration is transactional and writes a pre-migration recovery artifact. Explicit/automatic save, startup recovery protection, optimistic concurrency, portable JSON backup, restore and integrity diagnostics are implemented. The database defaults outside the checkout; POSIX database and sidecar files are owner-only. Browser-local storage remains the immediate recovery copy.
+- **Recovery assurance:** Full-content JSON export/restore equality is verified across all 15 schema-v8 collections, including investment and concentration policy history, stable IDs and nested historical records. SQLite v7→v8 migration, recovery artifact creation and rollback behavior are tested. Truncated/wrong-schema/oversized backup imports and malformed/oversized API bodies are rejected without replacing existing data. Clean close/reopen persistence and SQLite PRAGMA quick_check are tested. Operational instructions are in docs/operations/LOCAL_BACKUP_AND_RECOVERY.md.
 - **Privacy boundaries:** The database and JSON exports are not encrypted by this feature. Exports require user-managed secure storage and retention. Cloud hosting, multi-user access, remote backup, and automatic backup rotation are not shipped.
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
@@ -84,9 +84,17 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - HCNSEC and `PFO_AUTOMATION_TOKEN` are configured. The previous manual run authenticated and initialized the gateway but failed before publishing a PR due to agent tool/turn limits. PR #112 fixes those defects; the first end-to-end run on the corrected workflow remains unverified until a run publishes a valid PR and its CI passes.
 - Product validation and paid-pilot evidence remain open. GitHub Pages setup and legal/distribution review remain release gates, not reasons to stop safe local-first product development.
 
+## Latest Product Delivery — 2026-11-08
+
+- PRs #425–#441 are merged; main schema is v8 with 15 persisted collections.
+- PR #443 delivered user-configured concentration limits. Each workspace stores immutable policy versions; each rule has a user-entered maximum weight and explicit comparison operator. No household-specific limits or product defaults are embedded.
+- CI, Chromium browser smoke, dashboard deployment and Secret Scan passed for PR #443; main merge commit is `4230be3513d1243ea9e4f82fbd2208701ceaa27c`.
+- Remaining risk families: liquidity, issuer/sector/geography exposure and drawdown. Implement only after their input data, formulas, scope and missing-data semantics are agreed.
+- Public repository: synthetic data only. Local SQLite/JSON backups remain unencrypted and manual. Hosted multi-user access is not implemented.
+
 ## Last Updated
 
-2026-10-28
+2026-11-08
 
 - PR #116 added a main-push trigger, but its first run failed immediately with `Unsupported event type: push` before the agent executed. PR #117 removed that unsupported trigger and changed the schedule to twice hourly at minutes 17 and 47 UTC; PR CI and Secret Scan passed.
 - End-to-end autonomous delivery remains unverified. The next scheduled/manual run must reach the agent, create a focused commit, publish a PR, and pass PR CI before the workflow is considered operational.
