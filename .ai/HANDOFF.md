@@ -485,3 +485,40 @@ All nine PRs are open, draft and unmerged. Preserve their base/head dependency c
 - Keep local-first storage and explicit user control.
 - No implicit FX, fabricated prices, unverified provider endpoints, autonomous trading or AI writes to investment records.
 - SQLite schema v7 exists on the investment feature branch chain; do not describe it as deployed on `main` until the dependency PRs are merged.
+
+
+## Latest Handoff — 2026-11-08 (post-merge)
+
+### Main branch source of truth
+
+All investment-management PRs in the stacked chain are now merged to `main` in order:
+
+- #425 — investment workspace persistence, schema v5.
+- #426 — FIFO investment portfolio projection and valuation provenance.
+- #427 — cash ledger/XIRR architecture decision.
+- #428 — investment cash ledger reconciliation engine.
+- #429 — schema-v6 SQLite cash-ledger persistence and backup compatibility.
+- #430 — cash ledger dashboard and portfolio XIRR workflows.
+- #432 — validated PFO-native investment CSV interchange.
+- #435 — schema-v7 allocation-policy persistence, immutable versions, actual-vs-target drift.
+- #436 — risk-policy readiness gate and updated project handoff.
+
+PR #437 is also merged. It imports the existing `analyzeInvestmentPortfolio` function as `analyzePortfolio` in `investment-portfolio-xirr.js`, fixing the main-branch lint failure. Its CI run #1541, Secret Scan #1334 and dashboard packaging run #864 passed. Main push CI run #1542 passed on `4ee5fadc936758cea4ada0f1c7ec903bf3bd5081`.
+
+### Current capabilities and boundaries
+
+- Main workspace schema is v7 with 14 collections.
+- Portfolio calculations are deterministic and currency-separated. FIFO projection uses explicit transactions and valuation provenance.
+- Cash reconciliation requires explicit opening balance, transaction-to-cash links and statement evidence; incomplete data remains unavailable/incomplete rather than being guessed.
+- Portfolio XIRR uses external investor flows and complete terminal value; no implicit FX.
+- Allocation policies are immutable, bitemporal, user-authored and produce descriptive drift/concentration metrics. HHI is not a risk score.
+- Risk-policy implementation is not shipped. Liquidity and drawdown data/metric contracts, plus exposure scope/threshold semantics, require explicit decisions first.
+- No inferred prices, investment recommendations, automated rebalancing, order routing, autonomous trading or AI ledger mutation.
+
+### Operational safety
+
+The GitHub repository is public: use synthetic fixtures only and never commit real household data. The local SQLite database and exports are not encrypted; backups are manual, with no automated rotation, retention enforcement or remote copy. Private records belong only in the loopback local workspace on a secured device.
+
+### Next action
+
+Define and approve the exact metric/data contracts for risk-policy families before implementing them. Keep concentration HHI separate from configured risk limits, and do not generate liquidity or drawdown values until their required inputs and historical rules exist.

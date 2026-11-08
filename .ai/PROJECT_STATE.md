@@ -341,3 +341,14 @@ The repository already contains `scripts/build/Initialize-PFO.ps1` and its modul
 - Keep all investment PRs draft/open/unmerged until the dependency chain is reviewed and the repository owner explicitly authorizes merging.
 - Never commit real household financial data, statements, credentials or private reports; use synthetic fixtures.
 - Do not mark risk policy, cloud sync, encryption, backup rotation or production readiness complete unless their separate acceptance gates pass.
+
+
+## Latest Verified Repository State — 2026-11-08 (post-merge)
+
+The investment-management delivery chain is now merged to `main` in dependency order: #425, #426, #427, #428, #429, #430, #432, #435 and #436. Main now contains the investment ledger (schema v5), FIFO position projection, cash ledger (schema v6), cash dashboard/XIRR, PFO-native CSV interchange, and allocation policies/drift (schema v7). The main workspace schema is v7 with 14 persisted collections.
+
+PR #437 is merged and fixes the main-only ESLint failure in `apps/dashboard/investment-portfolio-xirr.js` by importing the existing FIFO projection. PR-head CI #1541, Secret Scan #1334 and dashboard packaging #864 passed. Main push CI #1542 passed on merged main commit `4ee5fadc936758cea4ada0f1c7ec903bf3bd5081`.
+
+Risk-policy implementation is not shipped. The merged readiness assessment at `docs/architecture/INVESTMENT-RISK-POLICY-READINESS.md` documents missing liquidity metadata, undefined drawdown sampling/cash-flow rules and unresolved exposure semantics. No hidden thresholds, risk scores, recommendations, rebalancing instructions or trades are introduced.
+
+Operational limitations remain: SQLite files and exports are not encrypted; backups are manual and have no automated rotation, retention enforcement or remote copy. The repository is public, so only synthetic data may be committed. Use the loopback dashboard on a secured device for private household records.
