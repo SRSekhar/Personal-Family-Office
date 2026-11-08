@@ -2840,10 +2840,10 @@ try {
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '3');
     await secondPage.evaluate((staleSnapshot) => {
         const originalGetItem = globalThis.Storage.prototype.getItem;
-        let returnStaleSnapshotOnce = true;
+        let policyReads = 0;
         globalThis.Storage.prototype.getItem = function (key) {
-            if (key === 'pfo-os.investment-allocation-policies.v1' && returnStaleSnapshotOnce) {
-                returnStaleSnapshotOnce = false;
+            if (key === 'pfo-os.investment-allocation-policies.v1' && policyReads < 2) {
+                policyReads += 1;
                 return staleSnapshot;
             }
             return originalGetItem.call(this, key);
