@@ -138,7 +138,7 @@ describe('SQLite workspace persistence schema v8', () => {
         raw.close();
 
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 7, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 8, updatedAt: '2026-10-28T12:00:00.000Z' });
         const saved = migrated.getWorkspace().payload;
         expect(saved.schemaVersion).toBe(8);
         expect(saved.investmentTransactions).toEqual(legacy.investmentTransactions);
@@ -148,6 +148,8 @@ describe('SQLite workspace persistence schema v8', () => {
         expect(saved.investmentCashTransfers).toEqual([]);
         expect(saved.investmentCashStatements).toEqual([]);
         expect(saved.allocationPoliciesMigratedFromV6).toBe(true);
+        expect(saved.investmentConcentrationPolicies).toEqual([]);
+        expect(saved.concentrationPoliciesMigratedFromV7).toBe(true);
 
         const backupFiles = readdirSync(directory).filter((name) => name.includes('.pre-v6-') && name.endsWith('.json'));
         expect(backupFiles).toHaveLength(1);
@@ -250,7 +252,7 @@ describe('SQLite workspace persistence schema v8', () => {
     });
     it('rejects incomplete, wrong-currency, duplicate-ID and invalid financial snapshots', async () => {
         const database = await createDatabase();
-        expect(() => database.saveWorkspace({ schemaVersion: 7, currency: 'INR' })).toThrow(WorkspaceValidationError);
+        expect(() => database.saveWorkspace({ schemaVersion: 8, currency: 'INR' })).toThrow(WorkspaceValidationError);
         expect(() => database.saveWorkspace(payload({ currency: 'USD' }))).toThrow(/currency must be INR/i);
         expect(() => database.saveWorkspace(payload({ records: [
             { id: 'same', name: 'Savings', category: 'Cash', type: 'asset', value: 10 },
