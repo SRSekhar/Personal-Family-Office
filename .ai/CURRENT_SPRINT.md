@@ -474,3 +474,12 @@ Implemented on draft PR #435:
 - CSV import guard prevents orphaning existing policy references.
 - Legacy investment backups preserve policies only when the imported ledger remains reference-compatible.
 - Browser smoke covers policy creation, append-only v2, allocation analysis, backup and legacy restore; CI, Secret Scan and deployment passed on 2026-11-06.
+
+
+## 2026-11-08 — Investment-management chain merged to main
+
+- Merged PRs #425, #426, #427, #428, #429, #430, #432, #435 and #436 in dependency order using merge commits; the full stack is now on `main`.
+- Main workspace schema is v7 with 14 collections. Delivered ledger persistence, FIFO portfolio projection, valuation provenance, cash ledger and statement reconciliation, per-currency XIRR, PFO-native CSV interchange, immutable allocation policies and actual-vs-target drift.
+- PR #437 fixed the main-branch lint failure in `investment-portfolio-xirr.js` by importing the existing FIFO projection as `analyzePortfolio`. Its PR CI (including lint, typecheck, build, unit tests and Chromium browser smoke), Secret Scan and dashboard packaging passed before merge.
+- Risk-policy readiness documentation is merged via #436. Risk thresholds, liquidity scores, exposure limits and drawdown policies remain unimplemented pending approved metric/data contracts.
+- Operational residuals remain explicit: local SQLite and exports are not encrypted; backups are manual, with no automated rotation/retention or remote copy. Use synthetic data in the public repository and loopback-only private workspace for household records.
