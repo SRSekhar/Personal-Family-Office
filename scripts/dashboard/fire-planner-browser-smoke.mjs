@@ -2859,9 +2859,10 @@ try {
             }
         });
         globalThis.confirm = () => true;
-        globalThis.document.querySelector('#investment-allocation-form')
-            .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true }));
     }, stalePolicySnapshot);
+    // Use the real submit control so the browser follows the same form path as
+    // a user interaction; dispatchEvent('submit') bypasses submitter behavior.
+    await secondPage.locator('#investment-allocation-form button[type="submit"]').click();
     await secondPage.waitForFunction(() => globalThis.__pfoAllocationPolicyReads?.length >= 3, { timeout: 10000 });
     const staleWriteDiagnostics = await secondPage.evaluate(() => ({
         reads: globalThis.__pfoAllocationPolicyReads,
