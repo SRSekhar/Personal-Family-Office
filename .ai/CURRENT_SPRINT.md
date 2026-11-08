@@ -1,8 +1,23 @@
 # Current Sprint
 
-## Sprint
+## Current Sprint
 
-Sprint 7 — Backup and Recovery Assurance (completed 2026-10-30)
+Sprint 8 — User-configured concentration policy delivery (completed 2026-11-08)
+
+- Delivered immutable, workspace-scoped user-defined concentration policy versions.
+- Each rule carries a user-entered maximum market-value weight and an explicit `>` or `>=` boundary; no default risk thresholds are embedded.
+- Evaluates complete valued FIFO positions by currency and portfolio/account scope; incomplete valuations suppress the result.
+- Added private-workspace policy configuration, policy history, JSON backup/restore, schema-v8 persistence and transactional v7→v8 migration with a pre-migration recovery artifact.
+- PR #443 merged. PR CI, Chromium browser smoke, dashboard deployment and Secret Scan passed. Main merge commit: `4230be3513d1243ea9e4f82fbd2208701ceaa27c`.
+
+### Next — Remaining risk-policy families
+
+- Liquidity requires user-supplied or separately sourced liquidity classification, lock-up, redemption and maturity evidence.
+- Broader exposure limits require agreed grouping/classification data such as issuer, sector and geography.
+- Drawdown requires an approved historical observation series, sampling, freshness, missing-point and cash-flow treatment.
+- Continue with explicit user-authored limits and no product-wide default risk appetite.
+
+## Previous Sprint — Sprint 7 (historical, completed 2026-10-30)
 
 ## Version
 
