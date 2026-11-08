@@ -187,3 +187,18 @@ Continue with the next functional product priorities in .ai/BACKLOG.md. Customer
 - The server API test now models two clients reading the same version and verifies that a stale investment valuation write returns 409 without overwriting the latest valuation. This is API-level concurrency coverage, not yet a full two-tab UI interaction.
 - Added a Chromium two-tab acceptance scenario with isolated browser contexts seeded from the same workspace snapshot. The first tab commits a new valuation; the stale second tab must show the conflict state and cannot overwrite the committed valuation.
 - Final acceptance passed on commit `1b5a45eb5910f275118ede1657d8b39916fe539a`: CI (lint, typecheck, build, unit tests and Chromium smoke), Secret Scan and dashboard packaging all succeeded. The two-tab scenario verified that a stale tab cannot overwrite the first tab's latest valuation. IPM-03 implementation is complete. PR #425 remains draft and unmerged pending review and explicit user approval.
+
+
+## IPM-04 Handoff
+
+Continue from stacked branch feature/investment-portfolio-reconciliation, based on schema-v5 branch feature/investment-workspace-persistence. This work adds FIFO positions, point-in-time valuations and missing-valuation visibility. Verify CI and Chromium acceptance before cash reconciliation or portfolio XIRR. PR #425 remains open and unmerged; preserve the dependency on its schema-v5 branch.
+
+
+## Latest Handoff — IPM-04 FIFO portfolio projection (2026-11-01)
+
+- PR #426: `feature/investment-portfolio-reconciliation`, stacked on PR #425's `feature/investment-workspace-persistence` branch.
+- Latest head `e8b7878245bcd1f13e71171cd3e06649ff08608c`; CI run `41269575836` and dashboard packaging/deploy run `41269575813` both passed.
+- Portfolio dashboard uses schema-v5 ledger events for FIFO positions and point-in-time valuations. Missing valuations stay unavailable; currencies are never converted.
+- Existing analytics package already has a typed FIFO implementation, and the dashboard currently has a browser-compatible projection. Avoid introducing a second return formula or using trade cash movements as investor contributions.
+- Next: design explicit external contribution/withdrawal, investment cash-account and transfer semantics; then implement reconciliation and portfolio XIRR with hand-calculated fixtures. No guessing of transaction types or schema.
+- PR #425 and #426 remain open, draft and unmerged. Keep dependency order; retarget #426 to main only after #425 merges. No merge has been authorized.

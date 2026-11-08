@@ -1,4 +1,5 @@
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
+import { initializeInvestmentPortfolioView } from './investment-portfolio.js';
 
 const keys = {
     investmentAccounts: 'pfo-os.investment-accounts.v1',
@@ -144,4 +145,5 @@ export function initializeInvestmentWorkspace() {
     window.addEventListener('pfo:investment-updated', render);
     window.addEventListener('pfo:workspace-updated', render);
     render();
+    initializeInvestmentPortfolioView();
 }

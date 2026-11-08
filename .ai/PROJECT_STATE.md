@@ -218,3 +218,17 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 - API-level stale-client concurrency coverage uses an investment valuation and verifies HTTP 409 prevents a stale write from overwriting the latest committed valuation.
 - Added a Chromium two-tab workflow with isolated browser contexts seeded from the same baseline. The first tab commits a manual valuation; the stale second tab must display the conflict state and leave the newer SQLite valuation intact.
 - CI exposed and drove fixes to stale backup-preview assertions and date-dependent cash-flow CSV/budget smoke assertions. Final acceptance passed on commit `1b5a45eb5910f275118ede1657d8b39916fe539a`: lint, typecheck, build, unit tests, Chromium smoke (including isolated two-tab conflict), Secret Scan and dashboard packaging all succeeded. IPM-03 implementation is complete; PR #425 remains draft and unmerged pending review and explicit user approval.
+
+
+## Current Workstream — IPM-04
+
+Investment Portfolio Management is in progress on feature/investment-portfolio-reconciliation, stacked on PR #425's schema-v5 persistence branch. Dashboard FIFO positions and valuation/reconciliation visibility are being implemented. PR #425 remains open and unmerged.
+
+
+## 2026-11-01 — IPM-04 FIFO portfolio projection
+
+- PR #426 adds the schema-v5 dashboard portfolio projection: FIFO positions, realised/unrealised gain, recorded income/expenses, point-in-time valuation selection, currency-separated totals, missing-valuation states and oversell rejection.
+- Latest head: `e8b7878245bcd1f13e71171cd3e06649ff08608c`.
+- CI run `41269575836` passed lint, typecheck, build, tests and real Chromium browser smoke; dashboard packaging/deploy run `41269575813` passed.
+- Portfolio XIRR and cash reconciliation remain gated on a domain design for external contributions/withdrawals, cash-account balances and internal transfers. Purchases and sales alone do not establish investor cash flows. No assumptions or schema changes are being made until these semantics are explicit.
+- PR #425 remains the schema-v5 dependency and PR #426 remains stacked on it; both are open and unmerged.
