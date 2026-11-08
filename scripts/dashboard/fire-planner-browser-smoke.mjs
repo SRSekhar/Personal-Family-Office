@@ -2842,7 +2842,7 @@ try {
         const originalGetItem = globalThis.Storage.prototype.getItem;
         let policyReads = 0;
         globalThis.Storage.prototype.getItem = function (key) {
-            if (key === 'pfo-os.investment-allocation-policies.v1' && policyReads < 2) {
+            if (key === 'pfo-os.investment-allocation-policies.v1' && policyReads < 1) {
                 policyReads += 1;
                 return staleSnapshot;
             }
