@@ -2942,6 +2942,18 @@ try {
     await concentrationRule.locator('.investment-concentration-rule-key').selectOption('Equity');
     await concentrationRule.locator('.investment-concentration-rule-limit').fill('50');
     await concentrationRule.locator('.investment-concentration-rule-operator').selectOption('>');
+    const concentrationFormState = await page.evaluate(() => {
+        const form = globalThis.document.querySelector('#investment-concentration-form');
+        return {
+            valid: form.checkValidity(),
+            disabled: form.querySelector('button[type="submit"]')?.disabled,
+            invalidControls: [...form.elements].filter((control) => !control.checkValidity()).map((control) => ({
+                name: control.name || control.id || control.className, value: control.value, message: control.validationMessage
+            }))
+        };
+    });
+    assert.equal(concentrationFormState.valid, true, 'concentration policy form must be valid before submit: ' + JSON.stringify(concentrationFormState.invalidControls));
+    assert.equal(concentrationFormState.disabled, false, 'concentration policy submit must be enabled in the private workspace');
     const concentrationDialogPromise = page.waitForEvent('dialog');
     const concentrationSubmit = page.locator('#investment-concentration-form button[type="submit"]').click();
     const concentrationDialog = await concentrationDialogPromise;
