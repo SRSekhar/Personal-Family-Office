@@ -222,3 +222,15 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Opening balances and contributions become negative investor flows; withdrawals positive. Purchases, sales, dividends, interest, fees, taxes and internal transfers are excluded from external flows. Transfers must be same-currency and are represented as one aggregate event.
 - Important boundary: this increment is not schema-v6 persistence and has no cash UI yet. No cash account or opening balance is auto-created. Next: integrate all four cash collections into schema-v6 validation, backup/restore and transactional SQLite migration; preserve v1-v5 backups and the pre-migration recovery artifact guarantee.
 - CI status must be read from the current branch head; do not infer green from prior PR runs. PRs #425–#427 remain open/unmerged; no merge authorization has been given.
+
+
+## Latest Handoff — IPM-04 schema-v6 persistence (2026-11-01)
+
+- Branch: `feature/investment-cash-ledger-schema-v6`, based on `feature/investment-cash-ledger-engine` (PR #428), stacked after PR #427 → #426 → #425.
+- SQLite schema is now version 6. `scripts/dashboard/workspace-database.mjs` adds transactional v5 → v6 migration and writes a portable schema-v5 recovery artifact before altering the database. The artifact is exclusive-create, fsynced and POSIX 0600; failed validation cancels migration and leaves the v5 DB untouched.
+- v5 migration retains the complete existing investment ledger and adds four empty cash collections. It does not create cash accounts, zero opening balances, contributions or withdrawals. Existing transaction IDs and valuation provenance remain intact.
+- `apps/dashboard/backup.js` validates v6 cash collections while keeping v1-v5 imports supported. Legacy v5 import preserves any current cash-ledger browser data rather than replacing it with inferred empties.
+- `apps/dashboard/app.js` includes four dedicated localStorage collections in schema-v6 export/import, restore rollback, and SQLite save payloads.
+- Added tests for v5→v6 migration, recovery artifact exactness/permissions, invalid-migration rollback, v6 backup validation and legacy compatibility. Latest CI is not yet verified.
+- No cash-entry UI or end-to-end portfolio XIRR is delivered yet. Next: verify CI, add private-workspace cash workflows, then reconciliation/reporting and XIRR with complete terminal-value checks.
+- PRs #425–#429 remain unmerged; do not merge without explicit user approval.

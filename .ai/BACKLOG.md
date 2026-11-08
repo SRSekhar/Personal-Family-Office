@@ -530,3 +530,13 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Reconciliation is evidence-led: requires an explicit opening balance and statement observation, applies effective-time and recorded-time cutoffs, includes linked investment transaction settlements and transfer legs once, and returns `incomplete`, `reconciled` or `difference` without auto-balancing.
 - External cash-flow projection uses investor-perspective signs (opening capital and contributions negative; withdrawals positive) and excludes purchases/sales/dividends/interest/fees/taxes and internal transfers.
 - This is the pure domain engine only. Schema-v6 persistence, backup migration, dashboard entry forms and full portfolio-wide XIRR/terminal-value integration remain outstanding; do not describe cash ledger as production-persisted yet.
+
+
+### IPM-04 schema-v6 persistence — implementation increment
+
+- Added schema-v6 backup validation for the four cash collections and optional cash-account links on existing investment transactions.
+- Added additive transactional SQLite v5 → v6 migration. Before changing the database, it writes a portable schema-v5 JSON recovery artifact using exclusive creation, fsync and POSIX 0600 permissions. Migration preserves all existing records/IDs and adds four empty cash collections; it never infers cash accounts, opening balances or external flows.
+- Preserved v1-v5 backup import compatibility. Older v5 backups normalize to empty cash collections but do not claim the cash ledger was included, so importing them does not overwrite existing cash-ledger browser data.
+- Wired schema-v6 local backup/export/import and SQLite workspace payloads to four separate browser storage keys; schema-v6 restore includes them in rollback coverage.
+- Added migration, recovery artifact, schema validation and compatibility tests. This remains an open stacked PR pending CI; no PR is merged.
+- Remaining: verify CI, add cash-account/movement/transfer/statement UI, connect reconciliation to portfolio reporting, and complete portfolio XIRR/terminal-value completeness using the existing XIRR calculator.

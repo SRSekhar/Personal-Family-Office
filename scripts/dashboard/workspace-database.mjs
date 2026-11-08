@@ -6,7 +6,7 @@ import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { validateBackupPayload } from '../../apps/dashboard/backup.js';
 
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 const CURRENCY = 'INR';
 export class WorkspaceValidationError extends Error { constructor(message) { super(message); this.name = 'WorkspaceValidationError'; } }
 export class WorkspaceConflictError extends Error {
@@ -25,9 +25,10 @@ export function resolveDatabasePath(env = process.env, home = homedir(), platfor
 function validateWorkspacePayload(payload) {
     try {
         const required = ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts',
-            'investmentInstruments', 'investmentTransactions', 'investmentValuations'];
+            'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts',
+            'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements'];
         if (!payload || payload.schemaVersion !== SCHEMA_VERSION || required.some((key) => !Array.isArray(payload[key]))) {
-            throw new Error('SQLite workspace persistence requires a complete schema-v5 workspace backup.');
+            throw new Error('SQLite workspace persistence requires a complete schema-v6 workspace backup.');
         }
         if (payload.currency !== CURRENCY) throw new Error(`Workspace currency must be ${CURRENCY}; this snapshot uses ${String(payload.currency ?? 'no currency')}.`);
         const ids = new Set();
@@ -43,14 +44,16 @@ function validateWorkspacePayload(payload) {
             goals: validated.goals, cashFlowEntries: validated.cashFlowEntries, budgets: validated.budgets,
             historicalSnapshots: validated.historicalSnapshots, investmentAccounts: validated.investmentAccounts,
             investmentInstruments: validated.investmentInstruments, investmentTransactions: validated.investmentTransactions,
-            investmentValuations: validated.investmentValuations
+            investmentValuations: validated.investmentValuations, investmentCashAccounts: validated.investmentCashAccounts,
+            investmentCashMovements: validated.investmentCashMovements, investmentCashTransfers: validated.investmentCashTransfers,
+            investmentCashStatements: validated.investmentCashStatements
         };
     } catch (error) { throw new WorkspaceValidationError(error instanceof Error ? error.message : 'The supplied workspace is invalid.'); }
 }
-function createSnapshotTable(database) {
+function createSnapshotTable(database, version = 5) {
     database.exec(`CREATE TABLE workspace_snapshot (
         singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
-        schema_version INTEGER NOT NULL CHECK (schema_version = 5),
+        schema_version INTEGER NOT NULL CHECK (schema_version = ${version}),
         currency TEXT NOT NULL CHECK (currency = 'INR'),
         payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
 }
@@ -115,6 +118,70 @@ function migrateSchemaV4(database, databasePath) {
         database.exec('COMMIT');
     } catch (error) { database.exec('ROLLBACK'); throw error; }
 }
+
+/** Persist a portable schema-v5 recovery artifact before the additive v5 -> v6 migration. */
+function writePreV6MigrationBackup(databasePath, payload) {
+    const backupPayload = {
+        schemaVersion: 5, currency: CURRENCY, exportedAt: payload.exportedAt,
+        records: payload.records, goals: payload.goals, cashFlowEntries: payload.cashFlowEntries,
+        budgets: payload.budgets, historicalSnapshots: payload.historicalSnapshots,
+        investmentAccounts: payload.investmentAccounts, investmentInstruments: payload.investmentInstruments,
+        investmentTransactions: payload.investmentTransactions, investmentValuations: payload.investmentValuations
+    };
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const basePath = databasePath + '.pre-v6-' + stamp;
+    let backupPath; let descriptor;
+    for (let suffix = 0; ; suffix += 1) {
+        backupPath = basePath + (suffix ? '-' + suffix : '') + '.json';
+        try { descriptor = openSync(backupPath, 'wx', 0o600); break; }
+        catch (error) { if (error?.code !== 'EEXIST') throw error; }
+    }
+    try {
+        writeFileSync(descriptor, JSON.stringify(backupPayload, null, 2) + '\n', 'utf8');
+        fsyncSync(descriptor);
+    } catch (error) {
+        try { closeSync(descriptor); } catch { /* preserve original write error */ }
+        try { unlinkSync(backupPath); } catch { /* incomplete recovery artifact remains visible */ }
+        throw new Error('The required pre-migration v5 backup could not be completed; the database migration was cancelled.', { cause: error });
+    }
+    closeSync(descriptor);
+    if (process.platform !== 'win32') chmodSync(backupPath, 0o600);
+    return backupPath;
+}
+
+/** Transactional v5 -> v6 migration. No cash accounts or balances are inferred. */
+function migrateSchemaV5(database, databasePath) {
+    const table = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
+    if (!table || !/schema_version\s*=\s*5/i.test(table.sql ?? '')) return;
+    database.exec('BEGIN IMMEDIATE');
+    try {
+        const row = database.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
+        let migrated = null;
+        if (row) {
+            if (row.schema_version !== 5 || row.currency !== CURRENCY) throw new Error('The existing SQLite workspace has an unsupported schema or currency; migration was not applied.');
+            const oldPayload = JSON.parse(row.payload_json);
+            if (oldPayload.schemaVersion !== 5) throw new Error('The saved SQLite payload does not match its v5 database schema; migration was not applied.');
+            const validated = validateBackupPayload(oldPayload, CURRENCY);
+            writePreV6MigrationBackup(databasePath, oldPayload);
+            migrated = {
+                schemaVersion: 6, currency: CURRENCY, exportedAt: oldPayload.exportedAt,
+                records: oldPayload.records, goals: validated.goals, cashFlowEntries: validated.cashFlowEntries,
+                budgets: validated.budgets, historicalSnapshots: validated.historicalSnapshots,
+                investmentAccounts: validated.investmentAccounts, investmentInstruments: validated.investmentInstruments,
+                investmentTransactions: validated.investmentTransactions, investmentValuations: validated.investmentValuations,
+                investmentCashAccounts: validated.investmentCashAccounts ?? [], investmentCashMovements: validated.investmentCashMovements ?? [],
+                investmentCashTransfers: validated.investmentCashTransfers ?? [], investmentCashStatements: validated.investmentCashStatements ?? []
+            };
+        }
+        database.exec('ALTER TABLE workspace_snapshot RENAME TO workspace_snapshot_v5_migration');
+        createSnapshotTable(database, 6);
+        if (migrated) database.prepare('INSERT INTO workspace_snapshot (singleton, schema_version, currency, payload_json, updated_at) VALUES (1, 6, ?, ?, ?)')
+            .run(CURRENCY, JSON.stringify(migrated), row.updated_at);
+        database.exec('DROP TABLE workspace_snapshot_v5_migration');
+        database.exec('COMMIT');
+    } catch (error) { database.exec('ROLLBACK'); throw error; }
+}
+
 /** SQLite persistence stores a complete validated workspace snapshot atomically. */
 export class WorkspaceDatabase {
     #database; #databasePath;
@@ -127,6 +194,7 @@ export class WorkspaceDatabase {
             this.#secureFilePermissions();
             this.#database.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA busy_timeout = 5000;');
             migrateSchemaV4(this.#database, this.#databasePath);
+            migrateSchemaV5(this.#database, this.#databasePath);
             this.#secureFilePermissions();
         } catch (error) { this.#database.close(); throw error; }
     }
@@ -172,7 +240,9 @@ export class WorkspaceDatabase {
             cashFlowTransactionCount: validated.cashFlowEntries.length, budgetCount: validated.budgets.length,
             historicalSnapshotCount: validated.historicalSnapshots.length, investmentAccountCount: validated.investmentAccounts.length,
             investmentInstrumentCount: validated.investmentInstruments.length, investmentTransactionCount: validated.investmentTransactions.length,
-            investmentValuationCount: validated.investmentValuations.length };
+            investmentValuationCount: validated.investmentValuations.length, investmentCashAccountCount: validated.investmentCashAccounts.length,
+            investmentCashMovementCount: validated.investmentCashMovements.length, investmentCashTransferCount: validated.investmentCashTransfers.length,
+            investmentCashStatementCount: validated.investmentCashStatements.length };
     }
     close() { this.#database.close(); }
 }
