@@ -2860,9 +2860,21 @@ try {
         });
         globalThis.confirm = () => true;
     }, stalePolicySnapshot);
-    // Use the real submit control so the browser follows the same form path as
-    // a user interaction; dispatchEvent('submit') bypasses submitter behavior.
-    await secondPage.locator('#investment-allocation-form button[type="submit"]').click();
+    // Use the browser's native form submission algorithm, and fail with the
+    // exact invalid controls rather than timing out if HTML validation blocks it.
+    const staleFormState = await secondPage.evaluate(() => {
+        const form = globalThis.document.querySelector('#investment-allocation-form');
+        return {
+            valid: form.checkValidity(),
+            invalidControls: [...form.elements].filter((control) => !control.checkValidity()).map((control) => ({
+                name: control.name || control.id || control.className,
+                value: control.value,
+                message: control.validationMessage
+            }))
+        };
+    });
+    assert.equal(staleFormState.valid, true, 'stale policy form must be valid before submission: ' + JSON.stringify(staleFormState.invalidControls));
+    await secondPage.evaluate(() => globalThis.document.querySelector('#investment-allocation-form').requestSubmit());
     await secondPage.waitForFunction(() => globalThis.__pfoAllocationPolicyReads?.length >= 3, { timeout: 10000 });
     const staleWriteDiagnostics = await secondPage.evaluate(() => ({
         reads: globalThis.__pfoAllocationPolicyReads,
