@@ -155,7 +155,7 @@ export function analyzeInvestmentConcentrationPositions({ positions, instruments
         buckets.set(key, (buckets.get(key) ?? 0) + position.marketValue);
     }
     const rows = [...buckets.entries()].sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, actualValue]) => ({ key, actualValue, actualWeightPercent: actualValue / totalValue * 100 }));
+        .map(([key, actualValue]) => ({ key, actualValue, actualWeightPercent: Math.min(100, actualValue / totalValue * 100) }));
     return { status: 'available', ...dimensions, totalValue, asOfDate: asOfDate.toISOString(),
         recordedAtCutoff: recordedAtCutoff.toISOString(), rows };
 }
@@ -175,6 +175,12 @@ export function evaluateInvestmentConcentrationPolicy({ allocation, policy, asOf
     if (Date.parse(validated.effectiveFrom + 'T00:00:00.000Z') > asOfDate.getTime()
         || Date.parse(validated.recordedAt) > recordedAtCutoff.getTime()) {
         throw new RangeError('The concentration policy was not both effective and known at the requested cutoffs.');
+    }
+    if (allocation.currency !== undefined && allocation.currency !== validated.currency
+        || allocation.scope !== undefined && allocation.scope !== validated.scope
+        || allocation.scope === 'account' && allocation.accountId !== validated.accountId
+        || allocation.groupBy !== undefined && allocation.groupBy !== validated.groupBy) {
+        throw new RangeError('Concentration policy dimensions must match the analyzed allocation currency, scope and grouping.');
     }
     if (allocation.status === 'unavailable') {
         return { status: 'unavailable', policyId: validated.id, currency: validated.currency,
