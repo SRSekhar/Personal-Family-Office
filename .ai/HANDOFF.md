@@ -212,3 +212,13 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Existing trades and income/expenses must not be counted as external investor cash flows. Missing opening balances, cash links, statement evidence or terminal valuations produce incomplete/unavailable results; never invent zeros or balancing entries.
 - Proposed schema-v6 collections are in the ADR. No production schema/model/UI code has been changed in this design-only increment.
 - Next: validate ADR against existing schema-v5 migration/backup architecture; then implement models, validation, migration, deterministic analytics, dashboard workflow and synthetic browser tests in separate reviewed increments. PR #425/#426 remain unmerged and merge order is unchanged.
+
+
+## Latest Handoff — IPM-04 cash-ledger engine (2026-11-01)
+
+- Branch: `feature/investment-cash-ledger-engine`, based on `feature/investment-cash-ledger-design` (PR #427) which is stacked on PR #426 and PR #425.
+- Added `apps/dashboard/investment-cash-ledger.js` and deterministic tests. It validates cash-account ownership/currency, explicit opening balances, contribution/withdrawal signs, corrections, transfers and statements; it computes evidence-based reconciliation and external investor cash-flow inputs.
+- Existing investment transaction validator now preserves optional `cashAccountId` for the cash-ledger layer. Schema-v5 records without this field remain valid; reconciliation reports them as unmatched/incomplete rather than guessing.
+- Opening balances and contributions become negative investor flows; withdrawals positive. Purchases, sales, dividends, interest, fees, taxes and internal transfers are excluded from external flows. Transfers must be same-currency and are represented as one aggregate event.
+- Important boundary: this increment is not schema-v6 persistence and has no cash UI yet. No cash account or opening balance is auto-created. Next: integrate all four cash collections into schema-v6 validation, backup/restore and transactional SQLite migration; preserve v1-v5 backups and the pre-migration recovery artifact guarantee.
+- CI status must be read from the current branch head; do not infer green from prior PR runs. PRs #425–#427 remain open/unmerged; no merge authorization has been given.

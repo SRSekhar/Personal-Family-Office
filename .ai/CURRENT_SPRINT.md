@@ -302,3 +302,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - Explicitly separates cash-account balance signs from investor XIRR signs. Purchases/sales/dividends/interest/fees/taxes remain internal portfolio events; only external funding/withdrawals are XIRR flows. Internal transfers net to zero at consolidated portfolio scope.
 - Defines incomplete/reconciled/difference states, opening-balance evidence, append-only corrections, recorded-at cutoffs and no auto-balancing.
 - No data model or database migration has been changed yet. The ADR is on `feature/investment-cash-ledger-design`; implementation follows only after design review and schema-v6 migration/backup test planning.
+
+
+## 2026-11-01 — IPM-04 cash-ledger engine increment
+
+- Added pure browser-compatible cash-account validation, statement reconciliation and external investor cash-flow projection on `feature/investment-cash-ledger-engine`, stacked after the ADR branch.
+- Preserved optional `cashAccountId` on existing investment transactions without requiring it for schema-v5 compatibility; explicit cash validation checks ownership and currency when supplied.
+- Tests cover explicit opening balances, reconciliation, incomplete missing-opening state, contribution/withdrawal/XIRR signs, opening capital, cross-currency transfer rejection and recorded-at backfill cutoffs.
+- Not yet wired to schema-v6 persistence or dashboard UI. Next delivery is schema-v6 backup/SQLite integration with transactional pre-migration recovery and v1-v5 backup compatibility; then cash workflows and portfolio XIRR.

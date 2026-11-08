@@ -240,3 +240,12 @@ Investment Portfolio Management is in progress on feature/investment-portfolio-r
 - Design separates cash-account balance movements from investor cash flows, explicitly records external contributions/withdrawals, represents internal transfers atomically, and reconciles to statement observations without auto-balancing.
 - Portfolio XIRR uses only external investor flows and a complete terminal value, by currency. Trades and portfolio income/expenses are internal events and are excluded from external-flow inputs.
 - Proposed schema-v6 collection additions and migration acceptance are documented. This commit changes documentation only; no live schema or personal financial data was modified.
+
+
+## 2026-11-01 — IPM-04 cash-ledger engine increment
+
+- Added a pure cash-ledger domain engine and unit coverage on `feature/investment-cash-ledger-engine`, stacked after the cash-ledger design ADR.
+- The engine validates explicit cash accounts, cash movements, correction references, same-currency transfers, statement observations and optional investment-transaction cash-account links.
+- Reconciliation requires explicit opening balance and statement evidence, respects effective/recorded timestamps, counts unlinked investment transactions as incomplete, and never inserts a balancing adjustment.
+- External investor cash-flow projection treats opening capital/contributions as negative and withdrawals as positive; trade and income/expense transactions plus internal transfers are excluded.
+- Scope remains partial: no schema-v6 SQLite migration, backup/export integration, cash UI, terminal valuation aggregation or portfolio-wide XIRR calculation is delivered in this increment.
