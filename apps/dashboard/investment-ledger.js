@@ -82,6 +82,14 @@ export function validateInvestmentLedgerCollections(input) {
         const date = requireDate(item.date, 'Investment transaction date');
         const recordedAt = requireDate(item.recordedAt, 'Investment transaction recordedAt');
         const cashAccountId = optionalText(item.cashAccountId, 'Investment transaction cash account ID');
+        let cashAccountLinkedAt;
+        if (cashAccountId === undefined) {
+            if (item.cashAccountLinkedAt !== undefined) throw new Error('A cash-account link date requires a cash account ID.');
+        } else {
+            cashAccountLinkedAt = item.cashAccountLinkedAt === undefined
+                ? recordedAt : requireDate(item.cashAccountLinkedAt, 'Investment transaction cash-account link recordedAt');
+            if (cashAccountLinkedAt < recordedAt) throw new Error('Cash-account link cannot predate the investment transaction record.');
+        }
         const trade = item.type === 'Purchase' || item.type === 'Sale';
         let quantity; let unitPrice;
         if (trade) {
@@ -103,7 +111,8 @@ export function validateInvestmentLedgerCollections(input) {
         if ((item.type === 'Dividend' || item.type === 'Interest') && cashAmount.amount <= 0) throw new Error('Dividend and interest cash amounts must be positive.');
         const externalReference = optionalText(item.externalReference, 'External reference');
         if (item.notes !== undefined && typeof item.notes !== 'string') throw new Error('Investment transaction notes must be text.');
-        return { id, accountId, instrumentId, type: item.type, cashAmount, date, recordedAt, ...(cashAccountId === undefined ? {} : { cashAccountId }),
+        return { id, accountId, instrumentId, type: item.type, cashAmount, date, recordedAt,
+            ...(cashAccountId === undefined ? {} : { cashAccountId, cashAccountLinkedAt }),
             ...(quantity === undefined ? {} : { quantity }), ...(unitPrice === undefined ? {} : { unitPrice }),
             ...(externalReference === undefined ? {} : { externalReference }),
             ...(item.notes === undefined ? {} : { notes: item.notes }) };

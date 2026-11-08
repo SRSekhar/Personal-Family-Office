@@ -293,3 +293,15 @@
 .investment-portfolio-analysis .table-wrap{margin-top:12px}
 .investment-portfolio-analysis table{min-width:1120px}
 @media(max-width:700px){.investment-portfolio-analysis{padding:14px}.investment-portfolio-heading{align-items:stretch;flex-direction:column}.investment-portfolio-heading .field-label{min-width:0}}
+
+
+/* Investment cash ledger */
+.investment-cash-ledger{margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+.investment-cash-ledger h4{margin:20px 0 10px;color:#344c3b;font-size:13px}
+.investment-cash-grid{align-items:stretch;margin-top:14px}
+.investment-cash-grid .panel-card{display:flex;flex-direction:column;gap:11px;min-width:0}
+.investment-cash-grid .panel-card h4{margin:0 0 3px}
+.investment-cash-grid .panel-card .form-note{margin:0}
+.investment-cash-ledger .table-wrap{margin:10px 0 16px}
+.investment-cash-ledger .field-label input,.investment-cash-ledger .field-label select{width:100%;min-width:0}
+@media(max-width:700px){.investment-cash-grid{grid-template-columns:minmax(0,1fr)}.investment-cash-ledger{padding-top:16px}}

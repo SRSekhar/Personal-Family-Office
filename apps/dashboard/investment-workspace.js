@@ -1,11 +1,20 @@
+import { analyzeInvestmentPerformanceMath } from './calculators-runtime/InvestmentPerformanceMath.js';
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
+import { validateInvestmentCashCollections } from './investment-cash-ledger.js';
 import { initializeInvestmentPortfolioView } from './investment-portfolio.js';
+import { initializeInvestmentCashWorkspace } from './investment-cash-workspace.js';
 
 const keys = {
     investmentAccounts: 'pfo-os.investment-accounts.v1',
     investmentInstruments: 'pfo-os.investment-instruments.v1',
     investmentTransactions: 'pfo-os.investment-transactions.v1',
     investmentValuations: 'pfo-os.investment-valuations.v1'
+};
+const cashKeys = {
+    investmentCashAccounts: 'pfo-os.investment-cash-accounts.v1',
+    investmentCashMovements: 'pfo-os.investment-cash-movements.v1',
+    investmentCashTransfers: 'pfo-os.investment-cash-transfers.v1',
+    investmentCashStatements: 'pfo-os.investment-cash-statements.v1'
 };
 const accountTypes = ['Brokerage', 'MutualFund', 'Retirement', 'ProvidentFund', 'FixedDeposit', 'Other'];
 const instrumentTypes = ['Equity', 'MutualFund', 'ETF', 'Bond', 'FixedDeposit', 'PublicProvidentFund', 'NationalPensionSystem', 'EmployeesProvidentFund', 'Gold', 'Silver', 'RealEstateInvestment', 'Cryptocurrency', 'AlternativeInvestment', 'Other'];
@@ -26,6 +35,16 @@ function readLedger() {
     }
     return validateInvestmentLedgerCollections(collections);
 }
+function readCashAccounts(ledger) {
+    const collections = {};
+    for (const [name, key] of Object.entries(cashKeys)) {
+        const raw = localStorage.getItem(key);
+        const parsed = raw === null ? [] : JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error('Saved ' + name + ' data is not an array.');
+        collections[name] = parsed;
+    }
+    return validateInvestmentCashCollections({ ...ledger, ...collections }).investmentCashAccounts;
+}
 function saveCollection(name, items) {
     const current = readLedger();
     const next = validateInvestmentLedgerCollections({ ...current, [name]: items });
@@ -39,23 +58,56 @@ function options(items, valueKey, label) {
 function render() {
     const panel = $('#investment-ledger');
     if (!panel) return;
+    const privateWorkspace = $('#workspace-label')?.textContent.includes('PRIVATE') === true;
+    $('#investment-ledger-demo-note').hidden = privateWorkspace;
+    if (!privateWorkspace) {
+        $('#investment-ledger-error').hidden = true;
+        panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = true; });
+        panel.querySelectorAll('form input').forEach((control) => { control.value = ''; });
+        for (const id of ['investment-account-count', 'investment-instrument-count', 'investment-transaction-count', 'investment-valuation-count']) {
+            $('#' + id).textContent = '0';
+        }
+        for (const id of ['investment-transaction-account', 'investment-transaction-cash-account', 'investment-transaction-instrument', 'investment-valuation-instrument']) {
+            $('#' + id).replaceChildren();
+        }
+        for (const id of ['investment-account-rows', 'investment-instrument-rows', 'investment-transaction-rows', 'investment-valuation-rows']) {
+            $('#' + id).replaceChildren();
+        }
+        return;
+    }
     let ledger;
     try { ledger = readLedger(); }
     catch (error) {
         $('#investment-ledger-error').textContent = error instanceof Error ? error.message : 'Investment data could not be read.';
         $('#investment-ledger-error').hidden = false;
+        for (const id of ['investment-account-rows', 'investment-instrument-rows', 'investment-transaction-rows', 'investment-valuation-rows']) {
+            $('#' + id).replaceChildren();
+        }
         panel.querySelectorAll('form button').forEach((button) => { button.disabled = true; });
         return;
     }
-    const privateWorkspace = $('#workspace-label')?.textContent.includes('PRIVATE');
-    $('#investment-ledger-demo-note').hidden = Boolean(privateWorkspace);
-    panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = !privateWorkspace; });
+    panel.querySelectorAll('form input, form select, form button').forEach((control) => { control.disabled = false; });
     $('#investment-ledger-error').hidden = true;
     $('#investment-account-count').textContent = String(ledger.investmentAccounts.length);
     $('#investment-instrument-count').textContent = String(ledger.investmentInstruments.length);
     $('#investment-transaction-count').textContent = String(ledger.investmentTransactions.length);
     $('#investment-valuation-count').textContent = String(ledger.investmentValuations.length);
+    const previousAccountId = $('#investment-transaction-account').value;
     $('#investment-transaction-account').innerHTML = options(ledger.investmentAccounts, 'id', (item) => item.name + ' · ' + item.institution);
+    if (ledger.investmentAccounts.some((item) => item.id === previousAccountId)) {
+        $('#investment-transaction-account').value = previousAccountId;
+    }
+    let cashAccounts = [];
+    try { cashAccounts = readCashAccounts(ledger); }
+    catch { /* the cash-ledger panel reports unreadable cash storage without blocking the rest of the ledger */ }
+    const selectedInvestmentAccountId = $('#investment-transaction-account').value || ledger.investmentAccounts[0]?.id;
+    const linkedCashAccounts = cashAccounts.filter((item) => item.investmentAccountId === selectedInvestmentAccountId);
+    const previousCashAccountId = $('#investment-transaction-cash-account').value;
+    $('#investment-transaction-cash-account').innerHTML = '<option value="">Not linked — reconciliation unavailable</option>'
+        + options(linkedCashAccounts, 'id', (item) => item.name + ' · ' + item.currency).replace('<option value="">Select…</option>', '');
+    if (linkedCashAccounts.some((item) => item.id === previousCashAccountId)) {
+        $('#investment-transaction-cash-account').value = previousCashAccountId;
+    }
     $('#investment-transaction-instrument').innerHTML = options(ledger.investmentInstruments, 'id', (item) => item.name + ' · ' + item.currency);
     $('#investment-valuation-instrument').innerHTML = options(ledger.investmentInstruments, 'id', (item) => item.name + ' · ' + item.currency);
     $('#investment-account-rows').innerHTML = ledger.investmentAccounts.map((item) => '<tr><td>' + escape(item.name) + '</td><td>' + escape(item.institution) + '</td><td>' + escape(item.type) + '</td><td>' + escape(item.currency) + '</td></tr>').join('');
@@ -98,6 +150,7 @@ export function initializeInvestmentWorkspace() {
     transactionSelect.innerHTML = transactionTypes.map((type) => '<option value="' + type + '">' + type + '</option>').join('');
     $('#investment-account-currency').innerHTML = currencyOptions;
     $('#investment-instrument-currency').innerHTML = currencyOptions;
+    $('#investment-transaction-account').addEventListener('change', render);
     $('#investment-transaction-type').addEventListener('change', () => {
         const trade = ['Purchase', 'Sale'].includes(transactionSelect.value);
         $('#investment-trade-fields').hidden = !trade;
@@ -125,9 +178,16 @@ export function initializeInvestmentWorkspace() {
         if (!account || !instrument) throw new Error('Select an existing investment account and instrument.');
         if (account.currency !== instrument.currency) throw new Error('Account and instrument currencies must match. FX conversion is not supported.');
         const amount = Number(form.get('cashAmount'));
+        const cashAccountId = String(form.get('cashAccountId') ?? '').trim();
+        const cashAccount = cashAccountId ? readCashAccounts(current).find((item) => item.id === cashAccountId) : null;
+        if (cashAccountId && (!cashAccount || cashAccount.investmentAccountId !== account.id || cashAccount.currency !== account.currency)) {
+            throw new Error('Select a cash sub-account belonging to the chosen investment account and currency.');
+        }
         const trade = type === 'Purchase' || type === 'Sale';
+        const recordedAt = new Date().toISOString();
         const item = { id: crypto.randomUUID(), accountId: account.id, instrumentId: instrument.id, type,
-            cashAmount: { amount, currency: account.currency }, date: dateAtUtcStart(String(form.get('date'))), recordedAt: new Date().toISOString() };
+            cashAmount: { amount, currency: account.currency }, date: dateAtUtcStart(String(form.get('date'))), recordedAt };
+        if (cashAccount) { item.cashAccountId = cashAccount.id; item.cashAccountLinkedAt = recordedAt; }
         if (trade) {
             item.quantity = Number(form.get('quantity'));
             item.unitPrice = { amount: Number(form.get('unitPrice')), currency: account.currency };
@@ -145,5 +205,6 @@ export function initializeInvestmentWorkspace() {
     window.addEventListener('pfo:investment-updated', render);
     window.addEventListener('pfo:workspace-updated', render);
     render();
-    initializeInvestmentPortfolioView();
+    initializeInvestmentPortfolioView(analyzeInvestmentPerformanceMath);
+    initializeInvestmentCashWorkspace();
 }

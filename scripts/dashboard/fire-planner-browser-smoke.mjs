@@ -1199,12 +1199,16 @@ try {
     await page.locator('#investment-account-form [name="type"]').selectOption('Brokerage');
     await page.locator('#investment-account-form [name="currency"]').selectOption('INR');
     await page.locator('#investment-account-form button[type="submit"]').click();
+    await page.locator('#investment-cash-account-form [name="investmentAccountId"]').selectOption({ index: 1 });
+    await page.locator('#investment-cash-account-form [name="name"]').fill('Browser test broker cash');
+    await page.locator('#investment-cash-account-form button[type="submit"]').click();
     await page.locator('#investment-instrument-form [name="name"]').fill('Browser test equity');
     await page.locator('#investment-instrument-form [name="type"]').selectOption('Equity');
     await page.locator('#investment-instrument-form [name="symbol"]').fill('BROWSERTEST');
     await page.locator('#investment-instrument-form [name="currency"]').selectOption('INR');
     await page.locator('#investment-instrument-form button[type="submit"]').click();
     await page.locator('#investment-transaction-form [name="accountId"]').selectOption({ index: 0 });
+    await page.locator('#investment-transaction-form [name="cashAccountId"]').selectOption({ index: 1 });
     await page.locator('#investment-transaction-form [name="instrumentId"]').selectOption({ index: 0 });
     await page.locator('#investment-transaction-form [name="type"]').selectOption('Purchase');
     await page.locator('#investment-transaction-form [name="cashAmount"]').fill('-1000');
@@ -1212,13 +1216,61 @@ try {
     await page.locator('#investment-transaction-form [name="quantity"]').fill('10');
     await page.locator('#investment-transaction-form [name="unitPrice"]').fill('100');
     await page.locator('#investment-transaction-form button[type="submit"]').click();
+    await page.locator('#investment-transaction-form [name="type"]').selectOption('Dividend');
+    await page.locator('#investment-transaction-form [name="cashAmount"]').fill('5');
+    await page.locator('#investment-transaction-form [name="date"]').fill('2026-10-30');
+    await page.locator('#investment-transaction-form button[type="submit"]').click();
+    await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
+    await page.locator('#investment-cash-movement-form [name="type"]').selectOption('OpeningBalance');
+    await page.locator('#investment-cash-movement-form [name="amount"]').fill('1000');
+    await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2025-10-29');
+    await page.locator('#investment-cash-movement-form [name="openingBalanceSource"]').selectOption('statement');
+    await page.locator('#investment-cash-movement-form button[type="submit"]').click();
+    await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
+    await page.locator('#investment-cash-movement-form [name="type"]').selectOption('ExternalContribution');
+    await page.locator('#investment-cash-movement-form [name="amount"]').fill('500');
+    await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2026-10-30');
+    await page.locator('#investment-cash-movement-form button[type="submit"]').click();
+    await page.locator('#investment-cash-movement-form [name="cashAccountId"]').selectOption({ index: 1 });
+    await page.locator('#investment-cash-movement-form [name="type"]').selectOption('ExternalWithdrawal');
+    await page.locator('#investment-cash-movement-form [name="amount"]').fill('-100');
+    await page.locator('#investment-cash-movement-form [name="effectiveAt"]').fill('2026-10-30');
+    await page.locator('#investment-cash-movement-form button[type="submit"]').click();
+    await page.locator('#investment-cash-statement-form [name="cashAccountId"]').selectOption({ index: 1 });
+    await page.locator('#investment-cash-statement-form [name="closingBalance"]').fill('405');
+    await page.locator('#investment-cash-statement-form [name="periodStart"]').fill('2025-10-29');
+    await page.locator('#investment-cash-statement-form [name="periodEnd"]').fill('2026-10-31');
+    await page.locator('#investment-cash-statement-form [name="statementAsOf"]').fill('2026-10-31');
+    await page.locator('#investment-cash-statement-form [name="sourceName"]').fill('Browser test statement');
+    await page.locator('#investment-cash-statement-form button[type="submit"]').click();
+    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /incomplete/,
+        'a legacy transaction without a settlement link must make cash reconciliation incomplete');
+    const legacyDividendBeforeLink = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]').find((item) => item.type === 'Dividend'));
+    const legacyDividendRow = page.locator('#investment-cash-unlinked-transaction-rows tr').filter({ hasText: 'Dividend' });
+    await legacyDividendRow.locator('select').selectOption({ index: 1 });
+    await legacyDividendRow.locator('button[data-link-transaction]').click();
+    const legacyDividendAfterLink = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]').find((item) => item.type === 'Dividend'));
+    assert.deepEqual({
+        cashAmount: legacyDividendAfterLink.cashAmount, date: legacyDividendAfterLink.date,
+        recordedAt: legacyDividendAfterLink.recordedAt, quantity: legacyDividendAfterLink.quantity,
+        unitPrice: legacyDividendAfterLink.unitPrice
+    }, {
+        cashAmount: legacyDividendBeforeLink.cashAmount, date: legacyDividendBeforeLink.date,
+        recordedAt: legacyDividendBeforeLink.recordedAt, quantity: legacyDividendBeforeLink.quantity,
+        unitPrice: legacyDividendBeforeLink.unitPrice
+    }, 'linking a historical transaction must preserve its original financial event');
+    assert.ok(legacyDividendAfterLink.cashAccountId, 'the historical dividend should now have an explicit settlement account');
+    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /reconciled.*405/,
+        'linking the historical dividend settlement must reconcile the cash statement without changing transaction values');
+    assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Unavailable[\s\S]*no eligible valuation/i,
+        'portfolio XIRR must remain unavailable while an open position lacks a terminal valuation');
     await page.locator('#investment-valuation-form [name="instrumentId"]').selectOption({ index: 0 });
     await page.locator('#investment-valuation-form [name="price"]').fill('120');
     await page.locator('#investment-valuation-form [name="asOf"]').fill('2026-10-31');
     await page.locator('#investment-valuation-form button[type="submit"]').click();
     assert.equal(await page.locator('#investment-account-count').innerText(), '1');
     assert.equal(await page.locator('#investment-instrument-count').innerText(), '1');
-    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '2');
     assert.equal(await page.locator('#investment-valuation-count').innerText(), '1');
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Browser test brokerage[\s\S]*Purchase/);
     assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\s\S]*120/);
@@ -1226,6 +1278,20 @@ try {
         'FIFO position view should reconcile quantity, open cost basis, market value and unrealised gain');
     assert.match(await page.locator('#investment-portfolio-summaries').innerText(), /Portfolio totals · INR[\s\S]*1,000[\s\S]*1,200/,
         'portfolio totals should be grouped and displayed in their ledger currency');
+    assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Portfolio XIRR · INR[\s\S]*annualized money-weighted return[\s\S]*Terminal value[\s\S]*1,605/,
+        'portfolio XIRR should include explicit external flows and a complete terminal value of cash plus valued holdings');
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#investment-cash-account-count').innerText(), '0', 'demo workspace must not expose private cash account counts');
+    assert.equal(await page.locator('#investment-cash-account-rows').innerText(), '', 'demo workspace must not expose private cash account rows');
+    assert.equal(await page.locator('#investment-cash-unlinked-transaction-rows').innerText(), '', 'demo workspace must not expose private transaction-link details');
+    assert.equal(await page.locator('#investment-portfolio-performance').innerText(), '', 'demo workspace must not expose private portfolio XIRR');
+    assert.equal(await page.locator('#investment-cash-owner option').count(), 0, 'demo workspace must clear private account names from selectors');
+    assert.equal(await page.locator('#investment-account-count').innerText(), '0', 'demo workspace must not expose private investment counts');
+    assert.equal(await page.locator('#investment-transaction-rows').innerText(), '', 'demo workspace must not expose private investment transactions');
+    assert.equal(await page.locator('#investment-transaction-cash-account option').count(), 0, 'demo workspace must clear private settlement account names');
+    await page.locator('#switch-private-button').click();
+    assert.match(await page.locator('#investment-cash-account-rows').innerText(), /Browser test broker cash/, 'switching back to private must restore local cash ledger records');
+    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
     const investmentStorage = await page.evaluate(() => ({
@@ -1240,9 +1306,13 @@ try {
     }));
     assert.equal(investmentStorage.accounts.length, 1);
     assert.equal(investmentStorage.instruments.length, 1);
-    assert.equal(investmentStorage.transactions.length, 1);
+    assert.equal(investmentStorage.transactions.length, 2);
     assert.equal(investmentStorage.valuations.length, 1);
-    process.stdout.write('PASS: private investment ledger creates accounts, instruments, reconciled trades and manual valuations.\n');
+    assert.equal(investmentStorage.cashAccounts.length, 1);
+    assert.equal(investmentStorage.cashMovements.length, 3);
+    assert.equal(investmentStorage.cashStatements.length, 1);
+    assert.equal(investmentStorage.cashTransfers.length, 0);
+    process.stdout.write('PASS: private investment and cash ledgers record funding, withdrawals, trade settlement and statement reconciliation.\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -1262,11 +1332,12 @@ try {
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
     for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
         assert.ok(Array.isArray(backup[collection]), `schema-v6 backup should include ${collection}`);
-        assert.equal(backup[collection].length, 1, `schema-v6 backup should preserve the saved ${collection}`);
+        assert.equal(backup[collection].length, collection === 'investmentTransactions' ? 2 : 1, `schema-v6 backup should preserve the saved ${collection}`);
     }
-    for (const collection of ['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements']) {
-        assert.deepEqual(backup[collection], [], `schema-v6 backup should include an empty ${collection} collection until explicitly entered`);
-    }
+    assert.deepEqual(backup.investmentCashAccounts, investmentStorage.cashAccounts);
+    assert.deepEqual(backup.investmentCashMovements, investmentStorage.cashMovements);
+    assert.deepEqual(backup.investmentCashTransfers, investmentStorage.cashTransfers);
+    assert.deepEqual(backup.investmentCashStatements, investmentStorage.cashStatements);
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
 
@@ -1646,8 +1717,8 @@ try {
         'investment account should persist across page reloads');
     assert.equal(await page.locator('#investment-instrument-count').innerText(), '1',
         'investment instrument should persist across page reloads');
-    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1',
-        'investment transaction should persist across page reloads');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '2',
+        'both original and historically linked investment transactions should persist across page reloads');
     assert.equal(await page.locator('#investment-valuation-count').innerText(), '1',
         'manual valuation should persist across page reloads');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
@@ -2634,8 +2705,8 @@ try {
         investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nine collections');
-    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all nine workspace collections.\\n');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all thirteen collections');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all thirteen workspace collections.\\n');
 
     // Open an isolated second browser tab with the same persisted browser baseline.
     // Its localStorage copy is deliberately isolated so it cannot see the first tab's later edit.
@@ -2706,7 +2777,7 @@ try {
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
-        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1']) {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1']) {
             globalThis.localStorage.removeItem(key);
         }
     });

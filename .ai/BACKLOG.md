@@ -540,3 +540,45 @@ A proposed domain contract is documented in `docs/architecture/ADR_INVESTMENT_CA
 - Wired schema-v6 local backup/export/import and SQLite workspace payloads to four separate browser storage keys; schema-v6 restore includes them in rollback coverage.
 - Added migration, recovery artifact, schema validation and compatibility tests. This remains an open stacked PR pending CI; no PR is merged.
 - Remaining: verify CI, add cash-account/movement/transfer/statement UI, connect reconciliation to portfolio reporting, and complete portfolio XIRR/terminal-value completeness using the existing XIRR calculator.
+
+
+### IPM-04 cash-ledger workflow UI — implementation increment
+
+- Added private-workspace forms for explicitly creating cash sub-accounts, appending opening balances/contributions/withdrawals/corrections, recording same-currency internal transfers and appending statement observations.
+- Added optional cash settlement-account linkage to new investment transactions. Existing transactions without a link remain preserved and cause reconciliation to remain incomplete rather than being guessed.
+- Added a cash-account reconciliation table with incomplete/reconciled/difference states, plus append-only movement, transfer and statement histories.
+- Browser storage writes use four dedicated schema-v6 keys with rollback of prior values if a multi-key save fails. The dashboard never fetches bank/broker data and never auto-creates opening balances.
+- Chromium smoke coverage uses isolated synthetic fixtures to exercise opening capital + contribution + withdrawal + linked purchase against a statement closing balance.
+- Portfolio-wide XIRR and terminal-value completeness remain the next accounting increment.
+
+
+### IPM-04 — portfolio XIRR and terminal-value completeness increment
+
+- Added portfolio-wide XIRR by currency using the existing shared `analyzeInvestmentPerformanceMath` / `calculateXirr` implementation; no second solver was introduced.
+- Investor flows include only explicit opening balances, external contributions, external withdrawals and append-only correction adjustments. Trade settlement, dividends, interest, fees, taxes and internal transfers are excluded as internal portfolio activity.
+- Terminal value is reconciled cash balances plus valued open holdings. Cash is rolled forward from the latest eligible statement using later recorded movements, transfers and linked transaction settlements.
+- Any missing cash statement/opening baseline, unlinked visible transaction, statement difference, missing open-position valuation, non-positive terminal value or ambiguous XIRR pattern makes the result unavailable. No partial totals or inferred values are shown.
+- Applies the same bitemporal cutoff to cash and holdings: both effective and recorded timestamps must be visible at the selected historical as-of date.
+- Strengthened append-only cash accounting: exactly one explicit opening baseline per cash account; no movements, linked trades or transfers before it; corrections must reference a different non-correction event in the same account and cannot predate it.
+- Demo workspace now clears private cash account selectors/history and private portfolio XIRR results when switching away from private mode.
+- Added tests for multi-account transfer reconciliation, correction signs/chronology, pre-opening events, statement differences, historical backfills, complete XIRR terminal value, missing data and Chromium UI behavior. Latest CI is being verified; no merge has occurred.
+
+
+### IPM-04 — historical settlement linking and bitemporal integrity
+
+- Added a workflow to link pre-existing unlinked investment transactions to an explicit cash sub-account. The action adds only the settlement association; cash amount, units, price, effective date and original recordedAt remain unchanged.
+- Added optional `cashAccountLinkedAt` to the investment transaction model and serialized validator. New linked transactions default link time to transaction recordedAt; historical links record their own timestamp.
+- Reconciliation and XIRR only treat a settlement link as visible when its link timestamp is at or before the selected recorded-at cutoff. This prevents a link added today from rewriting historical knowledge.
+- Demo mode now clears private investment account/instrument/transaction/valuation tables and selectors, in addition to cash-ledger history and XIRR output.
+- Added model, validator, reconciliation and performance tests for link chronology and historical cutoffs. Latest CI for current head is pending; no merge has occurred.
+
+
+### IPM-04 — cash-ledger and portfolio XIRR validation complete (2026-11-01)
+
+- Added an explicit zero opening-balance baseline as a valid user-entered fact. Zero is never inferred, and zero-valued opening events are omitted from the XIRR calculator input because the shared calculator requires non-zero cash-flow amounts.
+- Corrected the post-statement XIRR fixture so it exercises a valid single-sign-change flow pattern while verifying cash roll-forward.
+- Expanded the dashboard Vitest project include from only `apps/dashboard/tests/**` to all `apps/dashboard/**/*.test.js`. This brings the previously excluded root-level investment-ledger, cash-ledger and budget-overrun tests into CI.
+- Fixed the cash-ledger cutoff test to count all three valid opening/contribution/withdrawal flows before the requested recorded-at cutoff.
+- Chromium smoke now checks the realistic one-year XIRR path, historical transaction link preserving original financial values, JSON backup round-trip, SQLite persistence/restore, reload persistence and private-to-demo data clearing.
+- Latest PR #430 head: `786ded49daa9655fcc09d50da4562c4f682cb5c1`. CI run 41289104534 completed successfully; dashboard packaging run 41289104460 completed successfully (publish skipped for the PR). PR #429 CI and dashboard packaging also passed. PR #429 and #430 remain open and unmerged.
+- Remaining before this investment-accounting increment is merge-ready: review stacked PR ordering and obtain explicit user merge approval. Next product backlog: cash/investment CSV import/export with explicit mapping and validation; broker integrations and FX remain out of scope until separately designed.
