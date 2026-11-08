@@ -213,3 +213,14 @@ export function evaluateInvestmentConcentrationPolicy({ allocation, policy, asOf
         groupBy: validated.groupBy, asOfDate: asOfDate.toISOString(), recordedAtCutoff: recordedAtCutoff.toISOString(),
         breachCount, evaluatedRuleCount: results.length, results };
 }
+/** Validate the persisted concentration-policy collection against ledger references. */
+export function validateInvestmentConcentrationCollections(payload) {
+    if (!payload || !Array.isArray(payload.investmentConcentrationPolicies)) {
+        throw new TypeError('Investment concentration policies must be an array.');
+    }
+    return {
+        investmentConcentrationPolicies: validateInvestmentConcentrationPolicies(payload.investmentConcentrationPolicies, {
+            accounts: payload.investmentAccounts, instruments: payload.investmentInstruments
+        })
+    };
+}
