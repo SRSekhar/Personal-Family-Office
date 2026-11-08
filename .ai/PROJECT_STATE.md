@@ -303,3 +303,41 @@ PR #435 now includes the schema-v7 persistence foundation on the existing stacke
 ## Allocation dashboard follow-up — 2026-11-06
 
 The private allocation-policy dashboard is now implemented on PR #435. Users can create policy sets, append immutable versions, review saved policy history and analyze actual-vs-target drift using existing FIFO positions and eligible valuations. The dashboard is private-workspace only and requires confirmation before saving. CSV imports are blocked if they would invalidate existing policy references. Legacy v1–v6 investment backup imports preserve current policy data only when references remain valid against the incoming ledger. Browser smoke coverage passed along with CI, Secret Scan and dashboard deployment on 2026-11-06. The feature remains unmerged and the stacked dependency chain must be preserved.
+
+
+## Latest Verified Repository State — 2026-11-08
+
+This section supersedes older milestone snapshots above where they conflict with the current investment-management delivery status. Historical entries are retained for traceability.
+
+### Investment-management delivery (stacked, not merged)
+
+The following pull requests are currently **open, draft and unmerged**. They form one dependency chain; do not retarget or merge individual children out of order:
+
+- PR #425 — investment workspace persistence, schema v5; base `main`.
+- PR #426 — FIFO portfolio reconciliation; based on #425.
+- PR #427 — investment cash ledger/XIRR design; based on #426.
+- PR #428 — investment cash ledger reconciliation engine; based on #427.
+- PR #429 — cash-ledger persistence, schema v6; based on #428.
+- PR #430 — investment cash-ledger dashboard workflows; based on #429.
+- PR #432 — validated investment-ledger CSV interchange; based on #430.
+- PR #435 — allocation targets, immutable policy versions and actual-vs-target drift; based on #432. Latest head `ae4fd8669f0222754e95dabbf2df14f588d381a7`. CI #1528, Secret Scan #1321 and dashboard deployment #856 passed.
+
+PR #436 is a documentation/readiness child of #435. It records the input/metric gaps that must be resolved before implementing portfolio risk policies. Its latest head at this update is `cf60d21b84ea87897a2e6d16c2245a2bb8822ac3`; CI #1529 and Secret Scan #1322 were still running when this status was recorded. Do not call PR #436 verified until both finish successfully.
+
+### Current investment domain state on the feature chain
+
+- Investment ledger domain, FIFO position projection, valuation provenance, investment cash ledger, CSV interchange and allocation policy/drift are implemented on the stacked feature branches.
+- SQLite workspace schema is v7 with 14 collections on the current feature chain; this is not yet the main-branch state while the dependency PRs remain unmerged.
+- Allocation policy versions are immutable and bitemporal. Allocation is currency-separated, valuation completeness is enforced, and HHI remains descriptive rather than a risk score.
+- No FX conversion, inferred market prices, investment recommendations, rebalancing orders or autonomous trades are introduced.
+- Risk-policy implementation is not yet approved for coding: liquidity inputs are absent, drawdown-series rules are undefined, and exposure dimensions beyond instrument type/instrument need explicit requirements. See `docs/architecture/INVESTMENT-RISK-POLICY-READINESS.md` in PR #436.
+
+### Bootstrap status
+
+The repository already contains `scripts/build/Initialize-PFO.ps1` and its modular implementation under `scripts/internal/`. It supports initialization, `-Validate`, `-Doctor`, and `-WhatIf`; CI exercises no-overwrite and configured-path traversal safety. The uploaded continuation note's requested script is therefore not missing. Any further bootstrap change must be based on a concrete review finding and preserve the existing module/configuration architecture.
+
+### Governance
+
+- Keep all investment PRs draft/open/unmerged until the dependency chain is reviewed and the repository owner explicitly authorizes merging.
+- Never commit real household financial data, statements, credentials or private reports; use synthetic fixtures.
+- Do not mark risk policy, cloud sync, encryption, backup rotation or production readiness complete unless their separate acceptance gates pass.

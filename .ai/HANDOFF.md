@@ -451,3 +451,37 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Investment CSV import now validates candidate ledger changes against saved policy references and blocks imports that would orphan policy references.
 - Legacy v1–v6 backup import preserves existing allocation policies only if their references remain valid against the incoming ledger; otherwise the import is rejected before writes.
 - Latest PR #435 CI and real Chromium acceptance passed on head `0a21c20638e4e4a192ae73554f7b3732806c714f`. No merge is authorized.
+
+
+## Latest Handoff — 2026-11-08
+
+### Current source of truth
+
+The current investment work is in a stacked draft PR chain, not in `main`. Verify branch/PR head SHAs and CI before editing or describing a deliverable as complete.
+
+1. #425 — investment workspace persistence (schema v5).
+2. #426 — FIFO portfolio reconciliation.
+3. #427 — cash-ledger/XIRR model and design.
+4. #428 — investment cash-ledger reconciliation engine.
+5. #429 — SQLite persistence for cash ledger (schema v6).
+6. #430 — cash-ledger dashboard workflows.
+7. #432 — validated CSV interchange.
+8. #435 — allocation targets and drift (schema v7, 14 workspace collections). Head `ae4fd8669f0222754e95dabbf2df14f588d381a7`; CI #1528, Secret Scan #1321 and dashboard deployment #856 passed.
+9. #436 — risk-policy readiness documentation, stacked on #435. Head `cf60d21b84ea87897a2e6d16c2245a2bb8822ac3`; CI #1529 and Secret Scan #1322 were running at handoff.
+
+All nine PRs are open, draft and unmerged. Preserve their base/head dependency chain. No merge authorization has been given.
+
+### Immediate next actions
+
+- Recheck CI and Secret Scan for #436 head before declaring it accepted. Fix only evidence-backed failures.
+- Do not implement liquidity or drawdown scores until input data, formulas, stale/missing-data behavior, time windows and policy threshold semantics are approved. Do not turn HHI into a risk score.
+- Once risk metric contracts are explicitly decided, implement only the supported metrics with hand-calculated unit tests, versioned policies, persistence migration/backup compatibility and real-browser acceptance.
+- Keep the bootstrap initializer as an existing capability: `scripts/build/Initialize-PFO.ps1`, with modules in `scripts/internal/`. Review and harden only against reproducible defects; do not replace the modular design with a monolithic script.
+- Do not merge or close any PR without explicit repository-owner authorization.
+
+### Data and safety constraints
+
+- Use synthetic test data only. The GitHub repository is public.
+- Keep local-first storage and explicit user control.
+- No implicit FX, fabricated prices, unverified provider endpoints, autonomous trading or AI writes to investment records.
+- SQLite schema v7 exists on the investment feature branch chain; do not describe it as deployed on `main` until the dependency PRs are merged.

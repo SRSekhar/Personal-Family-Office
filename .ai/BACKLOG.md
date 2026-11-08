@@ -431,11 +431,12 @@ The following work is approved under Option B. It is a functional product epic, 
 - Acceptance: hand-calculated test cases, multi-currency rejection/no FX, negative returns, partial exits, multiple lots, fees, and no cash-flow sign ambiguity.
 
 ### IPM-05 — Allocation targets and risk policy
-- User-defined target allocation by asset class/category/instrument and optional account.
-- Calculate actual weights, percentage-point drift and absolute currency drift.
-- User-configured concentration, liquidity, exposure and drawdown policies; no hidden defaults.
-- Rebalancing observations are explanatory, not orders; user must approve target policy.
-- Acceptance: exact target reconciliation, zero/empty denominator states, target version history, and no action suggestion without configured target.
+- Allocation targets, immutable version history, actual weights, percentage-point drift and currency-value drift are implemented in PR #435 (schema v7); the PR remains draft and unmerged pending the dependency chain's review/merge authorization.
+- Risk-policy implementation is a separate gated deliverable. Do not extend the allocation-policy schema by assumption or treat allocation HHI as a risk score.
+- Required policy families remain concentration, liquidity, exposure and drawdown. Every threshold/limit must be explicitly configured by the user; no hidden defaults, inferred risk appetite, automatic orders or recommendations.
+- Before implementation, approve the metric contract for each family: measurement formula, scope, currency treatment, observation/as-of rules, stale/missing-data behavior, denominator/empty states, threshold direction, breach severity and policy effective/recorded-at semantics.
+- Data-readiness findings are recorded in `docs/architecture/INVESTMENT-RISK-POLICY-READINESS.md`: current instrument metadata has no liquidity classification/lock-up/maturity fields; valuation history has effective and recorded timestamps but no agreed drawdown sampling/peak/staleness rules; current HHI is descriptive only.
+- Acceptance: hand-calculated deterministic cases for every approved metric; explicit zero/empty and incomplete-data states; immutable version history; reproducible as-of results; no risk alert or rebalancing observation without an active configured policy; no partial result where required inputs are missing.
 
 ### IPM-06 — Market-data provider boundary
 - Define typed provider contract for instrument identity, quotes, historical bars, fundamentals and corporate actions as separate capabilities.
