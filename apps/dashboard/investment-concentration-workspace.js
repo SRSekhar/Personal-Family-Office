@@ -87,6 +87,16 @@ function addRuleRow(ledger, value = {}) {
     row.append(keyLabel, limitLabel, operatorLabel, remove);
     container.append(row);
 }
+function refreshRuleRows(ledger) {
+    const container = $('#investment-concentration-rules');
+    const current = [...container.querySelectorAll('.investment-concentration-rule-row')].map((row) => ({
+        key: row.querySelector('.investment-concentration-rule-key').value,
+        maxWeightPercent: row.querySelector('.investment-concentration-rule-limit').value,
+        operator: row.querySelector('.investment-concentration-rule-operator').value
+    }));
+    container.replaceChildren();
+    current.forEach((rule) => addRuleRow(ledger, rule));
+}
 function fillPolicySets(policies) {
     const sets = new Map();
     for (const policy of policies) {
@@ -230,10 +240,10 @@ export function initializeInvestmentConcentrationWorkspace() {
         try { addRuleRow(readLedger()); } catch (error) { message(error.message, true); }
     });
     $('#investment-concentration-group-by').addEventListener('change', () => {
-        try { $('#investment-concentration-rules').replaceChildren(); addRuleRow(readLedger()); } catch (error) { message(error.message, true); }
+        try { refreshRuleRows(readLedger()); } catch (error) { message(error.message, true); }
     });
     $('#investment-concentration-currency').addEventListener('change', () => {
-        try { fillAccountOptions(readLedger()); $('#investment-concentration-rules').replaceChildren(); addRuleRow(readLedger()); } catch (error) { message(error.message, true); }
+        try { const ledger = readLedger(); fillAccountOptions(ledger); refreshRuleRows(ledger); } catch (error) { message(error.message, true); }
     });
     $('#investment-concentration-scope').addEventListener('change', () => {
         $('#investment-concentration-account-row').hidden = $('#investment-concentration-scope').value !== 'account';
