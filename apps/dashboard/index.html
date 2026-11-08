@@ -28,6 +28,7 @@
                 <a class="nav-item" href="#cash-flow"><span class="nav-icon">₹</span> Cash flow</a>
                 <a class="nav-item" href="#loan-calculator"><span class="nav-icon">↘</span> Loan calculator</a>
                 <a class="nav-item" href="#investment-performance"><span class="nav-icon">↗</span> Investment returns</a>
+                <a class="nav-item" href="#investment-ledger"><span class="nav-icon">▥</span> Investment portfolio</a>
                 <a class="nav-item" href="#return-risk-analysis"><span class="nav-icon">△</span> Return risk analysis</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
                 <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
@@ -755,6 +756,65 @@
                     <div class="table-wrap"><table><caption class="sr-only">Individual records in the selected historical snapshot</caption><thead><tr><th scope="col">Record</th><th scope="col">Category</th><th scope="col">Type</th><th scope="col" class="align-right">Value</th></tr></thead><tbody id="historical-snapshot-record-rows"></tbody></table></div>
                 </section>
                 <p class="empty-state" id="historical-snapshots-empty" hidden>No historical snapshots yet.</p>
+            </section>
+
+            <section class="panel" id="investment-ledger" aria-labelledby="investment-ledger-heading">
+                <div class="section-heading"><div><p class="eyebrow">PORTFOLIO MANAGEMENT</p><h2 id="investment-ledger-heading">Investment ledger</h2><p class="form-note">Track investment accounts, instruments, transactions and manually recorded valuations. Ledger entries are append-only; correct mistakes with an offsetting event.</p></div></div>
+                <div class="notice" id="investment-ledger-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Switch to your private workspace to add or view saved investment records. Sample data is never mixed into your ledger.</p></div></div>
+                <p class="validation-message" id="investment-ledger-error" role="alert" hidden></p>
+                <p class="validation-message" id="investment-ledger-message" role="status" aria-live="polite" hidden></p>
+                <div class="historical-detail-totals">
+                    <div><strong id="investment-account-count">0</strong><span>Accounts</span></div>
+                    <div><strong id="investment-instrument-count">0</strong><span>Instruments</span></div>
+                    <div><strong id="investment-transaction-count">0</strong><span>Transactions</span></div>
+                    <div><strong id="investment-valuation-count">0</strong><span>Valuations</span></div>
+                </div>
+                <div class="field-grid">
+                    <form id="investment-account-form" class="panel-card">
+                        <h3>Add investment account</h3>
+                        <label class="field-label">Account name<input name="name" required maxlength="100" placeholder="e.g. Equity demat"></label>
+                        <label class="field-label">Institution<input name="institution" required maxlength="100" placeholder="Bank, broker or provider"></label>
+                        <label class="field-label">Account type<select id="investment-account-type" name="type"></select></label>
+                        <label class="field-label">Currency<select id="investment-account-currency" name="currency"></select></label>
+                        <button class="button button-primary" type="submit">Save account</button>
+                    </form>
+                    <form id="investment-instrument-form" class="panel-card">
+                        <h3>Add investment instrument</h3>
+                        <label class="field-label">Instrument name<input name="name" required maxlength="120" placeholder="Fund, share, deposit or asset"></label>
+                        <label class="field-label">Instrument type<select id="investment-instrument-type" name="type"></select></label>
+                        <label class="field-label">Symbol (optional)<input name="symbol" maxlength="40" placeholder="Ticker / scheme code"></label>
+                        <label class="field-label">Currency<select id="investment-instrument-currency" name="currency"></select></label>
+                        <button class="button button-primary" type="submit">Save instrument</button>
+                    </form>
+                </div>
+                <div class="field-grid">
+                    <form id="investment-transaction-form" class="panel-card">
+                        <h3>Record investment transaction</h3>
+                        <label class="field-label">Account<select id="investment-transaction-account" name="accountId" required></select></label>
+                        <label class="field-label">Instrument<select id="investment-transaction-instrument" name="instrumentId" required></select></label>
+                        <label class="field-label">Transaction type<select id="investment-transaction-type" name="type"></select></label>
+                        <label class="field-label">Cash amount<input name="cashAmount" type="number" step="0.01" required inputmode="decimal" placeholder="Purchase/fee/tax negative; sale/income positive"></label>
+                        <label class="field-label">Effective date<input name="date" type="date" required></label>
+                        <div id="investment-trade-fields" class="field-grid">
+                            <label class="field-label">Quantity<input id="investment-transaction-quantity" name="quantity" type="number" min="0.00000001" step="any" inputmode="decimal"></label>
+                            <label class="field-label">Unit price<input id="investment-transaction-unit-price" name="unitPrice" type="number" min="0.00000001" step="any" inputmode="decimal"></label>
+                        </div>
+                        <button class="button button-primary" type="submit">Append transaction</button>
+                    </form>
+                    <form id="investment-valuation-form" class="panel-card">
+                        <h3>Record manual valuation</h3>
+                        <label class="field-label">Instrument<select id="investment-valuation-instrument" name="instrumentId" required></select></label>
+                        <label class="field-label">Unit price<input name="price" type="number" min="0" step="0.01" required inputmode="decimal"></label>
+                        <label class="field-label">Valuation date<input name="asOf" type="date" required></label>
+                        <p class="form-note">Source is recorded as User-entered. No market price is fetched or inferred.</p>
+                        <button class="button button-primary" type="submit">Append valuation</button>
+                    </form>
+                </div>
+                <h3>Accounts</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Institution</th><th>Type</th><th>Currency</th></tr></thead><tbody id="investment-account-rows"></tbody></table></div>
+                <h3>Instruments</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Symbol</th><th>Currency</th></tr></thead><tbody id="investment-instrument-rows"></tbody></table></div>
+                <h3>Transaction history</h3><div class="table-wrap"><table><thead><tr><th>Date</th><th>Instrument</th><th>Account</th><th>Type</th><th class="align-right">Cash movement</th></tr></thead><tbody id="investment-transaction-rows"></tbody></table></div>
+                <h3>Valuation history</h3><div class="table-wrap"><table><thead><tr><th>As of</th><th>Instrument</th><th class="align-right">Unit price</th><th>Source</th></tr></thead><tbody id="investment-valuation-rows"></tbody></table></div>
+                <p class="form-note">This ledger does not provide tax calculations, FX conversion, live market data, broker connectivity or investment recommendations. A missing valuation remains missing rather than being treated as zero.</p>
             </section>
 
             <footer class="app-footer"><span>© PFO OS · Built for clarity and control.</span><span>Early development · Not financial advice</span></footer>

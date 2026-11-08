@@ -1192,6 +1192,47 @@ try {
     await page.locator('#switch-private-button').click();
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]').length), 1,
         'switching back must preserve the private historical snapshot');
+
+    // Exercise the complete investment ledger using isolated, explicitly fictional browser-test data.
+    await page.locator('#investment-account-form [name="name"]').fill('Browser test brokerage');
+    await page.locator('#investment-account-form [name="institution"]').fill('Browser test institution');
+    await page.locator('#investment-account-form [name="type"]').selectOption('Brokerage');
+    await page.locator('#investment-account-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-account-form button[type="submit"]').click();
+    await page.locator('#investment-instrument-form [name="name"]').fill('Browser test equity');
+    await page.locator('#investment-instrument-form [name="type"]').selectOption('Equity');
+    await page.locator('#investment-instrument-form [name="symbol"]').fill('BROWSERTEST');
+    await page.locator('#investment-instrument-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-instrument-form button[type="submit"]').click();
+    await page.locator('#investment-transaction-form [name="accountId"]').selectOption({ index: 0 });
+    await page.locator('#investment-transaction-form [name="instrumentId"]').selectOption({ index: 0 });
+    await page.locator('#investment-transaction-form [name="type"]').selectOption('Purchase');
+    await page.locator('#investment-transaction-form [name="cashAmount"]').fill('-1000');
+    await page.locator('#investment-transaction-form [name="date"]').fill('2026-10-30');
+    await page.locator('#investment-transaction-form [name="quantity"]').fill('10');
+    await page.locator('#investment-transaction-form [name="unitPrice"]').fill('100');
+    await page.locator('#investment-transaction-form button[type="submit"]').click();
+    await page.locator('#investment-valuation-form [name="instrumentId"]').selectOption({ index: 0 });
+    await page.locator('#investment-valuation-form [name="price"]').fill('120');
+    await page.locator('#investment-valuation-form [name="asOf"]').fill('2026-10-31');
+    await page.locator('#investment-valuation-form button[type="submit"]').click();
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-instrument-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1');
+    assert.equal(await page.locator('#investment-valuation-count').innerText(), '1');
+    assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Browser test brokerage[\s\S]*Purchase/);
+    assert.match(await page.locator('#investment-valuation-rows').innerText(), /Browser test equity[\s\S]*120/);
+    const investmentStorage = await page.evaluate(() => ({
+        accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        transactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+    }));
+    assert.equal(investmentStorage.accounts.length, 1);
+    assert.equal(investmentStorage.instruments.length, 1);
+    assert.equal(investmentStorage.transactions.length, 1);
+    assert.equal(investmentStorage.valuations.length, 1);
+    process.stdout.write('PASS: private investment ledger creates accounts, instruments, reconciled trades and manual valuations.\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -1200,7 +1241,7 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 4, 'private JSON backup should use schema version 4 with historical snapshots');
+    assert.equal(backup.schemaVersion, 5, 'private JSON backup should use schema version 5 with investment ledger collections');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -1209,8 +1250,35 @@ try {
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
+    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
+        assert.ok(Array.isArray(backup[collection]), `schema-v5 backup should include ${collection}`);
+        assert.equal(backup[collection].length, 1, `schema-v5 backup should preserve the saved ${collection}`);
+    }
     assert.equal(typeof backup.exportedAt, 'string', 'JSON backup should include an export timestamp');
     process.stdout.write('PASS: private workspace JSON backup downloads and contains a valid versioned payload.\n');
+
+    const investmentRestoreDialogPromise = page.waitForEvent('dialog');
+    await page.locator('#import-file').setInputFiles({
+        name: 'investment-ledger-v5-roundtrip.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(backup))
+    });
+    const investmentRestoreDialog = await investmentRestoreDialogPromise;
+    assert.match(investmentRestoreDialog.message(), /Backup import preview/);
+    assert.match(investmentRestoreDialog.message(), /Investment accounts: 1/);
+    await investmentRestoreDialog.accept();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('Restored full workspace')
+    );
+    const restoredInvestmentStorage = await page.evaluate(() => ({
+        accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        transactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        valuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
+    }));
+    assert.deepEqual(restoredInvestmentStorage, investmentStorage,
+        'schema-v5 JSON restore must round-trip all investment ledger collections without changing IDs or values');
+    process.stdout.write('PASS: schema-v5 JSON backup restore round-trips accounts, instruments, transactions and valuations.\n');
 
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
@@ -1469,14 +1537,14 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 4, 'private backup should use schema v4 and include saved goals and history');
+    assert.equal(goalBackup.schemaVersion, 5, 'private backup should use schema v5 and include saved goals, history, and investment ledger');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
     assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
     assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private schema-v4 backup includes records, goals, cash flow, budgets, and historical snapshots.\\n');
+    process.stdout.write('PASS: private schema-v5 backup includes records, goals, cash flow, budgets, history, and investment ledger.\\n');
 
     const restoreFailureCases = [
         { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
@@ -1545,6 +1613,14 @@ try {
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund'));
+    assert.equal(await page.locator('#investment-account-count').innerText(), '1',
+        'investment account should persist across page reloads');
+    assert.equal(await page.locator('#investment-instrument-count').innerText(), '1',
+        'investment instrument should persist across page reloads');
+    assert.equal(await page.locator('#investment-transaction-count').innerText(), '1',
+        'investment transaction should persist across page reloads');
+    assert.equal(await page.locator('#investment-valuation-count').innerText(), '1',
+        'manual valuation should persist across page reloads');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 1,
         'historical snapshot should persist across page reloads');
     assert.ok((await page.locator('#historical-snapshot-rows').innerText()).includes('31 Dec 2023'),
@@ -1608,7 +1684,7 @@ try {
         mimeType: 'application/json',
         buffer: await readFile(goalBackupPath)
     });
-    assert.match(await restoreGoalConfirmation, /Importing replaces records, goals, cash-flow transactions, budgets, and historical snapshots in this browser/i);
+    assert.match(await restoreGoalConfirmation, /Importing replaces records, goals, cash-flow transactions, budgets, historical snapshots, and all investment-ledger collections in this browser/i);
     await page.waitForFunction(() =>
         globalThis.document.querySelector('#saved-goals-list')?.innerText.includes('Browser test emergency fund')
     );
@@ -2104,6 +2180,7 @@ try {
         'tax reset should restore a single final bracket');
     process.stdout.write('PASS: progressive tax estimator applies caller-supplied marginal brackets and validates bad schedules.\n');
 
+    await page.locator('#cash-flow-period').selectOption('all');
     page.once('dialog', (dialog) => dialog.accept());
     await page.locator('#cash-flow-import-csv').setInputFiles({
         name: 'cash-flow-import.csv',
@@ -2207,6 +2284,7 @@ try {
     assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Over budget/,
         'HTML-looking category text should still participate in normal budget calculations');
     await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#cash-flow-budget-month').fill('2026-10');
     assert.match(await page.locator('#cash-flow-budget-rows').innerText(), /Groceries[\s\S]*Over budget/,
         'budget and ledger values should remain available after reload');
     process.stdout.write('PASS: monthly category budgets persist, aggregate recorded expenses, and flag overspending.\n');
@@ -2471,8 +2549,8 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 4, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots']) {
+    assert.equal(databaseBackup.schemaVersion, 5, 'SQLite backup should retain the supported full-workspace schema version');
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
@@ -2492,7 +2570,11 @@ try {
         goals: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
         cashFlow: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
         budgets: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
-        history: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]'),
+        investmentAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        investmentInstruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        investmentTransactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -2508,11 +2590,59 @@ try {
         goals: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.goals.v1') || '[]'),
         cashFlow: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1') || '[]'),
         budgets: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1') || '[]'),
-        history: JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]')
+        history: JSON.parse(globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1') || '[]'),
+        investmentAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
+        investmentInstruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
+        investmentTransactions: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-transactions.v1') || '[]'),
+        investmentValuations: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-valuations.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all five collections');
-    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all five workspace collections.\\n');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nine collections');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all nine workspace collections.\\n');
+
+    // Open an isolated second browser tab with the same persisted browser baseline.
+    // Its localStorage copy is deliberately isolated so it cannot see the first tab's later edit.
+    const secondTabStorage = await page.evaluate(() => Object.fromEntries(
+        Array.from({ length: globalThis.localStorage.length }, (_, index) => {
+            const key = globalThis.localStorage.key(index);
+            return [key, globalThis.localStorage.getItem(key)];
+        })
+    ));
+    const secondTabContext = await browser.newContext();
+    await secondTabContext.addInitScript((entries) => {
+        for (const [key, value] of Object.entries(entries)) globalThis.localStorage.setItem(key, value);
+    }, secondTabStorage);
+    const secondTab = await secondTabContext.newPage();
+    const secondTabErrors = [];
+    secondTab.on('pageerror', (error) => secondTabErrors.push(error.message));
+    await secondTab.goto(baseUrl, { waitUntil: 'networkidle' });
+    if (await secondTab.locator('#switch-private-button').isVisible()) {
+        await secondTab.locator('#switch-private-button').click();
+    }
+    await secondTab.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('SQLite ready'));
+    await page.locator('#investment-valuation-instrument').selectOption({ index: 0 });
+    await page.locator('#investment-valuation-form [name="price"]').fill('121');
+    await page.locator('#investment-valuation-form [name="asOf"]').fill('2026-11-01');
+    await page.locator('#investment-valuation-form button[type="submit"]').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#investment-ledger-message')?.textContent.includes('Saved locally in this browser.'));
+    await page.locator('#database-save-button').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#toast')?.textContent.includes('Complete private workspace saved to the local SQLite database'));
+    await secondTab.locator('#database-save-button').click();
+    await secondTab.waitForFunction(() =>
+        globalThis.document.querySelector('#database-storage-status')?.textContent.includes('SQLite changed elsewhere'));
+    const multiTabLatest = await page.evaluate(async () => {
+        const response = await globalThis.fetch('/api/v1/workspace');
+        if (!response.ok) throw new Error('Could not verify the latest SQLite snapshot after a stale second-tab save.');
+        return (await response.json()).payload;
+    });
+    assert.equal(multiTabLatest.investmentValuations.at(-1).price.amount, 121,
+        'a stale second-tab save must not overwrite the valuation committed by the first tab');
+    assert.deepEqual(secondTabErrors, [], 'second browser tab should not report uncaught JavaScript errors');
+    await secondTabContext.close();
+    process.stdout.write('PASS: isolated second browser tab receives a stale-write conflict and cannot overwrite the latest investment valuation.\\n');
 
     await page.locator('#database-auto-save-button').click();
     await page.waitForFunction(() =>
@@ -2539,7 +2669,7 @@ try {
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
-        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1']) {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1']) {
             globalThis.localStorage.removeItem(key);
         }
     });

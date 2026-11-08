@@ -1103,3 +1103,12 @@ Do not record personal financial values or claim customer demand without evidenc
 - Added explicit unavailable rendering for zero denominators and empty allocations, plus explanatory wording that HHI/category concentration is not correlation-aware risk analysis.
 - Added report validation and regression coverage for metric serialization, rendering, malformed values, and empty states. No new assumptions, market-data integrations, or recommendations.
 - Validation status: pending PR CI and Secret Scan.
+
+
+## 2026-10-31 — Investment ledger persistence and workspace integration (in progress)
+- Added a schema-v5 backup contract for investment accounts, instruments, transactions and valuation observations while retaining v1-v4 import compatibility.
+- Added transactional SQLite v4-to-v5 migration that preserves existing financial records, goals, cash flow, budgets, historical snapshots, stable record IDs and snapshot timestamp.
+- Added local browser persistence and dashboard forms for creating accounts/instruments and appending transactions/manual valuations.
+- Integrated investment collections into full-workspace export/import and local SQLite persistence. Older backups preserve investment data they do not contain.
+- Scope remains intentionally offline/manual: no FX conversion, market-data provider, broker connection, AI ledger mutation or order execution.
+- Validation status: final branch CI, external pre-migration backup, Chromium end-to-end and multi-tab tests pending.

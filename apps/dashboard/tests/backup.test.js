@@ -254,3 +254,48 @@ describe('version 4 historical full workspace backup validation', () => {
     });
 });
 
+
+
+describe('version 5 investment workspace backup validation', () => {
+    const version5 = {
+        schemaVersion: 5, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [{ id: 'transaction-1', accountId: 'account-1', instrumentId: 'instrument-1', type: 'Purchase',
+            cashAmount: { amount: -200, currency: 'INR' }, quantity: 2, unitPrice: { amount: 100, currency: 'INR' },
+            date: '2026-10-01T00:00:00.000Z', recordedAt: '2026-10-02T00:00:00.000Z' }],
+        investmentValuations: [{ instrumentId: 'instrument-1', price: { amount: 110, currency: 'INR' },
+            asOf: '2026-10-03T00:00:00.000Z', recordedAt: '2026-10-03T00:00:00.000Z',
+            sourceType: 'manual', sourceName: 'User-entered' }]
+    };
+
+    it('validates and retains all investment collections and provenance', () => {
+        const validated = validateBackupPayload(version5, 'INR');
+        expect(validated.includesInvestmentLedger).toBe(true);
+        expect(validated.investmentAccounts).toEqual(version5.investmentAccounts);
+        expect(validated.investmentTransactions[0].id).toBe('transaction-1');
+        expect(validated.investmentValuations[0].sourceName).toBe('User-entered');
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentLedger: true, investmentAccountCount: 1, investmentInstrumentCount: 1,
+            investmentTransactionCount: 1, investmentValuationCount: 1
+        });
+    });
+
+    it('requires every investment collection in v5 and validates references before import', () => {
+        const missing = { ...version5 }; delete missing.investmentValuations;
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow('Unsupported backup format');
+        const invalid = structuredClone(version5);
+        invalid.investmentTransactions[0].instrumentId = 'unknown';
+        expect(() => validateBackupPayload(invalid, 'INR')).toThrow('unknown account or instrument');
+    });
+
+    it('keeps v1-v4 backup semantics unchanged and does not imply investment data was included', () => {
+        const legacy = validateBackupPayload({
+            schemaVersion: 4, currency: 'INR', records: validRecords, goals: [], cashFlowEntries: [],
+            budgets: [], historicalSnapshots: []
+        }, 'INR');
+        expect(legacy).not.toHaveProperty('includesInvestmentLedger');
+        expect(summarizeValidatedBackup(legacy)).not.toHaveProperty('investmentAccountCount');
+    });
+});

@@ -269,3 +269,14 @@ The previously committed P1 engineering deliverables are complete and mapped to 
 - PR #424 in progress: deterministic FIFO position projection, cost basis, realised/unrealised gain, income/expense tracking, and manual valuation provenance with strict as-of-date selection.
 - The approved investment portfolio management backlog is IPM-01 through IPM-10 in `.ai/BACKLOG.md`. Next phases are SQLite workspace migration and dashboard ledger workflows, performance reconciliation, user-defined allocation targets, provider contracts, evidence-grounded research, point-in-time backtesting, and isolated paper portfolios.
 - Preserve legacy portfolio records, local-first operation, SQLite schema-v4 backup compatibility, all existing reports/imports/exports, and existing dashboard features. No live broker execution, FX conversion, hidden risk thresholds, or AI ledger writes.
+
+
+## 2026-11-01 — Investment workspace persistence (IPM-03)
+
+- PR #425 remains open and draft. SQLite schema v5 adds four investment collections while preserving the five existing workspace collections.
+- Delivered in branch: transactional v4-to-v5 migration, v1-v4 backup compatibility, browser-local ledger persistence, account/instrument/transaction/manual valuation forms, and v5 JSON/SQLite backup integration.
+- A durable schema-v4 JSON recovery artifact is written with exclusive creation and flush-to-disk before schema replacement; POSIX permissions are owner-only. Migration aborts if backup creation fails. Migration tests cover artifact contents/permissions and invalid-v4 rollback.
+- Chromium smoke coverage now exercises investment entry, reload persistence, v5 JSON export/import, and exact SQLite save/restore equality for all nine collections. The import preview includes investment counts and replacement scope.
+- Added an API-level two-client stale-write test using investment ledger data; it verifies a stale valuation write receives HTTP 409 and cannot replace the latest committed valuation.
+- Added a Chromium two-tab scenario using isolated browser contexts with the same initial local workspace: one tab commits a new manual valuation; the stale tab must receive a visible SQLite conflict and must not overwrite the newer valuation.
+- Acceptance passed on commit `1b5a45eb5910f275118ede1657d8b39916fe539a`: CI (lint, typecheck, build, unit tests and Chromium smoke), Secret Scan and dashboard packaging are green. The browser suite verified the isolated two-tab conflict scenario and preserved the latest valuation. IPM-03 implementation is complete; PR #425 remains draft pending review/merge. Accessibility remains secondary as directed.
