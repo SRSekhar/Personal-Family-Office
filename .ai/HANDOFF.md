@@ -284,3 +284,139 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Per-currency XIRR uses the existing shared calculator. External flows are opening balance, contributions, withdrawals and corrections; internal trades and transfers are excluded. Terminal value is reconciled cash plus valued open positions. Ambiguous XIRR or incomplete evidence is reported unavailable.
 - Root-level dashboard test files are now included in Vitest. Latest smoke verifies a one-year return horizon, historical settlement linking, JSON and SQLite round-trips, reload persistence and private-to-demo clearing.
 - PRs #425–#430 remain open and unmerged. Required merge order: #425 → #426 → #427 → #428 → #429 → #430. Do not merge without explicit user approval.
+
+
+## Latest Handoff — IPM-05 CSV interchange (2026-11-01)
+
+- Branch: feature/investment-ledger-csv-interchange; draft PR #432, based on PR #430 (feature/investment-cash-ledger-ui).
+- Current feature adds apps/dashboard/investment-csv.js, investment-csv.test.js and investment-csv-workspace.js, plus the private-workspace controls in apps/dashboard/index.html.
+- All eight collections have explicit schemas. CSV is PFO-native/versioned; ordinary text remains human-readable; formula-like or reserved-prefix values use reversible UTF-8/base64 escaping for formula-injection protection; nested money values are JSON cells.
+- previewInvestmentCsvImport validates a complete candidate workspace using the existing investment and cash validators. Append catches duplicate IDs; replacement affects only selected collections and fails if resulting references/accounting invariants are invalid.
+- UI requires explicit confirmation, supports cancel, and attempts browser-storage rollback if a selected collection write fails. Workspace events are dispatched only after successful writes. JSON full-workspace backup remains authoritative.
+- Chromium smoke was extended for per-collection export, import preview, confirmed replacement and duplicate-ID append rejection. Unit tests cover round trips across all eight collections and malformed input.
+- No CI run is currently visible for the current PR head. Do not mark IPM-05 accepted until lint, typecheck, build, Vitest and Chromium smoke pass.
+- External broker CSV layouts/mapping remain deferred; do not infer transaction types, signs, cash links, opening balances, FX or valuation data.
+- PR #432 remains draft and unmerged. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge without explicit approval.
+
+
+## Latest Handoff — IPM-05 PFO-native CSV validation (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432, stacked on PR #430. Verified head: `fba75ccd29667b0e52dbcb2252f7b33f079765b9`.
+- CI run `41305848173` completed successfully. Its single build/typecheck/lint/test job passed repository checks, dependency audit, lint, typecheck, package build, the complete Vitest suite, Chromium installation and real-browser smoke.
+- Dashboard packaging run `41305848152` completed successfully; artifact upload passed and Pages publish was correctly skipped for a PR.
+- Added edge coverage for UTF-8 BOM, LF line endings, empty collection round trips, malformed nested JSON and non-finite numeric values. The Chromium smoke verifies import preview refreshes when switching Replace/Append mode and catches duplicate append without reselecting the file.
+- This confirms the PFO-native CSV increment only. Issue #431's full scope remains open: explicit external-provider column mapping, row-level downloadable error reports, persistence-failure/SQLite consistency acceptance and full reload/export-reimport equality still need implementation and tests.
+- Provider mapping must wait for actual redacted source CSV samples and explicit transaction/sign conventions. Never guess broker schemas or synthesize financial events.
+- Import writes selected localStorage collections with rollback attempts, then dispatches workspace events to trigger the configured optional/debounced SQLite autosave. This is not a single atomic transaction spanning browser storage and SQLite.
+- PR #432 remains open/draft/unmerged. Required dependency order remains #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge is authorized.
+
+
+## Latest Handoff — IPM-05 row-level CSV diagnostics (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432 based on PR #430. Current head at handoff: `ef1d0fd574613f42d7736781ebc42237dd6c0df2`.
+- Added detailed PFO-native CSV row parsing, collecting row number, field, validation message and original row cells; the strict parser continues to fail if any row is invalid.
+- UI shows row diagnostics and downloads a spreadsheet-safe `investment-csv-import-errors.csv` report. A row-level error blocks the entire multi-file batch; no valid rows are partially persisted.
+- Unit tests and Chromium smoke coverage for report generation/download and disabled confirmation were added. CI, Chromium smoke, Secret Scan and dashboard packaging for this head are not yet visible/verified.
+- Latest verified previous head: `8c9a37931ae3c4d3f562bc736b76437649147429`; CI run 1381 and dashboard packaging run 711 passed, including reload/export-reimport equality.
+- Provider-specific mapping remains blocked until actual redacted CSV samples and confirmed transaction/sign semantics are provided. Never infer financial events.
+- Import writes localStorage with rollback attempts and dispatches events for optional/debounced SQLite autosave; no cross-store atomic transaction is claimed.
+- PR #432 remains draft and unmerged; keep dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — IPM-05 row diagnostics CI-green (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432, based on PR #430. Verified head: `a1a7fc784d286be06432544311991eb2e6460e1e`.
+- Added detailed row parsing and downloadable spreadsheet-safe error report with file, collection, row, field, message and original row JSON.
+- Invalid rows block the entire batch; valid rows are never partially committed. UI shows up to 100 errors and lets the user download the complete report.
+- CI run `41312197836` (1392) passed dependency audit, repository checks, lint, typecheck, build, all unit tests, Chromium install and real-browser smoke. Dashboard packaging run `41312197970` (722) passed; Pages publish skipped for PR.
+- Browser smoke verifies row error download and disabled confirmation, then valid import, reload persistence, byte-identical export/re-import, duplicate append rejection, storage rollback and oversized file rejection.
+- Remaining issue #431 scope: external-provider column mapping (blocked on actual redacted samples and confirmed semantics) and further SQLite autosave failure/consistency acceptance. Browser localStorage rollback is not atomic with optional/debounced SQLite autosave.
+- PR #432 remains draft/open/unmerged. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — SQLite failure recovery verified (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; draft PR #432 stacked on PR #430. Verified code/workflow head: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`.
+- Added a database-level rollback test: an injected SQLite update trigger fails the write; the previous committed workspace payload and updatedAt timestamp remain unchanged.
+- Added Chromium smoke for a transient 503 during automatic SQLite persistence. The failed write leaves browser localStorage unchanged, does not partially update SQLite, and a subsequent edit triggers a successful full snapshot save containing both edits.
+- CI run `41313265864` (1402) passed: dependency audit, repository checks, lint, typecheck, package build, 80 test files / 715 tests, Chromium installation and complete real-browser smoke. Dashboard packaging run `41312944982` (727) passed; Pages publish skipped for PR.
+- Row-level CSV error reports are verified. Remaining issue #431 acceptance: provider-specific mapping needs actual redacted source CSVs and confirmed transaction/sign conventions; independent Secret Scan verification was not available in the PR-triggered workflow list.
+- Browser localStorage and SQLite are separate persistence systems. Tests prove browser-data retention, SQLite transaction rollback and retry recovery, not cross-store atomicity.
+- PR #432 remains draft/open/unmerged. Keep dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — SQLite persistence recovery (2026-11-01)
+
+- Verified code head `7c456e075b1fa3c1bb3d8e564413c0d86c147a8d`, PR #432 draft/open/unmerged.
+- CI run 1397 passed: 80 test files / 715 tests, dependency audit, lint, typecheck, build, Chromium installation and full browser smoke. Dashboard packaging run 727 passed.
+- Database test injects a failing SQLite update trigger and verifies the prior committed payload and timestamp survive rollback.
+- Browser smoke injects one 503 for an autosave PUT, verifies the edit remains in browser localStorage and absent from SQLite, then makes another edit and verifies the next autosave persists both edits.
+- Existing multi-tab stale-write protection and startup recovery pause remain covered. These tests do not make browser localStorage and SQLite atomic together.
+- Remaining: provider-specific CSV mapping requires redacted provider samples and confirmed field/transaction/sign semantics; Secret Scan run `41313265865` (1194) passed after enabling the workflow for stacked `feature/**` PR targets.
+- PR #432 remains draft/open/unmerged. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — Secret Scan enabled and green (2026-11-01)
+
+- Latest branch head: `b7d53a8638a2c5451e11c8208bdaddfc5d67f705`; draft PR #432 remains open and unmerged.
+- Secret Scan workflow now triggers for PRs targeting `main` and `feature/**`; Gitleaks run 1194 passed, scanning current changes and full Git history.
+- CI run 1402 passed: 80 test files / 715 tests, dependency audit, lint, typecheck, build and full real Chromium smoke. Dashboard packaging run 732 passed; Pages publishing skipped for PR.
+- SQLite transaction rollback and transient 503 autosave retry recovery are covered. Browser-local edits remain intact on failure and later full autosave restores the unsynced edits; no cross-store atomicity claim.
+- External provider mapping remains blocked until redacted provider CSV samples and confirmed transaction/sign conventions are available.
+- Preserve PR dependency order #425 → #426 → #427 → #428 → #429 → #430 → #432. No merge without explicit approval.
+
+
+## Latest Handoff — IPM-05 acceptance consolidated (2026-11-01)
+
+- PR #432 remains draft/open/unmerged on `feature/investment-ledger-csv-interchange`, stacked on PR #430. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge is authorized.
+- Latest verified feature head before this documentation refresh: `b4df415d4a9baaf4bc02b5d62b1efcabaf23d3ea`.
+- Verified at that head: CI run 1405 passed (80 test files / 715 tests and full real Chromium smoke); Secret Scan run 1197 passed; dashboard packaging run 735 passed (Pages publish skipped for PR).
+- IPM-05 PFO-native CSV import/export is implemented for all eight investment/cash collections. It includes strict versioned parsing, safe-text encoding, full-workspace preview validation, append/replace, explicit confirmation, row-level downloadable diagnostics, 10 MiB limit, browser-storage rollback attempt, and reload/export/re-import smoke coverage.
+- SQLite rollback and transient autosave failure recovery are tested. A subsequent save-triggering edit recovers earlier unsynced changes; no timed retry without a subsequent event is implemented.
+- Browser localStorage and SQLite are separate persistence systems; no cross-store atomicity claim.
+- External provider mapping remains blocked on exact redacted source CSV samples and user-confirmed field/type/sign semantics. Never guess broker layouts or infer transactions, signs, cash links, opening balances, FX or valuations.
+- JSON full-workspace backup remains authoritative. No broker API sync or remote cloud sync is part of IPM-05.
+- Next: continue independent backlog work that does not require provider samples. When mapping resumes, request redacted source exports and confirm semantics first.
+- The IPM-05 status document was consolidated in the latest documentation commit; verify CI again on the new branch head before claiming that documentation commit itself is green.
+
+
+## Latest Handoff — bounded SQLite autosave retry (2026-11-01)
+
+- Branch: `feature/investment-ledger-csv-interchange`; PR #432 remains draft/open/unmerged, stacked on PR #430. Preserve #425 → #426 → #427 → #428 → #429 → #430 → #432; no merge is authorized.
+- Verified head: `4389b2ad109f50d98474b97fc73980241b699469`.
+- Added bounded retries for transient automatic SQLite persistence failures: HTTP 408, 429, 5xx and network `TypeError` failures retry after 1s, 2s and 4s (initial attempt plus at most three retries).
+- Validation errors, ordinary 4xx responses and 409 stale-write conflicts are not retried. Conflict/recovery state, disabled autosave, demo workspace and non-private hosts stop retry scheduling.
+- After retry exhaustion, automatic retries pause and browser-local data remains intact. A subsequent edit starts a new retry window. An explicit manual save cancels any pending debounce/retry.
+- Chromium smoke verifies a one-off 503 recovers without another edit, four consecutive 503 responses stop after exactly four total attempts, browser-local edits remain intact, and a later edit starts a successful new save.
+- CI run 1410 passed on this head: 80 test files / 715 tests, lint, typecheck, build, dependency audit and full real Chromium smoke. Browser output includes both bounded-retry acceptance messages and no uncaught browser errors.
+- Secret Scan run 1202 passed. Dashboard packaging run 740 passed; Pages publishing skipped as expected for a PR.
+- SQLite and browser localStorage remain separate persistence systems; no cross-store atomicity is claimed.
+- Provider-specific CSV mapping remains blocked on exact redacted source CSVs and user-confirmed field/type/sign semantics.
+
+
+## Handoff — SQLite backup/recovery documentation alignment (2026-11-01)
+
+- Audited current schema-v6 persistence code and tests against the operational guide and ADR-0004.
+- Corrected the guide and ADR to describe all 13 collections, v4→v5→v6 migration history, optimistic concurrency, WAL mode, POSIX file permissions, bounded transient retry, and separate browser-local/SQLite persistence.
+- The guide now warns against treating a live `.sqlite` file copy as a portable backup while WAL is active; use the dashboard's validated full-workspace JSON export.
+- No runtime code changed. This commit is documentation-only; CI test counts and previous workflow results are unchanged.
+- Automated online SQLite backup/checkpoint, encrypted backup, retention/rotation, and remote sync remain deferred. Do not imply they are implemented.
+
+
+## Handoff — online SQLite backup implementation (2026-11-01)
+
+- Added manual online SQLite file backup via Node's built-in `sqlite.backup()`, available from Node 22.16.0. Root engine floor is `>=22.16.0 <23`; CI checks API availability.
+- Local-only POST `/api/v1/database/backup` creates unique artifacts under `<database path>.backups`, validates SQLite quick_check and full schema-v6 payload, fsyncs and publishes without overwriting existing backups. UI reports the verified path and collection counts.
+- Recovery test restores the actual backup artifact as a separate database and verifies all 13 collection counts, stable IDs, valuation provenance and integrity. API tests cover success, empty database and cross-origin rejection.
+- Latest CI, Secret Scan and dashboard packaging must pass before calling this verified. Do not merge PR #432 without explicit approval.
+- Backup remains manual; no schedule, rotation, retention enforcement, encryption, remote copy or browser-local/SQLite cross-store atomicity is implemented.
+
+
+## Handoff — verified online SQLite backup (2026-11-01)
+
+- Latest verified branch head: `59b2b60ad1efcc5e205555095710564028ebd254`.
+- CI run 41326075282 passed: 80 test files / 718 tests, lint, typecheck, build, dependency audit and full real Chromium smoke. Smoke output explicitly confirms: `PASS: dashboard creates and verifies a native online SQLite backup file.`
+- Dashboard packaging run 41326075250 passed (Pages publishing skipped for PR). Secret Scan run 41326075278 passed.
+- Manual online SQLite backup is implemented via Node `sqlite.backup()` (minimum Node 22.16.0), with integrity and full schema-v6 validation, fsync and unique immutable backup files under `<database path>.backups`. The actual backup artifact is reopened in the 13-collection recovery test.
+- PR #432 remains draft/open/unmerged, stacked on PR #430. Preserve dependency chain #425 → #426 → #427 → #428 → #429 → #430 → #432. Do not merge without explicit user approval.
+- Remaining product scope: provider-specific CSV mapping requires redacted real broker CSV samples and confirmed semantics. Automated backup scheduling, rotation, retention, encryption, remote copy and cross-store atomicity remain unimplemented.

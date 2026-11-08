@@ -1,9 +1,10 @@
-import { DatabaseSync } from 'node:sqlite';
+import { backup as sqliteBackup, DatabaseSync } from 'node:sqlite';
 import { Buffer } from 'node:buffer';
 import process from 'node:process';
-import { chmodSync, closeSync, existsSync, fsyncSync, mkdirSync, openSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, existsSync, fsyncSync, mkdirSync, openSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { validateBackupPayload } from '../../apps/dashboard/backup.js';
 
 const SCHEMA_VERSION = 6;
@@ -243,6 +244,54 @@ export class WorkspaceDatabase {
             investmentValuationCount: validated.investmentValuations.length, investmentCashAccountCount: validated.investmentCashAccounts.length,
             investmentCashMovementCount: validated.investmentCashMovements.length, investmentCashTransferCount: validated.investmentCashTransfers.length,
             investmentCashStatementCount: validated.investmentCashStatements.length };
+    }
+    async createOnlineBackup() {
+        if (!this.getWorkspace()) throw new Error('No committed SQLite workspace exists to back up.');
+        const backupDirectory = this.#databasePath + '.backups';
+        mkdirSync(backupDirectory, { recursive: true, mode: 0o700 });
+        if (process.platform !== 'win32') chmodSync(backupDirectory, 0o700);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `pfo-os-sqlite-${timestamp}-${randomUUID()}.sqlite`;
+        const destinationPath = join(backupDirectory, filename);
+        const temporaryPath = join(backupDirectory, `.${filename}.tmp`);
+        let verificationDatabase;
+        try {
+            await sqliteBackup(this.#database, temporaryPath, { rate: 100 });
+            verificationDatabase = new DatabaseSync(temporaryPath);
+            const messages = verificationDatabase.prepare('PRAGMA quick_check').all().map((row) => String(row.quick_check));
+            if (messages.length !== 1 || messages[0] !== 'ok') throw new Error('SQLite backup integrity verification failed.');
+            const row = verificationDatabase.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
+            if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v6 workspace.');
+            const payload = validateWorkspacePayload(JSON.parse(row.payload_json));
+            verificationDatabase.close(); verificationDatabase = undefined;
+            const descriptor = openSync(temporaryPath, 'r+');
+            try { fsyncSync(descriptor); } finally { closeSync(descriptor); }
+            if (process.platform !== 'win32') chmodSync(temporaryPath, 0o600);
+            renameSync(temporaryPath, destinationPath);
+            if (process.platform !== 'win32') {
+                const directoryDescriptor = openSync(backupDirectory, 'r');
+                try { fsyncSync(directoryDescriptor); } finally { closeSync(directoryDescriptor); }
+            }
+            const file = statSync(destinationPath);
+            return {
+                filename, directory: backupDirectory, path: destinationPath, bytes: file.size,
+                updatedAt: row.updated_at, schemaVersion: SCHEMA_VERSION,
+                collectionCounts: {
+                    records: payload.records.length, goals: payload.goals.length, cashFlowEntries: payload.cashFlowEntries.length,
+                    budgets: payload.budgets.length, historicalSnapshots: payload.historicalSnapshots.length,
+                    investmentAccounts: payload.investmentAccounts.length, investmentInstruments: payload.investmentInstruments.length,
+                    investmentTransactions: payload.investmentTransactions.length, investmentValuations: payload.investmentValuations.length,
+                    investmentCashAccounts: payload.investmentCashAccounts.length, investmentCashMovements: payload.investmentCashMovements.length,
+                    investmentCashTransfers: payload.investmentCashTransfers.length, investmentCashStatements: payload.investmentCashStatements.length
+                }
+            };
+        } catch (error) {
+            try { verificationDatabase?.close(); } catch { /* preserve original error */ }
+            for (const candidate of [temporaryPath, temporaryPath + '-wal', temporaryPath + '-shm', temporaryPath + '-journal']) {
+                try { unlinkSync(candidate); } catch { /* temporary artifact may not exist */ }
+            }
+            throw error;
+        }
     }
     close() { this.#database.close(); }
 }
