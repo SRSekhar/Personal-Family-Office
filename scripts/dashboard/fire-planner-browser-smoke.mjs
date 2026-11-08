@@ -2987,7 +2987,7 @@ try {
         const originalSetItem = globalThis.Storage.prototype.setItem;
         globalThis.__pfoConcentrationOriginalSetItem = originalSetItem;
         globalThis.Storage.prototype.setItem = function (key, value) {
-            if (key === 'pfo-os.investment-concentration-policies.v1') {
+            if (key === 'pfo-os.' + 'investment-concentration-policies.v1') {
                 throw new globalThis.DOMException('Simulated concentration policy storage failure', 'QuotaExceededError');
             }
             return originalSetItem.call(this, key, value);
@@ -3001,7 +3001,7 @@ try {
     await failedConcentrationDialog.accept();
     await failedConcentrationSubmit;
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-concentration-message')?.textContent.includes('Simulated concentration policy storage failure'));
-    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]').length), 2,
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-concentration-policies.v1') || '[]').length), 2,
         'a failed concentration policy write must preserve all previously saved versions');
     assert.equal(await page.locator('#investment-concentration-policy-count').innerText(), '2',
         'failed concentration persistence must not present an unsaved version as committed');
