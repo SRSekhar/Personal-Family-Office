@@ -2830,6 +2830,7 @@ try {
     await secondPage.waitForFunction(() => globalThis.document.querySelector('#workspace-label')?.textContent.includes('PRIVATE'));
     await secondPage.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
     await secondPage.locator('#investment-allocation-name').fill('Browser smoke concurrent v3');
+    await secondPage.locator('#investment-allocation-effective-from').fill('2026-01-01');
     const stalePolicySnapshot = await secondPage.evaluate(() =>
         globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1'));
     await page.locator('#investment-allocation-policy-set').selectOption(allocationPolicySetId);
