@@ -1321,7 +1321,7 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 7, 'private JSON backup should use schema version 7 with investment allocation policies');
+    assert.equal(backup.schemaVersion, 8, 'private JSON backup should use schema version 8 with concentration policy collections');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -1330,8 +1330,8 @@ try {
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
-    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies']) {
-        assert.ok(Array.isArray(backup[collection]), `schema-v7 backup should include ${collection}`);
+    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies']) {
+        assert.ok(Array.isArray(backup[collection]), `schema-v8 backup should include ${collection}`);
         const expectedCount = {
             investmentAccounts: investmentStorage.accounts.length,
             investmentInstruments: investmentStorage.instruments.length,
@@ -1341,9 +1341,10 @@ try {
             investmentCashMovements: investmentStorage.cashMovements.length,
             investmentCashTransfers: investmentStorage.cashTransfers.length,
             investmentCashStatements: investmentStorage.cashStatements.length,
-            investmentAllocationPolicies: 0
+            investmentAllocationPolicies: 0,
+            investmentConcentrationPolicies: 0
         }[collection];
-        assert.equal(backup[collection].length, expectedCount, `schema-v7 backup should preserve the saved ${collection}`);
+        assert.equal(backup[collection].length, expectedCount, `schema-v8 backup should preserve the saved ${collection}`);
     }
     assert.deepEqual(backup.investmentCashAccounts, investmentStorage.cashAccounts);
     assert.deepEqual(backup.investmentCashMovements, investmentStorage.cashMovements);
@@ -1778,7 +1779,7 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 7, 'private backup should use schema v7 and include saved goals, history, and investment allocation policies');
+    assert.equal(goalBackup.schemaVersion, 8, 'private backup should use schema v8 and include saved goals, history, and investment policy collections');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
@@ -2928,6 +2929,60 @@ try {
     process.stdout.write('PASS: failed allocation policy storage writes preserve the prior immutable policy history.\\n');
     process.stdout.write('PASS: private allocation policy creation is immutable/versioned and drift analysis reconciles the valued FIFO position.\\n');
 
+    // User-configured concentration limits are independent from allocation targets.
+    await page.locator('#investment-concentration-name').fill('Browser smoke concentration');
+    await page.locator('#investment-concentration-currency').selectOption('INR');
+    await page.locator('#investment-concentration-scope').selectOption('portfolio');
+    await page.locator('#investment-concentration-group-by').selectOption('instrumentType');
+    await page.locator('#investment-concentration-effective-from').fill('2026-01-01');
+    await page.locator('#investment-concentration-add-rule').click();
+    const concentrationRule = page.locator('#investment-concentration-rules .investment-concentration-rule-row').last();
+    assert.equal(await concentrationRule.locator('.investment-concentration-rule-limit').inputValue(), '',
+        'the application must not prefill a default risk threshold');
+    await concentrationRule.locator('.investment-concentration-rule-key').selectOption('Equity');
+    await concentrationRule.locator('.investment-concentration-rule-limit').fill('50');
+    await concentrationRule.locator('.investment-concentration-rule-operator').selectOption('>');
+    const concentrationFormState = await page.evaluate(() => {
+        const form = globalThis.document.querySelector('#investment-concentration-form');
+        return {
+            valid: form.checkValidity(),
+            disabled: form.querySelector('button[type="submit"]')?.disabled,
+            invalidControls: [...form.elements].filter((control) => !control.checkValidity()).map((control) => ({
+                name: control.name || control.id || control.className, value: control.value, message: control.validationMessage
+            }))
+        };
+    });
+    assert.equal(concentrationFormState.valid, true, 'concentration policy form must be valid before submit: ' + JSON.stringify(concentrationFormState.invalidControls));
+    assert.equal(concentrationFormState.disabled, false, 'concentration policy submit must be enabled in the private workspace');
+    const concentrationDialogPromise = page.waitForEvent('dialog');
+    const concentrationSubmit = page.locator('#investment-concentration-form button[type="submit"]').click();
+    const concentrationDialog = await concentrationDialogPromise;
+    assert.match(concentrationDialog.message(), /Save immutable concentration policy Browser smoke concentration v1/);
+    await concentrationDialog.accept();
+    await concentrationSubmit;
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-concentration-policy-count')?.textContent === '1');
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-concentration-analysis')?.textContent.includes('breached'));
+    assert.match(await page.locator('#investment-concentration-history').innerText(), /Browser smoke concentration/);
+    assert.match(await page.locator('#investment-concentration-analysis').innerText(), /Equity/);
+    assert.match(await page.locator('#investment-concentration-analysis').innerText(), /Limit breached/);
+    const concentrationSetId = await page.locator('#investment-concentration-policy-set').inputValue();
+    await page.locator('#investment-concentration-policy-set').selectOption('');
+    await page.locator('#investment-concentration-policy-set').selectOption(concentrationSetId);
+    await page.locator('#investment-concentration-name').fill('Browser smoke concentration v2');
+    await page.locator('#investment-concentration-effective-from').fill('2026-01-01');
+    await page.locator('#investment-concentration-rules .investment-concentration-rule-limit').fill('75');
+    const concentrationV2DialogPromise = page.waitForEvent('dialog');
+    const concentrationV2Submit = page.locator('#investment-concentration-form button[type="submit"]').click();
+    const concentrationV2Dialog = await concentrationV2DialogPromise;
+    assert.match(concentrationV2Dialog.message(), /Save immutable concentration policy Browser smoke concentration v2 v2/);
+    await concentrationV2Dialog.accept();
+    await concentrationV2Submit;
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-concentration-policy-count')?.textContent === '2');
+    assert.equal(await page.locator('#investment-concentration-history tr').count(), 2,
+        'concentration policy updates must append immutable versions rather than overwrite history');
+    assert.match(await page.locator('#investment-concentration-history').innerText(), /Browser smoke concentration v2/);
+    process.stdout.write('PASS: users can save immutable concentration limits with no default thresholds and evaluate them against complete valued positions.\\n');
+
     const [policyBackupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -2935,11 +2990,13 @@ try {
     const policyBackupPath = join(temporaryDirectory, policyBackupDownload.suggestedFilename());
     await policyBackupDownload.saveAs(policyBackupPath);
     const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
-    assert.equal(policyBackup.schemaVersion, 7);
+    assert.equal(policyBackup.schemaVersion, 8);
     assert.equal(policyBackup.investmentAllocationPolicies.length, 3);
+    assert.equal(policyBackup.investmentConcentrationPolicies.length, 2);
     const legacyV6Backup = JSON.parse(JSON.stringify(policyBackup));
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
+    delete legacyV6Backup.investmentConcentrationPolicies;
     const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
     await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
     const legacyImportDialogPromise = page.waitForEvent('dialog');
@@ -2953,6 +3010,10 @@ try {
         'a compatible legacy v6 backup must preserve allocation policies that were not present in that backup');
     assert.equal(await page.locator('#investment-allocation-policy-count').innerText(), '3',
         'legacy restore must leave the allocation policy visible in the private dashboard');
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]').length), 2,
+        'a compatible legacy v6 backup must preserve concentration policies absent from that backup');
+    assert.equal(await page.locator('#investment-concentration-policy-count').innerText(), '2',
+        'legacy restore must leave concentration policies visible in the private dashboard');
     process.stdout.write('PASS: compatible legacy v6 backup import preserves allocation policy versions.\\n');
 
     // SQLite persistence is explicit and round-trips the full validated private workspace.
@@ -2974,8 +3035,8 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 7, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies']) {
+    assert.equal(databaseBackup.schemaVersion, 8, 'SQLite backup should retain the supported full-workspace schema version');
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
@@ -2990,14 +3051,16 @@ try {
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
     assert.equal(databaseBackup.investmentAllocationPolicies.length, 3,
-        'schema-v7 backup should include all saved allocation policy versions, including those preserved by legacy restore');
+        'schema-v8 backup should include all saved allocation policy versions, including those preserved by legacy restore');
+    assert.equal(databaseBackup.investmentConcentrationPolicies.length, 2,
+        'schema-v8 backup should include all user-defined concentration policy versions');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
     assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
-    assert.match(onlineBackupStatus, /14 collections/i,
-        'the online backup UI should report validation across all 14 workspace collections');
+    assert.match(onlineBackupStatus, /15 collections/i,
+        'the online backup UI should report validation across all 15 workspace collections');
     assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
     process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
@@ -3017,7 +3080,8 @@ try {
         investmentCashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
         investmentCashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
         investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
-        investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]')
+        investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
+        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -3042,11 +3106,12 @@ try {
         investmentCashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
         investmentCashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
         investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
-        investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]')
+        investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
+        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all fourteen collections');
-    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all fourteen workspace collections.\\n');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all fifteen collections');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all fifteen workspace collections.\\n');
 
     // Open an isolated second browser tab with the same persisted browser baseline.
     // Its localStorage copy is deliberately isolated so it cannot see the first tab's later edit.
@@ -3225,7 +3290,7 @@ try {
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
-        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-allocation-policies.v1']) {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1']) {
             globalThis.localStorage.removeItem(key);
         }
     });

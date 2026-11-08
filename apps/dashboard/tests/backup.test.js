@@ -408,3 +408,61 @@ describe('version 7 investment allocation policy backup validation', () => {
         expect(validated).not.toHaveProperty('investmentAllocationPolicies');
     });
 });
+
+describe('version 8 user-defined concentration policy backup validation', () => {
+    const version8 = {
+        schemaVersion: 8, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [
+            { id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' },
+            { id: 'instrument-2', name: 'Example Equity', type: 'Equity', currency: 'INR' }
+        ],
+        investmentTransactions: [], investmentValuations: [],
+        investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [],
+        investmentAllocationPolicies: [],
+        investmentConcentrationPolicies: [{
+            id: 'concentration-v1', policySetId: 'portfolio-limits', version: 1, name: 'User concentration limits',
+            currency: 'INR', scope: 'portfolio', groupBy: 'instrumentType',
+            effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
+            rules: [{ key: 'Equity', maxWeightPercent: 25, operator: '>=' }]
+        }]
+    };
+
+    it('validates and previews user-authored concentration policies in schema v8', () => {
+        const validated = validateBackupPayload(version8, 'INR');
+        expect(validated.includesInvestmentConcentrationPolicies).toBe(true);
+        expect(validated.investmentConcentrationPolicies).toEqual(version8.investmentConcentrationPolicies);
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentConcentrationPolicies: true, investmentConcentrationPolicyCount: 1,
+            includesInvestmentAllocationPolicies: true, investmentAllocationPolicyCount: 0
+        });
+    });
+
+    it('requires the concentration collection and validates group references and explicit limits', () => {
+        const missing = { ...version8 }; delete missing.investmentConcentrationPolicies;
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow('Unsupported backup format');
+        const unknownGroup = structuredClone(version8);
+        unknownGroup.investmentConcentrationPolicies[0].rules[0].key = 'UnknownType';
+        expect(() => validateBackupPayload(unknownGroup, 'INR')).toThrow(/unsupported instrument type/i);
+        const invalidLimit = structuredClone(version8);
+        invalidLimit.investmentConcentrationPolicies[0].rules[0].maxWeightPercent = 101;
+        expect(() => validateBackupPayload(invalidLimit, 'INR')).toThrow(/from 0 to 100/);
+    });
+
+    it('preserves schema-v7 backups and distinguishes a v7-migrated empty collection from user data', () => {
+        const legacy = structuredClone(version8);
+        legacy.schemaVersion = 7;
+        delete legacy.investmentConcentrationPolicies;
+        const old = validateBackupPayload(legacy, 'INR');
+        expect(old).not.toHaveProperty('includesInvestmentConcentrationPolicies');
+        expect(old).not.toHaveProperty('investmentConcentrationPolicies');
+
+        const migrated = { ...version8, investmentConcentrationPolicies: [], concentrationPoliciesMigratedFromV7: true };
+        const result = validateBackupPayload(migrated, 'INR');
+        expect(result.investmentConcentrationPolicies).toEqual([]);
+        expect(result).not.toHaveProperty('includesInvestmentConcentrationPolicies');
+        const inconsistent = { ...migrated, investmentConcentrationPolicies: version8.investmentConcentrationPolicies };
+        expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
+    });
+});

@@ -314,12 +314,13 @@
 .investment-allocation-target-heading h4 { margin: 0; }
 .investment-allocation-targets { display: grid; gap: .65rem; }
 .investment-allocation-target-row { display: grid; grid-template-columns: minmax(12rem, 2fr) minmax(8rem, 1fr) auto; align-items: end; gap: .75rem; padding: .75rem; border: 1px solid var(--border, #dfe5df); border-radius: .65rem; }
+.investment-concentration-rule-row { display: grid; grid-template-columns: minmax(12rem, 2fr) minmax(8rem, 1fr) minmax(11rem, 1fr) auto; align-items: end; gap: .75rem; padding: .75rem; border: 1px solid var(--border, #dfe5df); border-radius: .65rem; }
 .investment-allocation-analysis { margin-top: 1rem; }
 .investment-allocation-analysis table { width: 100%; border-collapse: collapse; }
 .investment-allocation-analysis th, .investment-allocation-analysis td { padding: .65rem .75rem; border-bottom: 1px solid var(--border, #dfe5df); text-align: left; }
 .investment-allocation-analysis th:nth-child(n+2), .investment-allocation-analysis td:nth-child(n+2) { text-align: right; }
 @media (max-width: 640px) {
-    .investment-allocation-target-row { grid-template-columns: 1fr; }
+    .investment-allocation-target-row, .investment-concentration-rule-row { grid-template-columns: 1fr; }
     .investment-allocation-target-heading { align-items: flex-start; flex-direction: column; }
     .investment-allocation-analysis { overflow-x: auto; }
     .investment-allocation-analysis table { min-width: 42rem; }

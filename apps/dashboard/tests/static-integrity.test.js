@@ -696,7 +696,7 @@ describe('full workspace backup contract', () => {
             readDashboardFile('backup.js'),
             readDashboardFile('cashflow.js')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 7 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 8 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
@@ -704,6 +704,9 @@ describe('full workspace backup contract', () => {
         expect(app).toContain('const investmentCollections = readInvestmentLedgerCollections()');
         expect(app).toContain('...investmentCollections');
         expect(app).toContain('Object.assign(payload, readInvestmentAllocationPolicies())');
+        expect(app).toContain('Object.assign(payload, readInvestmentConcentrationPolicies())');
+        expect(app).toContain('INVESTMENT_CONCENTRATION_STORAGE_KEY');
+        expect(app).toContain('persistInvestmentConcentrationPolicies(backup.investmentConcentrationPolicies)');
         expect(app).toContain('INVESTMENT_ALLOCATION_STORAGE_KEY');
         expect(app).toContain('persistInvestmentAllocationPolicies(backup.investmentAllocationPolicies)');
         expect(app).toContain('backup.includesHistoricalSnapshots && !persistJson(localStorage, HISTORICAL_STORAGE_KEY, backup.historicalSnapshots)');
@@ -713,6 +716,8 @@ describe('full workspace backup contract', () => {
         expect(backup).toContain('includesHistoricalSnapshots');
         expect(backup).toContain('includesInvestmentLedger');
         expect(backup).toContain('includesInvestmentAllocationPolicies');
+        expect(backup).toContain('includesInvestmentConcentrationPolicies');
+        expect(backup).toContain('validateInvestmentConcentrationCollections(payload)');
         expect(backup).toContain('validateInvestmentAllocationCollections(payload)');
         expect(backup).toContain('validateInvestmentLedgerCollections(payload)');
         expect(backup).toContain('validateHistoricalSnapshots(payload.historicalSnapshots, expectedCurrency)');
