@@ -2981,6 +2981,35 @@ try {
     assert.equal(await page.locator('#investment-concentration-history tr').count(), 2,
         'concentration policy updates must append immutable versions rather than overwrite history');
     assert.match(await page.locator('#investment-concentration-history').innerText(), /Browser smoke concentration v2/);
+
+    // A failed browser-storage write must leave all previously committed policy versions unchanged.
+    await page.evaluate(() => {
+        const originalSetItem = globalThis.Storage.prototype.setItem;
+        globalThis.__pfoConcentrationOriginalSetItem = originalSetItem;
+        globalThis.Storage.prototype.setItem = function (key, value) {
+            if (key === 'pfo-os.' + 'investment-concentration-policies.v1') {
+                throw new globalThis.DOMException('Simulated concentration policy storage failure', 'QuotaExceededError');
+            }
+            return originalSetItem.call(this, key, value);
+        };
+    });
+    await page.locator('#investment-concentration-name').fill('Browser smoke failed concentration write');
+    await page.locator('#investment-concentration-rules .investment-concentration-rule-limit').fill('80');
+    const failedConcentrationDialogPromise = page.waitForEvent('dialog');
+    const failedConcentrationSubmit = page.locator('#investment-concentration-form button[type="submit"]').click();
+    const failedConcentrationDialog = await failedConcentrationDialogPromise;
+    await failedConcentrationDialog.accept();
+    await failedConcentrationSubmit;
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-concentration-message')?.textContent.includes('Simulated concentration policy storage failure'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-concentration-policies.v1') || '[]').length), 2,
+        'a failed concentration policy write must preserve all previously saved versions');
+    assert.equal(await page.locator('#investment-concentration-policy-count').innerText(), '2',
+        'failed concentration persistence must not present an unsaved version as committed');
+    await page.evaluate(() => {
+        globalThis.Storage.prototype.setItem = globalThis.__pfoConcentrationOriginalSetItem;
+        delete globalThis.__pfoConcentrationOriginalSetItem;
+    });
+    process.stdout.write('PASS: concentration policy storage failures preserve the prior immutable policy history.\\n');
     process.stdout.write('PASS: users can save immutable concentration limits with no default thresholds and evaluate them against complete valued positions.\\n');
 
     const [policyBackupDownload] = await Promise.all([
