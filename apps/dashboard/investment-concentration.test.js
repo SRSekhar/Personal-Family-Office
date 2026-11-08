@@ -65,7 +65,7 @@ describe('investment concentration policy validation', () => {
         const second = policy({ id: 'v2', version: 2, effectiveFrom: '2026-06-01', rules: [{ key: 'Equity', maxWeightPercent: 55, operator: '>=' }] });
         expect(validateInvestmentConcentrationPolicies([second, policy()], context).map((item) => item.version)).toEqual([1, 2]);
         expect(() => validateInvestmentConcentrationPolicies([policy(), policy({ id: 'duplicate' })], context)).toThrow(/version must be unique/);
-        expect(() => validateInvestmentConcentrationPolicies([policy(), policy({ id: 'other', version: 2, groupBy: 'instrument' })], context)).toThrow(/retain currency, scope, account and grouping/);
+        expect(() => validateInvestmentConcentrationPolicies([policy(), policy({ id: 'other', version: 2, groupBy: 'instrument', rules: [{ key: 'equity-1', maxWeightPercent: 50, operator: '>' }] })], context)).toThrow(/retain currency, scope, account and grouping/);
     });
 });
 
