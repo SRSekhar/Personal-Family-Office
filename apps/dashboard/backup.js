@@ -31,24 +31,24 @@ export function validateBackupPayload(payload, expectedCurrency) {
     calculateFinancialTotals(records);
     const goals = [];
     const seenGoalIds = new Set();
-    if ([2, 3, 4, 5, 6, 7].includes(payload.schemaVersion)) for (const goal of payload.goals) {
+    if ([2, 3, 4, 5, 6, 7, 8].includes(payload.schemaVersion)) for (const goal of payload.goals) {
         if (!isValidSavedGoal(goal) || seenGoalIds.has(goal.id)) throw new Error('The backup contains an invalid financial goal.');
         seenGoalIds.add(goal.id);
         goals.push({ id: goal.id, name: goal.name.trim(), targetAmount: goal.targetAmount, currentAmount: goal.currentAmount,
             targetDate: goal.targetDate, createdAt: goal.createdAt, updatedAt: goal.updatedAt });
     }
-    const includesCashFlow = [3, 4, 5, 6, 7].includes(payload.schemaVersion);
-    const includesHistoricalSnapshots = [4, 5, 6, 7].includes(payload.schemaVersion);
+    const includesCashFlow = [3, 4, 5, 6, 7, 8].includes(payload.schemaVersion);
+    const includesHistoricalSnapshots = [4, 5, 6, 7, 8].includes(payload.schemaVersion);
     const cashFlowEntries = includesCashFlow ? validateCashFlowEntries(payload.cashFlowEntries) : [];
     const budgets = includesCashFlow ? validateCashFlowBudgets(payload.budgets) : [];
     const historicalSnapshots = includesHistoricalSnapshots ? validateHistoricalSnapshots(payload.historicalSnapshots, expectedCurrency) : [];
-    const investmentLedger = [5, 6, 7].includes(payload.schemaVersion) ? validateInvestmentLedgerCollections(payload) : null;
-    const cashLedger = [6, 7].includes(payload.schemaVersion) ? validateInvestmentCashCollections(payload) : null;
+    const investmentLedger = [5, 6, 7, 8].includes(payload.schemaVersion) ? validateInvestmentLedgerCollections(payload) : null;
+    const cashLedger = [6, 7, 8].includes(payload.schemaVersion) ? validateInvestmentCashCollections(payload) : null;
     const allocationPolicies = [7, 8].includes(payload.schemaVersion) ? validateInvestmentAllocationCollections(payload) : null;
     const concentrationPolicies = payload.schemaVersion === 8 ? validateInvestmentConcentrationCollections(payload) : null;
     return {
         records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}), ...(allocationPolicies ?? {}), ...(concentrationPolicies ?? {}),
-        includesGoals: [2, 3, 4, 5, 6, 7].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
+        includesGoals: [2, 3, 4, 5, 6, 7, 8].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
         ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
         ...(payload.schemaVersion >= 6 ? { includesInvestmentCashLedger: true } : {}),
         ...([7, 8].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {}),
