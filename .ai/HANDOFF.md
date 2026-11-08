@@ -202,3 +202,13 @@ Continue from stacked branch feature/investment-portfolio-reconciliation, based 
 - Existing analytics package already has a typed FIFO implementation, and the dashboard currently has a browser-compatible projection. Avoid introducing a second return formula or using trade cash movements as investor contributions.
 - Next: design explicit external contribution/withdrawal, investment cash-account and transfer semantics; then implement reconciliation and portfolio XIRR with hand-calculated fixtures. No guessing of transaction types or schema.
 - PR #425 and #426 remain open, draft and unmerged. Keep dependency order; retarget #426 to main only after #425 merges. No merge has been authorized.
+
+
+## Latest Handoff — IPM-04 cash ledger design (2026-11-01)
+
+- Branch: `feature/investment-cash-ledger-design`, based on the latest PR #426 branch head.
+- Added `docs/architecture/ADR_INVESTMENT_CASH_LEDGER_AND_XIRR.md`. It proposes cash sub-accounts, cash-account-perspective signed movements, explicit external contribution/withdrawal events, atomic same-currency transfers, statement observations, immutable correction semantics and portfolio XIRR based only on external investor flows plus terminal value.
+- Existing investment transaction `cashAmount` already uses cash-balance signs (purchase/fee/tax negative; sale/dividend/interest positive). When linked to a cash account, it must be projected once, not duplicated.
+- Existing trades and income/expenses must not be counted as external investor cash flows. Missing opening balances, cash links, statement evidence or terminal valuations produce incomplete/unavailable results; never invent zeros or balancing entries.
+- Proposed schema-v6 collections are in the ADR. No production schema/model/UI code has been changed in this design-only increment.
+- Next: validate ADR against existing schema-v5 migration/backup architecture; then implement models, validation, migration, deterministic analytics, dashboard workflow and synthetic browser tests in separate reviewed increments. PR #425/#426 remain unmerged and merge order is unchanged.

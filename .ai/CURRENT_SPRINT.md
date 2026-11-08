@@ -294,3 +294,11 @@ Investment portfolio FIFO projection and valuation reconciliation are in progres
 - CI run `41269575836` passed, including lint, typecheck, build, unit tests and real Chromium smoke. Dashboard packaging/deploy run `41269575813` passed.
 - Cash reconciliation and portfolio XIRR are deliberately not guessed from purchase/sale cash movements. The existing schema has no explicit external contribution/withdrawal or cash-account/transfer events. Next step is to define those semantics before changing the domain model or schema.
 - PR #426 remains draft and stacked on PR #425; do not merge it independently.
+
+
+## 2026-11-01 — IPM-04 cash ledger domain contract
+
+- Added `docs/architecture/ADR_INVESTMENT_CASH_LEDGER_AND_XIRR.md` defining the proposed schema-v6 cash-account, cash-movement, atomic-transfer and statement-observation model.
+- Explicitly separates cash-account balance signs from investor XIRR signs. Purchases/sales/dividends/interest/fees/taxes remain internal portfolio events; only external funding/withdrawals are XIRR flows. Internal transfers net to zero at consolidated portfolio scope.
+- Defines incomplete/reconciled/difference states, opening-balance evidence, append-only corrections, recorded-at cutoffs and no auto-balancing.
+- No data model or database migration has been changed yet. The ADR is on `feature/investment-cash-ledger-design`; implementation follows only after design review and schema-v6 migration/backup test planning.
