@@ -7,7 +7,7 @@ import {
     validateInvestmentConcentrationPolicies
 } from './investment-concentration.js';
 
-const POLICY_KEY = 'pfo-os.investment-concentration-policies.v1';
+const POLICY_KEY = 'pfo-os.' + 'investment-concentration-policies.v1';
 const LEDGER_KEYS = {
     investmentAccounts: 'pfo-os.investment-accounts.v1',
     investmentInstruments: 'pfo-os.investment-instruments.v1',
