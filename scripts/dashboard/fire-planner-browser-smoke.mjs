@@ -2838,13 +2838,19 @@ try {
     await page.evaluate(() => globalThis.document.querySelector('#investment-allocation-form')
         .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true })));
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-allocation-policy-count')?.textContent === '3');
+    const currentPolicySnapshot = await secondPage.evaluate(() =>
+        globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1'));
+    assert.notEqual(stalePolicySnapshot, currentPolicySnapshot,
+        'the second tab must hold an older policy snapshot before the competing commit');
     await secondPage.evaluate((staleSnapshot) => {
         const originalGetItem = globalThis.Storage.prototype.getItem;
-        let policyReads = 0;
+        globalThis.__pfoAllocationPolicyReads = [];
         globalThis.Storage.prototype.getItem = function (key) {
-            if (key === 'pfo-os.investment-allocation-policies.v1' && policyReads < 1) {
-                policyReads += 1;
-                return staleSnapshot;
+            if (key === 'pfo-os.investment-allocation-policies.v1') {
+                const value = globalThis.__pfoAllocationPolicyReads.length === 0
+                    ? staleSnapshot : originalGetItem.call(this, key);
+                globalThis.__pfoAllocationPolicyReads.push(value);
+                return value;
             }
             return originalGetItem.call(this, key);
         };
@@ -2852,8 +2858,17 @@ try {
         globalThis.document.querySelector('#investment-allocation-form')
             .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true }));
     }, stalePolicySnapshot);
-    await secondPage.waitForFunction(() =>
-        globalThis.document.querySelector('#investment-allocation-message')?.textContent.includes('changed in another tab'));
+    await secondPage.waitForFunction(() => globalThis.__pfoAllocationPolicyReads?.length >= 3);
+    const staleWriteDiagnostics = await secondPage.evaluate(() => ({
+        reads: globalThis.__pfoAllocationPolicyReads,
+        message: globalThis.document.querySelector('#investment-allocation-message')?.textContent ?? ''
+    }));
+    assert.equal(staleWriteDiagnostics.reads[0], stalePolicySnapshot,
+        'the policy baseline read must use the captured stale snapshot');
+    assert.equal(staleWriteDiagnostics.reads.at(-1), currentPolicySnapshot,
+        'the commit-time comparison must read the latest committed policy snapshot');
+    assert.match(staleWriteDiagnostics.message, /changed in another tab/,
+        'the stale second-tab write must be rejected with a visible conflict message');
     assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]').length), 3,
         'a stale cross-tab policy append must not overwrite or duplicate the winning version');
     assert.deepEqual(secondPageErrors, [], 'stale cross-tab allocation flow must not cause browser exceptions');
