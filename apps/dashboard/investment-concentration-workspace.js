@@ -19,7 +19,6 @@ const INSTRUMENT_TYPES = ['Equity', 'MutualFund', 'ETF', 'Bond', 'FixedDeposit',
 const $ = (selector) => document.querySelector(selector);
 const escape = (value) => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 const percent = (value) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(value) + '%';
-const money = (value, currency) => new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
 
 function readLedger() {
     const collections = {};
