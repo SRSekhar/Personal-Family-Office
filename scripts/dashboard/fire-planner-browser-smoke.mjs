@@ -2843,22 +2843,26 @@ try {
     assert.notEqual(stalePolicySnapshot, currentPolicySnapshot,
         'the second tab must hold an older policy snapshot before the competing commit');
     await secondPage.evaluate((staleSnapshot) => {
-        const originalGetItem = globalThis.Storage.prototype.getItem;
+        const storage = globalThis.localStorage;
+        const originalGetItem = storage.getItem.bind(storage);
         globalThis.__pfoAllocationPolicyReads = [];
-        globalThis.Storage.prototype.getItem = function (key) {
-            if (key === 'pfo-os.investment-allocation-policies.v1') {
-                const value = globalThis.__pfoAllocationPolicyReads.length === 0
-                    ? staleSnapshot : originalGetItem.call(this, key);
-                globalThis.__pfoAllocationPolicyReads.push(value);
-                return value;
+        Object.defineProperty(storage, 'getItem', {
+            configurable: true,
+            value(key) {
+                if (key === 'pfo-os.investment-allocation-policies.v1') {
+                    const value = globalThis.__pfoAllocationPolicyReads.length === 0
+                        ? staleSnapshot : originalGetItem(key);
+                    globalThis.__pfoAllocationPolicyReads.push(value);
+                    return value;
+                }
+                return originalGetItem(key);
             }
-            return originalGetItem.call(this, key);
-        };
+        });
         globalThis.confirm = () => true;
         globalThis.document.querySelector('#investment-allocation-form')
             .dispatchEvent(new globalThis.Event('submit', { bubbles: true, cancelable: true }));
     }, stalePolicySnapshot);
-    await secondPage.waitForFunction(() => globalThis.__pfoAllocationPolicyReads?.length >= 3);
+    await secondPage.waitForFunction(() => globalThis.__pfoAllocationPolicyReads?.length >= 3, { timeout: 10000 });
     const staleWriteDiagnostics = await secondPage.evaluate(() => ({
         reads: globalThis.__pfoAllocationPolicyReads,
         message: globalThis.document.querySelector('#investment-allocation-message')?.textContent ?? ''
