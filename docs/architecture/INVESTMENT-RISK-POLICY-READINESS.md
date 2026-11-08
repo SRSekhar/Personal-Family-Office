@@ -2,7 +2,8 @@
 
 - Status: Requirements discovery — implementation gated
 - Date: 2026-11-08
-- Scope: assess the existing investment domain and data contracts before implementing user-configured portfolio risk policies.
+- Scope: assess the existing investment domain and data contracts before implementing user-configured portfolio risk policies for a general-purpose product used by different people and portfolios.
+- Product principle: risk appetite belongs to the user, not the application. Each portfolio/workspace may have its own explicit policy configuration; the product must not ship one household's limits as defaults or infer limits from personal data.
 
 ## Purpose
 
@@ -12,7 +13,7 @@ IPM-05 calls for user-configured concentration, liquidity, exposure and drawdown
 
 ### Allocation and concentration
 
-The allocation domain in `apps/dashboard/investment-allocation.js` supports immutable, versioned allocation target policies, portfolio/account scope, currency separation, bitemporal selection, actual-vs-target drift and descriptive HHI, effective category count and largest-category share.
+The allocation domain in `apps/dashboard/investment-allocation.js` supports immutable, versioned allocation target policies, portfolio/account scope, currency separation, bitemporal selection, actual-vs-target drift and descriptive HHI, effective category count and largest-category share. These are reusable product capabilities; user-specific target weights belong to the selected portfolio/workspace and are not product defaults.
 
 These concentration statistics describe the observed allocation distribution. They are not a risk score, do not express a user's risk tolerance and do not define breach thresholds. No threshold or severity is implied by the existing calculations.
 
@@ -45,9 +46,9 @@ For each risk-policy family, product requirements must define:
 7. **Policy lifecycle:** immutable versioning, corrections, policy retirement, audit history and selection rules.
 8. **Output boundary:** descriptive status only. A breach is not an instruction to buy, sell, rebalance or liquidate.
 
-## Proposed implementation sequence (not yet approved)
+## Proposed implementation sequence (product direction confirmed; metric contracts still require approval)
 
-- First approve a shared risk-policy envelope: immutable version identity, explicit scope, currency, effective date, recorded-at timestamp and user-authored rules.
+- Define a reusable, workspace-scoped risk-policy envelope: immutable version identity, explicit scope, currency, effective date, recorded-at timestamp and user-authored rules. Support different policy versions across independent portfolios/workspaces; do not hard-code any user's values as application defaults.
 - Implement only the metric families whose input data and formulas have been approved and can be independently hand-calculated.
 - Treat liquidity as blocked until the liquidity input/provenance model is selected.
 - Treat drawdown as blocked until historical valuation completeness, sampling and cash-flow treatment are specified.
@@ -65,4 +66,4 @@ For each risk-policy family, product requirements must define:
 
 ## Current disposition
 
-Allocation target and drift work is delivered in PR #435 and remains draft/unmerged. Risk-policy coding is intentionally not started because the current repository does not contain enough approved metric semantics or input data to implement liquidity and drawdown safely, and the meaning/scope of exposure limits is not yet defined. This is a requirements gate, not a claim that risk policies are implemented.
+Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. The product direction is confirmed: users define their own risk limits for the portfolio/workspace they manage; the application provides the configuration and transparent calculations, not a predetermined risk appetite. Risk-policy metric implementation remains gated because formulas, scope, threshold comparison/boundary semantics and required input data are not yet fully approved. Liquidity and drawdown also require additional data contracts. This is a requirements gate, not a claim that risk policies are implemented.
