@@ -108,6 +108,58 @@ export function selectInvestmentConcentrationPolicy(policies, { asOfDate, record
     return eligible[0] ?? null;
 }
 
+/** Build a complete concentration allocation directly from FIFO positions, without requiring an allocation-target policy. */
+export function analyzeInvestmentConcentrationPositions({ positions, instruments, accounts, policy, asOfDate, recordedAtCutoff = asOfDate }) {
+    if (!Array.isArray(positions) || !Array.isArray(instruments) || !Array.isArray(accounts)) {
+        throw new TypeError('Positions, instruments and accounts must be arrays.');
+    }
+    if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
+        || !(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) {
+        throw new RangeError('Concentration analysis requires valid effective and recorded-at cutoffs.');
+    }
+    const validated = validateInvestmentConcentrationPolicy(policy, { accounts, instruments });
+    if (Date.parse(validated.effectiveFrom + 'T00:00:00.000Z') > asOfDate.getTime()
+        || Date.parse(validated.recordedAt) > recordedAtCutoff.getTime()) {
+        throw new RangeError('The concentration policy was not both effective and known at the requested cutoffs.');
+    }
+    const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
+    const accountMap = new Map(accounts.map((item) => [item.id, item]));
+    const selected = positions.filter((position) => validated.scope === 'portfolio'
+        ? position.currency === validated.currency
+        : position.accountId === validated.accountId);
+    const included = [];
+    for (const position of selected) {
+        const instrument = instrumentMap.get(position.instrumentId);
+        const account = accountMap.get(position.accountId);
+        if (!instrument || position.currency !== instrument.currency) throw new RangeError('A position references an unknown or wrong-currency instrument.');
+        if (!account || account.currency !== instrument.currency) throw new RangeError('A position references an unknown account or an account with a different currency.');
+        if (!Number.isFinite(position.quantity) || position.quantity < 0) throw new RangeError('Position quantity must be non-negative and finite.');
+        if (position.quantity <= 1e-8) continue;
+        if (position.marketValue === null || position.marketValue === undefined) {
+            return { status: 'unavailable', currency: validated.currency, scope: validated.scope,
+                ...(validated.accountId ? { accountId: validated.accountId } : {}), groupBy: validated.groupBy,
+                reason: 'At least one open position has no eligible valuation; partial concentration is suppressed.', rows: [] };
+        }
+        if (!Number.isFinite(position.marketValue) || position.marketValue < 0) throw new RangeError('Position market value must be non-negative and finite.');
+        included.push({ position, instrument });
+    }
+    const totalValue = included.reduce((sum, item) => sum + item.position.marketValue, 0);
+    if (!Number.isFinite(totalValue)) throw new RangeError('Portfolio market value exceeds the supported numeric range.');
+    const dimensions = { currency: validated.currency, scope: validated.scope,
+        ...(validated.accountId ? { accountId: validated.accountId } : {}), groupBy: validated.groupBy };
+    if (totalValue <= 1e-8) return { status: 'empty', ...dimensions, totalValue: 0, rows: [],
+        message: 'No positively valued open positions are available for this concentration policy scope.' };
+    const buckets = new Map();
+    for (const { position, instrument } of included) {
+        const key = validated.groupBy === 'instrumentType' ? instrument.type : instrument.id;
+        buckets.set(key, (buckets.get(key) ?? 0) + position.marketValue);
+    }
+    const rows = [...buckets.entries()].sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, actualValue]) => ({ key, actualValue, actualWeightPercent: actualValue / totalValue * 100 }));
+    return { status: 'available', ...dimensions, totalValue, asOfDate: asOfDate.toISOString(),
+        recordedAtCutoff: recordedAtCutoff.toISOString(), rows };
+}
+
 /**
  * Evaluate explicit per-group maximum weight limits against a complete allocation result.
  * The metric is actual group market value / total market value in the selected currency and scope.
