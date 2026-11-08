@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    analyzeInvestmentConcentrationPositions,
     evaluateInvestmentConcentrationPolicy,
     selectInvestmentConcentrationPolicy,
     validateInvestmentConcentrationPolicies,
@@ -132,5 +133,42 @@ describe('investment concentration policy evaluation', () => {
             policy({ id: 'v3', version: 3, effectiveFrom: '2026-06-01', recordedAt: '2026-12-01T00:00:00.000Z' })
         ], { asOfDate, recordedAtCutoff, scope: 'portfolio', currency: 'INR' }, context);
         expect(selected.id).toBe('concentration-v1');
+    });
+});
+
+describe('investment concentration position analysis', () => {
+    const positions = [
+        { accountId: 'account-inr-1', instrumentId: 'equity-1', quantity: 2, marketValue: 700, currency: 'INR' },
+        { accountId: 'account-inr-2', instrumentId: 'fund-1', quantity: 1, marketValue: 300, currency: 'INR' },
+        { accountId: 'account-usd', instrumentId: 'bond-usd', quantity: 1, marketValue: 500, currency: 'USD' }
+    ];
+    it('calculates category weights without requiring allocation target policies', () => {
+        const result = analyzeInvestmentConcentrationPositions({
+            positions, accounts, instruments, policy: policy(), asOfDate, recordedAtCutoff
+        });
+        expect(result).toMatchObject({
+            status: 'available', currency: 'INR', scope: 'portfolio', groupBy: 'instrumentType', totalValue: 1000
+        });
+        expect(result.rows).toEqual([
+            { key: 'Equity', actualValue: 700, actualWeightPercent: 70 },
+            { key: 'MutualFund', actualValue: 300, actualWeightPercent: 30 }
+        ]);
+    });
+    it('supports one-account and instrument-level concentration dimensions', () => {
+        const result = analyzeInvestmentConcentrationPositions({
+            positions, accounts, instruments,
+            policy: policy({ scope: 'account', accountId: 'account-inr-1', groupBy: 'instrument', rules: [{ key: 'equity-1', maxWeightPercent: 50, operator: '>' }] }),
+            asOfDate, recordedAtCutoff
+        });
+        expect(result).toMatchObject({ status: 'available', scope: 'account', accountId: 'account-inr-1', groupBy: 'instrument', totalValue: 700 });
+        expect(result.rows).toEqual([{ key: 'equity-1', actualValue: 700, actualWeightPercent: 100 }]);
+    });
+    it('suppresses incomplete valuations and reports empty scopes explicitly', () => {
+        expect(analyzeInvestmentConcentrationPositions({
+            positions: [{ ...positions[0], marketValue: null }], accounts, instruments, policy: policy(), asOfDate, recordedAtCutoff
+        })).toMatchObject({ status: 'unavailable', rows: [] });
+        expect(analyzeInvestmentConcentrationPositions({
+            positions: [], accounts, instruments, policy: policy(), asOfDate, recordedAtCutoff
+        })).toMatchObject({ status: 'empty', totalValue: 0, rows: [] });
     });
 });

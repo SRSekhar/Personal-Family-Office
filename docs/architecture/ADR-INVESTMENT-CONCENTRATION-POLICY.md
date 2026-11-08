@@ -1,6 +1,6 @@
 # ADR — User-configured investment concentration limits
 
-- Status: Accepted for the concentration-policy calculation contract
+- Status: Accepted; concentration engine, workspace persistence and UI delivered
 - Date: 2026-11-08
 - Scope: deterministic concentration limits using the existing valued investment allocation projection
 - Product principle: each user configures limits for the portfolio/workspace they manage; the application supplies no default risk appetite or thresholds.
@@ -13,11 +13,11 @@ Concentration statistics such as HHI remain descriptive. A user-configured limit
 
 ## Decision
 
-The first concentration-policy metric is **maximum market-value weight for a selected allocation group**.
+The first concentration-policy metric is **maximum market-value weight for a selected allocation group**. The denominator includes valued open investment positions only; it does not include investment cash-account balances, household cash records, liabilities or assets outside the investment ledger.
 
 For each explicitly configured group key:
 
-`actualWeightPercent = groupMarketValue / scopedPortfolioMarketValue * 100`
+`actualWeightPercent = groupMarketValue / totalValuedOpenInvestmentPositionMarketValue * 100`
 
 The rule stores:
 - `key`: an existing instrument type or instrument ID, according to the policy grouping.
@@ -61,10 +61,10 @@ Those capabilities require their own data and metric contracts. In particular, t
 
 ## Implementation sequence
 
-1. Deliver and test the pure concentration-policy validator, immutable history selector and evaluator.
-2. Integrate workspace persistence, backup/restore and migration before making policy data durable in the dashboard.
-3. Add the private-workspace user interface and explicit user confirmation.
-4. Add import/export support only after the persistence and backup contract is complete.
+1. [x] Deliver and test the pure concentration-policy validator, immutable history selector, valued-position aggregation and evaluator.
+2. [x] Integrate schema-v8 workspace persistence, transactional v7→v8 migration, pre-migration recovery backup and JSON backup/restore.
+3. [x] Add the private-workspace user interface, explicit confirmation, immutable version history and transparent evaluation states.
+4. [x] Include policy history in authoritative full-workspace JSON backups. PFO-native investment CSV remains focused on the eight ledger collections and does not export policy sets.
 
 ## Acceptance
 

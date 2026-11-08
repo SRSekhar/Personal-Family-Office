@@ -10,6 +10,7 @@
     <script type="module" src="./app.js"></script>
     <script type="module" src="./budget-overrun-insights.js"></script>
     <script type="module" src="./investment-csv-workspace.js"></script>
+    <script type="module" src="./investment-concentration-workspace.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -929,6 +930,38 @@
                         <label class="field-label">As-of date<input id="investment-allocation-as-of" type="date"></label>
                     </div>
                     <div id="investment-allocation-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
+                </section>
+                <section class="investment-concentration-workspace" id="investment-concentration-workspace" aria-labelledby="investment-concentration-heading">
+                    <div class="section-heading"><div><p class="eyebrow">USER-DEFINED RISK POLICY</p><h3 id="investment-concentration-heading">Concentration limits</h3>
+                        <p class="form-note">Configure your own maximum market-value weight for selected instrument groups. Every limit and comparison boundary is user-defined. The application supplies no default risk thresholds.</p></div></div>
+                    <div class="notice" id="investment-concentration-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Your concentration policies are stored with this local private workspace. Sample mode cannot access or change them.</p></div></div>
+                    <p class="validation-message" id="investment-concentration-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-concentration-message" role="status" aria-live="polite" hidden></p>
+                    <div class="investment-ledger-stats"><div><strong id="investment-concentration-policy-count">0</strong><span>Saved policy versions</span></div></div>
+                    <form id="investment-concentration-form" class="panel-card">
+                        <h4>Create or append a concentration policy version</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Policy set<select id="investment-concentration-policy-set" name="policySetId"><option value="">Create a new policy set</option></select></label>
+                            <label class="field-label">Policy name<input id="investment-concentration-name" name="name" maxlength="100" required></label>
+                            <label class="field-label">Currency<select id="investment-concentration-currency" name="currency" required></select></label>
+                            <label class="field-label">Scope<select id="investment-concentration-scope" name="scope"><option value="portfolio">Portfolio</option><option value="account">One investment account</option></select></label>
+                            <label class="field-label" id="investment-concentration-account-row" hidden>Investment account<select id="investment-concentration-account" name="accountId"><option value="">Select account</option></select></label>
+                            <label class="field-label">Group limits by<select id="investment-concentration-group-by" name="groupBy"><option value="instrumentType">Instrument type</option><option value="instrument">Specific instrument</option></select></label>
+                            <label class="field-label">Effective from<input id="investment-concentration-effective-from" name="effectiveFrom" type="date" required></label>
+                        </div>
+                        <div class="investment-allocation-target-heading"><div><h4>Your concentration limits</h4><p class="form-note">Enter a maximum weight for each selected group and choose whether a breach occurs above (&gt;) or at/above (&gt;=) that value. Groups without a rule are not evaluated.</p></div>
+                            <button class="button button-secondary button-small" id="investment-concentration-add-rule" type="button">Add limit</button></div>
+                        <div id="investment-concentration-rules" class="investment-allocation-targets"></div>
+                        <div class="button-row"><button class="button button-primary" type="submit">Save new policy version</button></div>
+                    </form>
+                    <h4>Saved concentration policy history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Policy</th><th>Version</th><th>Currency</th><th>Scope</th><th>Grouping</th><th>Effective from</th><th>Recorded at (UTC)</th><th>User-defined limits</th></tr></thead><tbody id="investment-concentration-history"></tbody></table></div>
+                    <div class="investment-allocation-target-heading"><div><h4>Evaluate your limits</h4><p class="form-note">The result uses complete valued FIFO positions for the selected currency and scope. Missing valuations suppress the entire evaluation.</p></div></div>
+                    <div class="field-grid">
+                        <label class="field-label">Policy set to evaluate<select id="investment-concentration-analyze-set"><option value="">Choose a policy set</option></select></label>
+                        <label class="field-label">As-of date<input id="investment-concentration-as-of" type="date"></label>
+                    </div>
+                    <div id="investment-concentration-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
                 </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
