@@ -1,6 +1,6 @@
 # Investment risk policy — readiness assessment
 
-- Status: Requirements discovery — implementation gated
+- Status: Concentration calculation contract accepted; pure calculation engine delivered, workspace persistence and UI pending
 - Date: 2026-11-08
 - Scope: assess the existing investment domain and data contracts before implementing user-configured portfolio risk policies for a general-purpose product used by different people and portfolios.
 - Product principle: risk appetite belongs to the user, not the application. Each portfolio/workspace may have its own explicit policy configuration; the product must not ship one household's limits as defaults or infer limits from personal data.
@@ -46,10 +46,11 @@ For each risk-policy family, product requirements must define:
 7. **Policy lifecycle:** immutable versioning, corrections, policy retirement, audit history and selection rules.
 8. **Output boundary:** descriptive status only. A breach is not an instruction to buy, sell, rebalance or liquidate.
 
-## Proposed implementation sequence (product direction confirmed; metric contracts still require approval)
+## Implementation sequence (product direction confirmed; concentration contract accepted)
 
 - Define a reusable, workspace-scoped risk-policy envelope: immutable version identity, explicit scope, currency, effective date, recorded-at timestamp and user-authored rules. Support different policy versions across independent portfolios/workspaces; do not hard-code any user's values as application defaults.
-- Implement only the metric families whose input data and formulas have been approved and can be independently hand-calculated.
+- Concentration: the first metric contract is defined in `ADR-INVESTMENT-CONCENTRATION-POLICY.md`; a pure validator, bitemporal selector and evaluator are implemented with deterministic tests. Workspace persistence, backup/restore and dashboard configuration are the next integration steps.
+- Implement only the remaining metric families whose input data and formulas have been approved and can be independently hand-calculated.
 - Treat liquidity as blocked until the liquidity input/provenance model is selected.
 - Treat drawdown as blocked until historical valuation completeness, sampling and cash-flow treatment are specified.
 - Keep existing HHI and allocation drift as separate descriptive analytics; do not retroactively label them risk classifications.
@@ -66,4 +67,4 @@ For each risk-policy family, product requirements must define:
 
 ## Current disposition
 
-Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. The product direction is confirmed: users define their own risk limits for the portfolio/workspace they manage; the application provides the configuration and transparent calculations, not a predetermined risk appetite. Risk-policy metric implementation remains gated because formulas, scope, threshold comparison/boundary semantics and required input data are not yet fully approved. Liquidity and drawdown also require additional data contracts. This is a requirements gate, not a claim that risk policies are implemented.
+Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. The product direction is confirmed: users define their own risk limits for the portfolio/workspace they manage; the application provides the configuration and transparent calculations, not a predetermined risk appetite. The concentration calculation contract is accepted and its pure domain engine is implemented. It is not yet integrated into workspace persistence or the dashboard, so users cannot yet save or configure these policies through the UI. Liquidity, exposure classification beyond the current grouping dimensions, and drawdown remain gated on their own data and metric contracts.
