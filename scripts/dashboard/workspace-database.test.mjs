@@ -231,6 +231,64 @@ describe('SQLite workspace persistence schema v8', () => {
         unchanged.close();
         expect(readdirSync(directory).filter((name) => name.includes('.pre-v7-'))).toHaveLength(0);
     });
+
+    it('migrates a v7 workspace to v8 with a verified recovery artifact and no inferred concentration limits', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v7-migration-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const legacy = payload({
+            schemaVersion: 7,
+            investmentAllocationPolicies: [{
+                id: 'allocation-existing-v1', policySetId: 'existing-allocation', version: 1, name: 'Existing allocation',
+                currency: 'INR', scope: 'portfolio', groupBy: 'instrumentType', effectiveFrom: '2026-01-01',
+                recordedAt: '2026-01-01T00:00:00.000Z', targets: [{ key: 'MutualFund', weightPercent: 100 }]
+            }]
+        });
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 7),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 7, ?, ?, ?)').run('INR', JSON.stringify(legacy), '2026-10-28T12:00:00.000Z');
+        raw.close();
+
+        const migrated = new WorkspaceDatabase(path); databases.push(migrated);
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 8, updatedAt: '2026-10-28T12:00:00.000Z' });
+        const saved = migrated.getWorkspace().payload;
+        expect(saved.schemaVersion).toBe(8);
+        expect(saved.investmentAllocationPolicies).toEqual(legacy.investmentAllocationPolicies);
+        expect(saved.investmentConcentrationPolicies).toEqual([]);
+        expect(saved.concentrationPoliciesMigratedFromV7).toBe(true);
+
+        const backups = readdirSync(directory).filter((name) => name.includes('.pre-v8-') && name.endsWith('.json'));
+        expect(backups).toHaveLength(1);
+        expect(JSON.parse(readFileSync(join(directory, backups[0]), 'utf8'))).toEqual(legacy);
+        if (process.platform !== 'win32') expect(statSync(join(directory, backups[0])).mode & 0o777).toBe(0o600);
+    });
+
+    it('leaves a v7 database untouched when concentration-policy migration validation fails', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v7-rollback-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const invalidLegacy = payload({ schemaVersion: 7, currency: 'USD' });
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 7),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 7, ?, ?, ?)').run('INR', JSON.stringify(invalidLegacy), '2026-10-28T12:00:00.000Z');
+        raw.close();
+
+        expect(() => new WorkspaceDatabase(path)).toThrow(/currency/i);
+        const unchanged = new DatabaseSync(path);
+        const table = unchanged.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
+        const row = unchanged.prepare('SELECT schema_version, currency, payload_json FROM workspace_snapshot WHERE singleton = 1').get();
+        expect(table.sql).toMatch(/schema_version = 7/i);
+        expect(row).toMatchObject({ schema_version: 7, currency: 'INR', payload_json: JSON.stringify(invalidLegacy) });
+        unchanged.close();
+        expect(readdirSync(directory).filter((name) => name.includes('.pre-v8-'))).toHaveLength(0);
+    });
+
     it('rejects stale database versions without replacing a newer committed snapshot', async () => {
         const database = await createDatabase();
         const first = database.saveWorkspace(payload(), null);
