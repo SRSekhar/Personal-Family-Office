@@ -431,7 +431,7 @@ The following work is approved under Option B. It is a functional product epic, 
 - Acceptance: hand-calculated test cases, multi-currency rejection/no FX, negative returns, partial exits, multiple lots, fees, and no cash-flow sign ambiguity.
 
 ### IPM-05 — Allocation targets and risk policy
-- Allocation targets, immutable version history, actual weights, percentage-point drift and currency-value drift are implemented in PR #435 (schema v7); the PR remains draft and unmerged pending the dependency chain's review/merge authorization.
+- Allocation targets, immutable version history, actual weights, percentage-point drift and currency-value drift are implemented in schema v7 and merged to `main` via PR #435 on 2026-11-08.
 - Risk-policy implementation is a separate gated deliverable. Do not extend the allocation-policy schema by assumption or treat allocation HHI as a risk score.
 - Required policy families remain concentration, liquidity, exposure and drawdown. Every threshold/limit must be explicitly configured by the user; no hidden defaults, inferred risk appetite, automatic orders or recommendations.
 - Before implementation, approve the metric contract for each family: measurement formula, scope, currency treatment, observation/as-of rules, stale/missing-data behavior, denominator/empty states, threshold direction, breach severity and policy effective/recorded-at semantics.
@@ -643,7 +643,7 @@ Domain foundation, schema-v7 persistence and private dashboard workflows impleme
 
 ### IPM — Investment allocation policy persistence and dashboard
 
-**Status:** Implemented and verified on draft PR #435; merge remains unauthorized.
+**Status:** Allocation-policy implementation is merged to `main` via PR #435 (2026-11-08). Risk-policy metric implementation remains gated on explicit metric and data-contract decisions.
 
 - [x] Add schema-v7 collection `investmentAllocationPolicies` to complete workspace snapshots.
 - [x] Add validated immutable policy collection validation against existing account/instrument references.
@@ -664,3 +664,12 @@ Domain foundation, schema-v7 persistence and private dashboard workflows impleme
 - [x] Preserve existing policy versions on legacy backup imports when incoming ledger references remain valid; reject unsafe imports before writes.
 - [x] Add browser smoke coverage for policy creation and valued-position drift analysis.
 - [x] Confirm latest PR CI and end-to-end browser/SQLite acceptance before marking the IPM allocation increment complete (all required checks passed on 2026-11-06).
+
+
+## Latest delivery status — 2026-11-08
+
+The investment-management dependency chain is merged to `main` in order: PRs #425, #426, #427, #428, #429, #430, #432, #435 and #436. Schema v7 is now the main-branch workspace schema with 14 persisted collections. PR #437 fixed the main-only undefined `analyzePortfolio` reference in the existing portfolio-XIRR module; its CI, Secret Scan and dashboard packaging checks passed before merge.
+
+Delivered capabilities include the investment ledger, FIFO positions and valuation provenance, investment cash ledger and statement reconciliation, currency-separated portfolio XIRR, PFO-native validated CSV interchange, and immutable allocation target policies with bitemporal actual-vs-target drift. Risk-policy implementation (concentration thresholds, liquidity, exposure and drawdown) is **not** implemented. It remains gated by `docs/architecture/INVESTMENT-RISK-POLICY-READINESS.md`: do not invent thresholds or derive liquidity/drawdown scores from absent or underspecified data.
+
+Residual operational limitations: local SQLite and exported backups are not encrypted; backups are manual and have no automated rotation/retention or remote copy. Keep real household data out of this public repository and use the loopback local dashboard for private records.
