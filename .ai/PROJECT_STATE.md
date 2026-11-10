@@ -360,3 +360,13 @@ PR #437 is merged and fixes the main-only ESLint failure in `apps/dashboard/inve
 Risk-policy implementation is not shipped. The merged readiness assessment at `docs/architecture/INVESTMENT-RISK-POLICY-READINESS.md` documents missing liquidity metadata, undefined drawdown sampling/cash-flow rules and unresolved exposure semantics. No hidden thresholds, risk scores, recommendations, rebalancing instructions or trades are introduced.
 
 Operational limitations remain: SQLite files and exports are not encrypted; backups are manual and have no automated rotation, retention enforcement or remote copy. The repository is public, so only synthetic data may be committed. Use the loopback dashboard on a secured device for private household records.
+
+
+## Latest Verified Repository State — 2026-11-10
+
+- Main: `590e05c921829fedecb770c5cdd2ef3098f5aa03`.
+- Workspace persistence is schema v8 with 15 collections. Concentration policy engine, user-configurable private-workspace UI, v7→v8 migration, pre-migration recovery artifact and JSON backup/restore are merged (#441, #443). Browser storage failure preservation is covered by #446. Pinned Claude Code Action update #447 is merged after CI and Secret Scan passed.
+- Each workspace can define its own concentration policy versions, per-group maximum market-value weights and `>` / `>=` boundaries. No application-wide thresholds or inferred risk appetite exist.
+- Sprint 9 is focused on exposure classification data-contract discovery. The next decision is whether an instrument maps to one group per dimension or weighted multi-group look-through allocations. No issuer/sector/geography exposure calculations are claimed yet.
+- Liquidity and drawdown remain deferred until their respective data, provenance, time and missing-data contracts are approved.
+- Repository is public; synthetic fixtures only. The local workspace remains loopback-only and does not provide hosted multi-user authentication/authorization.
