@@ -8,14 +8,23 @@ Sprint 8 — User-configured concentration policy delivery (completed 2026-11-08
 - Each rule carries a user-entered maximum market-value weight and an explicit `>` or `>=` boundary; no default risk thresholds are embedded.
 - Evaluates complete valued FIFO positions by currency and portfolio/account scope; incomplete valuations suppress the result.
 - Added private-workspace policy configuration, policy history, JSON backup/restore, schema-v8 persistence and transactional v7→v8 migration with a pre-migration recovery artifact.
-- PR #443 merged. PR CI, Chromium browser smoke, dashboard deployment and Secret Scan passed. Main merge commit: `4230be3513d1243ea9e4f82fbd2208701ceaa27c`.
+- PR #443 delivered the feature; PR #446 added browser coverage for storage-quota failure and preservation of previously committed immutable history.
+- PR #447 updated the pinned Claude Code Action to v1.0.269. CI and Secret Scan passed before merge; merge commit: `590e05c921829fedecb770c5cdd2ef3098f5aa03`.
 
-### Next — Remaining risk-policy families
+### Sprint 9 — Exposure classification data-contract discovery (in progress)
 
-- Liquidity requires user-supplied or separately sourced liquidity classification, lock-up, redemption and maturity evidence.
-- Broader exposure limits require agreed grouping/classification data such as issuer, sector and geography.
-- Drawdown requires an approved historical observation series, sampling, freshness, missing-point and cash-flow treatment.
-- Continue with explicit user-authored limits and no product-wide default risk appetite.
+Objective: define a reusable, user-managed exposure classification model before implementing issuer, sector, geography or custom exposure limits.
+
+- Preserve the general-purpose product boundary: each workspace supplies its own classifications and risk limits; no application defaults or household-specific data.
+- Inspect how instrument metadata, FIFO positions, workspace schema-v8 persistence, JSON backup/restore and concentration policies are currently validated.
+- Specify whether an instrument may map to multiple groups within a classification dimension (for example, a fund's look-through holdings), and how the weights must reconcile.
+- Define provenance, effective/recorded-at timestamps, missing-classification behavior, unknown/unclassified handling, currency/scope and policy boundary semantics.
+- Do not implement an exposure score or limit evaluation until the classification contract is approved and can be hand-calculated.
+- Keep liquidity and drawdown gated on their own independent input and metric contracts.
+
+### Next product decision
+
+Choose the exposure classification model: one user-assigned group per instrument per dimension, or weighted multi-group look-through allocations per instrument. This decision materially affects schema, validation, and the correctness of fund/ETF exposure calculations.
 
 ## Previous Sprint — Sprint 7 (historical, completed 2026-10-30)
 
