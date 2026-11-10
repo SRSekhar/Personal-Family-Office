@@ -515,3 +515,14 @@ The investment-management chain (#425–#441) remains merged, including investme
 ### Operational safety
 
 The GitHub repository is public: use synthetic fixtures only and never commit real household data. The local SQLite database and exports are not encrypted; backups are manual, with no automated rotation, retention enforcement or remote copy. The dashboard's private workspace is loopback-only. This is not a multi-user hosted service and no authentication/authorization layer is claimed.
+
+
+## Latest Handoff — 2026-11-10 (post concentration-policy hardening)
+
+- Main commit: `590e05c921829fedecb770c5cdd2ef3098f5aa03`.
+- PR #441 delivered the pure user-configured concentration policy engine; PR #443 delivered private-workspace UI, schema-v8 persistence, transactional v7→v8 migration and full JSON backup/restore; PR #446 added a browser storage-quota failure regression test; PR #447 updated the pinned Claude Code Action to v1.0.269. All are merged.
+- The concentration metric is per-group market-value weight within a selected currency and portfolio/account scope. Users provide every maximum percentage and choose `>` or `>=`; there are no default risk thresholds. It uses valued open investment positions only, excludes cash accounts/liabilities/non-ledger assets, and suppresses incomplete valuation results.
+- No open GitHub issues or pull requests were present at handoff.
+- Current next work is Sprint 9: define the user-managed exposure classification data contract before implementing issuer/sector/geography/custom exposure metrics. A key unresolved decision is one group per instrument/dimension versus weighted multi-group look-through allocations. Do not assume one is correct; funds/ETFs may require look-through and explicit reconciliation.
+- Liquidity and drawdown remain gated on separate data/metric contracts. The product is general-purpose, with user-authored policies per local workspace; this does not imply multi-user hosted authentication or shared-workspace authorization.
+- Continue to use synthetic fixtures only. No real household financial data, credentials or private reports in the public repository.
