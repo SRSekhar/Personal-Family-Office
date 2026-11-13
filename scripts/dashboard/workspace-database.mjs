@@ -391,7 +391,7 @@ function writePreV10MigrationBackup(databasePath, payload) {
         catch (error) { if (error?.code !== 'EEXIST') throw error; }
     }
     try {
-        writeFileSync(descriptor, JSON.stringify(payload, null, 2) + '\\n', 'utf8');
+        writeFileSync(descriptor, JSON.stringify(payload, null, 2) + '\n', 'utf8');
         fsyncSync(descriptor);
     } catch (error) {
         try { closeSync(descriptor); } catch { /* preserve original error */ }
@@ -406,7 +406,7 @@ function writePreV10MigrationBackup(databasePath, payload) {
 /** Transactional v9 -> v10 migration. Exposure policies start empty; no thresholds are inferred. */
 function migrateSchemaV9(database, databasePath) {
     const table = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
-    if (!table || !/schema_version\\s*=\\s*9/i.test(table.sql ?? '')) return;
+    if (!table || !/schema_version\s*=\s*9/i.test(table.sql ?? '')) return;
     database.exec('BEGIN IMMEDIATE');
     try {
         const row = database.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
