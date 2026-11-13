@@ -430,6 +430,32 @@ describe('SQLite workspace persistence schema v11', () => {
         expect(database.getWorkspace().payload).toEqual(payload());
         expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
     });
+    it('migrates a v10 workspace to v11 with an exact recovery artifact and no fabricated drawdown history', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v10-migration-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const legacy = payload({ schemaVersion: 10 });
+        delete legacy.investmentDrawdownSnapshots;
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 10),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 10, ?, ?, ?)').run('INR', JSON.stringify(legacy), '2026-11-13T12:00:00.000Z');
+        raw.close();
+
+        const migrated = new WorkspaceDatabase(path); databases.push(migrated);
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 11, updatedAt: '2026-11-13T12:00:00.000Z' });
+        const saved = migrated.getWorkspace().payload;
+        expect(saved.schemaVersion).toBe(11);
+        expect(saved.investmentDrawdownSnapshots).toEqual([]);
+        expect(saved.investmentExposurePolicies).toEqual(legacy.investmentExposurePolicies);
+        const backups = readdirSync(directory).filter((name) => name.includes('.pre-v11-') && name.endsWith('.json'));
+        expect(backups).toHaveLength(1);
+        expect(JSON.parse(readFileSync(join(directory, backups[0]), 'utf8'))).toEqual(legacy);
+        if (process.platform !== 'win32') expect(statSync(join(directory, backups[0])).mode & 0o777).toBe(0o600);
+    });
+
     it('starts empty and reports schema v11', async () => {
         const database = await createDatabase();
         expect(database.getWorkspace()).toBeNull();
@@ -553,7 +579,7 @@ describe('SQLite workspace persistence schema v11', () => {
         expect(committed).toMatchObject({
             recordCount: 2, goalCount: 1, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
             investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1,
-            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 1, investmentConcentrationPolicyCount: 1, investmentExposureClassificationCount: 0, investmentExposurePolicyCount: 0
+            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 1, investmentConcentrationPolicyCount: 1, investmentExposureClassificationCount: 0, investmentExposurePolicyCount: 0, investmentDrawdownSnapshotCount: 0
         });
         first.close(); databases.splice(databases.indexOf(first), 1);
 
@@ -577,7 +603,8 @@ describe('SQLite workspace persistence schema v11', () => {
             investmentCashStatements: recovered.payload.investmentCashStatements.map((item) => item.id),
             investmentAllocationPolicies: recovered.payload.investmentAllocationPolicies.map((item) => item.id),
             investmentConcentrationPolicies: recovered.payload.investmentConcentrationPolicies.map((item) => item.id),
-            investmentExposureClassifications: recovered.payload.investmentExposureClassifications.map((item) => item.id)
+            investmentExposureClassifications: recovered.payload.investmentExposureClassifications.map((item) => item.id),
+            investmentDrawdownSnapshots: recovered.payload.investmentDrawdownSnapshots.map((item) => item.id)
         };
         expect(stableIds).toEqual({
             records: ['record-1', 'record-2'], goals: ['goal-recovery-1'], cashFlowEntries: ['cash-1'],
@@ -589,7 +616,7 @@ describe('SQLite workspace persistence schema v11', () => {
             investmentCashTransfers: ['cash-transfer-recovery-1'],
             investmentCashStatements: ['cash-statement-1', 'cash-statement-2'],
             investmentAllocationPolicies: ['allocation-policy-recovery-1'],
-            investmentConcentrationPolicies: ['concentration-policy-recovery-1'], investmentExposureClassifications: []
+            investmentConcentrationPolicies: ['concentration-policy-recovery-1'], investmentExposureClassifications: [], investmentDrawdownSnapshots: []
         });
         expect(recovered.payload.investmentCashTransfers[0].amount).toEqual({ amount: 100, currency: 'INR' });
         expect(recovered.payload.investmentValuations[0].sourceName).toBe('User-entered');
