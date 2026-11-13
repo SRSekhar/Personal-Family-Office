@@ -55,6 +55,8 @@ jobs:
           test -s apps/dashboard/index.html
           test -s apps/dashboard/styles.css
           test -s apps/dashboard/app.js
+          test -s apps/dashboard/investment-exposure-policy.js
+          test -s apps/dashboard/investment-exposure-policy-workspace.js
           test -s apps/dashboard/workspace-security.js
           test -s apps/dashboard/calculators-runtime/FireReadiness.js
           test -s apps/dashboard/calculators-runtime/FireScenarioComparison.js
@@ -68,6 +70,8 @@ jobs:
           grep -q 'calculateFinancialRatios' apps/dashboard/app.js
           test -s apps/dashboard/return-risk.js
           node --check apps/dashboard/app.js
+          node --check apps/dashboard/investment-exposure-policy.js
+          node --check apps/dashboard/investment-exposure-policy-workspace.js
           node --check apps/dashboard/return-risk.js
           node --check apps/dashboard/workspace-security.js
           grep -q 'hosted-privacy-notice' apps/dashboard/index.html

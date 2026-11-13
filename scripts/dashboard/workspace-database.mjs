@@ -7,7 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { validateBackupPayload } from '../../apps/dashboard/backup.js';
 
-const SCHEMA_VERSION = 9;
+const SCHEMA_VERSION = 10;
 const CURRENCY = 'INR';
 export class WorkspaceValidationError extends Error { constructor(message) { super(message); this.name = 'WorkspaceValidationError'; } }
 export class WorkspaceConflictError extends Error {
@@ -27,9 +27,9 @@ function validateWorkspacePayload(payload) {
     try {
         const required = ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts',
             'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts',
-            'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications'];
+            'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies'];
         if (!payload || payload.schemaVersion !== SCHEMA_VERSION || required.some((key) => !Array.isArray(payload[key]))) {
-            throw new Error('SQLite workspace persistence requires a complete schema-v9 workspace backup.');
+            throw new Error('SQLite workspace persistence requires a complete schema-v10 workspace backup.');
         }
         if (payload.currency !== CURRENCY) throw new Error(`Workspace currency must be ${CURRENCY}; this snapshot uses ${String(payload.currency ?? 'no currency')}.`);
         const ids = new Set();
@@ -51,9 +51,11 @@ function validateWorkspacePayload(payload) {
             investmentAllocationPolicies: validated.investmentAllocationPolicies,
             investmentConcentrationPolicies: validated.investmentConcentrationPolicies,
             investmentExposureClassifications: validated.investmentExposureClassifications,
+            investmentExposurePolicies: validated.investmentExposurePolicies,
             ...(payload.allocationPoliciesMigratedFromV6 === true ? { allocationPoliciesMigratedFromV6: true } : {}),
             ...(payload.concentrationPoliciesMigratedFromV7 === true ? { concentrationPoliciesMigratedFromV7: true } : {}),
-            ...(payload.exposureClassificationsMigratedFromV8 === true ? { exposureClassificationsMigratedFromV8: true } : {})
+            ...(payload.exposureClassificationsMigratedFromV8 === true ? { exposureClassificationsMigratedFromV8: true } : {}),
+            ...(payload.exposurePoliciesMigratedFromV9 === true ? { exposurePoliciesMigratedFromV9: true } : {})
         };
     } catch (error) { throw new WorkspaceValidationError(error instanceof Error ? error.message : 'The supplied workspace is invalid.'); }
 }
@@ -378,6 +380,69 @@ function migrateSchemaV8(database, databasePath) {
     } catch (error) { database.exec('ROLLBACK'); throw error; }
 }
 
+/** Persist a portable schema-v9 recovery artifact before adding user-defined exposure policies. */
+function writePreV10MigrationBackup(databasePath, payload) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const basePath = databasePath + '.pre-v10-' + stamp;
+    let backupPath; let descriptor;
+    for (let suffix = 0; ; suffix += 1) {
+        backupPath = basePath + (suffix ? '-' + suffix : '') + '.json';
+        try { descriptor = openSync(backupPath, 'wx', 0o600); break; }
+        catch (error) { if (error?.code !== 'EEXIST') throw error; }
+    }
+    try {
+        writeFileSync(descriptor, JSON.stringify(payload, null, 2) + '\n', 'utf8');
+        fsyncSync(descriptor);
+    } catch (error) {
+        try { closeSync(descriptor); } catch { /* preserve original error */ }
+        try { unlinkSync(backupPath); } catch { /* incomplete artifact remains visible */ }
+        throw new Error('The required pre-migration v9 backup could not be completed; the database migration was cancelled.', { cause: error });
+    }
+    closeSync(descriptor);
+    if (process.platform !== 'win32') chmodSync(backupPath, 0o600);
+    return backupPath;
+}
+
+/** Transactional v9 -> v10 migration. Exposure policies start empty; no thresholds are inferred. */
+function migrateSchemaV9(database, databasePath) {
+    const table = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
+    if (!table || !/schema_version\s*=\s*9/i.test(table.sql ?? '')) return;
+    database.exec('BEGIN IMMEDIATE');
+    try {
+        const row = database.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
+        let migrated = null;
+        if (row) {
+            if (row.schema_version !== 9 || row.currency !== CURRENCY) throw new Error('The existing SQLite workspace has an unsupported schema or currency; migration was not applied.');
+            const oldPayload = JSON.parse(row.payload_json);
+            if (oldPayload.schemaVersion !== 9) throw new Error('The saved SQLite payload does not match its v9 database schema; migration was not applied.');
+            const validated = validateBackupPayload(oldPayload, CURRENCY);
+            const recovery = {
+                schemaVersion: 9, currency: CURRENCY, exportedAt: oldPayload.exportedAt,
+                records: oldPayload.records, goals: validated.goals, cashFlowEntries: validated.cashFlowEntries,
+                budgets: validated.budgets, historicalSnapshots: validated.historicalSnapshots,
+                investmentAccounts: validated.investmentAccounts, investmentInstruments: validated.investmentInstruments,
+                investmentTransactions: validated.investmentTransactions, investmentValuations: validated.investmentValuations,
+                investmentCashAccounts: validated.investmentCashAccounts, investmentCashMovements: validated.investmentCashMovements,
+                investmentCashTransfers: validated.investmentCashTransfers, investmentCashStatements: validated.investmentCashStatements,
+                investmentAllocationPolicies: validated.investmentAllocationPolicies,
+                investmentConcentrationPolicies: validated.investmentConcentrationPolicies,
+                investmentExposureClassifications: validated.investmentExposureClassifications,
+                ...(oldPayload.allocationPoliciesMigratedFromV6 === true ? { allocationPoliciesMigratedFromV6: true } : {}),
+                ...(oldPayload.concentrationPoliciesMigratedFromV7 === true ? { concentrationPoliciesMigratedFromV7: true } : {}),
+                ...(oldPayload.exposureClassificationsMigratedFromV8 === true ? { exposureClassificationsMigratedFromV8: true } : {})
+            };
+            writePreV10MigrationBackup(databasePath, recovery);
+            migrated = { ...recovery, schemaVersion: 10, investmentExposurePolicies: [], exposurePoliciesMigratedFromV9: true };
+        }
+        database.exec('ALTER TABLE workspace_snapshot RENAME TO workspace_snapshot_v9_migration');
+        createSnapshotTable(database, 10);
+        if (migrated) database.prepare('INSERT INTO workspace_snapshot (singleton, schema_version, currency, payload_json, updated_at) VALUES (1, 10, ?, ?, ?)')
+            .run(CURRENCY, JSON.stringify(migrated), row.updated_at);
+        database.exec('DROP TABLE workspace_snapshot_v9_migration');
+        database.exec('COMMIT');
+    } catch (error) { database.exec('ROLLBACK'); throw error; }
+}
+
 /** SQLite persistence stores a complete validated workspace snapshot atomically. */
 export class WorkspaceDatabase {
     #database; #databasePath;
@@ -394,6 +459,7 @@ export class WorkspaceDatabase {
             migrateSchemaV6(this.#database, this.#databasePath);
             migrateSchemaV7(this.#database, this.#databasePath);
             migrateSchemaV8(this.#database, this.#databasePath);
+            migrateSchemaV9(this.#database, this.#databasePath);
             this.#secureFilePermissions();
         } catch (error) { this.#database.close(); throw error; }
     }
@@ -444,7 +510,8 @@ export class WorkspaceDatabase {
             investmentCashStatementCount: validated.investmentCashStatements.length,
             investmentAllocationPolicyCount: validated.investmentAllocationPolicies.length,
             investmentConcentrationPolicyCount: validated.investmentConcentrationPolicies.length,
-            investmentExposureClassificationCount: validated.investmentExposureClassifications.length };
+            investmentExposureClassificationCount: validated.investmentExposureClassifications.length,
+            investmentExposurePolicyCount: validated.investmentExposurePolicies.length };
     }
     async createOnlineBackup() {
         if (!this.getWorkspace()) throw new Error('No committed SQLite workspace exists to back up.');
@@ -462,7 +529,7 @@ export class WorkspaceDatabase {
             const messages = verificationDatabase.prepare('PRAGMA quick_check').all().map((row) => String(row.quick_check));
             if (messages.length !== 1 || messages[0] !== 'ok') throw new Error('SQLite backup integrity verification failed.');
             const row = verificationDatabase.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
-            if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v9 workspace.');
+            if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v10 workspace.');
             const payload = validateWorkspacePayload(JSON.parse(row.payload_json));
             verificationDatabase.close(); verificationDatabase = undefined;
             const descriptor = openSync(temporaryPath, 'r+');
@@ -486,7 +553,8 @@ export class WorkspaceDatabase {
                     investmentCashTransfers: payload.investmentCashTransfers.length, investmentCashStatements: payload.investmentCashStatements.length,
                     investmentAllocationPolicies: payload.investmentAllocationPolicies.length,
                     investmentConcentrationPolicies: payload.investmentConcentrationPolicies.length,
-                    investmentExposureClassifications: payload.investmentExposureClassifications.length
+                    investmentExposureClassifications: payload.investmentExposureClassifications.length,
+                    investmentExposurePolicies: payload.investmentExposurePolicies.length
                 }
             };
         } catch (error) {

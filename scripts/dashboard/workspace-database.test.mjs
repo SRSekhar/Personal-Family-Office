@@ -17,7 +17,7 @@ async function createDatabase() {
     return database;
 }
 function payload(overrides = {}) {
-    const schemaVersion = overrides.schemaVersion ?? 9;
+    const schemaVersion = overrides.schemaVersion ?? 10;
     return {
         schemaVersion, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
         records: [
@@ -39,6 +39,7 @@ function payload(overrides = {}) {
         investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [],
         ...(schemaVersion >= 8 ? { investmentConcentrationPolicies: [] } : {}),
         ...(schemaVersion >= 9 ? { investmentExposureClassifications: [] } : {}),
+        ...(schemaVersion >= 10 ? { investmentExposurePolicies: [] } : {}),
         ...overrides
     };
 }
@@ -47,16 +48,16 @@ afterEach(async () => {
     await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
-describe('SQLite workspace persistence schema v9', () => {
-    it('persists all sixteen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
+describe('SQLite workspace persistence schema v10', () => {
+    it('persists all seventeen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const first = new WorkspaceDatabase(path); databases.push(first);
         const saved = first.saveWorkspace(payload());
-        expect(saved).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: true, schemaVersion: 9,
+        expect(saved).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: true, schemaVersion: 10,
             recordCount: 2, goalCount: 0, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
             investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1, investmentCashAccountCount: 0, investmentCashMovementCount: 0,
-            investmentCashTransferCount: 0, investmentCashStatementCount: 0, investmentAllocationPolicyCount: 0, investmentConcentrationPolicyCount: 0, investmentExposureClassificationCount: 0 });
+            investmentCashTransferCount: 0, investmentCashStatementCount: 0, investmentAllocationPolicyCount: 0, investmentConcentrationPolicyCount: 0, investmentExposureClassificationCount: 0, investmentExposurePolicyCount: 0 });
         first.close(); databases.splice(databases.indexOf(first), 1);
         const reopened = new WorkspaceDatabase(path); databases.push(reopened);
         expect(reopened.getWorkspace().payload).toEqual(payload());
@@ -81,7 +82,7 @@ describe('SQLite workspace persistence schema v9', () => {
         raw.close();
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
         const result = migrated.getWorkspace();
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 9, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 10, updatedAt: '2026-10-28T12:00:00.000Z' });
         expect(result.payload.records.map((item) => item.id)).toEqual(['record-1', 'record-2']);
         expect(result.payload.cashFlowEntries).toEqual(legacy.cashFlowEntries);
         expect(result.payload.historicalSnapshots).toEqual(legacy.historicalSnapshots);
@@ -139,9 +140,9 @@ describe('SQLite workspace persistence schema v9', () => {
         raw.close();
 
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 9, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 10, updatedAt: '2026-10-28T12:00:00.000Z' });
         const saved = migrated.getWorkspace().payload;
-        expect(saved.schemaVersion).toBe(9);
+        expect(saved.schemaVersion).toBe(10);
         expect(saved.investmentTransactions).toEqual(legacy.investmentTransactions);
         expect(saved.investmentValuations).toEqual(legacy.investmentValuations);
         expect(saved.investmentCashAccounts).toEqual([]);
@@ -152,6 +153,10 @@ describe('SQLite workspace persistence schema v9', () => {
         expect(saved.investmentConcentrationPolicies).toEqual([]);
         expect(saved.investmentExposureClassifications).toEqual([]);
         expect(saved.exposureClassificationsMigratedFromV8).toBe(true);
+        expect(saved.investmentExposurePolicies).toEqual([]);
+        expect(saved.exposurePoliciesMigratedFromV9).toBe(true);
+        expect(saved.investmentExposurePolicies).toEqual([]);
+        expect(saved.exposurePoliciesMigratedFromV9).toBe(true);
         expect(saved.concentrationPoliciesMigratedFromV7).toBe(true);
 
         const backupFiles = readdirSync(directory).filter((name) => name.includes('.pre-v6-') && name.endsWith('.json'));
@@ -200,9 +205,9 @@ describe('SQLite workspace persistence schema v9', () => {
         raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 6, ?, ?, ?)').run('INR', JSON.stringify(legacy), '2026-10-28T12:00:00.000Z');
         raw.close();
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 9, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 10, updatedAt: '2026-10-28T12:00:00.000Z' });
         const saved = migrated.getWorkspace().payload;
-        expect(saved.schemaVersion).toBe(9);
+        expect(saved.schemaVersion).toBe(10);
         expect(saved.investmentAllocationPolicies).toEqual([]);
         expect(saved.allocationPoliciesMigratedFromV6).toBe(true);
         expect(saved.investmentTransactions).toEqual(legacy.investmentTransactions);
@@ -256,9 +261,9 @@ describe('SQLite workspace persistence schema v9', () => {
         raw.close();
 
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 9, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 10, updatedAt: '2026-10-28T12:00:00.000Z' });
         const saved = migrated.getWorkspace().payload;
-        expect(saved.schemaVersion).toBe(9);
+        expect(saved.schemaVersion).toBe(10);
         expect(saved.investmentAllocationPolicies).toEqual(legacy.investmentAllocationPolicies);
         expect(saved.investmentConcentrationPolicies).toEqual([]);
         expect(saved.concentrationPoliciesMigratedFromV7).toBe(true);
@@ -292,7 +297,7 @@ describe('SQLite workspace persistence schema v9', () => {
         expect(readdirSync(directory).filter((name) => name.includes('.pre-v8-'))).toHaveLength(0);
     });
 
-    it('migrates a v8 workspace to v9 with a verified recovery artifact and no inferred classifications', async () => {
+    it('migrates a v8 workspace through schema v10 while preserving the v9 recovery artifact', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-v8-migration-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const legacy = payload({ schemaVersion: 8, investmentConcentrationPolicies: [{
@@ -311,12 +316,14 @@ describe('SQLite workspace persistence schema v9', () => {
         raw.close();
 
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 9, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 10, updatedAt: '2026-10-28T12:00:00.000Z' });
         const saved = migrated.getWorkspace().payload;
-        expect(saved.schemaVersion).toBe(9);
+        expect(saved.schemaVersion).toBe(10);
         expect(saved.investmentConcentrationPolicies).toEqual(legacy.investmentConcentrationPolicies);
         expect(saved.investmentExposureClassifications).toEqual([]);
         expect(saved.exposureClassificationsMigratedFromV8).toBe(true);
+        expect(saved.investmentExposurePolicies).toEqual([]);
+        expect(saved.exposurePoliciesMigratedFromV9).toBe(true);
 
         const backups = readdirSync(directory).filter((name) => name.includes('.pre-v9-') && name.endsWith('.json'));
         expect(backups).toHaveLength(1);
@@ -348,6 +355,65 @@ describe('SQLite workspace persistence schema v9', () => {
         expect(readdirSync(directory).filter((name) => name.includes('.pre-v9-'))).toHaveLength(0);
     });
 
+    it('migrates a v9 workspace to v10 with a verified recovery artifact and no inferred policies', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v9-migration-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const legacy = payload({ schemaVersion: 9, investmentExposureClassifications: [{
+            id: 'sector-v1', instrumentId: 'instrument-1', dimensionId: 'sector', dimensionName: 'Sector',
+            effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
+            sourceType: 'manual', sourceName: 'User-entered',
+            allocations: [{ groupId: 'technology', groupName: 'Technology', weightPercent: 100 }]
+        }] });
+        delete legacy.investmentExposurePolicies;
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 9),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 9, ?, ?, ?)').run('INR', JSON.stringify(legacy), '2026-11-01T12:00:00.000Z');
+        raw.close();
+
+        const migrated = new WorkspaceDatabase(path); databases.push(migrated);
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 10, updatedAt: '2026-11-01T12:00:00.000Z' });
+        const saved = migrated.getWorkspace().payload;
+        expect(saved.schemaVersion).toBe(10);
+        expect(saved.investmentExposureClassifications).toEqual(legacy.investmentExposureClassifications);
+        expect(saved.investmentExposurePolicies).toEqual([]);
+        expect(saved.exposurePoliciesMigratedFromV9).toBe(true);
+
+        const backups = readdirSync(directory).filter((name) => name.includes('.pre-v10-') && name.endsWith('.json'));
+        expect(backups).toHaveLength(1);
+        const recovery = JSON.parse(readFileSync(join(directory, backups[0]), 'utf8'));
+        expect(recovery).toMatchObject({ schemaVersion: 9, investmentExposureClassifications: legacy.investmentExposureClassifications });
+        expect(recovery).not.toHaveProperty('investmentExposurePolicies');
+        if (process.platform !== 'win32') expect(statSync(join(directory, backups[0])).mode & 0o777).toBe(0o600);
+    });
+
+    it('leaves a v9 database untouched when exposure-policy migration validation fails', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'pfo-v9-rollback-')); directories.push(directory);
+        const path = join(directory, 'workspace.sqlite');
+        const invalidLegacy = payload({ schemaVersion: 9, currency: 'USD' });
+        delete invalidLegacy.investmentExposurePolicies;
+        const raw = new DatabaseSync(path);
+        raw.exec(`CREATE TABLE workspace_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            schema_version INTEGER NOT NULL CHECK (schema_version = 9),
+            currency TEXT NOT NULL CHECK (currency = 'INR'),
+            payload_json TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+        raw.prepare('INSERT INTO workspace_snapshot VALUES (1, 9, ?, ?, ?)').run('INR', JSON.stringify(invalidLegacy), '2026-11-01T12:00:00.000Z');
+        raw.close();
+
+        expect(() => new WorkspaceDatabase(path)).toThrow(/currency/i);
+        const unchanged = new DatabaseSync(path);
+        const table = unchanged.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
+        const row = unchanged.prepare('SELECT schema_version, currency, payload_json FROM workspace_snapshot WHERE singleton = 1').get();
+        expect(table.sql).toMatch(/schema_version = 9/i);
+        expect(row).toMatchObject({ schema_version: 9, currency: 'INR', payload_json: JSON.stringify(invalidLegacy) });
+        unchanged.close();
+        expect(readdirSync(directory).filter((name) => name.includes('.pre-v10-'))).toHaveLength(0);
+    });
+
     it('rejects stale database versions without replacing a newer committed snapshot', async () => {
         const database = await createDatabase();
         const first = database.saveWorkspace(payload(), null);
@@ -362,10 +428,10 @@ describe('SQLite workspace persistence schema v9', () => {
         expect(database.getWorkspace().payload).toEqual(payload());
         expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
     });
-    it('starts empty and reports schema v9', async () => {
+    it('starts empty and reports schema v10', async () => {
         const database = await createDatabase();
         expect(database.getWorkspace()).toBeNull();
-        expect(database.getStatus()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false, schemaVersion: 9, currency: 'INR', updatedAt: null });
+        expect(database.getStatus()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false, schemaVersion: 10, currency: 'INR', updatedAt: null });
     });
     it('rejects incomplete, wrong-currency, duplicate-ID and invalid financial snapshots', async () => {
         const database = await createDatabase();
@@ -473,7 +539,7 @@ describe('SQLite workspace persistence schema v9', () => {
         expect(backup).toMatchObject({
             filename: expect.stringMatching(/^pfo-os-sqlite-.*\.sqlite$/), directory: path + '.backups',
             path: expect.stringContaining('.backups'), bytes: expect.any(Number), updatedAt: committed.updatedAt,
-            schemaVersion: 9, collectionCounts: {
+            schemaVersion: 10, collectionCounts: {
                 records: 2, goals: 1, cashFlowEntries: 1, budgets: 1, historicalSnapshots: 1,
                 investmentAccounts: 1, investmentInstruments: 1, investmentTransactions: 1, investmentValuations: 1,
                 investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2, investmentAllocationPolicies: 1, investmentConcentrationPolicies: 1, investmentExposureClassifications: 0

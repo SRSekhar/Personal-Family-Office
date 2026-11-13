@@ -1,6 +1,6 @@
 # Investment risk policy — readiness assessment
 
-- Status: User-configured concentration policy engine, schema-v8 persistence, backup/restore and private-workspace UI delivered
+- Status: Concentration and weighted exposure classification delivered; user-configured exposure-limit policy is implemented in draft PR #452
 - Date: 2026-11-08
 - Scope: assess the existing investment domain and data contracts before implementing user-configured portfolio risk policies for a general-purpose product used by different people and portfolios.
 - Product principle: risk appetite belongs to the user, not the application. Each portfolio/workspace may have its own explicit policy configuration; the product must not ship one household's limits as defaults or infer limits from personal data.
@@ -19,7 +19,9 @@ These concentration statistics describe the observed allocation distribution. Th
 
 ### Exposure
 
-The allocation grouping dimension currently supports `instrumentType` or `instrument`. This provides deterministic category/instrument market-value weights when the relevant valuations are complete. It does not yet define what an exposure policy means (for example, whether it constrains one issuer, sector, geography, currency, instrument type, account, or a user-defined group). Existing instrument metadata has type, currency, symbol, exchange, ISIN and description; it does not provide validated issuer, sector or geography classifications.
+Weighted multi-group look-through classification is implemented in PR #450 using user-authored dimensions and group IDs. Each instrument/dimension snapshot allocates 100% across distinct groups, carries provenance and bitemporal timestamps, and is selected using both effective and recorded-at cutoffs. Exposure is aggregated by currency and portfolio/account scope from valued FIFO positions. Missing classifications or valuations suppress partial results. No FX conversion, nested fund recursion or automatic issuer/sector/geography inference is performed.
+
+User-configured exposure limits are implemented in draft PR #452. Each immutable policy version defines explicit maximum group weights and explicit > / >= boundary semantics for one dimension, currency and portfolio/account scope. An unconfigured group is not evaluated; a configured group absent from a complete result measures as zero. Incomplete and empty exposure remain unavailable/empty rather than passing. No default thresholds, severity bands, recommendations or trade actions are generated.
 
 ### Liquidity
 
@@ -48,7 +50,7 @@ For each risk-policy family, product requirements must define:
 
 ## Implementation sequence (product direction confirmed; concentration contract accepted)
 
-- Define a reusable, workspace-scoped risk-policy envelope: immutable version identity, explicit scope, currency, effective date, recorded-at timestamp and user-authored rules. Support different policy versions across independent portfolios/workspaces; do not hard-code any user's values as application defaults.
+- The concentration and exposure policy families now use separate, immutable, workspace-scoped policy contracts with explicit scope, currency, effective date, recorded-at timestamp and user-authored rules. No user's limits are hard-coded as application defaults.
 - Concentration: the first metric contract is defined in `ADR-INVESTMENT-CONCENTRATION-POLICY.md`; the validator, bitemporal selector, valued-position aggregation, evaluator, schema-v8 persistence, v7→v8 migration, JSON backup/restore and private-workspace configuration UI are implemented with deterministic and browser smoke coverage.
 - Implement only the remaining metric families whose input data and formulas have been approved and can be independently hand-calculated.
 - Treat liquidity as blocked until the liquidity input/provenance model is selected.
@@ -67,4 +69,4 @@ For each risk-policy family, product requirements must define:
 
 ## Current disposition
 
-Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. User-configured concentration policies are implemented in PR #441 plus the schema-v8 persistence/UI increment: each workspace can store immutable portfolio- or account-scoped policies, each with user-entered per-group maximum weights and explicit boundary operators. The dashboard evaluates these limits against complete valued FIFO positions and reports breach, within-limit, unavailable or empty states. SQLite v7→v8 migration preserves existing data and writes a pre-migration recovery artifact; full JSON backup/restore includes policy history. No default limits are supplied. Liquidity, issuer/sector/geography exposure and drawdown remain gated on their own data and metric contracts.
+Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. Concentration policy evaluation is delivered in PR #443 and schema-v8 persistence/UI. Weighted exposure classifications are delivered in PR #450 and schema-v9. User-configured exposure limits are implemented in draft PR #452 with schema-v10 persistence, pre-v10 recovery artifact, JSON backup/restore and private-workspace UI. The exposure policy evaluates only complete weighted look-through results and reports breach, within-limit, unavailable or empty states. No default limits are supplied. Liquidity and drawdown remain gated on their own data and metric contracts.

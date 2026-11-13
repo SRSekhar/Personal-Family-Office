@@ -1,11 +1,11 @@
 # Local Backup and Recovery Guide
 
-This guide applies to the local-first PFO OS dashboard and its schema-v7 SQLite workspace. It documents the current manual backup/recovery workflow; it is not an automated backup or retention service.
+This guide applies to the local-first PFO OS dashboard and the schema-v10 SQLite workspace. It documents the current manual backup/recovery workflow; it is not an automated backup or retention service.
 
 ## Understand the copies
 
 - **Browser workspace:** The dashboard's private workspace in browser-local storage. It is the immediate working copy and remains available when SQLite autosave is delayed or fails, but it is tied to that browser profile and device.
-- **SQLite workspace:** The local dashboard server's last committed complete schema-v7 snapshot. It contains 14 collections: financial records, goals, cash-flow entries, budgets, historical snapshots, investment accounts, investment instruments, investment transactions, investment valuations, investment cash accounts, investment cash movements, investment cash transfers, investment cash statements, and investment allocation policy versions.
+- **SQLite workspace:** The local dashboard server's last committed complete schema-v10 snapshot. It contains 17 collections: financial records, goals, cash-flow entries, budgets, historical snapshots, investment accounts, investment instruments, investment transactions, investment valuations, investment cash accounts, investment cash movements, investment cash transfers, investment cash statements, investment allocation policy versions, investment concentration policy versions, weighted investment exposure classifications, and user-defined investment exposure policy versions.
 - **Portable JSON export:** A validated, versioned full-workspace snapshot downloaded from the dashboard's SQLite backup/export action. It represents the last committed SQLite snapshot, not browser edits that have not yet reached SQLite. It is the portable recovery format; CSV interchange is not a replacement.
 
 SQLite saves are opt-in and debounced when automatic mode is enabled. Transient save failures receive bounded retries, but retries can be exhausted. A successful SQLite integrity check does not prove that a backup can be restored or that financial values are correct.
@@ -31,7 +31,7 @@ A practical manual starting policy is:
 
 Do not store real exports in this public Git repository, issue trackers, chat transcripts, or unencrypted shared folders. PFO OS JSON exports and the SQLite database are not encrypted by this feature. Protect them with device/full-disk encryption and appropriate account access controls. PFO OS does not upload, encrypt, rotate, or delete backups for you.
 
-The SQLite database uses WAL journaling. Do not copy only the live `.sqlite` file while the server is running. Use **Create verified SQLite file backup** to create an online snapshot through Node's SQLite backup API. The server writes a unique file under `<database path>.backups`, verifies SQLite integrity and the complete schema-v6 payload, flushes the file, and only then publishes it. Existing backup files are never overwritten. This is a manual action; scheduling, rotation, retention enforcement, encryption and remote copy are not provided. Continue to create portable JSON exports as an independent backup format.
+The SQLite database uses WAL journaling. Do not copy only the live `.sqlite` file while the server is running. Use **Create verified SQLite file backup** to create an online snapshot through Node's SQLite backup API. The server writes a unique file under `<database path>.backups`, verifies SQLite integrity and the complete schema-v10 payload, flushes the file, and only then publishes it. Existing backup files are never overwritten. This is a manual action; scheduling, rotation, retention enforcement, encryption and remote copy are not provided. Continue to create portable JSON exports as an independent backup format.
 
 ## Create a portable backup
 
@@ -52,9 +52,9 @@ If automatic SQLite save is paused after retry exhaustion, do not assume the lat
 1. Start the local dashboard and review the currently displayed workspace.
 2. If possible, export the current committed SQLite snapshot before replacing anything.
 3. Run **Check database integrity**. If it fails, preserve the database file for diagnosis and use a known-good portable JSON export instead.
-4. Use **Restore from SQLite** and review the preview, including counts across the 13 collections.
+4. Use **Restore from SQLite** and review the preview, including counts across all 17 collections.
 5. Confirm only when the preview represents the intended snapshot.
-6. Inspect key balances, recent transactions, investment accounts/transactions, cash-ledger reconciliation, goals, budgets, and historical snapshot dates.
+6. Inspect key balances, recent transactions, investment accounts/transactions, cash-ledger reconciliation, allocation/concentration/exposure policy history, goals, budgets, and historical snapshot dates.
 
 ### Restore from a portable JSON export
 
@@ -66,16 +66,31 @@ If automatic SQLite save is paused after retry exhaustion, do not assume the lat
 6. Save the restored workspace to SQLite and wait for a successful save.
 7. Export a fresh backup from the destination device and retain it as the new recovery point.
 
+Schema-v10 backups preserve all 17 collections. Legacy JSON schemas v1–v9 remain importable. When a legacy backup omits newer investment policy/classification collections, PFO OS preserves existing history only if its references remain valid against the resulting investment ledger and classifications. If references would become invalid, the import is rejected before any workspace write; the application does not silently discard or carry invalid policy history.
+
 If import is rejected, preserve the rejected file for diagnosis. Do not repeatedly overwrite the current workspace or manually edit the JSON to bypass validation. Use another known-good export if available.
+
+## Schema migrations
+
+The SQLite workspace migrations are transactional and preserve existing collections and stable IDs:
+
+- v4→v5: investment ledger collections; writes a pre-v5 recovery artifact.
+- v5→v6: investment cash ledger collections; writes a pre-v6 recovery artifact.
+- v6→v7: allocation policy history; starts empty and writes a pre-v7 recovery artifact.
+- v7→v8: concentration policy history; starts empty and writes a pre-v8 recovery artifact.
+- v8→v9: weighted exposure classifications; starts empty and writes a pre-v9 recovery artifact. No instrument classifications are inferred.
+- v9→v10: user-defined exposure policy history; starts empty and writes a pre-v10 recovery artifact. No thresholds, comparators or policy sets are inferred.
+
+Each pre-migration JSON artifact is created before the schema transaction changes the live snapshot. On failure, the migration transaction rolls back. Keep recovery artifacts until the migrated workspace and a fresh portable backup have been verified.
 
 ## Device migration checklist
 
-- [ ] Export a fresh portable schema-v7 JSON backup after the latest SQLite save succeeds.
+- [ ] Export a fresh portable schema-v10 JSON backup after the latest SQLite save succeeds.
 - [ ] Copy it to a separate protected location.
 - [ ] Set up the destination with the repository's supported Node.js runtime and dashboard dependencies.
 - [ ] Start the local dashboard and import the JSON backup.
-- [ ] Review the preview and all 14 collection counts before confirming.
-- [ ] Inspect key financial values and historical records.
+- [ ] Review the preview and all 17 collection counts before confirming.
+- [ ] Inspect key financial values, investment policy versions and historical records.
 - [ ] Save the restored workspace to the destination SQLite database and confirm success.
 - [ ] Run the database integrity check.
 - [ ] Export and retain a fresh destination backup.
@@ -92,8 +107,8 @@ If import is rejected, preserve the rejected file for diagnosis. Do not repeated
 - Online SQLite backup is manual and user-initiated. Automated scheduling, rotation, retention enforcement, encryption, remote backup and scheduled restore drills are not implemented.
 - A structurally valid backup does not guarantee financial correctness. Review restored values against trusted source records.
 
-## Schema-v7 allocation-policy backups
+## Schema-v10 investment policy and exposure history
 
-The current SQLite workspace and full private-workspace JSON export use schema v7 and contain 14 collections, including investment allocation policy versions. The v6→v7 migration creates a protected `.pre-v7-*.json` recovery artifact before changing the database; the new allocation-policy collection starts empty. No policies are fabricated during migration.
+Schema v10 stores immutable allocation, concentration and weighted exposure policy/classification histories alongside the investment ledger. Exposure classifications are user-entered weighted group mappings with provenance and effective/recorded-at timestamps. Exposure policies contain only user-entered group limits and explicit comparison operators. Migrations initialize new collections empty; no classifications, thresholds or risk appetite are fabricated.
 
-Schema-v7 backup previews include the number of allocation-policy versions. Legacy v1–v6 backups remain importable and do not replace the existing allocation-policy collection when that collection was not part of the backup. After restoring a v7 backup, verify the policy names, versions, currency and target totals alongside the investment ledger.
+Legacy imports preserve existing policy history only when it remains valid against the restored investment ledger and classifications. Review the policy names, versions, currency, scope, dimension and group references after every restore.

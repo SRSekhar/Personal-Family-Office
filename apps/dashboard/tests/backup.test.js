@@ -525,3 +525,65 @@ describe('version 9 weighted investment exposure backup validation', () => {
         expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
     });
 });
+
+
+describe('version 10 investment exposure policy backup validation', () => {
+    const version10 = {
+        schemaVersion: 10, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [], investmentValuations: [],
+        investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [],
+        investmentAllocationPolicies: [], investmentConcentrationPolicies: [],
+        investmentExposureClassifications: [{
+            id: 'exposure-v1', instrumentId: 'instrument-1', dimensionId: 'sector', dimensionName: 'Sector',
+            effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
+            sourceType: 'manual', sourceName: 'User-entered',
+            allocations: [{ groupId: 'technology', groupName: 'Technology', weightPercent: 100 }]
+        }],
+        investmentExposurePolicies: [{
+            id: 'policy-v1', policySetId: 'sector-limits', version: 1, name: 'Sector limits',
+            currency: 'INR', scope: 'portfolio', dimensionId: 'sector', dimensionName: 'Sector',
+            effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
+            rules: [{ groupId: 'technology', maxWeightPercent: 60, operator: '>=' }]
+        }]
+    };
+
+    it('validates, retains and previews the complete exposure policy history', () => {
+        const validated = validateBackupPayload(version10, 'INR');
+        expect(validated.includesInvestmentExposurePolicies).toBe(true);
+        expect(validated.investmentExposurePolicies).toEqual(version10.investmentExposurePolicies);
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentExposureClassifications: true, investmentExposureClassificationCount: 1,
+            includesInvestmentExposurePolicies: true, investmentExposurePolicyCount: 1
+        });
+    });
+
+    it('requires policy history and rejects unknown group references or invalid rules', () => {
+        const missing = { ...version10 }; delete missing.investmentExposurePolicies;
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow(/Unsupported backup format/);
+        const unknownGroup = structuredClone(version10);
+        unknownGroup.investmentExposurePolicies[0].rules[0].groupId = 'missing-group';
+        expect(() => validateBackupPayload(unknownGroup, 'INR')).toThrow(/must exist in a classification/);
+        const invalidLimit = structuredClone(version10);
+        invalidLimit.investmentExposurePolicies[0].rules[0].maxWeightPercent = 101;
+        expect(() => validateBackupPayload(invalidLimit, 'INR')).toThrow(/finite percentage/);
+    });
+
+    it('preserves schema-v9 imports and recognizes the empty collection created by v9 migration', () => {
+        const legacy = structuredClone(version10);
+        legacy.schemaVersion = 9;
+        delete legacy.investmentExposurePolicies;
+        const old = validateBackupPayload(legacy, 'INR');
+        expect(old).not.toHaveProperty('includesInvestmentExposurePolicies');
+        expect(old).not.toHaveProperty('investmentExposurePolicies');
+
+        const migrated = { ...version10, investmentExposurePolicies: [], exposurePoliciesMigratedFromV9: true };
+        const result = validateBackupPayload(migrated, 'INR');
+        expect(result.investmentExposurePolicies).toEqual([]);
+        expect(result).not.toHaveProperty('includesInvestmentExposurePolicies');
+        const inconsistent = { ...migrated, investmentExposurePolicies: version10.investmentExposurePolicies };
+        expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
+    });
+});
