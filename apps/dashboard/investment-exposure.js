@@ -74,9 +74,15 @@ export function validateInvestmentExposureClassifications(classifications, conte
     const validated = classifications.map((item) => validateInvestmentExposureClassification(item, context));
     const ids = new Set();
     const snapshots = new Set();
+    const dimensionNames = new Map();
     for (const item of validated) {
         if (ids.has(item.id)) throw new RangeError('Exposure classification IDs must be unique.');
         ids.add(item.id);
+        const knownDimensionName = dimensionNames.get(item.dimensionId);
+        if (knownDimensionName !== undefined && knownDimensionName !== item.dimensionName) {
+            throw new RangeError('A stable exposure dimension ID cannot have conflicting display names.');
+        }
+        dimensionNames.set(item.dimensionId, item.dimensionName);
         const key = [item.instrumentId, item.dimensionId, item.effectiveFrom, item.recordedAt].join('|');
         if (snapshots.has(key)) throw new RangeError('An instrument/dimension cannot have duplicate effective and recorded-at snapshots.');
         snapshots.add(key);
@@ -85,7 +91,7 @@ export function validateInvestmentExposureClassifications(classifications, conte
 }
 
 /** Select the latest classification that was both effective and known at the requested cutoffs. */
-export function selectInvestmentExposureClassification(classifications, { instrumentId, dimensionId, asOfDate, recordedAtCutoff }) {
+export function selectInvestmentExposureClassification(validatedClassifications, { instrumentId, dimensionId, asOfDate, recordedAtCutoff }) {
     if (!Array.isArray(classifications)) throw new TypeError('Exposure classifications must be an array.');
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
         || !(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) {
@@ -121,8 +127,15 @@ export function analyzeInvestmentExposurePositions({
         || !(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) {
         throw new RangeError('Exposure analysis requires valid effective and recorded-at cutoffs.');
     }
+    const validatedClassifications = validateInvestmentExposureClassifications(classifications, { instruments });
     const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
     const accountMap = new Map(accounts.map((item) => [item.id, item]));
+    if (scope === 'account') {
+        const selectedAccount = accountMap.get(accountId);
+        if (!selectedAccount || selectedAccount.currency !== currency) {
+            throw new RangeError('The selected exposure account must exist and use the requested currency.');
+        }
+    }
     const selected = positions.filter((position) => scope === 'portfolio'
         ? position.currency === currency : position.accountId === accountId);
     const included = [];
@@ -169,8 +182,9 @@ export function analyzeInvestmentExposurePositions({
         message: 'No positively valued open positions are available for this exposure scope.' };
     const buckets = new Map();
     for (const { position, classification } of included) {
+        const totalWeight = classification.allocations.reduce((sum, allocation) => sum + allocation.weightPercent, 0);
         for (const allocation of classification.allocations) {
-            const actualValue = position.marketValue * allocation.weightPercent / 100;
+            const actualValue = position.marketValue * allocation.weightPercent / totalWeight;
             const key = allocation.groupId;
             const bucket = buckets.get(key) ?? { key, groupName: allocation.groupName, actualValue: 0 };
             bucket.actualValue += actualValue;
