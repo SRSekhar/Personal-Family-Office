@@ -58,7 +58,6 @@ export function validateBackupPayload(payload, expectedCurrency) {
         ...(payload.schemaVersion >= 6 ? { includesInvestmentCashLedger: true } : {}),
         ...([7, 8, 9].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {}),
         ...([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== true ? { includesInvestmentConcentrationPolicies: true } : {}),
-        ...(payload.schemaVersion === 9 && payload.exposureClassificationsMigratedFromV8 !== true ? { includesInvestmentExposureClassifications: true } : {}),
         ...(payload.schemaVersion === 9 && payload.exposureClassificationsMigratedFromV8 !== true ? { includesInvestmentExposureClassifications: true } : {})
     };
 }
