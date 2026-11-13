@@ -509,6 +509,49 @@ describe('version 9 weighted investment exposure backup validation', () => {
         expect(() => validateBackupPayload(unknownInstrument, 'INR')).toThrow(/unknown investment instrument/i);
     });
 
+    it('validates and previews explicit exposure policy versions in schema v10', () => {
+        const version10 = {
+            ...version9, schemaVersion: 10,
+            investmentExposurePolicies: [{
+                id: 'exposure-policy-v1', policySetId: 'sector-limits', version: 1, name: 'My sector limits',
+                currency: 'INR', scope: 'portfolio', dimensionId: 'sector', dimensionName: 'Sector',
+                effectiveFrom: '2026-01-01', recordedAt: '2026-01-02T00:00:00.000Z',
+                rules: [{ groupId: 'technology', groupName: 'Technology', maxWeightPercent: 50, operator: '>' }]
+            }]
+        };
+        const validated = validateBackupPayload(version10, 'INR');
+        expect(validated.includesInvestmentExposurePolicies).toBe(true);
+        expect(validated.investmentExposurePolicies).toEqual(version10.investmentExposurePolicies);
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentExposurePolicies: true, investmentExposurePolicyCount: 1
+        });
+    });
+
+    it('requires valid explicit exposure policy collections in schema v10', () => {
+        const missing = { ...version9, schemaVersion: 10 };
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow(/Unsupported backup format/);
+        const invalid = {
+            ...missing, investmentExposurePolicies: [{
+                id: 'policy-1', policySetId: 'set-1', version: 1, name: 'Invalid policy',
+                currency: 'INR', scope: 'portfolio', dimensionId: 'sector', dimensionName: 'Sector',
+                effectiveFrom: '2026-01-01', recordedAt: '2026-01-02T00:00:00.000Z',
+                rules: [{ groupId: 'technology', groupName: 'Technology', maxWeightPercent: 120, operator: '>' }]
+            }]
+        };
+        expect(() => validateBackupPayload(invalid, 'INR')).toThrow(/finite percentage/);
+        const migrated = { ...missing, investmentExposurePolicies: [], exposurePoliciesMigratedFromV9: true };
+        const result = validateBackupPayload(migrated, 'INR');
+        expect(result.investmentExposurePolicies).toEqual([]);
+        expect(result).not.toHaveProperty('includesInvestmentExposurePolicies');
+        const inconsistent = { ...migrated, investmentExposurePolicies: [{
+            id: 'policy-1', policySetId: 'set-1', version: 1, name: 'Policy',
+            currency: 'INR', scope: 'portfolio', dimensionId: 'sector', dimensionName: 'Sector',
+            effectiveFrom: '2026-01-01', recordedAt: '2026-01-02T00:00:00.000Z',
+            rules: [{ groupId: 'technology', groupName: 'Technology', maxWeightPercent: 50, operator: '>' }]
+        }] };
+        expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
+    });
+
     it('preserves schema-v8 imports and recognizes the empty collection created by v8 migration', () => {
         const legacy = structuredClone(version9);
         legacy.schemaVersion = 8;
