@@ -370,3 +370,12 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Sprint 9 is focused on exposure classification data-contract discovery. The next decision is whether an instrument maps to one group per dimension or weighted multi-group look-through allocations. No issuer/sector/geography exposure calculations are claimed yet.
 - Liquidity and drawdown remain deferred until their respective data, provenance, time and missing-data contracts are approved.
 - Repository is public; synthetic fixtures only. The local workspace remains loopback-only and does not provide hosted multi-user authentication/authorization.
+
+
+## Latest Verified Repository State — 2026-11-13
+
+- PR #449 merged to `main` as `464491871b74c57eaa8eb77d73131f9e05819e4b`; documentation-only exposure-classification decision ADR added at `docs/architecture/ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`.
+- PR #449 CI run #1579 passed, and the independent Secret Scan passed on head `fd7196cf74a6742f82eeb773c27ca5b8075ce827` before merge.
+- Main investment workspace remains schema v8 with 15 persisted collections. No classification collection or exposure calculation has been implemented.
+- Sprint 9 remains in discovery. Single-group classification versus weighted multi-group look-through is not yet decided. Weighted look-through is documented as a recommendation only; implementation is gated on explicit owner approval and hand-calculated examples.
+- Existing boundaries remain: local-first, user-controlled workspace policies, synthetic public-repository fixtures, explicit currency separation/no implicit FX, no investment advice or trading automation. Local SQLite and backups are not encrypted; dashboard is loopback-only, not a hosted multi-user service.
