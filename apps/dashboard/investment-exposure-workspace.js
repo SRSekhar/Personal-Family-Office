@@ -256,6 +256,8 @@ if ($('#investment-exposure-workspace')) {
         const existing = readClassifications(ledger);
         const validated = validateInvestmentExposureClassifications([...existing, classification], { instruments: ledger.investmentInstruments });
         localStorage.setItem(CLASSIFICATION_KEY, JSON.stringify(validated));
+        const now = new Date();
+        $('#investment-exposure-recorded-at-cutoff').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         window.dispatchEvent(new Event('pfo:workspace-updated'));
     });
     $('#investment-exposure-currency').value = 'INR';
