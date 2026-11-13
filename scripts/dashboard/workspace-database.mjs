@@ -343,7 +343,7 @@ function writePreV9MigrationBackup(databasePath, payload) {
 /** Transactional v8 -> v9 migration. Exposure classifications start empty; none are inferred. */
 function migrateSchemaV8(database, databasePath) {
     const table = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
-    if (!table || !/schema_version\\s*=\\s*8/i.test(table.sql ?? '')) return;
+    if (!table || !/schema_version\s*=\s*8/i.test(table.sql ?? '')) return;
     database.exec('BEGIN IMMEDIATE');
     try {
         const row = database.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
