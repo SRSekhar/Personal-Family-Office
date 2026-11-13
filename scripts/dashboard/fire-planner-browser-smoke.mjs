@@ -3111,6 +3111,27 @@ try {
     delete legacyV6Backup.investmentExposurePolicies;
     const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
     await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
+
+    const invalidLegacyPolicyBackup = JSON.parse(JSON.stringify(policyBackup));
+    invalidLegacyPolicyBackup.schemaVersion = 9;
+    delete invalidLegacyPolicyBackup.investmentExposurePolicies;
+    delete invalidLegacyPolicyBackup.exposurePoliciesMigratedFromV9;
+    invalidLegacyPolicyBackup.investmentExposureClassifications[0].allocations[0].groupId = 'different-group';
+    const invalidLegacyPolicyBackupPath = join(temporaryDirectory, 'pfo-os-invalid-legacy-policy-backup.json');
+    await writeFile(invalidLegacyPolicyBackupPath, JSON.stringify(invalidLegacyPolicyBackup));
+    const invalidLegacyPolicyDialogPromise = page.waitForEvent('dialog');
+    const invalidLegacyPolicyImport = page.locator('#import-file').setInputFiles(invalidLegacyPolicyBackupPath);
+    const invalidLegacyPolicyDialog = await invalidLegacyPolicyDialogPromise;
+    assert.match(invalidLegacyPolicyDialog.message(), /Backup import preview/);
+    await invalidLegacyPolicyDialog.accept();
+    await invalidLegacyPolicyImport;
+    await page.waitForFunction(() => globalThis.document.querySelector('#toast')?.textContent.includes('invalidate existing exposure policy'));
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]').length), 1,
+        'a legacy backup with incompatible group references must not discard existing exposure policy history');
+    assert.equal(await page.locator('#investment-exposure-policy-count').innerText(), '1',
+        'an invalid legacy policy restore must leave the saved exposure policy visible');
+    process.stdout.write('PASS: legacy imports that orphan exposure-policy group references are rejected before workspace writes.\\n');
+
     const legacyImportDialogPromise = page.waitForEvent('dialog');
     const legacyImport = page.locator('#import-file').setInputFiles(legacyV6BackupPath);
     const legacyImportDialog = await legacyImportDialogPromise;
