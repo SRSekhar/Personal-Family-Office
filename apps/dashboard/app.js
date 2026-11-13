@@ -2463,6 +2463,7 @@ function importData(file, options = {}) {
                     validateInvestmentExposurePolicyCollections({
                         ...targetLedger, ...targetClassifications, investmentExposurePolicies: existingPolicies
                     });
+                    investmentExposurePolicyStorageHealthy = true;
                 } catch (error) {
                     throw new Error('This backup would invalidate existing exposure policy group or dimension references. Policies were preserved and no data was imported. Review the classification and policy references before retrying.', { cause: error });
                 }
