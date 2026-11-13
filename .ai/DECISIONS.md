@@ -226,6 +226,27 @@ Consequences
 - Weighted look-through results are descriptive and are not investment recommendations or trade instructions.
 - Schema-v9 persistence preserves classification history; existing instruments receive no fabricated classifications.
 
+## DEC-0014
+
+Title
+
+User-Configured Investment Exposure Limits
+
+Status
+
+Accepted — implemented and merged in PR #452 on 2026-11-13.
+
+Decision
+
+Exposure limits are immutable, bitemporal, user-authored policy versions scoped to one currency, portfolio/account and weighted-classification dimension. Each policy rule contains an explicit maximum group weight and an explicitly selected strict (>) or inclusive (>=) comparator. The product supplies no default thresholds, risk appetite, severity bands, advice or trade actions. Evaluation uses only complete weighted look-through results; configured groups absent from a complete result have zero exposure, while missing classifications/valuations and empty results remain unavailable/empty rather than passing.
+
+Consequences
+
+- Policy history is stored in schema-v10 SQLite and full-workspace JSON backup/restore.
+- v9→v10 migration starts with an empty policy collection and writes a pre-v10 recovery artifact; it does not infer thresholds.
+- Legacy backup imports preserve existing policy history only when its references remain valid; incompatible imports are rejected before workspace writes.
+- Liquidity and drawdown remain separate gated capabilities with their own data and metric contracts.
+
 ## Future Decisions
 
 Every significant architectural or product decision shall be recorded here before implementation.
