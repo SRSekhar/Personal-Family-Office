@@ -1,9 +1,9 @@
 # Current Sprint
 
-## 2026-11-13 — Sprint 9: Weighted investment exposure (implementation complete; PR review pending)
+## 2026-11-13 — Sprint 9: Weighted investment exposure (implementation complete; merged)
 
 - Product owner selected **Option B — weighted multi-group look-through**; PR #449 merged the discovery ADR to main.
-- PR #450 implements the approved contract on `feature/sprint-9-weighted-exposure` and remains a draft pending owner review.
+- PR #450 implemented the approved contract and was squash-merged to `main` as `ec0f8ea959b971dea88969d4c38c2431ecdb9c68`.
 - Implemented immutable user-authored instrument/dimension classifications with source provenance, optional evidence reference, effective-from date and recorded-at timestamp.
 - Enforced 100% reconciliation within 0.01 percentage points, unique group IDs, stable dimension identity/display names, and bitemporal selection. Accepted rounding tolerance is normalized during aggregation so the full position value is allocated.
 - Implemented complete exposure aggregation by currency and portfolio/account scope. Missing classifications or valuations suppress partial results; no silent denominator exclusions, FX conversion or nested fund recursion.
@@ -11,14 +11,13 @@
 - Added SQLite schema v9 with transactional v8→v9 migration and a mode-restricted pre-v9 recovery artifact. Existing instruments receive no inferred classifications.
 - Added schema-v9 JSON backup/restore with backward compatibility for schemas 1–8. Legacy imports preserve existing exposure classifications only when references remain valid.
 - Added unit, backup, migration/API, static-integrity and Chromium browser-smoke coverage, including authoring, weighted analysis, JSON round-trip, legacy preservation, SQLite backup and all 16 collections.
-- CI run #43382449755, dashboard deployment #43382449661 and Secret Scan #43382449657 passed on the same PR head. Main remains schema v8 / 15 collections until PR #450 is reviewed and merged; the PR branch carries schema v9 / 16 collections.
+- CI run #43382449755, dashboard deployment #43382449661 and Secret Scan #43382449657 passed on the same PR head. Main now stores schema v9 / 16 collections. Post-merge CI and dashboard deployment are running; PR-head CI, deployment and Secret Scan all passed.
 
 ### Follow-on work (separate sprint)
 
-1. Owner review and merge PR #450 after reviewing the complete diff. No automatic merge was performed.
-2. Design user-defined exposure-limit policy evaluation as a separate increment with explicit user thresholds, comparison semantics, bitemporal policy history and its own persistence/backup contract. No default risk limits.
-3. Keep liquidity and drawdown gated on independent, validated data and metric contracts.
-4. Continue customer validation and the existing public-repository/privacy release gates.
+1. Design user-defined exposure-limit policy evaluation as a separate increment with explicit user thresholds, comparison semantics, bitemporal policy history and its own persistence/backup contract. No default risk limits.
+2. Keep liquidity and drawdown gated on independent, validated data and metric contracts.
+3. Continue customer validation and the existing public-repository/privacy release gates.
 
 ## Previous Sprint — Sprint 7 (historical, completed 2026-10-30)
 
