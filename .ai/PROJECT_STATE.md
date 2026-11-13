@@ -54,11 +54,11 @@ These are mathematical utilities, not investment advice or guaranteed forecasts.
 
 1. Design the separate user-defined exposure-limit policy contract, including explicit thresholds, comparison operators, bitemporal history and schema/backup compatibility. No defaults or inferred risk appetite.
 2. Continue functional development using the prioritized product backlog and validate workflows with synthetic acceptance scenarios before expanding scope.
-2. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
-3. Validate shipped financial-health, return-risk, concentration, and report outputs against user workflows; avoid adding KPIs before needs are validated.
-4. Keep historical snapshot guarantees intact: explicit valuation dates, no fabricated history, local-first storage, schema-compatible backup/restore, and transactional recovery.
-5. **LOW PRIORITY / DEFERRED:** manual screen-reader and real browser-chrome 400% zoom reviews. Automated keyboard/focus and selected 320 CSS-pixel checks remain in CI.
-6. Evaluate SQLite online-backup/checkpoint behavior, encryption, and automated rotation only after explicit operational/security requirements are approved; these are future enhancements, not current completion gaps.
+3. Run the planned 8–10 customer interviews and seek two paid-pilot commitments; record only anonymized evidence and do not infer demand from implementation completion.
+4. Validate shipped financial-health, return-risk, concentration, and report outputs against user workflows; avoid adding KPIs before needs are validated.
+5. Keep historical snapshot guarantees intact: explicit valuation dates, no fabricated history, local-first storage, schema-compatible backup/restore, and transactional recovery.
+6. **LOW PRIORITY / DEFERRED:** manual screen-reader and real browser-chrome 400% zoom reviews. Automated keyboard/focus and selected 320 CSS-pixel checks remain in CI.
+7. Evaluate SQLite online-backup/checkpoint behavior, encryption, and automated rotation only after explicit operational/security requirements are approved; these are future enhancements, not current completion gaps.
 
 ## Blockers and Risks
 
