@@ -17,7 +17,7 @@ The ledger does not currently define issuer, sector, geography or custom exposur
 
 The current concentration policy supports one grouping key per position: either the instrument type or the instrument ID. Its input is the existing FIFO position projection and complete eligible valuations. The concentration policy is immutable and versioned, with explicit currency, portfolio/account scope, effective date and recorded-at timestamp. Those policy timestamps describe the policy version; they are not classification-data timestamps.
 
-The workspace currently uses schema v8 and persists investment ledger collections, allocation policies and concentration policies. JSON backup validation explicitly recognizes schema versions 1–8. Any future persisted classification collection would therefore require a deliberate schema migration, full-workspace backup/restore compatibility, and recovery tests; it must not be slipped into the existing schema without a migration.
+The baseline inspected for this decision used schema v8 and persisted investment ledger collections, allocation policies and concentration policies. The accepted implementation introduces schema v9, an additive classification collection, a transactional v8→v9 migration, a pre-migration recovery artifact, and schema-v9 JSON backup/restore validation.
 
 ## Problem to decide
 
@@ -85,9 +85,9 @@ instrumentId + dimensionId -> [{ groupId, weightPercent }]
 9. **Policy evaluation:** Define whether user exposure limits refer to a group within one dimension, and how unclassified positions affect availability. Preserve explicit user-entered limits and comparison operators; no product defaults or inferred risk appetite.
 10. **Lifecycle and backup:** Define immutable assignment history, correction semantics, import/export behavior, and migration from schema v8 before persistence work begins.
 
-## Hand-calculation examples needed before implementation
+## Hand-calculation examples and implementation verification
 
-The product owner should approve examples that cover at least:
+The implementation's deterministic unit tests cover the approved examples, including:
 
 - one directly held instrument assigned 100% to one group;
 - one fund assigned across two groups (for example 60% / 40%);
@@ -98,17 +98,15 @@ The product owner should approve examples that cover at least:
 - a zero-value position and an empty portfolio;
 - currency-separated portfolios/accounts.
 
-For weighted look-through, the expected group values and percentages must be calculated independently by hand and agreed before code is written.
+Expected group values and percentages are asserted against hand-calculated examples in `apps/dashboard/investment-exposure.test.js`.
 
-## Recommendation (not a decision)
+## Decision status
 
-Weighted multi-group look-through (Option B) is more expressive for funds and ETFs and avoids forcing a diversified instrument into a misleading single category. However, it creates materially more validation, provenance and incomplete-data complexity. A safe first release could still support B while requiring complete 100% mappings before an instrument contributes to an exposure result; instruments without complete mappings would make the result unavailable rather than being silently omitted. This is a candidate behavior, not an approved requirement.
+The product owner selected Option B on 2026-11-13. The former recommendation and unresolved questions above are superseded by the accepted contract below. The first increment is one-level look-through only; nested fund recursion is deliberately excluded.
 
-If simplicity and a smaller initial scope are preferred, Option A is viable, but the UI and reports must clearly label the assignment as a single user-selected classification and must not claim look-through coverage.
+## Accepted decision
 
-## Decision
-
-**Accepted: Option B — weighted multi-group look-through.** Each instrument may have one or more user-authored group allocations within a dimension. The allocation weights must reconcile to 100% within 0.01 percentage points. Zero-weight entries and duplicate group IDs within one instrument/dimension snapshot are rejected.
+**Option B — weighted multi-group look-through.** Each instrument may have one or more user-authored group allocations within a dimension. The allocation weights must reconcile to 100% within 0.01 percentage points. Zero-weight entries and duplicate group IDs within one instrument/dimension snapshot are rejected.
 
 The implementation contract is:
 
@@ -123,3 +121,12 @@ The implementation contract is:
 ## Acceptance gate
 
 The domain implementation must include deterministic validation, bitemporal selection and aggregation tests with hand-calculated examples before persistence, UI or policy evaluation is enabled.
+
+
+## Implementation status — Sprint 9
+
+- Domain contract and deterministic tests are implemented in `apps/dashboard/investment-exposure.js` and `apps/dashboard/investment-exposure.test.js`.
+- The first private-workspace UI is implemented in `apps/dashboard/investment-exposure-workspace.js` and the dashboard HTML. It supports user-entered immutable classification snapshots and historical exposure analysis.
+- SQLite schema v9 adds `investmentExposureClassifications`; v8→v9 migration is transactional, creates a mode-restricted pre-v9 JSON recovery artifact, and never infers classifications.
+- JSON backup validation and preview recognize schema v9 while preserving imports from schemas 1–8. Legacy restores preserve existing classifications only when they remain valid against the restored instrument collection.
+- CI validation is required before this increment can be considered complete or merged.
