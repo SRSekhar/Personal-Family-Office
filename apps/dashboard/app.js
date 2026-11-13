@@ -2232,7 +2232,7 @@ async function createOnlineSqliteBackup() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'The verified SQLite backup could not be created.');
         const count = Object.values(result.collectionCounts ?? {}).reduce((sum, value) => sum + value, 0);
-        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 16 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
+        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 17 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
     } catch (error) {
         resultElement.textContent = error instanceof Error ? error.message : 'The verified SQLite backup could not be created.';
     } finally {
@@ -2451,6 +2451,26 @@ function importData(file, options = {}) {
                     throw new Error('This older backup would invalidate existing exposure classification references. Classifications were preserved and no data was imported. Review the instrument references before retrying.', { cause: error });
                 }
             }
+            if (backup.includesInvestmentLedger && !backup.includesInvestmentExposurePolicies) {
+                const existingRaw = localStorage.getItem(INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY);
+                const existingPolicies = existingRaw === null ? [] : JSON.parse(existingRaw);
+                if (!Array.isArray(existingPolicies)) throw new Error('Existing investment exposure policies are not a valid collection. The older backup was not imported.');
+                let effectiveClassifications = backup.includesInvestmentExposureClassifications
+                    ? backup.investmentExposureClassifications : null;
+                if (effectiveClassifications === null) {
+                    const currentRaw = localStorage.getItem(INVESTMENT_EXPOSURE_STORAGE_KEY);
+                    effectiveClassifications = currentRaw === null ? [] : JSON.parse(currentRaw);
+                }
+                if (!Array.isArray(effectiveClassifications)) throw new Error('Existing exposure classifications are not a valid collection. The older backup was not imported.');
+                try {
+                    validateInvestmentExposurePolicies(existingPolicies, {
+                        accounts: backup.investmentAccounts, instruments: backup.investmentInstruments,
+                        classifications: effectiveClassifications
+                    });
+                } catch (error) {
+                    throw new Error('This older backup would invalidate existing exposure policy references. Policies were preserved and no data was imported. Review the policy references before retrying.', { cause: error });
+                }
+            }
             const validatedRecords = backup.records.map((item) => ({
                 ...item,
                 id: options.preserveRecordIds && typeof item.id === 'string' && item.id.trim()
@@ -2493,6 +2513,7 @@ function importData(file, options = {}) {
             if (backup.includesInvestmentConcentrationPolicies) previewLines.push('Investment concentration policy versions: ' + backup.investmentConcentrationPolicies.length);
             else if (backup.includesInvestmentLedger) previewLines.push('Investment concentration policies: not included (existing policies will be preserved)');
             if (backup.includesInvestmentExposureClassifications) previewLines.push('Investment exposure classifications: ' + backup.investmentExposureClassifications.length);
+            if (backup.includesInvestmentExposurePolicies) previewLines.push('Investment exposure policies: ' + backup.investmentExposurePolicies.length);
             else if (backup.includesInvestmentLedger) previewLines.push('Investment exposure classifications: not included (existing classifications will be preserved)');
             if (backup.includesInvestmentLedger) {
                 previewLines.push(
@@ -2547,6 +2568,7 @@ function importData(file, options = {}) {
                     if (backup.includesInvestmentAllocationPolicies) persistInvestmentAllocationPolicies(backup.investmentAllocationPolicies);
                     if (backup.includesInvestmentConcentrationPolicies) persistInvestmentConcentrationPolicies(backup.investmentConcentrationPolicies);
                     if (backup.includesInvestmentExposureClassifications) persistInvestmentExposureClassifications(backup.investmentExposureClassifications);
+                    if (backup.includesInvestmentExposurePolicies) persistInvestmentExposurePolicies(backup.investmentExposurePolicies);
                     if (backup.includesInvestmentExposurePolicies) persistInvestmentExposurePolicies(backup.investmentExposurePolicies);
                 } catch (error) {
                     const restored = previousValues.map(([key, value]) => restoreStorageValue(key, value)).every(Boolean);
