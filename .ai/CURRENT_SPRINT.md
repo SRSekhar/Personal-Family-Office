@@ -1,5 +1,14 @@
 # Current Sprint
 
+## 2026-11-13 — Exposure classification decision contract merged
+
+- PR #449 merged to `main` as merge commit `464491871b74c57eaa8eb77d73131f9e05819e4b`.
+- Added `docs/architecture/ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`, documenting the verified current instrument metadata/schema-v8 boundary, single-group versus weighted multi-group options, provenance, bitemporal history, missing-data semantics, candidate aggregation, and migration/backup requirements.
+- PR CI run #1579 passed; Secret Scan passed. The PR was documentation-only; no runtime behavior or persistence schema changed.
+- The classification model remains **undecided**. Neither Option A nor Option B is authorized for implementation. Weighted look-through is a recommendation only.
+- Next gate: product-owner selection of A or B and approval of the cross-cutting data semantics before implementation.
+
+
 ## Current Sprint
 
 Sprint 8 — User-configured concentration policy delivery (completed 2026-11-08)
