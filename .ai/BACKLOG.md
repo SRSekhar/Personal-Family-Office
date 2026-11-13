@@ -441,6 +441,7 @@ The following work is approved under Option B. It is a functional product epic, 
 - [x] Add private-workspace UI for creating immutable user-configured concentration limits and displaying transparent breach/within-limit/unavailable states.
 - [x] Add browser smoke coverage for no-default-threshold behavior, version append, evaluation, legacy-backup preservation and full schema-v8 SQLite backup/restore.
 - Before implementation, approve the metric contract for each family: measurement formula, scope, currency treatment, observation/as-of rules, stale/missing-data behavior, denominator/empty states, threshold direction, breach severity and policy effective/recorded-at semantics.
+- [x] Document the exposure classification decision contract and compare one-group versus weighted multi-group look-through; record the required provenance, bitemporal, missing-data, aggregation and migration decisions. See `docs/architecture/ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md` (PR #449, merged 2026-11-13). The selected model remains pending product-owner approval; this checkmark means discovery documentation is complete, not that exposure implementation is approved.
 - Data-readiness findings are recorded in `docs/architecture/INVESTMENT-RISK-POLICY-READINESS.md`: current instrument metadata has no liquidity classification/lock-up/maturity fields; valuation history has effective and recorded timestamps but no agreed drawdown sampling/peak/staleness rules; current HHI is descriptive only.
 - Acceptance: hand-calculated deterministic cases for every approved metric; explicit zero/empty and incomplete-data states; immutable version history; reproducible as-of results; no risk alert or rebalancing observation without an active configured policy; no partial result where required inputs are missing.
 
@@ -686,3 +687,10 @@ Residual operational limitations: local SQLite and exported backups are not encr
 Main includes the user-configurable concentration engine and schema-v8 persistence/UI (PRs #441 and #443). PR #446 added Chromium regression coverage proving that a browser storage quota failure does not report an unsaved policy version as committed and preserves the previously saved immutable history. PR #447 updated the pinned Claude Code Action to v1.0.269; CI and Secret Scan passed before merge. Main commit at this update: `590e05c921829fedecb770c5cdd2ef3098f5aa03`.
 
 Sprint 9 begins with exposure-classification data-contract discovery. No issuer, sector, geography or custom exposure metric is implemented yet. The next design decision is whether each instrument receives one user-assigned group per dimension or a weighted multi-group look-through allocation. The choice affects funds/ETFs, reconciliation rules, provenance, missing-data behavior and schema design. Do not implement exposure calculations until that contract is explicit. Liquidity and drawdown remain separately gated. The product remains general-purpose: policies and classifications are user-authored within each local workspace; no household-specific thresholds or application-wide defaults are embedded.
+
+
+## Latest IPM-05 update — 2026-11-13
+
+- PR #449 merged exposure classification decision discovery to `main`; CI run #1579 and Secret Scan passed on the PR head.
+- The ADR explicitly leaves the single-group versus weighted look-through choice unresolved. Do not implement schema, classification entry, aggregation or exposure limits until the product owner approves a model and its cross-cutting data semantics.
+- Liquidity and drawdown remain independently blocked on their own validated input/metric contracts.
