@@ -75,6 +75,7 @@ export function validateInvestmentExposureClassifications(classifications, conte
     const ids = new Set();
     const snapshots = new Set();
     const dimensionNames = new Map();
+    const groupNames = new Map();
     for (const item of validated) {
         if (ids.has(item.id)) throw new RangeError('Exposure classification IDs must be unique.');
         ids.add(item.id);
@@ -83,6 +84,14 @@ export function validateInvestmentExposureClassifications(classifications, conte
             throw new RangeError('A stable exposure dimension ID cannot have conflicting display names.');
         }
         dimensionNames.set(item.dimensionId, item.dimensionName);
+        for (const allocation of item.allocations) {
+            const groupKey = [item.dimensionId, allocation.groupId].join('|');
+            const knownGroupName = groupNames.get(groupKey);
+            if (knownGroupName !== undefined && knownGroupName !== allocation.groupName) {
+                throw new RangeError('A stable exposure group ID cannot have conflicting display names within a dimension.');
+            }
+            groupNames.set(groupKey, allocation.groupName);
+        }
         const key = [item.instrumentId, item.dimensionId, item.effectiveFrom, item.recordedAt].join('|');
         if (snapshots.has(key)) throw new RangeError('An instrument/dimension cannot have duplicate effective and recorded-at snapshots.');
         snapshots.add(key);
