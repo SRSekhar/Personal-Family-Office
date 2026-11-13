@@ -615,8 +615,11 @@ describe('version 11 investment drawdown snapshot backup validation', () => {
     it('validates and previews component-level drawdown observations in schema v11', () => {
         const validated = validateBackupPayload(version11, 'INR');
         expect(validated.includesInvestmentDrawdownSnapshots).toBe(true);
+        expect(validated.includesInvestmentExposurePolicies).toBe(true);
+        expect(validated.investmentExposurePolicies).toEqual(version11.investmentExposurePolicies);
         expect(validated.investmentDrawdownSnapshots).toEqual(version11.investmentDrawdownSnapshots);
         expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentExposurePolicies: true, investmentExposurePolicyCount: 0,
             includesInvestmentDrawdownSnapshots: true, investmentDrawdownSnapshotCount: 1
         });
     });
