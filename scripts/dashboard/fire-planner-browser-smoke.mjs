@@ -3147,7 +3147,7 @@ try {
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
     assert.equal(databaseBackup.schemaVersion, 10, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications']) {
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
@@ -3162,11 +3162,13 @@ try {
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
     assert.equal(databaseBackup.investmentAllocationPolicies.length, 3,
-        'schema-v9 backup should include all saved allocation policy versions, including those preserved by legacy restore');
+        'schema-v10 backup should include all saved allocation policy versions, including those preserved by legacy restore');
     assert.equal(databaseBackup.investmentConcentrationPolicies.length, 2,
-        'schema-v9 backup should include all user-defined concentration policy versions');
+        'schema-v10 backup should include all user-defined concentration policy versions');
     assert.equal(databaseBackup.investmentExposureClassifications.length, 1,
-        'schema-v9 backup should include the weighted exposure classification history');
+        'schema-v10 backup should include the weighted exposure classification history');
+    assert.equal(databaseBackup.investmentExposurePolicies.length, 1,
+        'schema-v10 backup should include the user-defined exposure policy history');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
@@ -3195,7 +3197,8 @@ try {
         investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
         investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
         investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
-        investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
+        investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
+        investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-policies.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -3225,7 +3228,7 @@ try {
         investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all sixteen collections');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all seventeen collections');
     process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all seventeen workspace collections.\\n');
 
     // Open an isolated second browser tab with the same persisted browser baseline.
@@ -3405,7 +3408,7 @@ try {
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
-        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1', 'pfo-os.investment-exposure-classifications.v1', 'pfo-os.investment-exposure-policies.v1']) {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1', 'pfo-os.investment-exposure-policies.v1']) {
             globalThis.localStorage.removeItem(key);
         }
     });
