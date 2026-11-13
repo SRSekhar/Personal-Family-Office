@@ -1,6 +1,6 @@
 # Investment risk policy — readiness assessment
 
-- Status: Concentration and weighted exposure classification delivered; user-configured exposure-limit policy is implemented in draft PR #452
+- Status: Concentration, weighted exposure classification and user-configured exposure-limit policy delivered (PRs #443, #450 and #452)
 - Date: 2026-11-08
 - Scope: assess the existing investment domain and data contracts before implementing user-configured portfolio risk policies for a general-purpose product used by different people and portfolios.
 - Product principle: risk appetite belongs to the user, not the application. Each portfolio/workspace may have its own explicit policy configuration; the product must not ship one household's limits as defaults or infer limits from personal data.
@@ -21,7 +21,7 @@ These concentration statistics describe the observed allocation distribution. Th
 
 Weighted multi-group look-through classification is implemented in PR #450 using user-authored dimensions and group IDs. Each instrument/dimension snapshot allocates 100% across distinct groups, carries provenance and bitemporal timestamps, and is selected using both effective and recorded-at cutoffs. Exposure is aggregated by currency and portfolio/account scope from valued FIFO positions. Missing classifications or valuations suppress partial results. No FX conversion, nested fund recursion or automatic issuer/sector/geography inference is performed.
 
-User-configured exposure limits are implemented in draft PR #452. Each immutable policy version defines explicit maximum group weights and explicit > / >= boundary semantics for one dimension, currency and portfolio/account scope. An unconfigured group is not evaluated; a configured group absent from a complete result measures as zero. Incomplete and empty exposure remain unavailable/empty rather than passing. No default thresholds, severity bands, recommendations or trade actions are generated.
+User-configured exposure limits are implemented and merged in PR #452. Each immutable policy version defines explicit maximum group weights and explicit > / >= boundary semantics for one dimension, currency and portfolio/account scope. An unconfigured group is not evaluated; a configured group absent from a complete result measures as zero. Incomplete and empty exposure remain unavailable/empty rather than passing. No default thresholds, severity bands, recommendations or trade actions are generated.
 
 ### Liquidity
 
