@@ -1,6 +1,6 @@
 # ADR — User-configured investment exposure limits
 
-- Status: Proposed for implementation in Sprint 10
+- Status: Accepted — implemented and merged in PR #452 on 2026-11-13
 - Date: 2026-11-13
 - Scope: deterministic maximum group-weight limits over the accepted weighted look-through exposure result
 - Product principle: thresholds and boundary semantics are explicitly user-authored; the application supplies no defaults or risk appetite.
@@ -11,7 +11,7 @@ Sprint 9 delivered immutable, bitemporal weighted classifications and complete l
 
 This ADR defines the next increment: user-configured limits for selected groups within one classification dimension. It does not extend instrument-type concentration rules or infer any threshold from the portfolio.
 
-## Proposed policy contract
+## Policy contract
 
 Each immutable policy version contains:
 
