@@ -161,6 +161,9 @@ describe('investment exposure policy evaluation', () => {
             exposure: exposure({ dimensionId: 'issuer' }), policy: policy(), ...cutoffs, ...context
         })).toThrow(/dimensions must match/);
         expect(() => evaluateInvestmentExposurePolicy({
+            exposure: exposure({ accountId: 'a1' }), policy: policy(), ...cutoffs, ...context
+        })).toThrow(/dimensions must match/);
+        expect(() => evaluateInvestmentExposurePolicy({
             exposure: exposure({ asOfDate: '2026-10-31T23:59:59.999Z' }), policy: policy(), ...cutoffs, ...context
         })).toThrow(/cutoffs must exactly match/);
         expect(() => evaluateInvestmentExposurePolicy({
