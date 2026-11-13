@@ -72,6 +72,13 @@ describe('investment exposure classification validation', () => {
         expect(() => validateInvestmentExposureClassification(classification({ effectiveFrom: '2026-02-30' }), { instruments })).toThrow(/calendar date/);
         expect(() => validateInvestmentExposureClassification(classification({ recordedAt: '2026-01-01' }), { instruments })).toThrow(/canonical ISO-8601/);
     });
+    it('rejects conflicting display names for the same stable group ID', () => {
+        const conflicting = classification({ id: 'other-instrument', instrumentId: 'equity', allocations: [
+            { groupId: 'technology', groupName: 'Tech', weightPercent: 100 }
+        ] });
+        expect(() => validateInvestmentExposureClassifications([classification(), conflicting], { instruments }))
+            .toThrow(/conflicting display names within a dimension/);
+    });
     it('rejects duplicate IDs and duplicate bitemporal snapshots', () => {
         expect(() => validateInvestmentExposureClassifications([classification(), classification()], { instruments })).toThrow(/IDs must be unique/);
         expect(() => validateInvestmentExposureClassifications([
