@@ -591,11 +591,14 @@ describe('version 10 investment exposure policy backup validation', () => {
 
 describe('version 11 investment drawdown snapshot backup validation', () => {
     const version11 = {
-        schemaVersion: 11,
-        ...(() => {
-            const { schemaVersion, ...legacy } = structuredClone(version10);
-            return legacy;
-        })(),
+        schemaVersion: 11, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [],
+        investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [],
+        investmentAllocationPolicies: [], investmentConcentrationPolicies: [],
+        investmentExposureClassifications: [], investmentExposurePolicies: [],
         investmentDrawdownSnapshots: [{
             id: 'drawdown-snapshot-1', scope: 'portfolio', currency: 'INR', kind: 'DailyClose',
             effectiveAt: '2026-01-01T16:00:00.000Z', recordedAt: '2026-01-01T17:00:00.000Z',
