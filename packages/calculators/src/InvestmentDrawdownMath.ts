@@ -57,7 +57,7 @@ export interface InvestmentDrawdownMathResult {
     readonly peakAt: string | null;
     readonly troughAt: string | null;
     readonly recoveryAt: string | null;
-    readonly recovered: boolean;
+    readonly recovered: boolean | null;
     readonly points: readonly InvestmentDrawdownPoint[];
 }
 
@@ -81,7 +81,7 @@ function unavailable(input: InvestmentDrawdownMathInput, reason: string, count =
         startAt: input.startAt, endAt: input.endAt, recordedAtCutoff: input.recordedAtCutoff,
         methodology: 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1', observationCount: count, flowBoundaryCount: 0,
         coverageStartAt: null, coverageEndAt: null, maximumDrawdown: null, peakAt: null, troughAt: null,
-        recoveryAt: null, recovered: false, points: []
+        recoveryAt: null, recovered: null, points: []
     };
 }
 
@@ -201,8 +201,8 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
     let maximumDrawdown = 0;
     let maximumPeakAt = initial.effectiveAt;
     let maximumTroughAt = initial.effectiveAt;
-    let recoveryAt: string | null = initial.effectiveAt;
-    let recovered = true;
+    let recoveryAt: string | null = null;
+    let recovered: boolean | null = null;
     const points: InvestmentDrawdownPoint[] = [{
         effectiveAt: initial.effectiveAt, observationId: initial.id, kind: initial.kind,
         portfolioValue: initial.portfolioValue, wealthIndex, drawdown: 0
@@ -228,7 +228,7 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
             maximumTroughAt = item.effectiveAt;
             recoveryAt = null;
             recovered = false;
-        } else if (!recovered && maximumDrawdown < 0 && wealthIndex >= runningPeak
+        } else if (recovered === false && maximumDrawdown < 0 && wealthIndex >= runningPeak
             && item.effectiveAt > maximumTroughAt) {
             recoveryAt = item.effectiveAt;
             recovered = true;
