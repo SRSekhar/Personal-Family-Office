@@ -89,7 +89,7 @@ export function validateInvestmentExposurePolicy(policy, { accounts, instruments
         if (!COMPARATORS.has(rule.operator)) throw new RangeError('Exposure limit operator must be > or >= and must be selected explicitly.');
         return { groupId, groupName, maxWeightPercent: rule.maxWeightPercent, operator: rule.operator };
     });
-    return { id, policySetId, version: policy.version, name, currency: policy.currency, scope,
+    return { id, policySetId, version: policy.version, name, currency: policy.currency, scope: policy.scope,
         ...(accountId ? { accountId } : {}), dimensionId, dimensionName, effectiveFrom, recordedAt, rules };
 }
 
