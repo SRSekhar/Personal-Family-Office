@@ -1471,7 +1471,8 @@ try {
         'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
         'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
         'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
-        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1',
+        'pfo-os.investment-exposure-classifications.v1'
     ].map((key) => [key, globalThis.localStorage.getItem(key)])));
     await page.evaluate(() => {
         const originalSetItem = globalThis.Storage.prototype.setItem;
@@ -1530,7 +1531,7 @@ try {
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
-        name: 'investment-ledger-v6-roundtrip.json',
+        name: 'investment-ledger-v9-roundtrip.json',
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(backup))
     });
@@ -1549,11 +1550,12 @@ try {
         cashAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]'),
         cashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
         cashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
-        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
+        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
+        exposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
     }));
     assert.deepEqual(restoredInvestmentStorage, investmentStorage,
-        'schema-v6 JSON restore must round-trip all investment ledger collections without changing IDs or values');
-    process.stdout.write('PASS: schema-v6 JSON backup restore round-trips accounts, instruments, transactions and valuations.\n');
+        'schema-v9 JSON restore must round-trip investment and exposure collections without changing IDs or values');
+    process.stdout.write('PASS: schema-v9 JSON backup restore round-trips accounts, instruments, transactions, valuations and exposure classifications.\n');
 
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
