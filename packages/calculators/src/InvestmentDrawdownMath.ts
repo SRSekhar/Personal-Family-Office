@@ -389,7 +389,8 @@ export function analyzeInvestmentDrawdownMath(
             recoveryAt = null;
             recovered = false;
         } else if (recovered === false && maximumDrawdown < 0
-            && wealthIndex >= runningPeak && item.effectiveAt > maximumTroughAt) {
+            && (wealthIndex >= runningPeak || Math.abs(wealthIndex - runningPeak) <= Number.EPSILON * Math.max(1, Math.abs(runningPeak)) * 8)
+            && item.effectiveAt > maximumTroughAt) {
             recoveryAt = item.effectiveAt;
             recovered = true;
         }
