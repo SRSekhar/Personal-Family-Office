@@ -89,6 +89,17 @@ describe('investment drawdown snapshot contract', () => {
         expect(() => validate([pre, mismatched])).toThrow(/same component universe/i);
     });
 
+
+    it('rejects daily closes and multiple external flows at an ambiguous exact timestamp', () => {
+        const daily = snapshot({ id: 'daily-1' });
+        const pre = snapshot({ id: 'pre-1', kind: 'ExternalFlowPre', flowId: 'flow-1' });
+        const post = snapshot({ id: 'post-1', kind: 'ExternalFlowPost', flowId: 'flow-1' });
+        expect(() => validate([daily, pre, post])).toThrow(/both a daily close and an external-flow boundary/i);
+        const pre2 = snapshot({ id: 'pre-2', kind: 'ExternalFlowPre', flowId: 'flow-2' });
+        const post2 = snapshot({ id: 'post-2', kind: 'ExternalFlowPost', flowId: 'flow-2' });
+        expect(() => validate([pre, post, pre2, post2])).toThrow(/only one external flow may be represented/i);
+    });
+
     it('requires a correction to retain event identity and have a later recorded-at timestamp', () => {
         const original = snapshot();
         const correction = snapshot({ id: 'snapshot-2', recordedAt: '2026-01-02T17:00:00.000Z', supersedesSnapshotId: 'snapshot-1' });
