@@ -787,8 +787,8 @@ describe('weighted investment exposure workspace integrity', () => {
         expect(workspace).toContain('evaluateInvestmentExposurePolicy');
         expect(domain).toContain('export function selectInvestmentExposurePolicy');
         expect(domain).toContain('export function evaluateInvestmentExposurePolicy');
-        const ids = new Set([...html.matchAll(/\\bid=["']([^"']+)["']/g)].map((match) => match[1]));
-        const referencedIds = [...new Set([...workspace.matchAll(/\\$\\(['"]#([^'"]+)['"]\\)/g)].map((match) => match[1]))];
+        const ids = new Set([...html.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]));
+        const referencedIds = [...new Set([...workspace.matchAll(/\$\(['"]#([^'"]+)['"]\)/g)].map((match) => match[1]))];
         expect(referencedIds.filter((id) => !ids.has(id)), 'exposure policy selectors must exist in HTML').toEqual([]);
     });
 
