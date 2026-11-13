@@ -1,6 +1,16 @@
 # Current Sprint
 
-## 2026-11-13 — Sprint 10: User-configured investment exposure limits (completed — PR #452 merged)
+## 2026-11-13 — Sprint 11: Flow-adjusted portfolio drawdown kernel (in progress — PR #453)
+
+- Sprint 10 exposure limits remain complete and merged in PR #452.
+- Approved Option B: time-weighted, external-flow-adjusted drawdown; raw NAV and Modified Dietz fallback are rejected.
+- Implemented a pure calculator kernel with chain-linked wealth index, paired pre/post external-flow boundaries, authoritative flow-event matching, scope/currency validation, bitemporal cutoffs, maximum drawdown, peak/trough/recovery and explicit unavailable states.
+- Added hand-calculated tests for market movement, contribution neutrality, withdrawal neutrality, costs, missing/incomplete boundaries, flow timestamp mismatch, simultaneous flow ambiguity, mixed scope/currency and recorded-at cutoff.
+- Production delivery is not complete: trusted snapshot construction, observation completeness calendar, full event taxonomy, immutable persistence, schema migration, backup/restore and private UI remain required. Do not present the kernel as a working end-user drawdown feature.
+
+### Next gated work
+
+Design the smallest additive snapshot/flow-boundary persistence contract against SQLite v10 and the existing backup/restore lifecycle. Prove how complete position and cash valuations are sourced, timestamped, validated, retained and replayed. Liquidity remains separately gated.
 
 - Sprint 9 weighted multi-group look-through was approved as Option B and merged in PR #450.
 - Completed immutable, bitemporal exposure policy versions with stable policy-set identity, currency, portfolio/account scope and classification dimension.
