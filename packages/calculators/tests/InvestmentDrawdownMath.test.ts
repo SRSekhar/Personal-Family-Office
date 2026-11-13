@@ -47,6 +47,7 @@ describe('analyzeInvestmentDrawdownMath', () => {
         expect(result.points.find((point) => point.observationId === 'flow-1-post')?.wealthIndex).toBeCloseTo(1.1, 12);
         expect(result.points.at(-1)?.wealthIndex).toBeCloseTo(1.1, 12);
         expect(result.maximumDrawdown).toBe(0);
+        expect(result.recovered).toBeNull();
     });
 
     it('neutralizes a withdrawal but preserves the investment loss before the withdrawal', () => {
