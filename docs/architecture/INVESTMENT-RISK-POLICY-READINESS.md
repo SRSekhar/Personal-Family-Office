@@ -31,9 +31,9 @@ A liquidity policy therefore requires a user-entered data contract or a separate
 
 ### Drawdown
 
-Investment valuations are point observations with `asOf`, `recordedAt`, source type and source name. The FIFO portfolio projection can be evaluated at an effective date and recorded-at cutoff. However, the repository has not specified a portfolio drawdown series contract: sampling cadence, valuation freshness, missing-point treatment, cash inclusion, external flows, account/currency scope, historical coverage or peak-to-trough reset semantics.
+Option B — time-weighted, external-cash-flow-adjusted drawdown — is approved in `ADR-INVESTMENT-DRAWDOWN-METRIC.md`. A pure calculator kernel is implemented in `packages/calculators/src/InvestmentDrawdownMath.ts`; it requires authoritative external-flow events and paired same-timestamp pre/post portfolio valuations, chains returns, and reports maximum drawdown, peak, trough, recovery and explicit unavailable states. Deterministic tests cover hand-calculated market movement, contribution/withdrawal neutrality, expenses, incomplete boundaries, currency/scope and bitemporal cutoffs.
 
-A drawdown metric cannot be called reliable merely because multiple valuation observations exist. The observation series and completeness rules must be agreed and tested first.
+The production feature is **not yet delivered**. Existing instrument valuations and cash statements do not constitute a complete portfolio observation series. The repository still needs a trusted snapshot builder, completeness/observation calendar, event taxonomy adapter, immutable snapshot persistence, schema migration, backup/restore compatibility, integration tests and private-workspace UI. Do not connect the math kernel directly to sparse point-valuations or infer missing history. Until those prerequisites are implemented, the production drawdown metric must remain unavailable.
 
 ## Decisions required before coding
 
@@ -54,7 +54,7 @@ For each risk-policy family, product requirements must define:
 - Concentration: the first metric contract is defined in `ADR-INVESTMENT-CONCENTRATION-POLICY.md`; the validator, bitemporal selector, valued-position aggregation, evaluator, schema-v8 persistence, v7→v8 migration, JSON backup/restore and private-workspace configuration UI are implemented with deterministic and browser smoke coverage.
 - Implement only the remaining metric families whose input data and formulas have been approved and can be independently hand-calculated.
 - Treat liquidity as blocked until the liquidity input/provenance model is selected.
-- Treat drawdown as blocked until historical valuation completeness, sampling and cash-flow treatment are specified.
+- Drawdown methodology is approved and the pure math kernel is implemented; production delivery remains blocked until the trusted snapshot/flow-boundary data pipeline, bitemporal persistence, backup/restore and UI are delivered.
 - Keep existing HHI and allocation drift as separate descriptive analytics; do not retroactively label them risk classifications.
 - Add browser workflows and persistence only after domain contracts and deterministic tests pass. Any schema change must include migration, backup/restore, CSV compatibility and SQLite acceptance.
 
