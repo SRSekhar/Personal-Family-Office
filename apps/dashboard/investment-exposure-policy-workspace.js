@@ -63,6 +63,16 @@ function fillAccountOptions(ledger) {
         '<option value="' + escape(item.id) + '">' + escape(item.name) + ' · ' + escape(item.institution) + '</option>').join('');
     if (accounts.some((item) => item.id === previous)) select.value = previous;
 }
+function fillDimensionOptions(classifications) {
+    const dimensions = new Map();
+    for (const item of classifications) dimensions.set(item.dimensionId, item.dimensionName);
+    const select = $('#investment-exposure-policy-dimension');
+    const previous = select.value;
+    select.innerHTML = '<option value="">Select a classification dimension</option>' + [...dimensions.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([id, name]) => '<option value="' + escape(id) + '">' + escape(name) + '</option>').join('');
+    if (dimensions.has(previous)) select.value = previous;
+}
 function groupsForDimension(classifications, dimensionId) {
     const groups = new Map();
     for (const item of classifications) {
@@ -238,6 +248,7 @@ function render() {
         $('#investment-exposure-policy-error').hidden = true;
         $('#investment-exposure-policy-count').textContent = String(policies.length);
         fillAccountOptions(ledger);
+        fillDimensionOptions(classifications);
         fillPolicySets(policies);
         const evaluationSet = $('#investment-exposure-policy-analyze-set');
         const previous = evaluationSet.value;
@@ -319,6 +330,9 @@ if ($('#investment-exposure-policy-workspace')) {
             accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments, classifications
         });
         localStorage.setItem(POLICY_KEY, JSON.stringify(validated));
+        const cutoff = new Date(Math.ceil(Date.now() / 1000) * 1000);
+        $('#investment-exposure-policy-recorded-at-cutoff').value =
+            new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
         window.dispatchEvent(new Event('pfo:workspace-updated'));
     });
     for (const id of ['investment-exposure-policy-dimension', 'investment-exposure-policy-as-of', 'investment-exposure-policy-recorded-at-cutoff', 'investment-exposure-policy-analyze-set']) {
