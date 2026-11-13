@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeInvestmentDrawdownMath, type InvestmentDrawdownObservation } from '../src/InvestmentDrawdownMath.js';
+import { analyzeInvestmentDrawdownMath, type InvestmentDrawdownMathInput, type InvestmentDrawdownObservation } from '../src/InvestmentDrawdownMath.js';
 
 const cutoff = '2026-11-13T23:59:59.999Z';
 function observation(overrides: Partial<InvestmentDrawdownObservation> & Pick<InvestmentDrawdownObservation, 'id' | 'kind' | 'effectiveAt' | 'portfolioValue'>): InvestmentDrawdownObservation {
@@ -11,7 +11,11 @@ function observation(overrides: Partial<InvestmentDrawdownObservation> & Pick<In
         ...(overrides.unavailableReason === undefined ? {} : { unavailableReason: overrides.unavailableReason })
     };
 }
-function input(observations: InvestmentDrawdownObservation[], externalFlows: Array<{ id: string; effectiveAt: string; recordedAt?: string }> = [], expectedDailyCloseAt = observations.filter((item) => item.kind === 'DailyClose').map((item) => item.effectiveAt)) {
+function input(
+    observations: InvestmentDrawdownObservation[],
+    externalFlows: Array<{ id: string; effectiveAt: string; recordedAt?: string }> = [],
+    expectedDailyCloseAt = observations.filter((item) => item.kind === 'DailyClose').map((item) => item.effectiveAt)
+): InvestmentDrawdownMathInput {
     return {
         scopeId: 'portfolio-main', currency: 'INR',
         startAt: '2026-11-01T00:00:00.000Z', endAt: '2026-11-13T23:59:59.999Z',
