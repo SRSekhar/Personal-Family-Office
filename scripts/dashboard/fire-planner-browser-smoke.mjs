@@ -1294,24 +1294,8 @@ try {
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
-    const exposureWorkspaceDiagnostics = await page.evaluate(() => ({
-        workspace: globalThis.document.querySelector('#workspace-label')?.textContent,
-        count: globalThis.document.querySelector('#investment-exposure-count')?.textContent,
-        error: globalThis.document.querySelector('#investment-exposure-error')?.textContent,
-        message: globalThis.document.querySelector('#investment-exposure-message')?.textContent,
-        formDisabled: globalThis.document.querySelector('#investment-exposure-form button[type="submit"]')?.disabled,
-        instrumentOptions: [...(globalThis.document.querySelector('#investment-exposure-instrument')?.options ?? [])].map((option) => ({
-            value: option.value, label: option.textContent
-        })),
-        allocationRows: globalThis.document.querySelectorAll('#investment-exposure-allocations .investment-exposure-allocation-row').length
-    }));
-    process.stdout.write('EXPOSURE WORKSPACE DIAGNOSTICS: ' + JSON.stringify(exposureWorkspaceDiagnostics)
-        + ' pageErrors=' + JSON.stringify(pageErrors) + '\\n');
-    assert.equal(exposureWorkspaceDiagnostics.formDisabled, false, 'exposure form should be enabled in private workspace');
-    assert.ok(exposureWorkspaceDiagnostics.instrumentOptions.length > 1,
-        'exposure instrument selector should contain the private ledger instrument: ' + JSON.stringify(exposureWorkspaceDiagnostics));
     // Create and analyze a user-authored weighted look-through classification.
-    await page.locator('#investment-exposure-instrument').selectOption({ index: 0 });
+    await page.locator('#investment-exposure-instrument').selectOption({ index: 1 });
     await page.locator('#investment-exposure-form [name="dimensionId"]').fill('sector');
     await page.locator('#investment-exposure-form [name="dimensionName"]').fill('Sector');
     await page.locator('#investment-exposure-form [name="effectiveFrom"]').fill('2026-10-30');
@@ -1320,6 +1304,13 @@ try {
     await exposureAllocation.locator('input[aria-label="Stable group ID"]').fill('technology');
     await exposureAllocation.locator('input[aria-label="Group display name"]').fill('Technology');
     await exposureAllocation.locator('input[aria-label="Allocation weight percentage"]').fill('100');
+    const exposureFormState = await page.evaluate(() => {
+        const form = globalThis.document.querySelector('#investment-exposure-form');
+        return { valid: form.checkValidity(), invalidControls: [...form.elements].filter((control) => !control.checkValidity()).map((control) => ({
+            name: control.name || control.id || control.className, value: control.value, message: control.validationMessage
+        })) };
+    });
+    assert.equal(exposureFormState.valid, true, 'exposure classification form must be valid before submit: ' + JSON.stringify(exposureFormState.invalidControls));
     await page.locator('#investment-exposure-form button[type="submit"]').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-exposure-count')?.textContent === '1');
     await page.locator('#investment-exposure-dimension').selectOption('sector');
