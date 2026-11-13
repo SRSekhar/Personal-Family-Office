@@ -1,120 +1,175 @@
-# ADR — Portfolio drawdown metric contract discovery
+# ADR — Portfolio drawdown metric
 
-- Status: Discovery only — no drawdown formula or policy contract approved
+- Status: **Decision accepted — Option B (time-weighted, external-flow-adjusted drawdown); implementation blocked on data-contract prerequisites**
 - Date: 2026-11-13
-- Scope: historical, currency-separated drawdown analytics for the investment portfolio
+- Scope: historical, currency-separated investment-portfolio performance drawdown
 - Related: `INVESTMENT-RISK-POLICY-READINESS.md`, `ADR-INVESTMENT-CONCENTRATION-POLICY.md`, `ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`
 - Product boundary: descriptive analytics only; no default risk thresholds, recommendations, alerts, rebalancing or trading
 
-## Purpose
+## Decision
 
-Prepare the drawdown metric decision using the current repository's actual investment data model. This document is not authorization to implement a formula, create a new persistence collection, or expose a risk score. The measurement method must be explicitly selected before implementation.
+Adopt **Option B: time-weighted, external-cash-flow-adjusted drawdown** as the canonical investment-performance drawdown methodology.
 
-## Current repository capabilities inspected
+This is the correct choice for PFO because the product tracks investments and portfolio performance over time. Raw NAV drawdown confounds investment performance with deposits and withdrawals. Modified Dietz or other periodic approximations would be easier to calculate from sparse observations, but they would introduce approximation error and could conceal material intra-period losses. PFO must not label an approximation as actual drawdown.
 
-The current main branch provides:
+The decision is deliberately strict: **if the data cannot support a mathematically valid flow-adjusted return path, the metric is unavailable.** Do not silently substitute raw NAV, Modified Dietz, XIRR, stale prices, interpolation or estimated boundary values.
 
-- Immutable investment transactions with effective `date` and `recordedAt`, account/instrument references, transaction type, currency, and signed cash amount.
-- FIFO position projection by account and instrument, with explicit valuation `asOf`, `recordedAt`, source type and source name.
-- Investment cash accounts linked to investment accounts, with opening balances, external contributions, external withdrawals, corrections, transfers and dated cash statements.
-- Statement reconciliation for investment cash accounts.
-- Portfolio XIRR that requires explicit cash accounts, reconciled statements, linked investment transactions and complete terminal holdings valuation.
-- Currency separation and no implicit FX conversion.
-- Bitemporal filtering for transactions and valuations in portfolio analysis.
+This ADR approves the methodology, not permission to ship a partial or misleading metric. The data model currently lacks the complete valuation observations needed to calculate it reliably. Implementation remains blocked until the prerequisites below are delivered and tested.
 
-These capabilities provide useful building blocks but do not yet define a historical portfolio NAV series suitable for drawdown.
+## Why Option B
 
-## Verified gaps
+- External contributions and withdrawals change NAV but are not investment gains or losses.
+- A time-weighted return path neutralizes those external flows and is therefore suitable for peak-to-trough investment-performance analysis.
+- It is auditable: every return segment can be traced to two eligible portfolio valuations and the external-flow events between them.
+- It avoids the known weakness of periodic approximations: an approximation cannot claim to observe peaks and troughs that were never valued.
+- It aligns with the existing separation between money-weighted XIRR and investment performance. XIRR remains a distinct metric and must not be repurposed as drawdown.
 
-1. **No canonical portfolio valuation snapshot series.** Instrument valuation records are point observations, but there is no approved common portfolio sampling calendar or guarantee that every open position has a valuation at every portfolio observation time.
-2. **Cash history is not a uniform daily balance series.** Cash statements are dated observations; movements and transfers can roll a statement balance forward, subject to reconciliation and recorded-at cutoffs. The product has not specified the maximum permitted statement age for a historical observation.
-3. **External-flow timing matters.** Contributions and withdrawals change portfolio NAV but are not investment gains or losses. A raw NAV peak-to-trough calculation can therefore misstate drawdown when external flows occur.
-4. **Transfers need classification.** Transfers between cash accounts in the same selected portfolio should not be treated as external portfolio flows. Transfers crossing the selected scope need explicit treatment.
-5. **Investment transaction classification is not yet a complete performance-event taxonomy.** Purchases, sales, dividends, interest, fees and taxes exist, but the drawdown contract must state how each affects portfolio value and performance, including corporate actions and non-cash events.
-6. **Sampling, stale-data and gap semantics are undecided.** No daily, weekly, monthly or event-driven observation frequency is currently canonical.
-7. **Historical knowledge must remain reproducible.** Existing transaction and valuation records have effective and recorded timestamps; a drawdown result must not silently include later-recorded corrections when evaluating an earlier knowledge cutoff.
+## Canonical calculation contract
 
-## Candidate measurement approaches — decision required
+### 1. Portfolio boundary and currency
 
-### Option A — Raw portfolio NAV drawdown
+- Calculate each selected investment portfolio/account scope independently.
+- Calculate each currency independently. No implicit FX conversion, cross-currency aggregation or base-currency conversion is permitted.
+- Include investment positions and investment cash belonging to the selected scope.
+- Internal transfers wholly within the selected scope are not external flows. Transfers crossing the selected scope boundary are external flows for that scope.
+- The selected scope and currency must be displayed with every result.
 
-For each observation, calculate total portfolio NAV and measure its decline from the preceding running peak.
+### 2. External-flow neutralization
 
-Candidate formula:
+For each external flow event, require eligible portfolio valuation immediately before and immediately after the event, at the event's effective timestamp.
 
-`drawdown_t = NAV_t / max(NAV_0, ..., NAV_t) - 1`
+For a return segment bounded by the prior post-flow valuation (V_{0}^{+}) and the next pre-flow valuation (V_{1}^{-}):
 
-**Limitation:** external contributions and withdrawals change NAV independently of investment performance. Unless the series is flow-adjusted, the result can misstate investment drawdown. Do not implement this as investment-performance drawdown without an explicit product decision and prominent interpretation.
+`r = (V_1^- / V_0^+) - 1`
 
-### Option B — Time-weighted, flow-adjusted drawdown
+Chain-link segment returns into a wealth index:
 
-Construct subperiod returns around external cash flows, chain-link the returns into a wealth index, and calculate peak-to-trough drawdown on that index.
+`W_1 = W_0 × (1 + r)`
 
-Candidate formula:
+At an external flow boundary, the flow itself must not change the wealth index. The post-flow portfolio valuation establishes the next segment's starting value. The implementation must retain the event and boundary valuations used to establish this neutrality; it must not infer the post-flow value from an amount-only cash ledger.
 
-`drawdown_t = WealthIndex_t / max(WealthIndex_0, ..., WealthIndex_t) - 1`
+The initial valid observation establishes the initial wealth-index level. Returns require a strictly positive starting portfolio value. Zero or negative denominators make the affected result unavailable; no artificial return is manufactured.
 
-**Requirements:** reliable portfolio valuations at the boundaries needed to isolate external flows; precise effective timestamps; classification of external versus internal flows; consistent handling of fees, taxes, income and transfers. If the required boundary valuation is missing, the affected result must be unavailable rather than estimated silently.
+### 3. Drawdown and maximum drawdown
 
-### Option C — Periodic approximation (for example, Modified Dietz)
+At each eligible observation point:
 
-Estimate a period return using beginning/end values and weighted external flows, then chain-link the periodic returns.
+`drawdown_t = W_t / max(W_0, ..., W_t) - 1`
 
-**Trade-off:** can operate with less frequent observations but is an approximation. It requires a selected period convention, day-count weighting, flow timing convention and disclosure that intra-period peaks/troughs are not observed. It cannot honestly claim to capture drawdowns between observations.
+Maximum drawdown over the requested interval is the minimum (most negative) drawdown in that interval.
 
-### Important distinction
+- The running peak is full-history within the explicitly selected analysis window; the first valid point in that window establishes its initial peak.
+- Peak, trough and recovery dates must refer to actual eligible observations.
+- Recovery is reported only when the wealth index subsequently reaches or exceeds the relevant prior peak within the observed series. Otherwise it is explicitly unrecovered/not observed.
+- The product must not claim to measure unobserved intraday market peaks or troughs. The observed path is limited to the valuation and flow-boundary timestamps actually recorded.
 
-Portfolio XIRR is money-weighted over a dated cash-flow stream. It is not, by itself, a path-dependent peak-to-trough drawdown series. Reusing XIRR as the drawdown engine would not answer the same question.
+### 4. Observation requirements
 
-## Decisions required before implementation
+- Use event-time observations at every external-flow boundary and a daily end-of-day portfolio valuation snapshot for the historical path.
+- Every observation must have a common effective timestamp and a complete valuation of all open positions plus included cash in the selected scope and currency.
+- Every external flow must have paired, complete pre-flow and post-flow boundary valuations. Date-only timestamps are insufficient where ordering or intraday timing is material.
+- Daily observations without a complete snapshot are missing observations, not zero returns.
+- No stale-price carry-forward, interpolation, synthetic snapshots or backfilled estimates.
+- The current model has instrument valuation records and cash statements, but not a canonical complete portfolio snapshot series or paired flow-boundary valuation records. Those are explicit prerequisites, not assumptions.
 
-The product owner must select or define:
+### 5. Event classification
 
-1. **Metric purpose:** investment-performance drawdown (external-flow adjusted) versus total-wealth/NAV decline (flow-inclusive).
-2. **Method:** Option A, B, C, or another explicitly specified method. If B or C, define the exact return equation and chaining convention.
-3. **Observation frequency:** event-driven, daily, weekly, monthly, or user-selected. State whether observations are calendar-based or only on dates with complete inputs.
-4. **Peak and reset semantics:** full-history running peak, selected-window peak, or user-defined rolling window; whether the first observation establishes the initial peak.
-5. **Scope:** whole investment portfolio or one investment account; currency remains separate unless an explicit FX contract is separately approved.
-6. **Valuation eligibility:** required position coverage, same-time valuation rules, maximum age/freshness policy, treatment of zero-value and closed positions, and whether manual/provider sources are treated equally.
-7. **Cash inclusion:** include reconciled investment cash; define statement age and roll-forward rules; distinguish internal transfers from external portfolio flows.
-8. **Flow taxonomy:** treatment of contributions, withdrawals, purchases, sales, dividends, interest, fees, taxes, corrections, corporate actions and transfers crossing the selected scope.
-9. **Missing data:** whether one missing holding valuation, cash statement, flow boundary or observation invalidates the whole selected series or only a clearly delimited interval. Never bridge gaps or interpolate without explicit approval.
-10. **Bitemporal semantics:** effective observation cutoff and recorded-at knowledge cutoff; define correction/supersession behavior and reproducibility.
-11. **Output contract:** maximum drawdown, peak date, trough date, recovery date (if observed), observation count, coverage/gap metadata and explicit unavailable reasons. Decide which metrics are in scope.
-12. **Policy evaluation:** only after the metric is approved, define user-authored threshold direction, comparison boundary, immutable policy versions, effective/recorded-at selection and no-default behavior.
+- Owner/household deposits and withdrawals crossing the selected portfolio boundary: external flows.
+- Transfers between accounts wholly inside the selected scope: internal transfers; eliminate from external-flow treatment.
+- Transfers crossing the selected scope boundary: external flows for that scope.
+- Purchases, sales, reinvestments and cash movements between included portfolio components: internal investment activity, not external flows.
+- Dividends and interest retained in the portfolio: investment return, not external flows.
+- Fees, taxes and investment expenses charged to the portfolio: reduce investment performance; do not neutralize them as external flows.
+- Distributions paid outside the selected portfolio: external withdrawals only when they cross the selected boundary as an owner/portfolio distribution. The event taxonomy must distinguish these from fees and taxes.
+- In-kind contributions/withdrawals require a documented fair-value amount and paired boundary valuations; otherwise the affected interval is unavailable.
+- Corrections and corporate actions must preserve effective-time and recorded-time history and must not create duplicate economic flows.
+
+If an existing transaction type cannot be unambiguously classified under these rules, do not guess. Mark the affected interval unavailable and add an explicit taxonomy decision before implementation.
+
+### 6. Missing data and coverage
+
+- A missing position valuation, cash valuation, flow classification, flow-boundary valuation, or required timestamp invalidates the affected return segment.
+- Do not bridge a gap or compute a full-window maximum drawdown across an invalid segment.
+- The requested-window result is unavailable when any gap prevents a continuous, auditable wealth-index path from the selected start to end. A future product decision may expose clearly separated valid subperiods, but must not combine them into one misleading full-window statistic.
+- Return explicit unavailable reasons and coverage metadata: missing instruments, missing timestamps, unclassified flows, stale/ineligible inputs, and invalid denominators.
+- Closed positions remain part of the portfolio path through their actual disposal value/cash proceeds and must not disappear from history prematurely.
+
+### 7. Bitemporal reproducibility
+
+Every calculation must accept:
+- an effective-time analysis window; and
+- a recorded-at knowledge cutoff.
+
+Only records effective within the requested window and known by the recorded-at cutoff may participate. Later-recorded corrections must not rewrite a historical as-known result. A restated/current-knowledge view may be offered separately, but must be clearly labelled and reproducible.
+
+### 8. Output contract
+
+The descriptive result should include:
+- selected scope and currency;
+- methodology identifier/version;
+- analysis start/end and recorded-at cutoff;
+- maximum drawdown magnitude and sign convention;
+- peak, trough and recovery dates/status;
+- wealth-index observations and drawdown path;
+- observation count and valuation coverage;
+- flow-boundary count and validation status;
+- explicit gaps/unavailable reasons.
+
+Do not add risk scores, severity bands, default thresholds, alerts, recommendations, rebalancing or trading actions under this ADR. User-authored drawdown policies require a separate policy contract and approval.
+
+## Current repository assessment and implementation gates
+
+The current repository has immutable investment transactions with effective `date` and `recordedAt`, instrument valuations with `asOf` and `recordedAt`, investment cash accounts/movements/transfers/statements, currency-separated portfolio analysis and XIRR. It does **not** currently guarantee:
+
+1. a complete, common-timestamp portfolio valuation snapshot for every daily observation;
+2. paired pre-flow and post-flow portfolio valuations at every external flow's effective timestamp;
+3. sufficiently precise event timestamps and a complete, approved external-flow taxonomy;
+4. a defined historical snapshot retention and correction strategy.
+
+Therefore, do not implement a drawdown calculator against the existing point-valuations and cash statements alone. First design and approve the smallest additive data contract for immutable portfolio snapshots and flow-boundary valuations, including provenance, effective timestamp, recorded-at timestamp, scope, currency, position coverage and validation status. Reuse existing ledger records as event sources where valid; do not duplicate or mutate the financial ledger to simulate snapshots.
+
+No schema migration is authorized by this ADR. A separate implementation design must demonstrate how the new observations are generated, validated, persisted, replayed and backed up before schema changes begin.
 
 ## Required acceptance evidence
 
-Before a calculator is implemented, prepare hand-calculated examples covering:
+Before production implementation, add independently hand-calculated fixtures and deterministic tests for:
 
-- A rising series with no drawdown.
-- A peak followed by a decline and recovery.
-- External contribution at a peak and external withdrawal at a trough.
-- Internal transfer between accounts within scope.
-- Transfer across the selected account/portfolio boundary.
-- Dividend, interest, fee and tax treatment.
-- Multiple currencies with no implicit FX.
-- Missing valuation for one open position.
-- Stale cash statement and a missing flow-boundary valuation.
-- Same effective date with later-recorded correction.
-- A correction recorded after the historical knowledge cutoff.
-- Empty portfolio, zero NAV and non-positive denominator behavior.
-- Irregular observation intervals and gaps.
+- flat and rising wealth-index paths;
+- a peak, drawdown, trough and observed recovery;
+- contribution at a peak and withdrawal at a trough (neither may create artificial performance);
+- multiple external flows between daily closes, each with paired boundary valuations;
+- internal transfer within scope (no external flow) and transfer across scope (external flow);
+- retained dividend/interest versus fee/tax expense;
+- in-kind contribution/withdrawal with and without valid fair-value boundary evidence;
+- multiple currencies with no implicit FX;
+- missing open-position valuation, stale/missing cash valuation and missing flow-boundary valuation;
+- ambiguous/unclassified event;
+- zero/non-positive denominator;
+- irregular observations and a gap;
+- effective-time correction recorded after the historical knowledge cutoff;
+- closed position disposal and corporate action;
+- exact peak/trough/recovery identification and sign convention.
 
-Expected outputs must be calculated independently by hand and asserted in deterministic tests. The browser workflow must show the selected method, frequency, scope, as-of cutoff, recorded-at cutoff, coverage and unavailable reasons.
+Tests must prove that an external contribution/withdrawal alone does not create a gain/loss in the wealth index, while fees/taxes and market movement do affect performance. The UI must disclose methodology, scope, currency, analysis window, knowledge cutoff, coverage and unavailable reasons.
 
 ## Explicit non-decisions
 
 This ADR does not approve:
+- cross-currency or FX-adjusted drawdown;
+- household net-worth/property/debt drawdown (this is investment-portfolio performance only);
+- default/user-independent risk thresholds, alerts, severity bands or recommendations;
+- intraday market drawdown beyond recorded valuation timestamps;
+- stale-price carry-forward, interpolation, synthetic/backfilled valuations or Modified Dietz fallback;
+- automatic market-data-provider selection or external data transmission;
+- any schema migration before the separate data-contract design is reviewed.
 
-- A specific drawdown formula or observation frequency.
-- Any household-specific or application-wide threshold.
-- A risk score, severity band, alert, recommendation or rebalance instruction.
-- Price interpolation, stale-price carry-forward, synthetic history or reconstructed historical valuations.
-- FX conversion or cross-currency aggregation.
-- A schema migration or new persistence collection.
-- A market-data provider or external data transmission.
+## Next implementation sequence
 
-## Next step
+1. Design the additive immutable portfolio-snapshot and flow-boundary observation contract against the existing SQLite v10 schema and backup/migration architecture.
+2. Define and test the complete event taxonomy using existing transaction and cash-movement types; explicitly list unresolved types rather than guessing.
+3. Implement deterministic snapshot construction/validation and persistence with provenance and bitemporal semantics.
+4. Implement the flow-adjusted wealth-index calculator and maximum drawdown only after snapshot prerequisites are satisfied.
+5. Add hand-calculated unit/integration tests, then descriptive UI and export support.
+6. Keep liquidity analytics separately gated; this decision does not approve a liquidity metric.
 
-Review and approve the metric purpose, method and observation frequency first. Then resolve the remaining input, scope, missing-data and bitemporal rules. Only after those decisions are explicit should implementation proceed.
+**Quality rule:** a truthful “not enough reliable history to calculate” is preferable to a precise-looking but mathematically invalid drawdown number.
