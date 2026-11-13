@@ -63,9 +63,12 @@ function fillAccountOptions(ledger) {
         '<option value="' + escape(item.id) + '">' + escape(item.name) + ' · ' + escape(item.institution) + '</option>').join('');
     if (accounts.some((item) => item.id === previous)) select.value = previous;
 }
-function fillDimensionOptions(classifications) {
+function fillDimensionOptions(classifications, ledger, currency) {
     const dimensions = new Map();
-    for (const item of classifications) dimensions.set(item.dimensionId, item.dimensionName);
+    const instrumentMap = new Map(ledger.investmentInstruments.map((item) => [item.id, item]));
+    for (const item of classifications) {
+        if (instrumentMap.get(item.instrumentId)?.currency === currency) dimensions.set(item.dimensionId, item.dimensionName);
+    }
     const select = $('#investment-exposure-policy-dimension');
     const previous = select.value;
     select.innerHTML = '<option value="">Select a classification dimension</option>' + [...dimensions.entries()]
@@ -73,19 +76,20 @@ function fillDimensionOptions(classifications) {
         .map(([id, name]) => '<option value="' + escape(id) + '">' + escape(name) + '</option>').join('');
     if (dimensions.has(previous)) select.value = previous;
 }
-function groupsForDimension(classifications, dimensionId) {
+function groupsForDimension(classifications, dimensionId, currency, instruments) {
     const groups = new Map();
+    const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
     for (const item of classifications) {
-        if (item.dimensionId !== dimensionId) continue;
+        if (item.dimensionId !== dimensionId || instrumentMap.get(item.instrumentId)?.currency !== currency) continue;
         for (const group of item.allocations) groups.set(group.groupId, group.groupName);
     }
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([groupId, groupName]) => ({ groupId, groupName }));
 }
-function addRuleRow(classifications, value = {}) {
+function addRuleRow(classifications, value = {}, ledger) {
     const row = document.createElement('div');
     row.className = 'investment-exposure-policy-rule-row investment-concentration-rule-row';
     const dimensionId = $('#investment-exposure-policy-dimension').value;
-    const groups = groupsForDimension(classifications, dimensionId);
+    const groups = groupsForDimension(classifications, dimensionId, $('#investment-exposure-policy-currency').value, ledger.investmentInstruments);
     const group = document.createElement('select');
     group.className = 'investment-exposure-policy-rule-group';
     group.required = true;
@@ -109,7 +113,7 @@ function addRuleRow(classifications, value = {}) {
     row.append(groupLabel, limitLabel, operatorLabel, remove);
     $('#investment-exposure-policy-rules').append(row);
 }
-function refreshRuleRows(classifications) {
+function refreshRuleRows(classifications, ledger) {
     const container = $('#investment-exposure-policy-rules');
     const current = [...container.querySelectorAll('.investment-exposure-policy-rule-row')].map((row) => ({
         groupId: row.querySelector('.investment-exposure-policy-rule-group').value,
@@ -117,7 +121,7 @@ function refreshRuleRows(classifications) {
         operator: row.querySelector('.investment-exposure-policy-rule-operator').value
     }));
     container.replaceChildren();
-    current.forEach((rule) => addRuleRow(classifications, rule));
+    current.forEach((rule) => addRuleRow(classifications, rule, ledger));
 }
 function fillPolicySets(policies) {
     const sets = new Map();
@@ -248,7 +252,7 @@ function render() {
         $('#investment-exposure-policy-error').hidden = true;
         $('#investment-exposure-policy-count').textContent = String(policies.length);
         fillAccountOptions(ledger);
-        fillDimensionOptions(classifications);
+        fillDimensionOptions(classifications, ledger, $('#investment-exposure-policy-currency').value);
         fillPolicySets(policies);
         const evaluationSet = $('#investment-exposure-policy-analyze-set');
         const previous = evaluationSet.value;
@@ -273,7 +277,7 @@ function bindForm(selector, callback) {
 if ($('#investment-exposure-policy-workspace')) {
     $('#investment-exposure-policy-currency').innerHTML = CURRENCIES.map((item) => '<option value="' + item + '">' + item + '</option>').join('');
     $('#investment-exposure-policy-add-rule').addEventListener('click', () => {
-        try { const ledger = readLedger(); addRuleRow(readClassifications(ledger)); }
+        try { const ledger = readLedger(); addRuleRow(readClassifications(ledger), {}, ledger); }
         catch (error) { message(error instanceof Error ? error.message : 'Classification groups could not be read.', true); }
     });
     $('#investment-exposure-policy-version-set').addEventListener('change', () => {
@@ -289,13 +293,16 @@ if ($('#investment-exposure-policy-workspace')) {
         $('#investment-exposure-policy-account').value = latest.accountId ?? '';
         $('#investment-exposure-policy-dimension').value = latest.dimensionId;
         $('#investment-exposure-policy-rules').replaceChildren();
-        latest.rules.forEach((rule) => addRuleRow(classifications, rule));
+        latest.rules.forEach((rule) => addRuleRow(classifications, rule, ledger));
     });
     $('#investment-exposure-policy-dimension').addEventListener('change', () => {
-        const ledger = readLedger(); refreshRuleRows(readClassifications(ledger));
+        const ledger = readLedger(); refreshRuleRows(readClassifications(ledger), ledger);
     });
     $('#investment-exposure-policy-currency').addEventListener('change', () => {
-        const ledger = readLedger(); fillAccountOptions(ledger);
+        const ledger = readLedger(), classifications = readClassifications(ledger);
+        fillAccountOptions(ledger);
+        fillDimensionOptions(classifications, ledger, $('#investment-exposure-policy-currency').value);
+        refreshRuleRows(classifications, ledger);
     });
     $('#investment-exposure-policy-scope').addEventListener('change', () => {
         $('#investment-exposure-policy-account-row').hidden = $('#investment-exposure-policy-scope').value !== 'account';
@@ -311,7 +318,7 @@ if ($('#investment-exposure-policy-workspace')) {
         if (!dimension) throw new Error('Choose a dimension with validated exposure classifications.');
         const rules = [...$('#investment-exposure-policy-rules').querySelectorAll('.investment-exposure-policy-rule-row')].map((row) => {
             const groupId = row.querySelector('.investment-exposure-policy-rule-group').value;
-            const group = groupsForDimension(classifications, dimensionId).find((item) => item.groupId === groupId);
+            const group = groupsForDimension(classifications, dimensionId, String(form.get('currency')), ledger.investmentInstruments).find((item) => item.groupId === groupId);
             if (!group) throw new Error('Select a valid group for every exposure limit.');
             return { groupId, groupName: group.groupName,
                 maxWeightPercent: Number(row.querySelector('.investment-exposure-policy-rule-limit').value),
