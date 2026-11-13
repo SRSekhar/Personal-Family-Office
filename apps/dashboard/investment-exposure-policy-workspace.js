@@ -176,7 +176,7 @@ function renderEvaluation(ledger, classifications, policies) {
         const latest = [...versions].sort((a, b) => b.version - a.version)[0];
         if (!latest) throw new Error('The selected exposure policy set is unavailable.');
         const policy = selectInvestmentExposurePolicy(versions, {
-            asOfDate, recordedAtCutoff, scope: latest.scope, currency: latest.currency,
+            asOfDate, recordedAtCutoff, policySetId, scope: latest.scope, currency: latest.currency,
             accountId: latest.accountId, dimensionId: latest.dimensionId
         }, { accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments, classifications });
         if (!policy) {
