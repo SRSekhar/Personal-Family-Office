@@ -204,7 +204,6 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
     }];
 
     const appendPoint = (item: InvestmentDrawdownObservation): void => {
-        const drawdown = wealthIndex / runningPeak - 1;
         if (wealthIndex > runningPeak) {
             runningPeak = wealthIndex;
             runningPeakAt = item.effectiveAt;
@@ -225,7 +224,6 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
             recoveryAt = item.effectiveAt;
             recovered = true;
         }
-        void drawdown;
     };
 
     for (let index = 1; index < groups.length; index += 1) {
