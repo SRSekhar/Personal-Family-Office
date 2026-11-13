@@ -772,6 +772,26 @@ describe('weighted investment exposure workspace integrity', () => {
         expect(referencedIds.filter((id) => !ids.has(id)), 'exposure workspace selectors must exist in HTML').toEqual([]);
     });
 
+    it('wires explicit exposure policy authoring and evaluation to the schema-v10 backup contract', async () => {
+        const [html, app, workspace, domain] = await Promise.all([
+            readDashboardFile('index.html'), readDashboardFile('app.js'),
+            readDashboardFile('investment-exposure-policy-workspace.js'),
+            readDashboardFile('investment-exposure-policy.js')
+        ]);
+        expect(html).toContain('id="investment-exposure-policy-workspace"');
+        expect(html).toContain('id="investment-exposure-policy-form"');
+        expect(html).toContain('id="investment-exposure-policy-analysis"');
+        expect(app).toContain('investmentExposurePolicies');
+        expect(app).toContain('schemaVersion: 10');
+        expect(workspace).toContain('validateInvestmentExposurePolicies');
+        expect(workspace).toContain('evaluateInvestmentExposurePolicy');
+        expect(domain).toContain('export function selectInvestmentExposurePolicy');
+        expect(domain).toContain('export function evaluateInvestmentExposurePolicy');
+        const ids = new Set([...html.matchAll(/\\bid=["']([^"']+)["']/g)].map((match) => match[1]));
+        const referencedIds = [...new Set([...workspace.matchAll(/\\$\\(['"]#([^'"]+)['"]\\)/g)].map((match) => match[1]))];
+        expect(referencedIds.filter((id) => !ids.has(id)), 'exposure policy selectors must exist in HTML').toEqual([]);
+    });
+
     it('keeps exposure authoring and analysis disabled outside the private workspace', async () => {
         const workspace = await readDashboardFile('investment-exposure-workspace.js');
         expect(workspace).toContain("function privateWorkspace()");
