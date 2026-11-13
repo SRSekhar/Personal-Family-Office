@@ -53,11 +53,12 @@ export function validateBackupPayload(payload, expectedCurrency) {
     const exposureClassifications = payload.schemaVersion === 9 ? { investmentExposureClassifications: validateInvestmentExposureClassifications(payload.investmentExposureClassifications, { instruments: investmentLedger.investmentInstruments }) } : null;
     return {
         records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}), ...(allocationPolicies ?? {}), ...(concentrationPolicies ?? {}), ...(exposureClassifications ?? {}),
-        includesGoals: [2, 3, 4, 5, 6, 7, 8].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
+        includesGoals: [2, 3, 4, 5, 6, 7, 8, 9].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
         ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
         ...(payload.schemaVersion >= 6 ? { includesInvestmentCashLedger: true } : {}),
-        ...([7, 8].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {}),
-        ...([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== true ? { includesInvestmentConcentrationPolicies: true } : {})
+        ...([7, 8, 9].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {}),
+        ...([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== true ? { includesInvestmentConcentrationPolicies: true } : {}),
+        ...(payload.schemaVersion === 9 && payload.exposureClassificationsMigratedFromV8 !== true ? { includesInvestmentExposureClassifications: true } : {})
     };
 }
 
