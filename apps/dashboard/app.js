@@ -2266,7 +2266,7 @@ async function createOnlineSqliteBackup() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'The verified SQLite backup could not be created.');
         const count = Object.values(result.collectionCounts ?? {}).reduce((sum, value) => sum + value, 0);
-        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 17 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
+        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 18 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
     } catch (error) {
         resultElement.textContent = error instanceof Error ? error.message : 'The verified SQLite backup could not be created.';
     } finally {
