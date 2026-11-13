@@ -512,7 +512,7 @@ describe('dashboard accessibility contracts', () => {
                 expect(
                     section,
                     sectionName + ' control #' + id + ' must have an explicitly associated label'
-                ).toMatch(new RegExp("<label\b[^>]*\bfor=[\"']" + id + "[\"']"));
+                ).toMatch(new RegExp("<label\\b[^>]*\\bfor=[\"']" + id + "[\"']"));
             }
         }
     });
