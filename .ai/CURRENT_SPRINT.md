@@ -10,7 +10,7 @@
 
 ### Next gated work
 
-Design the smallest additive snapshot/flow-boundary persistence contract against SQLite v10 and the existing backup/restore lifecycle. Prove how complete position and cash valuations are sourced, timestamped, validated, retained and replayed. Liquidity remains separately gated.
+Implement the manual-first, provider-neutral snapshot capture/import contract: complete component coverage for all open holdings and included cash accounts, exact effective timestamps, per-component source provenance, paired external-flow boundaries, bitemporal correction/supersession, SQLite migration and full backup/restore. Do not add a provider or external transmission. Liquidity remains separately gated.
 
 - Sprint 9 weighted multi-group look-through was approved as Option B and merged in PR #450.
 - Completed immutable, bitemporal exposure policy versions with stable policy-set identity, currency, portfolio/account scope and classification dimension.
