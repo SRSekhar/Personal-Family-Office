@@ -3,6 +3,7 @@ import { validateInvestmentLedgerCollections } from './investment-ledger.js';
 import { validateInvestmentCashCollections } from './investment-cash-ledger.js';
 import { validateInvestmentAllocationCollections } from './investment-allocation.js';
 import { validateInvestmentConcentrationCollections } from './investment-concentration.js';
+import { validateInvestmentExposureClassifications } from './investment-exposure.js';
 import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
@@ -55,6 +56,7 @@ const INVESTMENT_CASH_STORAGE_KEYS = {
 };
 const INVESTMENT_ALLOCATION_STORAGE_KEY = 'pfo-os.investment-allocation-policies.v1';
 const INVESTMENT_CONCENTRATION_STORAGE_KEY = 'pfo-os.' + 'investment-concentration-policies.v1';
+const INVESTMENT_EXPOSURE_STORAGE_KEY = 'pfo-os.investment-exposure-classifications.v1';
 const DATABASE_AUTO_SAVE_KEY = 'pfo-os.sqlite-auto-save.v1';
 const CURRENCY = 'INR';
 const COLORS = ['#176b4d', '#4d8b70', '#9dbb9f', '#c4a15d', '#7898b6', '#a18cb5', '#d18b70', '#7c8a82'];
@@ -96,6 +98,7 @@ let investmentStorageHealthy = true;
 let investmentCashStorageHealthy = true;
 let investmentAllocationStorageHealthy = true;
 let investmentConcentrationStorageHealthy = true;
+let investmentExposureStorageHealthy = true;
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -807,11 +810,38 @@ function persistInvestmentConcentrationPolicies(policies) {
     return validated;
 }
 
+function readInvestmentExposureClassifications() {
+    try {
+        const raw = localStorage.getItem(INVESTMENT_EXPOSURE_STORAGE_KEY);
+        const classifications = raw === null ? [] : JSON.parse(raw);
+        if (!Array.isArray(classifications)) throw new Error('Saved investment exposure classifications are not a collection.');
+        const ledger = readInvestmentLedgerCollections();
+        if (!investmentStorageHealthy) throw new Error('Investment ledger storage could not be validated.');
+        const validated = validateInvestmentExposureClassifications(classifications, { instruments: ledger.investmentInstruments });
+        investmentExposureStorageHealthy = true;
+        return { investmentExposureClassifications: validated };
+    } catch (error) {
+        investmentExposureStorageHealthy = false;
+        showToast(error instanceof Error ? 'Investment exposure classifications could not be validated and were left untouched: ' + error.message : 'Investment exposure classifications could not be validated. Existing storage was left untouched.');
+        return { investmentExposureClassifications: [] };
+    }
+}
+
+function persistInvestmentExposureClassifications(classifications) {
+    const ledger = readInvestmentLedgerCollections();
+    const validated = validateInvestmentExposureClassifications(classifications, { instruments: ledger.investmentInstruments });
+    if (!persistJson(localStorage, INVESTMENT_EXPOSURE_STORAGE_KEY, validated)) {
+        throw new Error('Could not save investment exposure classifications to browser storage.');
+    }
+    investmentExposureStorageHealthy = true;
+    return { investmentExposureClassifications: validated };
+}
+
 function switchWorkspace(nextWorkspace) {
     workspace = nextWorkspace;
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
-    if (workspace === 'private') { readInvestmentLedgerCollections(); readInvestmentCashCollections(); readInvestmentAllocationPolicies(); readInvestmentConcentrationPolicies(); }
-    else { investmentStorageHealthy = true; investmentAllocationStorageHealthy = true; investmentConcentrationStorageHealthy = true; }
+    if (workspace === 'private') { readInvestmentLedgerCollections(); readInvestmentCashCollections(); readInvestmentAllocationPolicies(); readInvestmentConcentrationPolicies(); readInvestmentExposureClassifications(); }
+    else { investmentStorageHealthy = true; investmentAllocationStorageHealthy = true; investmentConcentrationStorageHealthy = true; investmentExposureStorageHealthy = true; }
     loadSavedGoals();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
@@ -1584,12 +1614,12 @@ function showToast(message) {
 
 function exportData() {
     const isPrivateExport = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname);
-    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy)) {
+    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy)) {
         showToast('Export is paused because saved records or goals could not be read safely. Existing storage remains untouched; import a valid backup to recover.');
         return;
     }
     const payload = {
-        schemaVersion: isPrivateExport ? 8 : 1,
+        schemaVersion: isPrivateExport ? 9 : 1,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records
@@ -1612,6 +1642,8 @@ function exportData() {
             if (!investmentAllocationStorageHealthy) throw new Error('Investment allocation policy storage could not be validated.');
             Object.assign(payload, readInvestmentConcentrationPolicies());
             if (!investmentConcentrationStorageHealthy) throw new Error('Investment concentration policy storage could not be validated.');
+            Object.assign(payload, readInvestmentExposureClassifications());
+            if (!investmentExposureStorageHealthy) throw new Error('Investment exposure classification storage could not be validated.');
         } catch (error) {
             showToast(error instanceof Error ? 'Full workspace export paused: ' + error.message : 'Full workspace data could not be validated; nothing was exported.');
             return;
@@ -1966,7 +1998,7 @@ function buildDatabaseWorkspacePayload() {
     if (workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) {
         throw new Error('Switch to the local private workspace before saving to SQLite.');
     }
-    if (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy) {
+    if (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy) {
         throw new Error('Database save is paused because saved workspace data could not be validated. Recover from a verified backup first.');
     }
     const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
@@ -1981,8 +2013,10 @@ function buildDatabaseWorkspacePayload() {
     if (!investmentAllocationStorageHealthy) throw new Error('Investment allocation policy validation failed; database save is paused.');
     const investmentConcentrationPolicies = readInvestmentConcentrationPolicies();
     if (!investmentConcentrationStorageHealthy) throw new Error('Investment concentration policy validation failed; database save is paused.');
+    const investmentExposureClassifications = readInvestmentExposureClassifications();
+    if (!investmentExposureStorageHealthy) throw new Error('Investment exposure classification validation failed; database save is paused.');
     const payload = {
-        schemaVersion: 8,
+        schemaVersion: 9,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records,
@@ -1993,7 +2027,8 @@ function buildDatabaseWorkspacePayload() {
         ...investmentCollections,
         ...investmentCashCollections,
         ...investmentAllocationPolicies,
-        ...investmentConcentrationPolicies
+        ...investmentConcentrationPolicies,
+        ...investmentExposureClassifications
     };
     // Run the same backup validator used by file restore before sending anything to the server.
     validateBackupPayload(payload, CURRENCY);
@@ -2014,7 +2049,7 @@ function updateDatabaseAutoSaveButton() {
 
 // Unreadable browser values count as existing data: recovery must never assume they are disposable.
 function hasBrowserWorkspaceData() {
-    const keys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY, ...Object.values(INVESTMENT_STORAGE_KEYS), ...Object.values(INVESTMENT_CASH_STORAGE_KEYS)];
+    const keys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY, ...Object.values(INVESTMENT_STORAGE_KEYS), ...Object.values(INVESTMENT_CASH_STORAGE_KEYS), INVESTMENT_ALLOCATION_STORAGE_KEY, INVESTMENT_CONCENTRATION_STORAGE_KEY, INVESTMENT_EXPOSURE_STORAGE_KEY];
     try {
         return keys.some((key) => {
             const raw = localStorage.getItem(key);
@@ -2362,6 +2397,16 @@ function importData(file, options = {}) {
                     throw new Error('This legacy backup would invalidate existing allocation policy references. Policies were preserved and no data was imported. Review the policy references before retrying.', { cause: error });
                 }
             }
+            if (backup.includesInvestmentLedger && !backup.includesInvestmentExposureClassifications) {
+                const existingRaw = localStorage.getItem(INVESTMENT_EXPOSURE_STORAGE_KEY);
+                const existingClassifications = existingRaw === null ? [] : JSON.parse(existingRaw);
+                if (!Array.isArray(existingClassifications)) throw new Error('Existing investment exposure classifications are not a valid collection. The older backup was not imported.');
+                try {
+                    validateInvestmentExposureClassifications(existingClassifications, { instruments: backup.investmentInstruments });
+                } catch (error) {
+                    throw new Error('This older backup would invalidate existing exposure classification references. Classifications were preserved and no data was imported. Review the instrument references before retrying.', { cause: error });
+                }
+            }
             const validatedRecords = backup.records.map((item) => ({
                 ...item,
                 id: options.preserveRecordIds && typeof item.id === 'string' && item.id.trim()
@@ -2403,6 +2448,8 @@ function importData(file, options = {}) {
             else if (backup.includesInvestmentLedger) previewLines.push('Investment allocation policies: not included (existing policies will be preserved)');
             if (backup.includesInvestmentConcentrationPolicies) previewLines.push('Investment concentration policy versions: ' + backup.investmentConcentrationPolicies.length);
             else if (backup.includesInvestmentLedger) previewLines.push('Investment concentration policies: not included (existing policies will be preserved)');
+            if (backup.includesInvestmentExposureClassifications) previewLines.push('Investment exposure classifications: ' + backup.investmentExposureClassifications.length);
+            else if (backup.includesInvestmentLedger) previewLines.push('Investment exposure classifications: not included (existing classifications will be preserved)');
             if (backup.includesInvestmentLedger) {
                 previewLines.push(
                     'Investment accounts: ' + backup.investmentAccounts.length,
@@ -2434,7 +2481,8 @@ function importData(file, options = {}) {
                 const storageKeys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY, ...(backup.includesInvestmentLedger ? Object.values(INVESTMENT_STORAGE_KEYS) : []),
                     ...(backup.includesInvestmentCashLedger ? Object.values(INVESTMENT_CASH_STORAGE_KEYS) : []),
                     ...(backup.includesInvestmentAllocationPolicies ? [INVESTMENT_ALLOCATION_STORAGE_KEY] : []),
-                    ...(backup.includesInvestmentConcentrationPolicies ? [INVESTMENT_CONCENTRATION_STORAGE_KEY] : [])];
+                    ...(backup.includesInvestmentConcentrationPolicies ? [INVESTMENT_CONCENTRATION_STORAGE_KEY] : []),
+                    ...(backup.includesInvestmentExposureClassifications ? [INVESTMENT_EXPOSURE_STORAGE_KEY] : [])];
                 let previousValues;
                 try {
                     previousValues = storageKeys.map((key) => [key, localStorage.getItem(key)]);
@@ -2453,6 +2501,7 @@ function importData(file, options = {}) {
                     if (backup.includesInvestmentCashLedger) persistInvestmentCashCollections(backup);
                     if (backup.includesInvestmentAllocationPolicies) persistInvestmentAllocationPolicies(backup.investmentAllocationPolicies);
                     if (backup.includesInvestmentConcentrationPolicies) persistInvestmentConcentrationPolicies(backup.investmentConcentrationPolicies);
+                    if (backup.includesInvestmentExposureClassifications) persistInvestmentExposureClassifications(backup.investmentExposureClassifications);
                 } catch (error) {
                     const restored = previousValues.map(([key, value]) => restoreStorageValue(key, value)).every(Boolean);
                     if (!restored) {
@@ -2463,6 +2512,7 @@ function importData(file, options = {}) {
                         investmentCashStorageHealthy = false;
                         investmentAllocationStorageHealthy = false;
                         investmentConcentrationStorageHealthy = false;
+                        investmentExposureStorageHealthy = false;
                         showToast('Workspace restore failed and rollback was incomplete. Stop editing and preserve this browser profile for recovery.');
                     } else {
                         showToast(error instanceof Error ? error.message + ' The previous workspace data was restored.' : 'Workspace restore failed; the previous data was restored.');
@@ -2479,6 +2529,7 @@ function importData(file, options = {}) {
                 if (backup.includesInvestmentCashLedger) investmentCashStorageHealthy = true;
                 if (backup.includesInvestmentAllocationPolicies) investmentAllocationStorageHealthy = true;
                 if (backup.includesInvestmentConcentrationPolicies) investmentConcentrationStorageHealthy = true;
+                if (backup.includesInvestmentExposureClassifications) investmentExposureStorageHealthy = true;
                 renderSavedGoals();
                 showGoalMessage();
                 render();
