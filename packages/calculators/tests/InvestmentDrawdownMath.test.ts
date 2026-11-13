@@ -15,7 +15,7 @@ function input(observations: InvestmentDrawdownObservation[], externalFlows: Arr
     return {
         scopeId: 'portfolio-main', currency: 'INR',
         startAt: '2026-11-01T00:00:00.000Z', endAt: '2026-11-13T23:59:59.999Z',
-        recordedAtCutoff: cutoff, observations
+        recordedAtCutoff: cutoff, observations, externalFlows: externalFlows.map((flow) => ({ ...flow, recordedAt: flow.recordedAt ?? '2026-11-13T12:00:00.000Z' }))
     };
 }
 
@@ -41,7 +41,7 @@ describe('analyzeInvestmentDrawdownMath', () => {
             observation({ id: 'flow-1-pre', kind: 'ExternalFlowPre', flowId: 'flow-1', effectiveAt: '2026-11-02T10:00:00.000Z', portfolioValue: 1100 }),
             observation({ id: 'flow-1-post', kind: 'ExternalFlowPost', flowId: 'flow-1', effectiveAt: '2026-11-02T10:00:00.000Z', portfolioValue: 2100 }),
             observation({ id: 'd2', kind: 'DailyClose', effectiveAt: '2026-11-02T16:00:00.000Z', portfolioValue: 2100 })
-        ]));
+        ], [{ id: 'flow-1', effectiveAt: '2026-11-02T10:00:00.000Z' }]));
         expect(result.status).toBe('available');
         expect(result.points.find((point) => point.observationId === 'flow-1-pre')?.wealthIndex).toBeCloseTo(1.1, 12);
         expect(result.points.find((point) => point.observationId === 'flow-1-post')?.wealthIndex).toBeCloseTo(1.1, 12);
@@ -56,7 +56,7 @@ describe('analyzeInvestmentDrawdownMath', () => {
             observation({ id: 'flow-2-pre', kind: 'ExternalFlowPre', flowId: 'flow-2', effectiveAt: '2026-11-03T10:00:00.000Z', portfolioValue: 900 }),
             observation({ id: 'flow-2-post', kind: 'ExternalFlowPost', flowId: 'flow-2', effectiveAt: '2026-11-03T10:00:00.000Z', portfolioValue: 500 }),
             observation({ id: 'd3', kind: 'DailyClose', effectiveAt: '2026-11-03T16:00:00.000Z', portfolioValue: 550 })
-        ]));
+        ], [{ id: 'flow-2', effectiveAt: '2026-11-03T10:00:00.000Z' }]));
         expect(result.status).toBe('available');
         expect(result.maximumDrawdown).toBeCloseTo(-0.25, 12);
         expect(result.troughAt).toBe('2026-11-03T10:00:00.000Z');
@@ -68,7 +68,7 @@ describe('analyzeInvestmentDrawdownMath', () => {
         const unpaired = analyzeInvestmentDrawdownMath(input([
             observation({ id: 'd1', kind: 'DailyClose', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1000 }),
             observation({ id: 'flow-pre', kind: 'ExternalFlowPre', flowId: 'flow-x', effectiveAt: '2026-11-02T10:00:00.000Z', portfolioValue: 1100 })
-        ]));
+        ], [{ id: 'flow-x', effectiveAt: '2026-11-02T10:00:00.000Z' }]));
         expect(unpaired.status).toBe('unavailable');
         expect(unpaired.reason).toContain('paired');
 
@@ -86,7 +86,7 @@ describe('analyzeInvestmentDrawdownMath', () => {
                 observation({ id: 'd1', kind: 'DailyClose', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1000 }),
                 observation({ id: 'pre', kind: 'ExternalFlowPre', flowId: 'flow-late', effectiveAt: '2026-11-02T10:00:00.000Z', portfolioValue: 1100, recordedAt: '2026-11-02T11:00:00.000Z' }),
                 observation({ id: 'post', kind: 'ExternalFlowPost', flowId: 'flow-late', effectiveAt: '2026-11-02T10:00:00.000Z', portfolioValue: 2100, recordedAt: '2026-11-14T11:00:00.000Z' })
-            ]),
+            ], [{ id: 'flow-late', effectiveAt: '2026-11-02T10:00:00.000Z', recordedAt: '2026-11-02T12:00:00.000Z' }]),
             recordedAtCutoff: '2026-11-13T00:00:00.000Z'
         });
         expect(result.status).toBe('unavailable');
@@ -112,7 +112,7 @@ describe('analyzeInvestmentDrawdownMath', () => {
             observation({ id: 'a-post', kind: 'ExternalFlowPost', flowId: 'a', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1100 }),
             observation({ id: 'b-pre', kind: 'ExternalFlowPre', flowId: 'b', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1100 }),
             observation({ id: 'b-post', kind: 'ExternalFlowPost', flowId: 'b', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1200 })
-        ]))).toThrow('sequence simultaneous flows explicitly');
+        ], [{ id: 'a', effectiveAt: '2026-11-01T16:00:00.000Z' }, { id: 'b', effectiveAt: '2026-11-01T16:00:00.000Z' }]))).toThrow('sequence simultaneous flows explicitly');
     });
 
     it('ignores records outside the effective window and records after the knowledge cutoff', () => {
