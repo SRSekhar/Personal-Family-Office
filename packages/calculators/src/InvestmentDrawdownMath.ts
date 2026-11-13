@@ -13,13 +13,13 @@ export interface InvestmentDrawdownObservation {
     readonly flowId?: string;
 }
 
-export interface InvestmentDrawdownMathInput {
+export interface InvestmentDrawdownExternalFlow {\n    readonly id: string;\n    readonly effectiveAt: string;\n    readonly recordedAt: string;\n}\n\nexport interface InvestmentDrawdownMathInput {
     readonly scopeId: string;
     readonly currency: string;
     readonly startAt: string;
     readonly endAt: string;
     readonly recordedAtCutoff: string;
-    readonly observations: readonly InvestmentDrawdownObservation[];
+    readonly observations: readonly InvestmentDrawdownObservation[];\n    /** External flows independently selected from the authoritative cash/transaction ledgers. */\n    readonly externalFlows: readonly InvestmentDrawdownExternalFlow[];
 }
 
 export interface InvestmentDrawdownPoint {
@@ -92,7 +92,7 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
     assertTimestamp(input.endAt, 'Analysis end');
     assertTimestamp(input.recordedAtCutoff, 'Recorded-at cutoff');
     if (input.startAt > input.endAt) throw new RangeError('Analysis start must not be after analysis end.');
-    if (!Array.isArray(input.observations)) throw new TypeError('Drawdown observations must be an array.');
+    if (!Array.isArray(input.observations)) throw new TypeError('Drawdown observations must be an array.');\n    if (!Array.isArray(input.externalFlows)) throw new TypeError('Authoritative external flows must be an array.');\n\n    const flowIds = new Set<string>();\n    const expectedFlows = new Set<string>();\n    for (const raw of input.externalFlows as readonly unknown[]) {\n        if (!raw || typeof raw !== 'object') throw new TypeError('Every external flow must be an object.');\n        const flow = raw as InvestmentDrawdownExternalFlow;\n        if (typeof flow.id !== 'string' || !flow.id.trim() || flowIds.has(flow.id)) throw new RangeError('External flow IDs must be unique and non-empty.');\n        flowIds.add(flow.id);\n        assertTimestamp(flow.effectiveAt, 'External flow effectiveAt');\n        assertTimestamp(flow.recordedAt, 'External flow recordedAt');\n        if (flow.recordedAt <= input.recordedAtCutoff && flow.effectiveAt >= input.startAt && flow.effectiveAt <= input.endAt) expectedFlows.add(flow.id);\n    }
 
     const ids = new Set<string>();
     const eligible: InvestmentDrawdownObservation[] = [];
@@ -143,7 +143,7 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
         }
     }
 
-    const groups = [...grouped.values()].sort((a, b) => a.effectiveAt.localeCompare(b.effectiveAt));
+    const observedFlowIds = new Set<string>();\n    for (const group of grouped.values()) {\n        if (group.pre || group.post) observedFlowIds.add(group.pre?.flowId ?? group.post?.flowId!);\n    }\n    for (const flowId of expectedFlows) {\n        if (!observedFlowIds.has(flowId)) return unavailable(input, 'An authoritative external flow is missing its paired valuation boundary observations.', eligible.length);\n    }\n    for (const flowId of observedFlowIds) {\n        if (!expectedFlows.has(flowId)) throw new RangeError('A flow-boundary observation does not match an eligible authoritative external flow.');\n    }\n\n    const groups = [...grouped.values()].sort((a, b) => a.effectiveAt.localeCompare(b.effectiveAt));
     for (const group of groups) {
         if (!group.daily && (!group.pre || !group.post)) {
             return unavailable(input, 'An external flow is missing its paired pre-flow or post-flow valuation.', eligible.length);
