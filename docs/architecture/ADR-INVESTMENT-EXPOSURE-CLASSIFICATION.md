@@ -106,21 +106,21 @@ The product owner selected Option B on 2026-11-13. The former recommendation and
 
 ## Accepted decision
 
-**Option B — weighted multi-group look-through.** Each instrument may have one or more user-authored group allocations within a dimension. The allocation weights must reconcile to 100% within 0.01 percentage points. Zero-weight entries and duplicate group IDs within one instrument/dimension snapshot are rejected.
+**Option B — weighted multi-group look-through.** Each instrument may have one or more user-authored group allocations within a dimension. The allocation weights must reconcile to 100% within 0.01 percentage points. Accepted rounding tolerance is normalized to exactly 100% during aggregation so no position value is lost. Zero-weight entries and duplicate group IDs within one instrument/dimension snapshot are rejected.
 
 The implementation contract is:
 
-- A classification snapshot is scoped to one instrument and one stable user-defined dimension ID. Group IDs are stable within that dimension; display names are descriptive labels.
+- A classification snapshot is scoped to one instrument and one stable user-defined dimension ID. The dimension display name must remain consistent for a given dimension ID. Group IDs and group display names are stable within that dimension.
 - Each snapshot records source type/name, optional evidence reference, effective-from date and recorded-at timestamp. Supported source types are manual, import, provider and correction; no provider integration is implied.
 - Classification history is append-only. Historical selection requires both effective-from and recorded-at timestamps to be visible at the requested cutoffs. A later-recorded correction cannot rewrite what was previously known.
 - A positively held instrument must have a complete 100% classification for the selected dimension and cutoffs. Missing classifications remain listed as unclassified positions and make the entire exposure result unavailable; they are never silently excluded from the denominator. Missing valuation also makes the result unavailable.
-- Group market value is the position market value multiplied by the group's allocation weight. Group percentage is group market value divided by the total positively held, fully valued position market value in the selected currency and scope. Multiple accounts holding the same instrument are aggregated. No implicit FX is performed.
+- Group market value is the position market value multiplied by the group's normalized allocation weight. Group percentage is group market value divided by the total positively held, fully valued position market value in the selected currency and scope. Multiple accounts holding the same instrument are aggregated. No implicit FX is performed.
 - The first implementation is one-level user-entered look-through. Nested fund recursion, circular-reference traversal, provider taxonomy synchronization, automatic stale-data detection and exposure-limit evaluation are not part of this increment.
 - No classifications are inferred for existing instruments during migration. Existing schema-v8 workspaces start with an empty classification collection.
 
 ## Acceptance gate
 
-The domain implementation must include deterministic validation, bitemporal selection and aggregation tests with hand-calculated examples before persistence, UI or policy evaluation is enabled.
+**Satisfied for the Sprint 9 classification and analysis increment.** Deterministic validation, bitemporal selection and hand-calculated aggregation tests are implemented. SQLite migration/recovery, JSON backup compatibility, private-workspace UI and Chromium browser smoke are also implemented and passed CI. Exposure-limit policy evaluation remains explicitly out of scope and requires a separate approved contract.
 
 
 ## Implementation status — Sprint 9
@@ -129,4 +129,4 @@ The domain implementation must include deterministic validation, bitemporal sele
 - The first private-workspace UI is implemented in `apps/dashboard/investment-exposure-workspace.js` and the dashboard HTML. It supports user-entered immutable classification snapshots and historical exposure analysis.
 - SQLite schema v9 adds `investmentExposureClassifications`; v8→v9 migration is transactional, creates a mode-restricted pre-v9 JSON recovery artifact, and never infers classifications.
 - JSON backup validation and preview recognize schema v9 while preserving imports from schemas 1–8. Legacy restores preserve existing classifications only when they remain valid against the restored instrument collection.
-- CI validation is required before this increment can be considered complete or merged.
+- CI, Chromium browser smoke, dashboard deployment and Secret Scan passed on PR #450 head. PR #450 remains a draft pending owner review; main remains on schema v8 until merge.
