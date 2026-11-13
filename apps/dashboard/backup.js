@@ -18,10 +18,10 @@ export function validateBackupPayload(payload, expectedCurrency) {
         || ([6, 7, 8, 9, 10].includes(payload.schemaVersion) && !['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements'].every((key) => Array.isArray(payload[key])))
         || ([7, 8, 9, 10].includes(payload.schemaVersion) && !Array.isArray(payload.investmentAllocationPolicies))
         || ([7, 8, 9, 10].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== undefined && typeof payload.allocationPoliciesMigratedFromV6 !== 'boolean')
-        || ([7, 8, 9].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 === true && payload.investmentAllocationPolicies.length !== 0)
+        || ([7, 8, 9, 10].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 === true && payload.investmentAllocationPolicies.length !== 0)
         || ([8, 9, 10].includes(payload.schemaVersion) && !Array.isArray(payload.investmentConcentrationPolicies))
         || ([8, 9, 10].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== undefined && typeof payload.concentrationPoliciesMigratedFromV7 !== 'boolean')
-        || ([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 === true && payload.investmentConcentrationPolicies.length !== 0)
+        || ([8, 9, 10].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 === true && payload.investmentConcentrationPolicies.length !== 0)
         || ([9, 10].includes(payload.schemaVersion) && !Array.isArray(payload.investmentExposureClassifications))
         || ([9, 10].includes(payload.schemaVersion) && payload.exposureClassificationsMigratedFromV8 !== undefined && typeof payload.exposureClassificationsMigratedFromV8 !== 'boolean')
         || ([9, 10].includes(payload.schemaVersion) && payload.exposureClassificationsMigratedFromV8 === true && payload.investmentExposureClassifications.length !== 0)
@@ -46,26 +46,27 @@ export function validateBackupPayload(payload, expectedCurrency) {
             targetDate: goal.targetDate, createdAt: goal.createdAt, updatedAt: goal.updatedAt });
     }
     const includesCashFlow = [3, 4, 5, 6, 7, 8, 9, 10].includes(payload.schemaVersion);
-    const includesHistoricalSnapshots = [4, 5, 6, 7, 8, 9].includes(payload.schemaVersion);
+    const includesHistoricalSnapshots = [4, 5, 6, 7, 8, 9, 10].includes(payload.schemaVersion);
     const cashFlowEntries = includesCashFlow ? validateCashFlowEntries(payload.cashFlowEntries) : [];
     const budgets = includesCashFlow ? validateCashFlowBudgets(payload.budgets) : [];
     const historicalSnapshots = includesHistoricalSnapshots ? validateHistoricalSnapshots(payload.historicalSnapshots, expectedCurrency) : [];
-    const investmentLedger = [5, 6, 7, 8, 9].includes(payload.schemaVersion) ? validateInvestmentLedgerCollections(payload) : null;
-    const cashLedger = [6, 7, 8, 9].includes(payload.schemaVersion) ? validateInvestmentCashCollections(payload) : null;
-    const allocationPolicies = [7, 8, 9].includes(payload.schemaVersion) ? validateInvestmentAllocationCollections(payload) : null;
-    const concentrationPolicies = [8, 9].includes(payload.schemaVersion) ? validateInvestmentConcentrationCollections(payload) : null;
+    const investmentLedger = [5, 6, 7, 8, 9, 10].includes(payload.schemaVersion) ? validateInvestmentLedgerCollections(payload) : null;
+    const cashLedger = [6, 7, 8, 9, 10].includes(payload.schemaVersion) ? validateInvestmentCashCollections(payload) : null;
+    const allocationPolicies = [7, 8, 9, 10].includes(payload.schemaVersion) ? validateInvestmentAllocationCollections(payload) : null;
+    const concentrationPolicies = [8, 9, 10].includes(payload.schemaVersion) ? validateInvestmentConcentrationCollections(payload) : null;
     const exposureClassifications = [9, 10].includes(payload.schemaVersion) ? { investmentExposureClassifications: validateInvestmentExposureClassifications(payload.investmentExposureClassifications, { instruments: investmentLedger.investmentInstruments }) } : null;
     const exposurePolicies = payload.schemaVersion === 10 ? validateInvestmentExposurePolicyCollections({
         ...investmentLedger, ...exposureClassifications, investmentExposurePolicies: payload.investmentExposurePolicies
     }) : null;
     return {
         records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}), ...(allocationPolicies ?? {}), ...(concentrationPolicies ?? {}), ...(exposureClassifications ?? {}), ...(exposurePolicies ?? {}),
-        includesGoals: [2, 3, 4, 5, 6, 7, 8, 9].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
+        includesGoals: [2, 3, 4, 5, 6, 7, 8, 9, 10].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
         ...(investmentLedger ? { includesInvestmentLedger: true } : {}),
         ...(payload.schemaVersion >= 6 ? { includesInvestmentCashLedger: true } : {}),
-        ...([7, 8, 9].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {}),
-        ...([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== true ? { includesInvestmentConcentrationPolicies: true } : {}),
-        ...(payload.schemaVersion >= 9 && payload.exposureClassificationsMigratedFromV8 !== true ? { includesInvestmentExposureClassifications: true } : {})
+        ...([7, 8, 9, 10].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {}),
+        ...([8, 9, 10].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== true ? { includesInvestmentConcentrationPolicies: true } : {}),
+        ...(payload.schemaVersion >= 9 && payload.exposureClassificationsMigratedFromV8 !== true ? { includesInvestmentExposureClassifications: true } : {}),
+        ...(payload.schemaVersion === 10 && payload.exposurePoliciesMigratedFromV9 !== true ? { includesInvestmentExposurePolicies: true } : {})
     };
 }
 
