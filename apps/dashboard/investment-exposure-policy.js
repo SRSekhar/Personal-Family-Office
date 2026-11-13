@@ -117,14 +117,15 @@ export function validateInvestmentExposurePolicies(policies, context) {
 
 /** Select the latest policy version both effective and known at the requested cutoffs. */
 export function selectInvestmentExposurePolicy(policies, {
-    asOfDate, recordedAtCutoff, scope, currency, accountId, dimensionId
+    asOfDate, recordedAtCutoff, policySetId, scope, currency, accountId, dimensionId
 } = {}, context) {
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
         || !(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) {
         throw new RangeError('Exposure policy selection requires valid effective and recorded-at cutoffs.');
     }
+    const normalizedPolicySetId = requireText(policySetId, 'Exposure policy set ID');
     const validated = validateInvestmentExposurePolicies(policies, context);
-    const eligible = validated.filter((policy) => policy.currency === currency && policy.scope === scope
+    const eligible = validated.filter((policy) => policy.policySetId === normalizedPolicySetId && policy.currency === currency && policy.scope === scope
         && (scope !== 'account' || policy.accountId === accountId) && policy.dimensionId === dimensionId
         && Date.parse(policy.effectiveFrom + 'T00:00:00.000Z') <= asOfDate.getTime()
         && Date.parse(policy.recordedAt) <= recordedAtCutoff.getTime());
@@ -155,7 +156,8 @@ export function evaluateInvestmentExposurePolicy({
     if (exposure.currency !== undefined && exposure.currency !== validated.currency
         || exposure.scope !== undefined && exposure.scope !== validated.scope
         || exposure.scope === 'account' && exposure.accountId !== validated.accountId
-        || exposure.dimensionId !== undefined && exposure.dimensionId !== validated.dimensionId) {
+        || exposure.dimensionId !== undefined && exposure.dimensionId !== validated.dimensionId
+        || exposure.dimensionName !== undefined && exposure.dimensionName !== validated.dimensionName) {
         throw new RangeError('Exposure policy dimensions must match the analyzed exposure currency, scope and classification dimension.');
     }
     const dimensions = { policyId: validated.id, policySetId: validated.policySetId,
