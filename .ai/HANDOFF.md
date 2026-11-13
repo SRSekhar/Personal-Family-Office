@@ -6,7 +6,7 @@ PFO OS — Personal Family Office Operating System
 
 ## Current State
 
-The repository is the source of truth. Main includes the investment ledger, FIFO positions and valuation provenance, cash ledger and statement reconciliation, allocation/concentration policies, and Sprint 9 weighted multi-group exposure classifications (PR #450). Main currently stores a validated schema-v9 SQLite snapshot with 16 collections. Sprint 10 is in draft PR #452 on branch `feature/sprint-10-exposure-limits`, adding explicit user-configured exposure limits, private policy UI, schema-v10 SQLite migration, 17-collection JSON backup/restore, and legacy-reference preservation. PR #452 must not be merged until CI, Chromium browser smoke, dashboard packaging and Secret Scan pass. The repository is public: use synthetic fixtures only; never commit real household financial data, statements, credentials or private reports. SQLite and JSON exports are not encrypted, backups remain manual, and remote backup/cloud sync/multi-user hosted access are not shipped. Customer demand, licensing/distribution review and owner-side GitHub Pages setup remain release gates.
+The repository is the source of truth. Main includes the investment ledger, FIFO positions and valuation provenance, cash ledger and statement reconciliation, allocation/concentration policies, weighted multi-group exposure classifications (PR #450), and user-configured exposure limits (PR #452). The private workspace is stored in a validated schema-v10 SQLite snapshot with 17 collections. PR #452 merged on 2026-11-13 after CI #1670, dashboard packaging #955, Secret Scan #1464 and Chromium browser smoke passed. Liquidity and drawdown remain gated on separately approved input/metric contracts. The repository is public: use synthetic fixtures only; never commit real household financial data, statements, credentials or private reports. SQLite and JSON exports are not encrypted, backups remain manual, and remote backup/cloud sync/multi-user hosted access are not shipped. Customer demand, licensing/distribution review and owner-side GitHub Pages setup remain release gates.
 
 ## Latest Follow-up (2026-10-14)
 
@@ -550,3 +550,14 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Latest PR checks are queued/running; recheck the current head's CI, dashboard packaging and Secret Scan, then inspect Chromium smoke before merge.
 - If Secret Scan flags the synthetic localStorage key, retain the split-string construction in app, workspace module and browser smoke; do not reintroduce the contiguous high-entropy key string.
 - Liquidity and drawdown remain blocked on their independent data/metric contracts. Use synthetic data only.
+
+
+## Latest Handoff — 2026-11-13 (Sprint 10 merged)
+
+- Sprint 9 Option B weighted multi-group look-through classifications were merged in PR #450.
+- Sprint 10 user-configured exposure policy versions, evaluation, private-workspace UI, schema-v10 persistence and 17-collection backup/restore were merged in PR #452.
+- Main is at schema v10. The v9→v10 SQLite migration is transactional and writes a mode-restricted pre-v10 recovery artifact before changing the live snapshot. New policy history starts empty; no limits are inferred.
+- JSON backup schemas 1–9 remain importable. Existing policy history is preserved only when its group/dimension references remain valid against the restored ledger and classifications; incompatible legacy imports are rejected before any writes.
+- CI #1670, dashboard packaging #955, Secret Scan #1464 and Chromium browser smoke passed before merge.
+- No default thresholds, risk scores, severity bands, recommendations, alerts, FX conversion, nested fund recursion, provider synchronization or trading behavior were introduced.
+- Next gated work: define and validate liquidity and drawdown data/metric contracts before implementation. Continue to use synthetic data only.
