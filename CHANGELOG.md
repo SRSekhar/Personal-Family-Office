@@ -10,7 +10,7 @@ The project follows Semantic Versioning.
 
 ## Added
 
-- User-configured investment exposure limits over weighted look-through classifications: immutable bitemporal policy versions, explicit user maximum percentages and > / >= comparators, complete-data evaluation, private-workspace authoring, SQLite schema v10, 17-collection backup/restore and v9→v10 migration with pre-migration recovery artifact (draft PR #452; CI pending).
+- User-configured investment exposure limits over weighted look-through classifications: immutable bitemporal policy versions, explicit user maximum percentages and > / >= comparators, complete-data evaluation, private-workspace authoring, SQLite schema v10, 17-collection backup/restore and v9→v10 migration with pre-migration recovery artifact (PR #452 merged 2026-11-13; CI, Chromium smoke, dashboard packaging and Secret Scan passed).
 - User-defined weighted multi-group investment exposure classifications with provenance, bitemporal history and complete look-through aggregation (PR #450 merged).
 - Investment exposure-classification decision ADR comparing single-group assignment and weighted multi-group look-through, and defining the data-contract decisions required before implementation (PR #449; CI and Secret Scan passed).
 - Customer discovery playbook with a non-leading interview script, anonymized evidence template, privacy guardrails, and explicit paid-pilot decision thresholds.
