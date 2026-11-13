@@ -256,7 +256,7 @@ describe('SQLite workspace persistence schema v9', () => {
         raw.close();
 
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
-        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 8, updatedAt: '2026-10-28T12:00:00.000Z' });
+        expect(migrated.getStatus()).toMatchObject({ schemaVersion: 9, updatedAt: '2026-10-28T12:00:00.000Z' });
         const saved = migrated.getWorkspace().payload;
         expect(saved.schemaVersion).toBe(9);
         expect(saved.investmentAllocationPolicies).toEqual(legacy.investmentAllocationPolicies);
@@ -362,7 +362,7 @@ describe('SQLite workspace persistence schema v9', () => {
         expect(database.getWorkspace().payload).toEqual(payload());
         expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
     });
-    it('starts empty and reports schema v8', async () => {
+    it('starts empty and reports schema v9', async () => {
         const database = await createDatabase();
         expect(database.getWorkspace()).toBeNull();
         expect(database.getStatus()).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: false, schemaVersion: 9, currency: 'INR', updatedAt: null });
