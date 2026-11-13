@@ -691,6 +691,9 @@ Sprint 9 begins with exposure-classification data-contract discovery. No issuer,
 
 ## Latest IPM-05 update — 2026-11-13
 
-- PR #449 merged exposure classification decision discovery to `main`; CI run #1579 and Secret Scan passed on the PR head.
-- The ADR explicitly leaves the single-group versus weighted look-through choice unresolved. Do not implement schema, classification entry, aggregation or exposure limits until the product owner approves a model and its cross-cutting data semantics.
-- Liquidity and drawdown remain independently blocked on their own validated input/metric contracts.
+- PR #449 merged the exposure-classification discovery ADR to `main`; the product owner approved **Option B — weighted multi-group look-through**.
+- Draft PR #450 implements immutable bitemporal instrument/dimension classifications, source provenance, optional evidence references, 100% weight reconciliation (0.01 percentage-point tolerance), complete weighted exposure aggregation, and private-workspace authoring/history/analysis.
+- PR #450 adds schema-v9 SQLite persistence with transactional v8→v9 migration and a pre-v9 recovery artifact. Existing instruments receive no inferred classifications. JSON backup/restore supports schema v9 and remains backward compatible with schemas 1–8; safe legacy imports preserve existing classifications only when references remain valid.
+- Chromium smoke verifies authoring, weighted exposure output, JSON round-trip, legacy-import preservation, SQLite backup and exact persistence across all 16 collections. CI #43382449755, dashboard deployment #43382449661 and Secret Scan #43382449657 passed on the same head.
+- Main remains schema v8 / 15 collections until PR #450 is reviewed and merged; the feature branch carries schema v9 / 16 collections.
+- User-defined exposure-limit evaluation is a separate planned increment requiring explicit thresholds, comparison semantics, bitemporal policy history and its own persistence/backup contract. No application defaults or household-specific risk limits. Liquidity and drawdown remain independently gated on their own validated input/metric contracts.
