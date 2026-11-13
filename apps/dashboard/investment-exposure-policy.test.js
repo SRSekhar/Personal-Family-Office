@@ -78,6 +78,10 @@ describe('investment exposure policy validation', () => {
         expect(() => validateInvestmentExposurePolicy(policy({ effectiveFrom: '2026-02-30' }), context)).toThrow(/calendar date/);
         expect(() => validateInvestmentExposurePolicy(policy({ recordedAt: '2026-01-02' }), context)).toThrow(/canonical ISO-8601/);
     });
+    it('does not allow policy groups to be borrowed from a different currency', () => {
+        expect(() => validateInvestmentExposurePolicy(policy({ currency: 'USD' }), context))
+            .toThrow(/must exist in validated investment classifications/);
+    });
     it('rejects policy dimensions without validated classifications', () => {
         expect(() => validateInvestmentExposurePolicy(policy({ dimensionId: 'region', dimensionName: 'Region' }), context))
             .toThrow(/must exist in validated investment classifications/);
@@ -87,9 +91,13 @@ describe('investment exposure policy validation', () => {
         expect(validateInvestmentExposurePolicies([policy(), version2], context)).toHaveLength(2);
         expect(() => validateInvestmentExposurePolicies([policy(), policy()], context)).toThrow(/IDs must be unique/);
         expect(() => validateInvestmentExposurePolicies([policy(), policy({ id: 'other', version: 1 })], context)).toThrow(/version must be unique/);
+        const multiCurrencyContext = {
+            accounts, instruments: [...instruments, { id: 'usd-fund', name: 'USD fund', currency: 'USD' }],
+            classifications: [...classifications, { ...classifications[0], id: 'usd-classification', instrumentId: 'usd-fund' }]
+        };
         expect(() => validateInvestmentExposurePolicies([policy(), policy({
             id: 'policy-v2', version: 2, currency: 'USD'
-        })], context)).toThrow(/retain currency, scope, account and classification dimension/);
+        })], multiCurrencyContext)).toThrow(/retain currency, scope, account and classification dimension/);
     });
     it('validates the persisted policy collection against its workspace references', () => {
         expect(validateInvestmentExposurePolicyCollections({
