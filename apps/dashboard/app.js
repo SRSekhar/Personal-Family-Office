@@ -1682,12 +1682,12 @@ function showToast(message) {
 
 function exportData() {
     const isPrivateExport = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname);
-    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy || !investmentExposurePolicyStorageHealthy)) {
+    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy || !investmentExposurePolicyStorageHealthy || !investmentDrawdownSnapshotStorageHealthy)) {
         showToast('Export is paused because saved records or goals could not be read safely. Existing storage remains untouched; import a valid backup to recover.');
         return;
     }
     const payload = {
-        schemaVersion: isPrivateExport ? 10 : 1,
+        schemaVersion: isPrivateExport ? 11 : 1,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records
@@ -1714,6 +1714,8 @@ function exportData() {
             if (!investmentExposureStorageHealthy) throw new Error('Investment exposure classification storage could not be validated.');
             Object.assign(payload, readInvestmentExposurePolicies());
             if (!investmentExposurePolicyStorageHealthy) throw new Error('Investment exposure policy storage could not be validated.');
+            Object.assign(payload, readInvestmentDrawdownSnapshots());
+            if (!investmentDrawdownSnapshotStorageHealthy) throw new Error('Investment drawdown snapshot storage could not be validated.');
         } catch (error) {
             showToast(error instanceof Error ? 'Full workspace export paused: ' + error.message : 'Full workspace data could not be validated; nothing was exported.');
             return;
