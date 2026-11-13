@@ -1,15 +1,20 @@
 # Current Sprint
 
-## 2026-11-13 — Sprint 10: User-configured investment exposure limits (implementation in PR #452)
+## 2026-11-13 — Sprint 10: User-configured investment exposure limits (completed — PR #452 merged)
 
 - Sprint 9 weighted multi-group look-through was approved as Option B and merged in PR #450.
-- Sprint 10 implements explicit per-group maximum exposure limits over the complete weighted look-through result. Thresholds and comparison operators are always user-authored; no default risk limits.
-- Added immutable policy versions with policy-set identity, currency, portfolio/account scope, classification dimension, effective-from date and recorded-at timestamp.
-- Added explicit strict (>) and inclusive (>=) boundary evaluation. Configured groups absent from a complete exposure result measure as zero; missing classification/valuation data and empty portfolios never become a pass. Available source exposure must reconcile to 100%.
-- Added a private-workspace UI for policy authoring, immutable history and point-in-time evaluation. The sample workspace has no active authoring or evaluation controls.
-- Added schema v10 with 17 collections, transactional v9→v10 SQLite migration, mode-restricted pre-v10 recovery artifact, full JSON backup/restore compatibility for schemas 1–9, and legacy policy-reference preservation checks.
-- Added deterministic policy tests, schema-v10 backup tests, SQLite migration/rollback tests, static UI checks and Chromium browser-smoke coverage for policy creation, breach evaluation, JSON restore, legacy preservation and SQLite round-trip.
-- Draft PR: #452. CI, dashboard packaging and Secret Scan are running. Do not merge until all checks pass and review is complete.
+- Completed immutable, bitemporal exposure policy versions with stable policy-set identity, currency, portfolio/account scope and classification dimension.
+- Completed explicit per-group maximum percentages and user-selected strict (>) / inclusive (>=) boundaries. No default thresholds or risk appetite.
+- Completed private-workspace authoring, immutable history and point-in-time evaluation. Sample workspace controls remain disabled.
+- Completed complete-data evaluation: configured groups absent from a complete result measure as zero; missing classifications/valuations and empty portfolios remain unavailable/empty and never pass. Available source exposure must reconcile to 100%.
+- Completed SQLite schema v10 with 17 collections, transactional v9→v10 migration and mode-restricted pre-v10 recovery artifact.
+- Completed JSON schema-v10 backup/restore, legacy schemas 1–9 import, and preservation/rejection checks for existing policy references.
+- Completed deterministic domain/backup/migration/static UI tests and Chromium browser smoke for policy creation, breach evaluation, invalid/valid legacy import, JSON backup/restore and SQLite round-trip.
+- PR #452 merged 2026-11-13. CI #1670, dashboard packaging #955 and Secret Scan #1464 all passed.
+
+### Next gated work
+
+Liquidity and drawdown remain separate backlog items. Do not implement them until their input/provenance, metric, scope, denominator, missing-data and time-series contracts are explicitly defined and tested.
 
 ## Completed — Sprint 9: Weighted investment exposure (PR #450 merged)
 
