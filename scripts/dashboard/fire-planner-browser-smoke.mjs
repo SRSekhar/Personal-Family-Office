@@ -1471,7 +1471,7 @@ try {
         'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
         'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
         'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
-        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1',
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1',
         'pfo-os.investment-exposure-classifications.v1'
     ].map((key) => [key, globalThis.localStorage.getItem(key)])));
     await page.evaluate(() => {
@@ -1497,7 +1497,7 @@ try {
             'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
             'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
             'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
-            'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+            'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1'
         ].map((key) => [key, globalThis.localStorage.getItem(key)]));
     });
     assert.deepEqual(csvStorageAfterFailedCommit, csvStorageBeforeFailedCommit,
@@ -1522,7 +1522,7 @@ try {
         'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
         'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
         'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
-        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1'
     ].map((key) => [key, globalThis.localStorage.getItem(key)])));
     assert.deepEqual(csvStorageAfterOversizedImport, csvStorageBeforeFailedCommit,
         'oversized CSV rejection must preserve every investment/cash browser-storage value');
@@ -3366,7 +3366,7 @@ try {
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
-        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1', 'pfo-os.investment-exposure-classifications.v1']) {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1', 'pfo-os.investment-exposure-classifications.v1']) {
             globalThis.localStorage.removeItem(key);
         }
     });
