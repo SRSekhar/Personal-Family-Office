@@ -93,7 +93,7 @@ describe('investment drawdown snapshot contract', () => {
         const original = snapshot();
         const correction = snapshot({ id: 'snapshot-2', recordedAt: '2026-01-02T17:00:00.000Z', supersedesSnapshotId: 'snapshot-1' });
         expect(validate([original, correction])).toHaveLength(2);
-        expect(() => validate([original, { ...correction, effectiveAt: '2026-01-02T16:00:00.000Z' }]))
+        expect(() => validate([original, { ...correction, effectiveAt: '2026-01-02T16:00:00.000Z', components: [positionComponent('position-1', 200, '2026-01-02T16:00:00.000Z')] }]))
             .toThrow(/retain its scope, currency, event identity and effective time/i);
     });
 
