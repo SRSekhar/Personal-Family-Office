@@ -77,3 +77,12 @@ export type {
     ProgressiveTaxEstimate,
     ProgressiveTaxEstimateInput
 } from './ProgressiveTax.js';
+
+export { analyzeInvestmentDrawdownMath } from './InvestmentDrawdownMath.js';
+export type {
+    InvestmentDrawdownMathInput,
+    InvestmentDrawdownMathResult,
+    InvestmentDrawdownObservation,
+    InvestmentDrawdownObservationKind,
+    InvestmentDrawdownPoint
+} from './InvestmentDrawdownMath.js';
