@@ -158,7 +158,7 @@ export function analyzeInvestmentExposurePositions({
             throw new RangeError('Position market value must be non-negative and finite.');
         }
         if (position.marketValue <= 1e-8) continue;
-        const classification = selectInvestmentExposureClassification(classifications, {
+        const classification = selectInvestmentExposureClassification(validatedClassifications, {
             instrumentId: instrument.id, dimensionId: normalizedDimensionId, asOfDate, recordedAtCutoff
         });
         if (!classification) {
