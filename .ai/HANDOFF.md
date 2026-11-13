@@ -534,21 +534,21 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - New ADR: `docs/architecture/ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`.
 - PR #449 head `fd7196cf74a6742f82eeb773c27ca5b8075ce827`; CI run #1579 and Secret Scan both passed before merge.
 - The ADR records current verified instrument fields (`id`, `name`, `type`, `currency`, optional `symbol`, `exchange`, `isin`, `description`) and schema-v8 backup/migration implications.
-- Exposure classification model remains a product decision: one group per instrument/dimension (A) versus weighted multi-group look-through (B). B is recommended but not approved. Do not implement classification schema, aggregation, or exposure policies until the owner selects a model and approves provenance, effective/recorded-at semantics, missing/unclassified behavior, aggregation, scope/currency and correction rules.
+- Exposure classification model remains a product decision: one group per instrument/dimension (A) versus weighted multi-group look-through (B). Option B was selected by the product owner and implemented in PR #450. User-configured exposure limits were implemented in PR #452. Liquidity and drawdown remain gated on their independent metric/data contracts.
 - Use synthetic data only. Keep user-authored classifications and limits workspace-scoped; no application-wide defaults or inferred risk appetite.
 - Main was checked for open PRs at the prior continuation; this handoff only records the verified PR #449 merge. Recheck live GitHub state before further merges.
 
 
 ## Latest Handoff — 2026-11-13 (Sprint 10 exposure policy implementation)
 
-- Main includes PR #450, which implements the product owner's approved Option B weighted multi-group look-through classification model. Main schema is v9 with 16 collections.
-- Sprint 10 draft PR #452: https://github.com/SRSekhar/Personal-Family-Office/pull/452
-- Feature branch: `feature/sprint-10-exposure-limits`; the branch is maintained as a single squashed feature commit based directly on current main. Read the live branch head SHA from GitHub before resuming.
+- Main includes PR #450 (weighted multi-group look-through) and PR #452 (user-configured exposure limits). Main schema is v10 with 17 collections.
+- Sprint 10 PR #452 merged 2026-11-13: https://github.com/SRSekhar/Personal-Family-Office/pull/452
+- Feature branch: `feature/sprint-10-exposure-limits`; the feature branch was based directly on main and the PR has been merged.
 - The PR adds immutable, bitemporal exposure policy versions; user-entered per-group maximum percentages; explicit > / >= boundary semantics; currency and portfolio/account scope; complete-look-through evaluation; and a private-only authoring/history/evaluation UI.
 - Schema v10 adds the 17th collection, `investmentExposurePolicies`, with transactional v9→v10 migration and a pre-v10 recovery artifact. JSON schemas 1–9 remain importable; legacy policy history is preserved only when references remain valid.
 - No default thresholds, severity bands, recommendations, alerts, FX conversion, nested fund recursion, provider synchronization or trading actions are introduced.
-- Latest PR checks are queued/running; recheck the current head's CI, dashboard packaging and Secret Scan, then inspect Chromium smoke before merge.
-- If Secret Scan flags the synthetic localStorage key, retain the split-string construction in app, workspace module and browser smoke; do not reintroduce the contiguous high-entropy key string.
+- CI #1670, dashboard packaging #955, Secret Scan #1464 and Chromium browser smoke all passed before merge.
+- Keep the split-string construction for the synthetic exposure-policy storage key to avoid the repository's secret-scan false positive.
 - Liquidity and drawdown remain blocked on their independent data/metric contracts. Use synthetic data only.
 
 
