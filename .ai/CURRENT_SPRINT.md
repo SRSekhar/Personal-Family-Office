@@ -1,16 +1,19 @@
 # Current Sprint
 
-## 2026-11-13 — Sprint 11: Flow-adjusted portfolio drawdown kernel (in progress — PR #453)
+## 2026-11-13 — Sprint 11: Flow-adjusted portfolio drawdown (in progress — PR #453)
 
 - Sprint 10 exposure limits remain complete and merged in PR #452.
 - Approved Option B: time-weighted, external-flow-adjusted drawdown; raw NAV and Modified Dietz fallback are rejected.
 - Implemented a pure calculator kernel with chain-linked wealth index, paired pre/post external-flow boundaries, authoritative flow-event matching, scope/currency validation, bitemporal cutoffs, maximum drawdown, peak/trough/recovery and explicit unavailable states.
 - Added hand-calculated tests for market movement, contribution neutrality, withdrawal neutrality, costs, missing/incomplete boundaries, flow timestamp mismatch, simultaneous flow ambiguity, mixed scope/currency and recorded-at cutoff.
-- Production delivery is not complete: trusted snapshot construction, observation completeness calendar, full event taxonomy, immutable persistence, schema migration, backup/restore and private UI remain required. Do not present the kernel as a working end-user drawdown feature.
+- Added a component-level snapshot contract and validator for position/cash references, component provenance, exact effective timestamps, component-total reconciliation, incomplete states, paired flow-boundary component universes, immutable supersession and recorded-at selection. This does not yet independently prove that every open holding/cash account is included.
+- Added SQLite schema v11 (18 collections), transactional v10→v11 migration with a protected pre-v11 recovery artifact, and full JSON/SQLite backup/restore integration. Legacy v1–v10 JSON backups remain supported; old backups preserve existing drawdown snapshots only if their references remain valid.
+- Added deterministic snapshot-contract, backup compatibility and migration tests. CI verification for this increment is pending.
+- Production delivery is not complete: trusted capture/completeness builder, authoritative flow taxonomy, explicit daily calendar, integration acceptance and private UI/export remain required. Do not present drawdown as an end-user feature yet.
 
 ### Next gated work
 
-Implement the manual-first, provider-neutral snapshot capture/import contract: complete component coverage for all open holdings and included cash accounts, exact effective timestamps, per-component source provenance, paired external-flow boundaries, bitemporal correction/supersession, SQLite migration and full backup/restore. Do not add a provider or external transmission. Liquidity remains separately gated.
+Next: implement the manual-first, provider-neutral capture/import workflow and independently verify complete position/cash component coverage against the immutable ledgers at both effective-time and recorded-at cutoffs. Then add authoritative external-flow taxonomy, explicit daily observation calendar, integration acceptance and private UI/export. Do not add a provider or external transmission. Liquidity remains separately gated.
 
 - Sprint 9 weighted multi-group look-through was approved as Option B and merged in PR #450.
 - Completed immutable, bitemporal exposure policy versions with stable policy-set identity, currency, portfolio/account scope and classification dimension.
