@@ -1294,6 +1294,22 @@ try {
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
+    const exposureWorkspaceDiagnostics = await page.evaluate(() => ({
+        workspace: globalThis.document.querySelector('#workspace-label')?.textContent,
+        count: globalThis.document.querySelector('#investment-exposure-count')?.textContent,
+        error: globalThis.document.querySelector('#investment-exposure-error')?.textContent,
+        message: globalThis.document.querySelector('#investment-exposure-message')?.textContent,
+        formDisabled: globalThis.document.querySelector('#investment-exposure-form button[type="submit"]')?.disabled,
+        instrumentOptions: [...(globalThis.document.querySelector('#investment-exposure-instrument')?.options ?? [])].map((option) => ({
+            value: option.value, label: option.textContent
+        })),
+        allocationRows: globalThis.document.querySelectorAll('#investment-exposure-allocations .investment-exposure-allocation-row').length
+    }));
+    process.stdout.write('EXPOSURE WORKSPACE DIAGNOSTICS: ' + JSON.stringify(exposureWorkspaceDiagnostics)
+        + ' pageErrors=' + JSON.stringify(pageErrors) + '\\n');
+    assert.equal(exposureWorkspaceDiagnostics.formDisabled, false, 'exposure form should be enabled in private workspace');
+    assert.ok(exposureWorkspaceDiagnostics.instrumentOptions.length > 1,
+        'exposure instrument selector should contain the private ledger instrument: ' + JSON.stringify(exposureWorkspaceDiagnostics));
     // Create and analyze a user-authored weighted look-through classification.
     await page.locator('#investment-exposure-instrument').selectOption({ index: 0 });
     await page.locator('#investment-exposure-form [name="dimensionId"]').fill('sector');
