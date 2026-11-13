@@ -18,7 +18,7 @@ function timestamp(value, label) {
 function money(value, currency, label, allowNegative = false) {
     if (!value || typeof value !== 'object' || !Number.isFinite(value.amount)
         || typeof value.currency !== 'string' || value.currency !== currency || (!allowNegative && value.amount < 0)) {
-        throw new Error(label + ' must be a finite, non-negative amount in the snapshot currency.');
+        throw new Error(label + ' must be a finite amount in the snapshot currency; negative values are allowed only where the component contract permits them.');
     }
     return { amount: value.amount, currency: value.currency };
 }
