@@ -516,7 +516,7 @@ describe('SQLite workspace persistence schema v11', () => {
         expect(resolveDatabasePath({ LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local' }, 'C:\\Users\\test', 'win32'))
             .toBe(join('C:\\Users\\test\\AppData\\Local', 'PFO-OS', 'pfo-os.sqlite'));
     });
-    it('creates and restores a verified online SQLite backup across all 15 collections with stable IDs', async () => {
+    it('creates and restores a verified online SQLite backup across all 18 collections with stable IDs', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-recovery-drill-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const original = payload({
@@ -616,7 +616,7 @@ describe('SQLite workspace persistence schema v11', () => {
             investmentCashTransfers: ['cash-transfer-recovery-1'],
             investmentCashStatements: ['cash-statement-1', 'cash-statement-2'],
             investmentAllocationPolicies: ['allocation-policy-recovery-1'],
-            investmentConcentrationPolicies: ['concentration-policy-recovery-1'], investmentExposureClassifications: [], investmentDrawdownSnapshots: []
+            investmentConcentrationPolicies: ['concentration-policy-recovery-1'], investmentExposureClassifications: [], investmentDrawdownSnapshots: [], investmentDrawdownSnapshots: []
         });
         expect(recovered.payload.investmentCashTransfers[0].amount).toEqual({ amount: 100, currency: 'INR' });
         expect(recovered.payload.investmentValuations[0].sourceName).toBe('User-entered');
