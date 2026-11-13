@@ -570,7 +570,7 @@ describe('SQLite workspace persistence schema v11', () => {
             schemaVersion: 11, collectionCounts: {
                 records: 2, goals: 1, cashFlowEntries: 1, budgets: 1, historicalSnapshots: 1,
                 investmentAccounts: 1, investmentInstruments: 1, investmentTransactions: 1, investmentValuations: 1,
-                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2, investmentAllocationPolicies: 1, investmentConcentrationPolicies: 1, investmentExposureClassifications: 0, investmentExposurePolicies: 1, investmentDrawdownSnapshots: 0
+                investmentCashAccounts: 2, investmentCashMovements: 2, investmentCashTransfers: 1, investmentCashStatements: 2, investmentAllocationPolicies: 1, investmentConcentrationPolicies: 1, investmentExposureClassifications: 0, investmentExposurePolicies: 0, investmentDrawdownSnapshots: 0
             }
         });
         expect(backup.bytes).toBeGreaterThan(0);
