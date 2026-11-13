@@ -548,6 +548,7 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Schema v10 adds the 17th collection, `investmentExposurePolicies`, with transactional v9→v10 migration and a pre-v10 recovery artifact. JSON schemas 1–9 remain importable; legacy policy history is preserved only when references remain valid.
 - No default thresholds, severity bands, recommendations, alerts, FX conversion, nested fund recursion, provider synchronization or trading actions are introduced.
 - CI #1670, dashboard packaging #955, Secret Scan #1464 and Chromium browser smoke all passed before merge.
+- Earlier duplicate Sprint 10 draft PR #451 was closed as superseded by #452; no open PRs remain.
 - Keep the split-string construction for the synthetic exposure-policy storage key to avoid the repository's secret-scan false positive.
 - Liquidity and drawdown remain blocked on their independent data/metric contracts. Use synthetic data only.
 
