@@ -466,3 +466,62 @@ describe('version 8 user-defined concentration policy backup validation', () => 
         expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
     });
 });
+
+
+describe('version 9 weighted investment exposure backup validation', () => {
+    const version9 = {
+        schemaVersion: 9, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [], investmentValuations: [],
+        investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [],
+        investmentAllocationPolicies: [], investmentConcentrationPolicies: [],
+        investmentExposureClassifications: [{
+            id: 'exposure-v1', instrumentId: 'instrument-1', dimensionId: 'sector', dimensionName: 'Sector',
+            effectiveFrom: '2026-01-01', recordedAt: '2026-01-01T00:00:00.000Z',
+            sourceType: 'manual', sourceName: 'User-entered',
+            allocations: [
+                { groupId: 'technology', groupName: 'Technology', weightPercent: 60 },
+                { groupId: 'healthcare', groupName: 'Healthcare', weightPercent: 40 }
+            ]
+        }]
+    };
+
+    it('validates and previews weighted classifications with provenance and bitemporal history', () => {
+        const validated = validateBackupPayload(version9, 'INR');
+        expect(validated.includesInvestmentExposureClassifications).toBe(true);
+        expect(validated.investmentExposureClassifications).toEqual(version9.investmentExposureClassifications);
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentExposureClassifications: true, investmentExposureClassificationCount: 1,
+            includesInvestmentConcentrationPolicies: true, investmentConcentrationPolicyCount: 0
+        });
+    });
+
+    it('requires the classification collection and validates weights and instrument references', () => {
+        const missing = { ...version9 }; delete missing.investmentExposureClassifications;
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow('Unsupported backup format');
+        const invalidWeights = structuredClone(version9);
+        invalidWeights.investmentExposureClassifications[0].allocations[0].weightPercent = 50;
+        expect(() => validateBackupPayload(invalidWeights, 'INR')).toThrow(/reconcile to 100%/);
+        const unknownInstrument = structuredClone(version9);
+        unknownInstrument.investmentExposureClassifications[0].instrumentId = 'missing';
+        expect(() => validateBackupPayload(unknownInstrument, 'INR')).toThrow(/unknown investment instrument/i);
+    });
+
+    it('preserves schema-v8 imports and recognizes the empty collection created by v8 migration', () => {
+        const legacy = structuredClone(version9);
+        legacy.schemaVersion = 8;
+        delete legacy.investmentExposureClassifications;
+        const old = validateBackupPayload(legacy, 'INR');
+        expect(old).not.toHaveProperty('includesInvestmentExposureClassifications');
+        expect(old).not.toHaveProperty('investmentExposureClassifications');
+
+        const migrated = { ...version9, investmentExposureClassifications: [], exposureClassificationsMigratedFromV8: true };
+        const result = validateBackupPayload(migrated, 'INR');
+        expect(result.investmentExposureClassifications).toEqual([]);
+        expect(result).not.toHaveProperty('includesInvestmentExposureClassifications');
+        const inconsistent = { ...migrated, investmentExposureClassifications: version9.investmentExposureClassifications };
+        expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
+    });
+});

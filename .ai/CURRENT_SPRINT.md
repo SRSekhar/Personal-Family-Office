@@ -1,39 +1,24 @@
 # Current Sprint
 
-## 2026-11-13 — Exposure classification decision contract merged
+## 2026-11-13 — Sprint 9: Weighted investment exposure (implementation complete; PR review pending)
 
-- PR #449 merged to `main` as merge commit `464491871b74c57eaa8eb77d73131f9e05819e4b`.
-- Added `docs/architecture/ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`, documenting the verified current instrument metadata/schema-v8 boundary, single-group versus weighted multi-group options, provenance, bitemporal history, missing-data semantics, candidate aggregation, and migration/backup requirements.
-- PR CI run #1579 passed; Secret Scan passed. The PR was documentation-only; no runtime behavior or persistence schema changed.
-- The classification model remains **undecided**. Neither Option A nor Option B is authorized for implementation. Weighted look-through is a recommendation only.
-- Next gate: product-owner selection of A or B and approval of the cross-cutting data semantics before implementation.
+- Product owner selected **Option B — weighted multi-group look-through**; PR #449 merged the discovery ADR to main.
+- PR #450 implements the approved contract on `feature/sprint-9-weighted-exposure` and remains a draft pending owner review.
+- Implemented immutable user-authored instrument/dimension classifications with source provenance, optional evidence reference, effective-from date and recorded-at timestamp.
+- Enforced 100% reconciliation within 0.01 percentage points, unique group IDs, stable dimension identity/display names, and bitemporal selection. Accepted rounding tolerance is normalized during aggregation so the full position value is allocated.
+- Implemented complete exposure aggregation by currency and portfolio/account scope. Missing classifications or valuations suppress partial results; no silent denominator exclusions, FX conversion or nested fund recursion.
+- Implemented private-workspace classification authoring/history and analysis controls for dimension, currency, scope, as-of date and recorded-at cutoff.
+- Added SQLite schema v9 with transactional v8→v9 migration and a mode-restricted pre-v9 recovery artifact. Existing instruments receive no inferred classifications.
+- Added schema-v9 JSON backup/restore with backward compatibility for schemas 1–8. Legacy imports preserve existing exposure classifications only when references remain valid.
+- Added unit, backup, migration/API, static-integrity and Chromium browser-smoke coverage, including authoring, weighted analysis, JSON round-trip, legacy preservation, SQLite backup and all 16 collections.
+- CI run #43382449755, dashboard deployment #43382449661 and Secret Scan #43382449657 passed on the same PR head. Main remains schema v8 / 15 collections until PR #450 is reviewed and merged; the PR branch carries schema v9 / 16 collections.
 
+### Follow-on work (separate sprint)
 
-## Current Sprint
-
-Sprint 8 — User-configured concentration policy delivery (completed 2026-11-08)
-
-- Delivered immutable, workspace-scoped user-defined concentration policy versions.
-- Each rule carries a user-entered maximum market-value weight and an explicit `>` or `>=` boundary; no default risk thresholds are embedded.
-- Evaluates complete valued FIFO positions by currency and portfolio/account scope; incomplete valuations suppress the result.
-- Added private-workspace policy configuration, policy history, JSON backup/restore, schema-v8 persistence and transactional v7→v8 migration with a pre-migration recovery artifact.
-- PR #443 delivered the feature; PR #446 added browser coverage for storage-quota failure and preservation of previously committed immutable history.
-- PR #447 updated the pinned Claude Code Action to v1.0.269. CI and Secret Scan passed before merge; merge commit: `590e05c921829fedecb770c5cdd2ef3098f5aa03`.
-
-### Sprint 9 — Exposure classification data-contract discovery (in progress)
-
-Objective: define a reusable, user-managed exposure classification model before implementing issuer, sector, geography or custom exposure limits.
-
-- Preserve the general-purpose product boundary: each workspace supplies its own classifications and risk limits; no application defaults or household-specific data.
-- Inspect how instrument metadata, FIFO positions, workspace schema-v8 persistence, JSON backup/restore and concentration policies are currently validated.
-- Specify whether an instrument may map to multiple groups within a classification dimension (for example, a fund's look-through holdings), and how the weights must reconcile.
-- Define provenance, effective/recorded-at timestamps, missing-classification behavior, unknown/unclassified handling, currency/scope and policy boundary semantics.
-- Do not implement an exposure score or limit evaluation until the classification contract is approved and can be hand-calculated.
-- Keep liquidity and drawdown gated on their own independent input and metric contracts.
-
-### Next product decision
-
-Choose the exposure classification model: one user-assigned group per instrument per dimension, or weighted multi-group look-through allocations per instrument. This decision materially affects schema, validation, and the correctness of fund/ETF exposure calculations.
+1. Owner review and merge PR #450 after reviewing the complete diff. No automatic merge was performed.
+2. Design user-defined exposure-limit policy evaluation as a separate increment with explicit user thresholds, comparison semantics, bitemporal policy history and its own persistence/backup contract. No default risk limits.
+3. Keep liquidity and drawdown gated on independent, validated data and metric contracts.
+4. Continue customer validation and the existing public-repository/privacy release gates.
 
 ## Previous Sprint — Sprint 7 (historical, completed 2026-10-30)
 

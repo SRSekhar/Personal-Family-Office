@@ -696,7 +696,7 @@ describe('full workspace backup contract', () => {
             readDashboardFile('backup.js'),
             readDashboardFile('cashflow.js')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 8 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 9 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
@@ -749,5 +749,34 @@ describe('investment cash-flow CSV import size guard', () => {
         expect(source).toContain('The selected file exceeds the 10 MiB import limit. Existing cash flows were not changed.');
         expect(source).toContain("$('#investment-import-csv').value = ''");
         expect(source.indexOf('file.size > MAX_IMPORT_FILE_BYTES')).toBeLessThan(source.indexOf('const reader = new FileReader();'));
+    });
+});
+
+describe('weighted investment exposure workspace integrity', () => {
+    it('loads the private exposure workspace and resolves every referenced dashboard control', async () => {
+        const [html, workspace, domain] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('investment-exposure-workspace.js'),
+            readDashboardFile('investment-exposure.js')
+        ]);
+        expect(html).toContain('id="investment-exposure-workspace"');
+        expect(html).toContain('<script type="module" src="./investment-exposure-workspace.js"></script>');
+        expect(workspace).toContain("from './investment-exposure.js'");
+        expect(workspace).toContain("from './investment-portfolio.js'");
+        expect(domain).toContain('export function analyzeInvestmentExposurePositions');
+        const ids = new Set([...html.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]));
+        const referencedIds = [...new Set(
+            [...workspace.matchAll(/\$\(['"]#([^'"]+)['"]\)/g)].map((match) => match[1])
+        )];
+        expect(referencedIds.filter((id) => !ids.has(id)), 'exposure workspace selectors must exist in HTML').toEqual([]);
+    });
+
+    it('keeps exposure authoring and analysis disabled outside the private workspace', async () => {
+        const workspace = await readDashboardFile('investment-exposure-workspace.js');
+        expect(workspace).toContain("function privateWorkspace()");
+        expect(workspace).toContain("$('#investment-exposure-demo-note').hidden = enabled");
+        expect(workspace).toContain("if (!enabled)");
+        expect(workspace).toContain("panel.querySelectorAll('form input, form select, form button");
+        expect(workspace).toContain("localStorage.setItem(CLASSIFICATION_KEY, JSON.stringify(validated))");
     });
 });

@@ -1,6 +1,6 @@
 # ADR — Investment exposure classification contract
 
-- Status: Proposed; product decision required before implementation
+- Status: Accepted — Option B (weighted multi-group look-through)
 - Date: 2026-11-13
 - Scope: user-managed issuer, sector, geography and custom exposure classifications for investment instruments
 - Decision owner: product owner
@@ -17,7 +17,7 @@ The ledger does not currently define issuer, sector, geography or custom exposur
 
 The current concentration policy supports one grouping key per position: either the instrument type or the instrument ID. Its input is the existing FIFO position projection and complete eligible valuations. The concentration policy is immutable and versioned, with explicit currency, portfolio/account scope, effective date and recorded-at timestamp. Those policy timestamps describe the policy version; they are not classification-data timestamps.
 
-The workspace currently uses schema v8 and persists investment ledger collections, allocation policies and concentration policies. JSON backup validation explicitly recognizes schema versions 1–8. Any future persisted classification collection would therefore require a deliberate schema migration, full-workspace backup/restore compatibility, and recovery tests; it must not be slipped into the existing schema without a migration.
+The baseline inspected for this decision used schema v8 and persisted investment ledger collections, allocation policies and concentration policies. The accepted implementation introduces schema v9, an additive classification collection, a transactional v8→v9 migration, a pre-migration recovery artifact, and schema-v9 JSON backup/restore validation.
 
 ## Problem to decide
 
@@ -85,9 +85,9 @@ instrumentId + dimensionId -> [{ groupId, weightPercent }]
 9. **Policy evaluation:** Define whether user exposure limits refer to a group within one dimension, and how unclassified positions affect availability. Preserve explicit user-entered limits and comparison operators; no product defaults or inferred risk appetite.
 10. **Lifecycle and backup:** Define immutable assignment history, correction semantics, import/export behavior, and migration from schema v8 before persistence work begins.
 
-## Hand-calculation examples needed before implementation
+## Hand-calculation examples and implementation verification
 
-The product owner should approve examples that cover at least:
+The implementation's deterministic unit tests cover the approved examples, including:
 
 - one directly held instrument assigned 100% to one group;
 - one fund assigned across two groups (for example 60% / 40%);
@@ -98,18 +98,35 @@ The product owner should approve examples that cover at least:
 - a zero-value position and an empty portfolio;
 - currency-separated portfolios/accounts.
 
-For weighted look-through, the expected group values and percentages must be calculated independently by hand and agreed before code is written.
+Expected group values and percentages are asserted against hand-calculated examples in `apps/dashboard/investment-exposure.test.js`.
 
-## Recommendation (not a decision)
+## Decision status
 
-Weighted multi-group look-through (Option B) is more expressive for funds and ETFs and avoids forcing a diversified instrument into a misleading single category. However, it creates materially more validation, provenance and incomplete-data complexity. A safe first release could still support B while requiring complete 100% mappings before an instrument contributes to an exposure result; instruments without complete mappings would make the result unavailable rather than being silently omitted. This is a candidate behavior, not an approved requirement.
+The product owner selected Option B on 2026-11-13. The former recommendation and unresolved questions above are superseded by the accepted contract below. The first increment is one-level look-through only; nested fund recursion is deliberately excluded.
 
-If simplicity and a smaller initial scope are preferred, Option A is viable, but the UI and reports must clearly label the assignment as a single user-selected classification and must not claim look-through coverage.
+## Accepted decision
 
-## Decision
+**Option B — weighted multi-group look-through.** Each instrument may have one or more user-authored group allocations within a dimension. The allocation weights must reconcile to 100% within 0.01 percentage points. Accepted rounding tolerance is normalized to exactly 100% during aggregation so no position value is lost. Zero-weight entries and duplicate group IDs within one instrument/dimension snapshot are rejected.
 
-**Pending product-owner approval.** No schema, runtime classification model, exposure aggregation or exposure-limit evaluation is authorized by this ADR. The implementation must not choose Option A or B by inference.
+The implementation contract is:
 
-## Acceptance gate before implementation
+- A classification snapshot is scoped to one instrument and one stable user-defined dimension ID. The dimension display name must remain consistent for a given dimension ID. Group IDs and group display names are stable within that dimension.
+- Each snapshot records source type/name, optional evidence reference, effective-from date and recorded-at timestamp. Supported source types are manual, import, provider and correction; no provider integration is implied.
+- Classification history is append-only. Historical selection requires both effective-from and recorded-at timestamps to be visible at the requested cutoffs. A later-recorded correction cannot rewrite what was previously known.
+- A positively held instrument must have a complete 100% classification for the selected dimension and cutoffs. Missing classifications remain listed as unclassified positions and make the entire exposure result unavailable; they are never silently excluded from the denominator. Missing valuation also makes the result unavailable.
+- Group market value is the position market value multiplied by the group's normalized allocation weight. Group percentage is group market value divided by the total positively held, fully valued position market value in the selected currency and scope. Multiple accounts holding the same instrument are aggregated. No implicit FX is performed.
+- The first implementation is one-level user-entered look-through. Nested fund recursion, circular-reference traversal, provider taxonomy synchronization, automatic stale-data detection and exposure-limit evaluation are not part of this increment.
+- No classifications are inferred for existing instruments during migration. Existing schema-v8 workspaces start with an empty classification collection.
 
-Implementation may begin only after the product owner confirms Option A or Option B and approves the cross-cutting rules that affect correctness: provenance, effective/recorded-at semantics, missing/unclassified behavior, aggregation formula, currency/scope and historical corrections. The selected contract must be covered by deterministic unit tests with hand-calculated expected values before persistence, UI or policy evaluation is added.
+## Acceptance gate
+
+**Satisfied for the Sprint 9 classification and analysis increment.** Deterministic validation, bitemporal selection and hand-calculated aggregation tests are implemented. SQLite migration/recovery, JSON backup compatibility, private-workspace UI and Chromium browser smoke are also implemented and passed CI. Exposure-limit policy evaluation remains explicitly out of scope and requires a separate approved contract.
+
+
+## Implementation status — Sprint 9
+
+- Domain contract and deterministic tests are implemented in `apps/dashboard/investment-exposure.js` and `apps/dashboard/investment-exposure.test.js`.
+- The first private-workspace UI is implemented in `apps/dashboard/investment-exposure-workspace.js` and the dashboard HTML. It supports user-entered immutable classification snapshots and historical exposure analysis.
+- SQLite schema v9 adds `investmentExposureClassifications`; v8→v9 migration is transactional, creates a mode-restricted pre-v9 JSON recovery artifact, and never infers classifications.
+- JSON backup validation and preview recognize schema v9 while preserving imports from schemas 1–8. Legacy restores preserve existing classifications only when they remain valid against the restored instrument collection.
+- CI, Chromium browser smoke, dashboard deployment and Secret Scan passed on PR #450 head. PR #450 remains a draft pending owner review; main remains on schema v8 until merge.

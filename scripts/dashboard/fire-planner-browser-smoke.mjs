@@ -1294,6 +1294,37 @@ try {
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
         'a fully valued, reconciled position should not emit an exception warning');
+    // Create and analyze a user-authored weighted look-through classification.
+    await page.locator('#investment-exposure-instrument').selectOption({ index: 1 });
+    await page.locator('#investment-exposure-form [name="dimensionId"]').fill('sector');
+    await page.locator('#investment-exposure-form [name="dimensionName"]').fill('Sector');
+    await page.locator('#investment-exposure-form [name="effectiveFrom"]').fill('2026-10-30');
+    await page.locator('#investment-exposure-form [name="sourceName"]').fill('Browser test factsheet');
+    const exposureAllocation = page.locator('#investment-exposure-allocations .investment-exposure-allocation-row').first();
+    await exposureAllocation.locator('input[aria-label="Stable group ID"]').fill('technology');
+    await exposureAllocation.locator('input[aria-label="Group display name"]').fill('Technology');
+    await exposureAllocation.locator('input[aria-label="Allocation weight percentage"]').fill('100');
+    const exposureFormState = await page.evaluate(() => {
+        const form = globalThis.document.querySelector('#investment-exposure-form');
+        return { valid: form.checkValidity(), invalidControls: [...form.elements].filter((control) => !control.checkValidity()).map((control) => ({
+            name: control.name || control.id || control.className, value: control.value, message: control.validationMessage
+        })) };
+    });
+    assert.equal(exposureFormState.valid, true, 'exposure classification form must be valid before submit: ' + JSON.stringify(exposureFormState.invalidControls));
+    await page.locator('#investment-exposure-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-exposure-count')?.textContent === '1');
+    await page.locator('#investment-exposure-dimension').selectOption('sector');
+    await page.locator('#investment-exposure-currency').selectOption('INR');
+    await page.locator('#investment-exposure-scope').selectOption('portfolio');
+    await page.locator('#investment-exposure-as-of').fill('2026-10-31');
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-exposure-analysis')?.textContent.includes('Technology'));
+    assert.match(await page.locator('#investment-exposure-analysis').innerText(), /Technology/);
+    assert.match(await page.locator('#investment-exposure-analysis').innerText(), /100%/,
+        'a fully classified direct holding should reconcile to 100% look-through exposure');
+    assert.match(await page.locator('#investment-exposure-history').innerText(), /Browser test factsheet/,
+        'classification history should retain source provenance');
+    process.stdout.write('PASS: private weighted exposure classification saves immutably and reconciles to the valued position.\\n');
+
     const investmentStorage = await page.evaluate(() => ({
         accounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]'),
         instruments: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]'),
@@ -1302,7 +1333,8 @@ try {
         cashAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]'),
         cashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
         cashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
-        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
+        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
+        exposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
     }));
     assert.equal(investmentStorage.accounts.length, 1);
     assert.equal(investmentStorage.instruments.length, 1);
@@ -1321,7 +1353,7 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 8, 'private JSON backup should use schema version 8 with concentration policy collections');
+    assert.equal(backup.schemaVersion, 9, 'private JSON backup should use schema version 9 with weighted exposure classifications');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -1330,8 +1362,8 @@ try {
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
-    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies']) {
-        assert.ok(Array.isArray(backup[collection]), `schema-v8 backup should include ${collection}`);
+    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications']) {
+        assert.ok(Array.isArray(backup[collection]), `schema-v9 backup should include ${collection}`);
         const expectedCount = {
             investmentAccounts: investmentStorage.accounts.length,
             investmentInstruments: investmentStorage.instruments.length,
@@ -1342,9 +1374,10 @@ try {
             investmentCashTransfers: investmentStorage.cashTransfers.length,
             investmentCashStatements: investmentStorage.cashStatements.length,
             investmentAllocationPolicies: 0,
-            investmentConcentrationPolicies: 0
+            investmentConcentrationPolicies: 0,
+            investmentExposureClassifications: investmentStorage.exposureClassifications.length
         }[collection];
-        assert.equal(backup[collection].length, expectedCount, `schema-v8 backup should preserve the saved ${collection}`);
+        assert.equal(backup[collection].length, expectedCount, `schema-v9 backup should preserve the saved ${collection}`);
     }
     assert.deepEqual(backup.investmentCashAccounts, investmentStorage.cashAccounts);
     assert.deepEqual(backup.investmentCashMovements, investmentStorage.cashMovements);
@@ -1438,7 +1471,8 @@ try {
         'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
         'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
         'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
-        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1',
+        'pfo-os.investment-exposure-classifications.v1'
     ].map((key) => [key, globalThis.localStorage.getItem(key)])));
     await page.evaluate(() => {
         const originalSetItem = globalThis.Storage.prototype.setItem;
@@ -1463,7 +1497,7 @@ try {
             'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
             'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
             'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
-            'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+            'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1'
         ].map((key) => [key, globalThis.localStorage.getItem(key)]));
     });
     assert.deepEqual(csvStorageAfterFailedCommit, csvStorageBeforeFailedCommit,
@@ -1488,7 +1522,7 @@ try {
         'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1',
         'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1',
         'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1',
-        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1'
+        'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1'
     ].map((key) => [key, globalThis.localStorage.getItem(key)])));
     assert.deepEqual(csvStorageAfterOversizedImport, csvStorageBeforeFailedCommit,
         'oversized CSV rejection must preserve every investment/cash browser-storage value');
@@ -1497,7 +1531,7 @@ try {
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
-        name: 'investment-ledger-v6-roundtrip.json',
+        name: 'investment-ledger-v9-roundtrip.json',
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(backup))
     });
@@ -1516,11 +1550,12 @@ try {
         cashAccounts: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]'),
         cashMovements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'),
         cashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
-        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]')
+        cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
+        exposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
     }));
     assert.deepEqual(restoredInvestmentStorage, investmentStorage,
-        'schema-v6 JSON restore must round-trip all investment ledger collections without changing IDs or values');
-    process.stdout.write('PASS: schema-v6 JSON backup restore round-trips accounts, instruments, transactions and valuations.\n');
+        'schema-v9 JSON restore must round-trip investment and exposure collections without changing IDs or values');
+    process.stdout.write('PASS: schema-v9 JSON backup restore round-trips accounts, instruments, transactions, valuations and exposure classifications.\n');
 
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
@@ -1779,14 +1814,14 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 8, 'private backup should use schema v8 and include saved goals, history, and investment policy collections');
+    assert.equal(goalBackup.schemaVersion, 9, 'private backup should use schema v9 and include saved goals, history, investment policy and exposure collections');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
     assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
     assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private schema-v6 backup includes records, goals, cash flow, budgets, history, and investment ledger.\\n');
+    process.stdout.write('PASS: private schema-v9 backup includes records, goals, cash flow, budgets, history, investment ledger and exposure classifications.\\n');
 
     const restoreFailureCases = [
         { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
@@ -1794,6 +1829,7 @@ try {
         { key: 'pfo-os.cash-flow.v1', message: 'Could not save cash-flow transactions.' },
         { key: 'pfo-os.cash-flow-budgets.v1', message: 'Could not save category budgets.' },
         { key: 'pfo-os.historical-snapshots.v1', message: 'Could not save historical snapshots.' },
+        { key: 'pfo-os.investment-exposure-classifications.v1', message: 'Could not save investment exposure classifications to browser storage.' },
         { key: 'pfo-os.investment-cash-accounts.v1', message: 'Could not save investmentCashAccounts to browser storage.' },
         { key: 'pfo-os.investment-cash-movements.v1', message: 'Could not save investmentCashMovements to browser storage.' },
         { key: 'pfo-os.investment-cash-transfers.v1', message: 'Could not save investmentCashTransfers to browser storage.' },
@@ -1805,6 +1841,7 @@ try {
         cashFlow: globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow.v1'),
         budgets: globalThis.globalThis.localStorage.getItem('pfo-os.cash-flow-budgets.v1'),
         history: globalThis.globalThis.localStorage.getItem('pfo-os.historical-snapshots.v1'),
+        exposureClassifications: globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1'),
         cashAccounts: globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1'),
         cashMovements: globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1'),
         cashTransfers: globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1'),
@@ -1816,6 +1853,7 @@ try {
         'pfo-os.cash-flow.v1': 'cashFlow',
         'pfo-os.cash-flow-budgets.v1': 'budgets',
         'pfo-os.historical-snapshots.v1': 'history',
+        'pfo-os.investment-exposure-classifications.v1': 'exposureClassifications',
         'pfo-os.investment-cash-accounts.v1': 'cashAccounts',
         'pfo-os.investment-cash-movements.v1': 'cashMovements',
         'pfo-os.investment-cash-transfers.v1': 'cashTransfers',
@@ -1851,7 +1889,7 @@ try {
         assert.match(confirmationMessage, /Backup import preview/);
         await page.waitForFunction((expectedMessage) =>
             globalThis.document.querySelector('#toast')?.textContent.includes(expectedMessage),
-        failureCase.message);
+        failureCase.message, { timeout: 5000 });
         const afterFailedRestore = await readWorkspaceStorage();
         assert.deepEqual(afterFailedRestore, priorWorkspace,
             'a failed write to ' + failureCase.key + ' must roll back every workspace collection');
@@ -1862,7 +1900,7 @@ try {
             delete globalThis.__pfoOriginalSetItem;
         });
     }
-    process.stdout.write('PASS: failed writes to records, goals, cash flow, budgets, and history each roll back the entire workspace.\\n');
+    process.stdout.write('PASS: failed writes to records, goals, cash flow, budgets, history, and exposure classifications each roll back the entire workspace.\\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
@@ -1985,7 +2023,7 @@ try {
     process.stdout.write('PASS: editing an imported record preserves its custom category.\n');
 
     let reachedFireInput = false;
-    for (let index = 0; index < 40; index += 1) {
+    for (let index = 0; index < 100; index += 1) {
         await page.keyboard.press('Tab');
         if (await page.evaluate(() => globalThis.document.activeElement?.id === 'fire-current-portfolio')) {
             reachedFireInput = true;
@@ -3019,13 +3057,14 @@ try {
     const policyBackupPath = join(temporaryDirectory, policyBackupDownload.suggestedFilename());
     await policyBackupDownload.saveAs(policyBackupPath);
     const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
-    assert.equal(policyBackup.schemaVersion, 8);
+    assert.equal(policyBackup.schemaVersion, 9);
     assert.equal(policyBackup.investmentAllocationPolicies.length, 3);
     assert.equal(policyBackup.investmentConcentrationPolicies.length, 2);
     const legacyV6Backup = JSON.parse(JSON.stringify(policyBackup));
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
     delete legacyV6Backup.investmentConcentrationPolicies;
+    delete legacyV6Backup.investmentExposureClassifications;
     const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
     await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
     const legacyImportDialogPromise = page.waitForEvent('dialog');
@@ -3043,6 +3082,10 @@ try {
         'a compatible legacy v6 backup must preserve concentration policies absent from that backup');
     assert.equal(await page.locator('#investment-concentration-policy-count').innerText(), '2',
         'legacy restore must leave concentration policies visible in the private dashboard');
+    assert.equal(await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]').length), 1,
+        'a compatible legacy v6 backup must preserve existing exposure classifications');
+    assert.equal(await page.locator('#investment-exposure-count').innerText(), '1',
+        'legacy restore must leave exposure classifications visible in the private dashboard');
     process.stdout.write('PASS: compatible legacy v6 backup import preserves allocation policy versions.\\n');
 
     // SQLite persistence is explicit and round-trips the full validated private workspace.
@@ -3064,8 +3107,8 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 8, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies']) {
+    assert.equal(databaseBackup.schemaVersion, 9, 'SQLite backup should retain the supported full-workspace schema version');
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
@@ -3080,16 +3123,18 @@ try {
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
     assert.equal(databaseBackup.investmentAllocationPolicies.length, 3,
-        'schema-v8 backup should include all saved allocation policy versions, including those preserved by legacy restore');
+        'schema-v9 backup should include all saved allocation policy versions, including those preserved by legacy restore');
     assert.equal(databaseBackup.investmentConcentrationPolicies.length, 2,
-        'schema-v8 backup should include all user-defined concentration policy versions');
+        'schema-v9 backup should include all user-defined concentration policy versions');
+    assert.equal(databaseBackup.investmentExposureClassifications.length, 1,
+        'schema-v9 backup should include the weighted exposure classification history');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
     assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
-    assert.match(onlineBackupStatus, /15 collections/i,
-        'the online backup UI should report validation across all 15 workspace collections');
+    assert.match(onlineBackupStatus, /16 collections/i,
+        'the online backup UI should report validation across all 16 workspace collections');
     assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
     process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
@@ -3110,7 +3155,8 @@ try {
         investmentCashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
         investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
         investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
-        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]')
+        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
+        investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -3136,11 +3182,12 @@ try {
         investmentCashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
         investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
         investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
-        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]')
+        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
+        investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all fifteen collections');
-    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all fifteen workspace collections.\\n');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all sixteen collections');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all sixteen workspace collections.\\n');
 
     // Open an isolated second browser tab with the same persisted browser baseline.
     // Its localStorage copy is deliberately isolated so it cannot see the first tab's later edit.
@@ -3319,7 +3366,7 @@ try {
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
-        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1']) {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1', 'pfo-os.investment-exposure-classifications.v1']) {
             globalThis.localStorage.removeItem(key);
         }
     });

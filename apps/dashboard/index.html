@@ -11,6 +11,7 @@
     <script type="module" src="./budget-overrun-insights.js"></script>
     <script type="module" src="./investment-csv-workspace.js"></script>
     <script type="module" src="./investment-concentration-workspace.js"></script>
+    <script type="module" src="./investment-exposure-workspace.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -31,6 +32,7 @@
                 <a class="nav-item" href="#loan-calculator"><span class="nav-icon">↘</span> Loan calculator</a>
                 <a class="nav-item" href="#investment-performance"><span class="nav-icon">↗</span> Investment returns</a>
                 <a class="nav-item" href="#investment-ledger"><span class="nav-icon">▥</span> Investment portfolio</a>
+                <a class="nav-item" href="#investment-exposure-workspace"><span class="nav-icon">◉</span> Look-through exposure</a>
                 <a class="nav-item" href="#return-risk-analysis"><span class="nav-icon">△</span> Return risk analysis</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
                 <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
@@ -962,6 +964,43 @@
                         <label class="field-label">As-of date<input id="investment-concentration-as-of" type="date"></label>
                     </div>
                     <div id="investment-concentration-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
+                </section>
+                <section class="investment-exposure-workspace" id="investment-exposure-workspace" aria-labelledby="investment-exposure-heading">
+                    <div class="section-heading"><div><p class="eyebrow">WEIGHTED LOOK-THROUGH</p><h3 id="investment-exposure-heading">Investment exposure classification</h3>
+                        <p class="form-note">Record user-sourced group weights for each instrument and dimension. Every snapshot is immutable and must reconcile to 100%. Historical selection uses both effective date and recorded-at time.</p></div></div>
+                    <div class="notice" id="investment-exposure-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Exposure classifications contain portfolio research and are stored only in this local private workspace.</p></div></div>
+                    <p class="validation-message" id="investment-exposure-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-exposure-message" role="status" aria-live="polite" hidden></p>
+                    <div class="investment-ledger-stats"><div><strong id="investment-exposure-count">0</strong><span>Classification snapshots</span></div></div>
+                    <form id="investment-exposure-form" class="panel-card">
+                        <h4>Record a classification snapshot</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Instrument<select id="investment-exposure-instrument" name="instrumentId" required><option value="">Select an instrument</option></select></label>
+                            <label class="field-label">Dimension ID<input name="dimensionId" required maxlength="100" placeholder="e.g. sector"></label>
+                            <label class="field-label">Dimension name<input name="dimensionName" required maxlength="100" placeholder="e.g. Sector"></label>
+                            <label class="field-label">Effective from<input name="effectiveFrom" type="date" required></label>
+                            <label class="field-label">Source type<select name="sourceType" required><option value="manual">Manual</option><option value="import">Import</option><option value="provider">Provider data</option><option value="correction">Correction</option></select></label>
+                            <label class="field-label">Source name<input name="sourceName" required maxlength="120" placeholder="e.g. Fund factsheet"></label>
+                            <label class="field-label">Evidence reference (optional)<input name="evidenceReference" maxlength="300" placeholder="Document name or reference"></label>
+                        </div>
+                        <div class="investment-allocation-target-heading"><div><h4>Weighted group allocations</h4><p class="form-note">Use stable group IDs within this dimension. Weights must total 100% (±0.01 percentage points). No classification is inferred.</p></div>
+                            <button class="button button-secondary button-small" id="investment-exposure-add-allocation" type="button">Add group</button></div>
+                        <div id="investment-exposure-allocations" class="investment-allocation-targets"></div>
+                        <div class="button-row"><button class="button button-primary" type="submit">Save immutable classification</button></div>
+                    </form>
+                    <h4>Classification history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Instrument</th><th>Dimension</th><th>Effective from</th><th>Recorded at (UTC)</th><th>Provenance</th><th>Weighted groups</th><th>Evidence</th></tr></thead><tbody id="investment-exposure-history"></tbody></table></div>
+                    <div class="investment-allocation-target-heading"><div><h4>Look-through exposure analysis</h4><p class="form-note">All positively held instruments must have complete classifications and eligible valuations. If any position is missing either, the result is unavailable rather than partial.</p></div></div>
+                    <div class="field-grid">
+                        <label class="field-label">Dimension<select id="investment-exposure-dimension"><option value="">Select a dimension</option></select></label>
+                        <label class="field-label">Currency<select id="investment-exposure-currency"></select></label>
+                        <label class="field-label">Scope<select id="investment-exposure-scope"><option value="portfolio">Portfolio</option><option value="account">One investment account</option></select></label>
+                        <label class="field-label" id="investment-exposure-account-row" hidden>Investment account<select id="investment-exposure-account"><option value="">Select an account</option></select></label>
+                        <label class="field-label">As-of date<input id="investment-exposure-as-of" type="date"></label>
+                        <label class="field-label">Known by (local time)<input id="investment-exposure-recorded-at-cutoff" type="datetime-local" step="1"></label>
+                    </div>
+                    <div id="investment-exposure-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
+                    <p class="form-note">This is descriptive portfolio analysis, not investment advice. It does not perform FX conversion, nested fund recursion, provider synchronization or automatic classification.</p>
                 </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
