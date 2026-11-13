@@ -551,7 +551,7 @@ describe('SQLite workspace persistence schema v10', () => {
         expect(committed).toMatchObject({
             recordCount: 2, goalCount: 1, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
             investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1,
-            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 1, investmentConcentrationPolicyCount: 1, investmentExposureClassificationCount: 0
+            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 1, investmentConcentrationPolicyCount: 1, investmentExposureClassificationCount: 0, investmentExposurePolicyCount: 0
         });
         first.close(); databases.splice(databases.indexOf(first), 1);
 
