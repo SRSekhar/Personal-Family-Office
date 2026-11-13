@@ -11,9 +11,6 @@ The project follows Semantic Versioning.
 ## Added
 
 - Investment exposure-classification decision ADR comparing single-group assignment and weighted multi-group look-through, and defining the data-contract decisions required before implementation (PR #449; CI and Secret Scan passed).
-
-## Added
-
 - Customer discovery playbook with a non-leading interview script, anonymized evidence template, privacy guardrails, and explicit paid-pilot decision thresholds.
 
 - Configuration-driven PowerShell repository initializer with initialize, validate, doctor, and WhatIf modes.
