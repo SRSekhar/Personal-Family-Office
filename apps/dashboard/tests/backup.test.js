@@ -634,7 +634,9 @@ describe('version 11 investment drawdown snapshot backup validation', () => {
     });
 
     it('keeps schema-v10 backups valid without implying drawdown history was included', () => {
-        const legacy = structuredClone(version10);
+        const legacy = structuredClone(version11);
+        legacy.schemaVersion = 10;
+        delete legacy.investmentDrawdownSnapshots;
         const validated = validateBackupPayload(legacy, 'INR');
         expect(validated).not.toHaveProperty('includesInvestmentDrawdownSnapshots');
         expect(validated).not.toHaveProperty('investmentDrawdownSnapshots');
