@@ -82,6 +82,7 @@ export { analyzeInvestmentDrawdownMath } from './InvestmentDrawdownMath.js';
 export type {
     InvestmentDrawdownMathInput,
     InvestmentDrawdownMathResult,
+    InvestmentDrawdownExternalFlow,
     InvestmentDrawdownObservation,
     InvestmentDrawdownObservationKind,
     InvestmentDrawdownPoint
