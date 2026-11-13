@@ -529,7 +529,7 @@ export class WorkspaceDatabase {
             const messages = verificationDatabase.prepare('PRAGMA quick_check').all().map((row) => String(row.quick_check));
             if (messages.length !== 1 || messages[0] !== 'ok') throw new Error('SQLite backup integrity verification failed.');
             const row = verificationDatabase.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
-            if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v9 workspace.');
+            if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v10 workspace.');
             const payload = validateWorkspacePayload(JSON.parse(row.payload_json));
             verificationDatabase.close(); verificationDatabase = undefined;
             const descriptor = openSync(temporaryPath, 'r+');
@@ -553,7 +553,8 @@ export class WorkspaceDatabase {
                     investmentCashTransfers: payload.investmentCashTransfers.length, investmentCashStatements: payload.investmentCashStatements.length,
                     investmentAllocationPolicies: payload.investmentAllocationPolicies.length,
                     investmentConcentrationPolicies: payload.investmentConcentrationPolicies.length,
-                    investmentExposureClassifications: payload.investmentExposureClassifications.length
+                    investmentExposureClassifications: payload.investmentExposureClassifications.length,
+                    investmentExposurePolicies: payload.investmentExposurePolicies.length
                 }
             };
         } catch (error) {
