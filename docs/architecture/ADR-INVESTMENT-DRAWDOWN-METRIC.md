@@ -1,6 +1,6 @@
 # ADR — Portfolio drawdown metric
 
-- Status: **Decision accepted — Option B; pure calculation kernel implemented; production data pipeline and UI remain blocked on data-contract prerequisites**
+- Status: **Decision accepted — Option B; pure calculation kernel and component-level snapshot contract implemented; capture/completeness pipeline and UI remain pending**
 - Date: 2026-11-13
 - Scope: historical, currency-separated investment-portfolio performance drawdown
 - Related: `INVESTMENT-RISK-POLICY-READINESS.md`, `ADR-INVESTMENT-CONCENTRATION-POLICY.md`, `ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`
@@ -186,3 +186,15 @@ This ADR does not approve:
 
 
 **Quality rule:** a truthful “not enough reliable history to calculate” is preferable to a precise-looking but mathematically invalid drawdown number.
+
+
+## Implementation update — component snapshot contract and persistence groundwork
+
+The open PR #453 feature branch now contains:
+
+- `apps/dashboard/investment-drawdown-snapshots.js`: validation for explicit portfolio/account scope, currency, position/cash component references, component values, per-component source provenance, exact component/snapshot effective-time equality, component-total reconciliation, explicit incomplete reasons, paired pre/post-flow component-universe matching, and immutable supersession with recorded-at point-in-time selection.
+- A schema-v11 `investmentDrawdownSnapshots` collection, transactional SQLite v10→v11 migration, and protected pre-v11 JSON recovery artifact.
+- Schema-v11 JSON backup validation/preview and SQLite save/restore/online-backup integration. Legacy schema-v1–v10 imports remain supported; if an older import omits drawdown snapshots, existing snapshots are preserved only when they still validate against the target investment and cash ledgers.
+- Deterministic validator, backup compatibility and migration tests.
+
+This is **not** a complete drawdown production pipeline. The validator checks declared component references and internal reconciliation, but it does not independently derive the full set of open FIFO holdings and included cash accounts at each historical effective/recorded cutoff. No UI currently captures snapshots. A trusted completeness builder, authoritative external-flow classifier, explicit daily observation calendar, independent integration cases and private UI/export remain mandatory. Schema migration initializes the new collection empty; it does not fabricate historical observations. PR #453 remains open and unmerged, and its CI verification is pending.
