@@ -117,6 +117,19 @@ The descriptive result should include:
 
 Do not add risk scores, severity bands, default thresholds, alerts, recommendations, rebalancing or trading actions under this ADR. User-authored drawdown policies require a separate policy contract and approval.
 
+## Observation acquisition decision
+
+The first production observation path will be **manual-first and provider-neutral**. PFO currently has no bank connection or external market-data feed, and this feature must not introduce an unapproved provider, API credential, or external data transmission.
+
+- Users will capture or import explicit portfolio observations; PFO will not synthesize historical snapshots from sparse prices.
+- Each observation must contain component-level values for every open position and every included investment cash account in the selected scope/currency. Component references and position quantities must reconcile to the immutable investment ledger at the observation's effective-time and recorded-at cutoffs.
+- Every component must carry its own valuation/balance timestamp, source type and source name. The source timestamp must meet the observation's exact-time eligibility rule; stale values are not silently carried forward.
+- Snapshot totals must equal the sum of eligible components within the currency's defined minor-unit tolerance. Missing, extra, duplicate or mismatched components make the observation incomplete.
+- External-flow observations are captured as a paired pre-flow/post-flow set at the authoritative flow's exact effective timestamp. Both sides must cover the same scope and component universe.
+- A future provider/import adapter may populate the same immutable contract, but it must pass identical validation. Provider availability must never relax completeness rules.
+
+This is a deliberate product trade-off: manual capture is less convenient than automatic market-data ingestion, but it preserves the local-first boundary and makes provenance/completeness explicit. No provider, automatic pricing source, or bank connection is approved by this decision.
+
 ## Current repository assessment and implementation gates
 
 The current repository has immutable investment transactions with effective `date` and `recordedAt`, instrument valuations with `asOf` and `recordedAt`, investment cash accounts/movements/transfers/statements, currency-separated portfolio analysis and XIRR. It does **not** currently guarantee:
