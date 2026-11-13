@@ -1,6 +1,6 @@
 # ADR — Investment exposure classification contract
 
-- Status: Proposed; product decision required before implementation
+- Status: Accepted — Option B (weighted multi-group look-through)
 - Date: 2026-11-13
 - Scope: user-managed issuer, sector, geography and custom exposure classifications for investment instruments
 - Decision owner: product owner
@@ -108,8 +108,18 @@ If simplicity and a smaller initial scope are preferred, Option A is viable, but
 
 ## Decision
 
-**Pending product-owner approval.** No schema, runtime classification model, exposure aggregation or exposure-limit evaluation is authorized by this ADR. The implementation must not choose Option A or B by inference.
+**Accepted: Option B — weighted multi-group look-through.** Each instrument may have one or more user-authored group allocations within a dimension. The allocation weights must reconcile to 100% within 0.01 percentage points. Zero-weight entries and duplicate group IDs within one instrument/dimension snapshot are rejected.
 
-## Acceptance gate before implementation
+The implementation contract is:
 
-Implementation may begin only after the product owner confirms Option A or Option B and approves the cross-cutting rules that affect correctness: provenance, effective/recorded-at semantics, missing/unclassified behavior, aggregation formula, currency/scope and historical corrections. The selected contract must be covered by deterministic unit tests with hand-calculated expected values before persistence, UI or policy evaluation is added.
+- A classification snapshot is scoped to one instrument and one stable user-defined dimension ID. Group IDs are stable within that dimension; display names are descriptive labels.
+- Each snapshot records source type/name, optional evidence reference, effective-from date and recorded-at timestamp. Supported source types are manual, import, provider and correction; no provider integration is implied.
+- Classification history is append-only. Historical selection requires both effective-from and recorded-at timestamps to be visible at the requested cutoffs. A later-recorded correction cannot rewrite what was previously known.
+- A positively held instrument must have a complete 100% classification for the selected dimension and cutoffs. Missing classifications remain listed as unclassified positions and make the entire exposure result unavailable; they are never silently excluded from the denominator. Missing valuation also makes the result unavailable.
+- Group market value is the position market value multiplied by the group's allocation weight. Group percentage is group market value divided by the total positively held, fully valued position market value in the selected currency and scope. Multiple accounts holding the same instrument are aggregated. No implicit FX is performed.
+- The first implementation is one-level user-entered look-through. Nested fund recursion, circular-reference traversal, provider taxonomy synchronization, automatic stale-data detection and exposure-limit evaluation are not part of this increment.
+- No classifications are inferred for existing instruments during migration. Existing schema-v8 workspaces start with an empty classification collection.
+
+## Acceptance gate
+
+The domain implementation must include deterministic validation, bitemporal selection and aggregation tests with hand-calculated examples before persistence, UI or policy evaluation is enabled.
