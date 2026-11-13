@@ -1,23 +1,26 @@
 # Current Sprint
 
-## 2026-11-13 — Sprint 9: Weighted investment exposure (implementation complete; merged)
+## 2026-11-13 — Sprint 10: User-configured investment exposure limits (implementation in PR #452)
 
-- Product owner selected **Option B — weighted multi-group look-through**; PR #449 merged the discovery ADR to main.
-- PR #450 implemented the approved contract and was squash-merged to `main` as `ec0f8ea959b971dea88969d4c38c2431ecdb9c68`.
+- Sprint 9 weighted multi-group look-through was approved as Option B and merged in PR #450.
+- Sprint 10 implements explicit per-group maximum exposure limits over the complete weighted look-through result. Thresholds and comparison operators are always user-authored; no default risk limits.
+- Added immutable policy versions with policy-set identity, currency, portfolio/account scope, classification dimension, effective-from date and recorded-at timestamp.
+- Added explicit strict (>) and inclusive (>=) boundary evaluation. Configured groups absent from a complete exposure result measure as zero; missing classification/valuation data and empty portfolios never become a pass. Available source exposure must reconcile to 100%.
+- Added a private-workspace UI for policy authoring, immutable history and point-in-time evaluation. The sample workspace has no active authoring or evaluation controls.
+- Added schema v10 with 17 collections, transactional v9→v10 SQLite migration, mode-restricted pre-v10 recovery artifact, full JSON backup/restore compatibility for schemas 1–9, and legacy policy-reference preservation checks.
+- Added deterministic policy tests, schema-v10 backup tests, SQLite migration/rollback tests, static UI checks and Chromium browser-smoke coverage for policy creation, breach evaluation, JSON restore, legacy preservation and SQLite round-trip.
+- Draft PR: #452. CI, dashboard packaging and Secret Scan are running. Do not merge until all checks pass and review is complete.
+
+## Completed — Sprint 9: Weighted investment exposure (PR #450 merged)
+
+- Product owner selected Option B — weighted multi-group look-through.
 - Implemented immutable user-authored instrument/dimension classifications with source provenance, optional evidence reference, effective-from date and recorded-at timestamp.
 - Enforced 100% reconciliation within 0.01 percentage points, unique group IDs, stable dimension identity/display names, and bitemporal selection. Accepted rounding tolerance is normalized during aggregation so the full position value is allocated.
 - Implemented complete exposure aggregation by currency and portfolio/account scope. Missing classifications or valuations suppress partial results; no silent denominator exclusions, FX conversion or nested fund recursion.
 - Implemented private-workspace classification authoring/history and analysis controls for dimension, currency, scope, as-of date and recorded-at cutoff.
 - Added SQLite schema v9 with transactional v8→v9 migration and a mode-restricted pre-v9 recovery artifact. Existing instruments receive no inferred classifications.
-- Added schema-v9 JSON backup/restore with backward compatibility for schemas 1–8. Legacy imports preserve existing exposure classifications only when references remain valid.
-- Added unit, backup, migration/API, static-integrity and Chromium browser-smoke coverage, including authoring, weighted analysis, JSON round-trip, legacy preservation, SQLite backup and all 16 collections.
-- PR-head CI #43383278883, dashboard deployment #43383279122 and Secret Scan #43383278898 passed. Main now stores schema v9 / 16 collections. Post-merge CI #43383680976, dashboard deployment #43383590536 and Secret Scan #43383590700 also passed.
-
-### Follow-on work (separate sprint)
-
-1. Design user-defined exposure-limit policy evaluation as a separate increment with explicit user thresholds, comparison semantics, bitemporal policy history and its own persistence/backup contract. No default risk limits.
-2. Keep liquidity and drawdown gated on independent, validated data and metric contracts.
-3. Continue customer validation and the existing public-repository/privacy release gates.
+- Added schema-v9 JSON backup/restore with backward compatibility for schemas 1–8 and tests for preserving existing classifications only when references remain valid.
+- Liquidity and drawdown remain separately gated on validated input and metric contracts.
 
 ## Previous Sprint — Sprint 7 (historical, completed 2026-10-30)
 

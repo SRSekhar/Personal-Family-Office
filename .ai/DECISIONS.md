@@ -205,6 +205,27 @@ Consequences
 - A passing structural check does not prove financial values are accurate or that an external backup is restorable.
 - Integrity diagnostics must remain local-only and must never expose raw database contents.
 
+## DEC-0013
+
+Title
+
+Weighted Multi-Group Investment Exposure Classification
+
+Status
+
+Accepted — product owner selected Option B on 2026-11-13.
+
+Decision
+
+An investment instrument may be classified across multiple user-defined groups within one stable dimension. Each immutable classification snapshot carries provenance, effective-from date and recorded-at timestamp; allocation weights must reconcile to 100% within 0.01 percentage points. Exposure analysis uses weighted position market value within one currency and portfolio/account scope. Every positively held position must have a complete eligible valuation and classification; otherwise the entire result is unavailable. No FX conversion, nested fund recursion or inferred classifications are permitted.
+
+Consequences
+
+- Classification and group identities are user-authored and workspace-scoped; no default sector, issuer, geography or risk appetite is inferred.
+- Historical analysis selects only snapshots both effective and recorded by the requested cutoffs.
+- Weighted look-through results are descriptive and are not investment recommendations or trade instructions.
+- Schema-v9 persistence preserves classification history; existing instruments receive no fabricated classifications.
+
 ## Future Decisions
 
 Every significant architectural or product decision shall be recorded here before implementation.

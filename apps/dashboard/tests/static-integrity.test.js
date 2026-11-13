@@ -696,7 +696,7 @@ describe('full workspace backup contract', () => {
             readDashboardFile('backup.js'),
             readDashboardFile('cashflow.js')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 9 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 10 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
@@ -705,6 +705,9 @@ describe('full workspace backup contract', () => {
         expect(app).toContain('...investmentCollections');
         expect(app).toContain('Object.assign(payload, readInvestmentAllocationPolicies())');
         expect(app).toContain('Object.assign(payload, readInvestmentConcentrationPolicies())');
+        expect(app).toContain('Object.assign(payload, readInvestmentExposurePolicies())');
+        expect(app).toContain('persistInvestmentExposurePolicies(backup.investmentExposurePolicies)');
+        expect(app).toContain('INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY');
         expect(app).toContain('INVESTMENT_CONCENTRATION_STORAGE_KEY');
         expect(app).toContain('persistInvestmentConcentrationPolicies(backup.investmentConcentrationPolicies)');
         expect(app).toContain('INVESTMENT_ALLOCATION_STORAGE_KEY');
@@ -717,6 +720,8 @@ describe('full workspace backup contract', () => {
         expect(backup).toContain('includesInvestmentLedger');
         expect(backup).toContain('includesInvestmentAllocationPolicies');
         expect(backup).toContain('includesInvestmentConcentrationPolicies');
+        expect(backup).toContain('includesInvestmentExposurePolicies');
+        expect(backup).toContain('validateInvestmentExposurePolicyCollections');
         expect(backup).toContain('validateInvestmentConcentrationCollections(payload)');
         expect(backup).toContain('validateInvestmentAllocationCollections(payload)');
         expect(backup).toContain('validateInvestmentLedgerCollections(payload)');
@@ -778,5 +783,38 @@ describe('weighted investment exposure workspace integrity', () => {
         expect(workspace).toContain("if (!enabled)");
         expect(workspace).toContain("panel.querySelectorAll('form input, form select, form button");
         expect(workspace).toContain("localStorage.setItem(CLASSIFICATION_KEY, JSON.stringify(validated))");
+    });
+});
+
+
+describe('user-defined investment exposure policy workspace integrity', () => {
+    it('loads the policy module and resolves every referenced dashboard control', async () => {
+        const [html, workspace, domain, exposure] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('investment-exposure-policy-workspace.js'),
+            readDashboardFile('investment-exposure-policy.js'),
+            readDashboardFile('investment-exposure.js')
+        ]);
+        expect(html).toContain('id="investment-exposure-policy-workspace"');
+        expect(html).toContain('<script type="module" src="./investment-exposure-policy-workspace.js"></script>');
+        expect(workspace).toContain("from './investment-exposure-policy.js'");
+        expect(workspace).toContain("from './investment-exposure.js'");
+        expect(domain).toContain('export function validateInvestmentExposurePolicy');
+        expect(domain).toContain('export function evaluateInvestmentExposurePolicy');
+        const ids = new Set([...html.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]));
+        const referencedIds = [...new Set(
+            [...workspace.matchAll(/\$\\(['"]#([^'"]+)['"]\\)/g)].map((match) => match[1])
+        )];
+        expect(referencedIds.filter((id) => !ids.has(id)), 'exposure policy workspace selectors must exist in HTML').toEqual([]);
+        expect(exposure).toContain('export function analyzeInvestmentExposurePositions');
+    });
+
+    it('keeps exposure policy authoring and evaluation disabled outside the private workspace', async () => {
+        const workspace = await readDashboardFile('investment-exposure-policy-workspace.js');
+        expect(workspace).toContain("function isPrivateWorkspace()");
+        expect(workspace).toContain("$('#investment-exposure-policy-demo-note').hidden = enabled");
+        expect(workspace).toContain("if (!enabled)");
+        expect(workspace).toContain("panel.querySelectorAll('form input, form select, form button");
+        expect(workspace).toContain("localStorage.setItem(POLICY_KEY, JSON.stringify(validated.investmentExposurePolicies))");
     });
 });
