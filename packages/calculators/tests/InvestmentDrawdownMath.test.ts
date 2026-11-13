@@ -11,7 +11,7 @@ function observation(overrides: Partial<InvestmentDrawdownObservation> & Pick<In
         ...(overrides.unavailableReason === undefined ? {} : { unavailableReason: overrides.unavailableReason })
     };
 }
-function input(observations: InvestmentDrawdownObservation[]) {
+function input(observations: InvestmentDrawdownObservation[], externalFlows: Array<{ id: string; effectiveAt: string; recordedAt?: string }> = []) {
     return {
         scopeId: 'portfolio-main', currency: 'INR',
         startAt: '2026-11-01T00:00:00.000Z', endAt: '2026-11-13T23:59:59.999Z',
