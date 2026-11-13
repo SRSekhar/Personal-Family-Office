@@ -485,7 +485,7 @@ describe('SQLite workspace persistence schema v9', () => {
         expect(committed).toMatchObject({
             recordCount: 2, goalCount: 1, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
             investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1,
-            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 1, investmentConcentrationPolicyCount: 1
+            investmentCashAccountCount: 2, investmentCashMovementCount: 2, investmentCashTransferCount: 1, investmentCashStatementCount: 2, investmentAllocationPolicyCount: 1, investmentConcentrationPolicyCount: 1, investmentExposureClassificationCount: 0
         });
         first.close(); databases.splice(databases.indexOf(first), 1);
 
@@ -508,7 +508,8 @@ describe('SQLite workspace persistence schema v9', () => {
             investmentCashTransfers: recovered.payload.investmentCashTransfers.map((item) => item.id),
             investmentCashStatements: recovered.payload.investmentCashStatements.map((item) => item.id),
             investmentAllocationPolicies: recovered.payload.investmentAllocationPolicies.map((item) => item.id),
-            investmentConcentrationPolicies: recovered.payload.investmentConcentrationPolicies.map((item) => item.id)
+            investmentConcentrationPolicies: recovered.payload.investmentConcentrationPolicies.map((item) => item.id),
+            investmentExposureClassifications: recovered.payload.investmentExposureClassifications.map((item) => item.id)
         };
         expect(stableIds).toEqual({
             records: ['record-1', 'record-2'], goals: ['goal-recovery-1'], cashFlowEntries: ['cash-1'],
@@ -520,7 +521,7 @@ describe('SQLite workspace persistence schema v9', () => {
             investmentCashTransfers: ['cash-transfer-recovery-1'],
             investmentCashStatements: ['cash-statement-1', 'cash-statement-2'],
             investmentAllocationPolicies: ['allocation-policy-recovery-1'],
-            investmentConcentrationPolicies: ['concentration-policy-recovery-1'],
+            investmentConcentrationPolicies: ['concentration-policy-recovery-1'], investmentExposureClassifications: [],
             investmentExposureClassifications: []
         });
         expect(recovered.payload.investmentCashTransfers[0].amount).toEqual({ amount: 100, currency: 'INR' });
