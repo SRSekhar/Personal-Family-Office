@@ -1390,7 +1390,7 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 11, 'private JSON backup should use schema version 10 with exposure policy history');
+    assert.equal(backup.schemaVersion, 11, 'private JSON backup should use schema version 11 with exposure policy history');
     assert.equal(backup.investmentExposurePolicies.length, 1, 'private JSON backup should include exposure policy history');
     assert.deepEqual(backup.investmentDrawdownSnapshots, [], 'schema-v11 backup should include the empty drawdown snapshot collection without fabricating history');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
@@ -1902,6 +1902,7 @@ try {
         'pfo-os.historical-snapshots.v1': 'history',
         'pfo-os.investment-exposure-classifications.v1': 'exposureClassifications',
         ['pfo-os.' + 'investment-exposure-policies.v1']: 'exposurePolicies',
+        'pfo-os.investment-drawdown-snapshots.v1': 'drawdownSnapshots',
         'pfo-os.investment-cash-accounts.v1': 'cashAccounts',
         'pfo-os.investment-cash-movements.v1': 'cashMovements',
         'pfo-os.investment-cash-transfers.v1': 'cashTransfers',
@@ -3178,7 +3179,7 @@ try {
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
     assert.equal(databaseBackup.schemaVersion, 11, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies']) {
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
@@ -3260,7 +3261,8 @@ try {
         investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
         investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
         investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
-        investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]')
+        investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
+        investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
         'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all eighteen collections');
