@@ -186,10 +186,10 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
     if (groups.length < 2) return unavailable(input, 'At least two distinct observation timestamps are required to calculate drawdown.', eligible.length);
 
     const first = groups[0]!;
-    const initial = first.daily ?? first.post!;
+    const initial = first.daily ?? first.pre!;
     if (initial.portfolioValue <= 0) return unavailable(input, 'The initial portfolio valuation must be positive.', eligible.length);
 
-    let previousPortfolioValue = initial.portfolioValue;
+    let previousPortfolioValue = first.post?.portfolioValue ?? initial.portfolioValue;
     let wealthIndex = 1;
     let runningPeak = 1;
     let runningPeakAt = initial.effectiveAt;
@@ -202,6 +202,10 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
         effectiveAt: initial.effectiveAt, observationId: initial.id, kind: initial.kind,
         portfolioValue: initial.portfolioValue, wealthIndex, drawdown: 0
     }];
+    if (first.post) points.push({
+        effectiveAt: first.post.effectiveAt, observationId: first.post.id, kind: first.post.kind,
+        portfolioValue: first.post.portfolioValue, wealthIndex, drawdown: 0
+    });
 
     const appendPoint = (item: InvestmentDrawdownObservation): void => {
         if (wealthIndex > runningPeak) {
