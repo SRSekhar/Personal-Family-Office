@@ -11,7 +11,7 @@
 - Added SQLite schema v9 with transactional v8→v9 migration and a mode-restricted pre-v9 recovery artifact. Existing instruments receive no inferred classifications.
 - Added schema-v9 JSON backup/restore with backward compatibility for schemas 1–8. Legacy imports preserve existing exposure classifications only when references remain valid.
 - Added unit, backup, migration/API, static-integrity and Chromium browser-smoke coverage, including authoring, weighted analysis, JSON round-trip, legacy preservation, SQLite backup and all 16 collections.
-- CI run #43382449755, dashboard deployment #43382449661 and Secret Scan #43382449657 passed on the same PR head. Main now stores schema v9 / 16 collections. Post-merge CI and dashboard deployment are running; PR-head CI, deployment and Secret Scan all passed.
+- PR-head CI #43383278883, dashboard deployment #43383279122 and Secret Scan #43383278898 passed. Main now stores schema v9 / 16 collections. Post-merge CI #43383680976, dashboard deployment #43383590536 and Secret Scan #43383590700 also passed.
 
 ### Follow-on work (separate sprint)
 
