@@ -151,6 +151,22 @@ export function validateInvestmentDrawdownSnapshots(input) {
         superseded.add(previous.id);
     }
     const latest = snapshots.filter((item) => !superseded.has(item.id));
+    const timestampGroups = new Map();
+    for (const snapshot of latest) {
+        const key = JSON.stringify([snapshot.scope, snapshot.accountId ?? null, snapshot.currency, snapshot.effectiveAt]);
+        const group = timestampGroups.get(key) ?? { daily: false, flowIds: new Set() };
+        if (snapshot.kind === 'DailyClose') group.daily = true;
+        else group.flowIds.add(snapshot.flowId);
+        timestampGroups.set(key, group);
+    }
+    for (const group of timestampGroups.values()) {
+        if (group.daily && group.flowIds.size > 0) {
+            throw new Error('A timestamp cannot contain both a daily close and an external-flow boundary.');
+        }
+        if (group.flowIds.size > 1) {
+            throw new Error('Only one external flow may be represented at an exact timestamp; sequence simultaneous flows explicitly.');
+        }
+    }
     const flowGroups = new Map();
     for (const snapshot of latest) {
         if (!snapshot.flowId) continue;
@@ -177,7 +193,9 @@ export function buildInvestmentDrawdownObservations({ investmentDrawdownSnapshot
     for (const [value, label] of [[startAt, 'Analysis start'], [endAt, 'Analysis end'], [recordedAtCutoff, 'Recorded-at cutoff']]) timestamp(value, label);
     if (startAt > endAt) throw new RangeError('Analysis start must not be after analysis end.');
     if (!['portfolio', 'account'].includes(scope)) throw new Error('A portfolio or account scope is required.');
+    if (!CURRENCIES.has(currency)) throw new Error('Analysis currency is unsupported.');
     if (scope === 'account') text(accountId, 'Analysis account ID');
+    if (scope === 'portfolio' && accountId !== undefined) throw new Error('Portfolio analysis cannot specify an account ID.');
     const candidates = investmentDrawdownSnapshots.filter((item) => item.scope === scope
         && item.accountId === accountId && item.currency === currency
         && item.effectiveAt >= startAt && item.effectiveAt <= endAt && item.recordedAt <= recordedAtCutoff);
