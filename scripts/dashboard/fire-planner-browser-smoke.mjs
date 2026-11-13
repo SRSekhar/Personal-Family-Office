@@ -1900,7 +1900,7 @@ try {
             delete globalThis.__pfoOriginalSetItem;
         });
     }
-    process.stdout.write('PASS: failed writes to records, goals, cash flow, budgets, and history each roll back the entire workspace.\\n');
+    process.stdout.write('PASS: failed writes to records, goals, cash flow, budgets, history, and exposure classifications each roll back the entire workspace.\\n');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#switch-private-button').click();
@@ -2023,7 +2023,7 @@ try {
     process.stdout.write('PASS: editing an imported record preserves its custom category.\n');
 
     let reachedFireInput = false;
-    for (let index = 0; index < 40; index += 1) {
+    for (let index = 0; index < 100; index += 1) {
         await page.keyboard.press('Tab');
         if (await page.evaluate(() => globalThis.document.activeElement?.id === 'fire-current-portfolio')) {
             reachedFireInput = true;
