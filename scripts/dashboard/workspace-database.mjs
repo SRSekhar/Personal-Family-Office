@@ -443,7 +443,8 @@ export class WorkspaceDatabase {
             investmentCashMovementCount: validated.investmentCashMovements.length, investmentCashTransferCount: validated.investmentCashTransfers.length,
             investmentCashStatementCount: validated.investmentCashStatements.length,
             investmentAllocationPolicyCount: validated.investmentAllocationPolicies.length,
-            investmentConcentrationPolicyCount: validated.investmentConcentrationPolicies.length };
+            investmentConcentrationPolicyCount: validated.investmentConcentrationPolicies.length,
+            investmentExposureClassificationCount: validated.investmentExposureClassifications.length };
     }
     async createOnlineBackup() {
         if (!this.getWorkspace()) throw new Error('No committed SQLite workspace exists to back up.');
