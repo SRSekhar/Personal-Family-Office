@@ -4,7 +4,7 @@ import { validateInvestmentCashCollections } from './investment-cash-ledger.js';
 import { validateInvestmentAllocationCollections } from './investment-allocation.js';
 import { validateInvestmentConcentrationCollections } from './investment-concentration.js';
 import { validateInvestmentExposureClassifications } from './investment-exposure.js';
-import { validateInvestmentExposurePolicies, validateInvestmentExposurePolicyCollections } from './investment-exposure-policy.js';
+import { validateInvestmentExposurePolicies } from './investment-exposure-policy.js';
 import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
@@ -2568,7 +2568,6 @@ function importData(file, options = {}) {
                     if (backup.includesInvestmentAllocationPolicies) persistInvestmentAllocationPolicies(backup.investmentAllocationPolicies);
                     if (backup.includesInvestmentConcentrationPolicies) persistInvestmentConcentrationPolicies(backup.investmentConcentrationPolicies);
                     if (backup.includesInvestmentExposureClassifications) persistInvestmentExposureClassifications(backup.investmentExposureClassifications);
-                    if (backup.includesInvestmentExposurePolicies) persistInvestmentExposurePolicies(backup.investmentExposurePolicies);
                     if (backup.includesInvestmentExposurePolicies) persistInvestmentExposurePolicies(backup.investmentExposurePolicies);
                 } catch (error) {
                     const restored = previousValues.map(([key, value]) => restoreStorageValue(key, value)).every(Boolean);
