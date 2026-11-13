@@ -229,17 +229,11 @@ function bindForm(selector, callback) {
 if ($('#investment-exposure-workspace')) {
     $('#investment-exposure-add-allocation').addEventListener('click', () => addAllocationRow());
     $('#investment-exposure-currency').innerHTML = CURRENCIES.map((currency) => '<option value="' + currency + '">' + currency + '</option>').join('');
-    $('#investment-exposure-analysis-currency').innerHTML = CURRENCIES.map((currency) => '<option value="' + currency + '">' + currency + '</option>').join('');
     $('#investment-exposure-scope').addEventListener('change', render);
     $('#investment-exposure-currency').addEventListener('change', render);
-    for (const id of ['investment-exposure-dimension', 'investment-exposure-analysis-currency', 'investment-exposure-as-of', 'investment-exposure-account']) {
+    for (const id of ['investment-exposure-dimension', 'investment-exposure-as-of', 'investment-exposure-account']) {
         $('#' + id).addEventListener('change', render);
     }
-    $('#investment-exposure-analysis-currency').addEventListener('change', () => {
-        $('#investment-exposure-currency').value = $('#investment-exposure-analysis-currency').value;
-        render();
-    });
-    $('#investment-exposure-scope').addEventListener('change', render);
     bindForm('#investment-exposure-form', (form) => {
         const ledger = readLedger();
         const instrument = ledger.investmentInstruments.find((item) => item.id === form.get('instrumentId'));
@@ -262,7 +256,7 @@ if ($('#investment-exposure-workspace')) {
         localStorage.setItem(CLASSIFICATION_KEY, JSON.stringify(validated));
         window.dispatchEvent(new Event('pfo:workspace-updated'));
     });
-    $('#investment-exposure-analysis-currency').value = 'INR';
+    $('#investment-exposure-currency').value = 'INR';
     $('#investment-exposure-as-of').value = new Date().toISOString().slice(0, 10);
     addAllocationRow();
     window.addEventListener('pfo:investment-updated', render);
