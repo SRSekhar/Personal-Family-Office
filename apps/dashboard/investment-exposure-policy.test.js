@@ -120,13 +120,13 @@ describe('investment exposure policy bitemporal selection', () => {
             policy({ id: 'late-known', version: 4, effectiveFrom: '2026-08-01', recordedAt: '2026-12-01T00:00:00.000Z' })
         ];
         expect(selectInvestmentExposurePolicy(versions, {
-            ...cutoffs, scope: 'portfolio', currency: 'INR', dimensionId: 'sector'
+            ...cutoffs, policySetId: 'policy-set-1', scope: 'portfolio', currency: 'INR', dimensionId: 'sector'
         }, context).id).toBe('v2');
     });
     it('returns null when no policy is effective and known for the requested scope', () => {
         expect(selectInvestmentExposurePolicy([policy()], {
             asOfDate: new Date('2025-12-31T23:59:59.999Z'),
-            recordedAtCutoff: new Date('2026-11-02T00:00:00.000Z'),
+            recordedAtCutoff: new Date('2026-11-02T00:00:00.000Z'), policySetId: 'policy-set-1',
             scope: 'portfolio', currency: 'INR', dimensionId: 'sector'
         }, context)).toBeNull();
     });
