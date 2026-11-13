@@ -526,3 +526,14 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Current next work is Sprint 9: define the user-managed exposure classification data contract before implementing issuer/sector/geography/custom exposure metrics. A key unresolved decision is one group per instrument/dimension versus weighted multi-group look-through allocations. Do not assume one is correct; funds/ETFs may require look-through and explicit reconciliation.
 - Liquidity and drawdown remain gated on separate data/metric contracts. The product is general-purpose, with user-authored policies per local workspace; this does not imply multi-user hosted authentication or shared-workspace authorization.
 - Continue to use synthetic fixtures only. No real household financial data, credentials or private reports in the public repository.
+
+
+## Latest Handoff — 2026-11-13 (exposure classification contract)
+
+- Main includes PR #449, merged as `464491871b74c57eaa8eb77d73131f9e05819e4b`.
+- New ADR: `docs/architecture/ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`.
+- PR #449 head `fd7196cf74a6742f82eeb773c27ca5b8075ce827`; CI run #1579 and Secret Scan both passed before merge.
+- The ADR records current verified instrument fields (`id`, `name`, `type`, `currency`, optional `symbol`, `exchange`, `isin`, `description`) and schema-v8 backup/migration implications.
+- Exposure classification model remains a product decision: one group per instrument/dimension (A) versus weighted multi-group look-through (B). B is recommended but not approved. Do not implement classification schema, aggregation, or exposure policies until the owner selects a model and approves provenance, effective/recorded-at semantics, missing/unclassified behavior, aggregation, scope/currency and correction rules.
+- Use synthetic data only. Keep user-authored classifications and limits workspace-scoped; no application-wide defaults or inferred risk appetite.
+- Main was checked for open PRs at the prior continuation; this handoff only records the verified PR #449 merge. Recheck live GitHub state before further merges.
