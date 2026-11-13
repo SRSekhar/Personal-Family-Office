@@ -696,7 +696,7 @@ describe('full workspace backup contract', () => {
             readDashboardFile('backup.js'),
             readDashboardFile('cashflow.js')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 9 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 10 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
@@ -761,6 +761,7 @@ describe('weighted investment exposure workspace integrity', () => {
         ]);
         expect(html).toContain('id="investment-exposure-workspace"');
         expect(html).toContain('<script type="module" src="./investment-exposure-workspace.js"></script>');
+        expect(html).toContain('<script type="module" src="./investment-exposure-policy-workspace.js"></script>');
         expect(workspace).toContain("from './investment-exposure.js'");
         expect(workspace).toContain("from './investment-portfolio.js'");
         expect(domain).toContain('export function analyzeInvestmentExposurePositions');
