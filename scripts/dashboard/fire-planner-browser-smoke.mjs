@@ -3209,7 +3209,7 @@ try {
     assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
     assert.match(onlineBackupStatus, /18 collections/i,
-        'the online backup UI should report validation across all 17 workspace collections');
+        'the online backup UI should report validation across all 18 workspace collections');
     assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
     process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
