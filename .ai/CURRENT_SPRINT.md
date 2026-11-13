@@ -10,7 +10,7 @@
 - Completed SQLite schema v10 with 17 collections, transactional v9→v10 migration and mode-restricted pre-v10 recovery artifact.
 - Completed JSON schema-v10 backup/restore, legacy schemas 1–9 import, and preservation/rejection checks for existing policy references.
 - Completed deterministic domain/backup/migration/static UI tests and Chromium browser smoke for policy creation, breach evaluation, invalid/valid legacy import, JSON backup/restore and SQLite round-trip.
-- PR #452 merged 2026-11-13. CI #1670, dashboard packaging #955 and Secret Scan #1464 all passed.
+- PR #452 merged 2026-11-13. CI #1670, dashboard packaging #955 and Secret Scan #1464 all passed. Superseded draft PR #451 was closed; no open PRs remain.
 
 ### Next gated work
 
