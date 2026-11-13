@@ -17,7 +17,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
         || ([6, 7, 8, 9].includes(payload.schemaVersion) && !['investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements'].every((key) => Array.isArray(payload[key])))
         || ([7, 8, 9].includes(payload.schemaVersion) && !Array.isArray(payload.investmentAllocationPolicies))
         || ([7, 8, 9].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== undefined && typeof payload.allocationPoliciesMigratedFromV6 !== 'boolean')
-        || ([7, 8].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 === true && payload.investmentAllocationPolicies.length !== 0)
+        || ([7, 8, 9].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 === true && payload.investmentAllocationPolicies.length !== 0)
         || ([8, 9].includes(payload.schemaVersion) && !Array.isArray(payload.investmentConcentrationPolicies))
         || ([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== undefined && typeof payload.concentrationPoliciesMigratedFromV7 !== 'boolean')
         || ([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 === true && payload.investmentConcentrationPolicies.length !== 0)
@@ -58,6 +58,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
         ...(payload.schemaVersion >= 6 ? { includesInvestmentCashLedger: true } : {}),
         ...([7, 8, 9].includes(payload.schemaVersion) && payload.allocationPoliciesMigratedFromV6 !== true ? { includesInvestmentAllocationPolicies: true } : {}),
         ...([8, 9].includes(payload.schemaVersion) && payload.concentrationPoliciesMigratedFromV7 !== true ? { includesInvestmentConcentrationPolicies: true } : {}),
+        ...(payload.schemaVersion === 9 && payload.exposureClassificationsMigratedFromV8 !== true ? { includesInvestmentExposureClassifications: true } : {}),
         ...(payload.schemaVersion === 9 && payload.exposureClassificationsMigratedFromV8 !== true ? { includesInvestmentExposureClassifications: true } : {})
     };
 }
