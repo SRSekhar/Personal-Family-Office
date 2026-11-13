@@ -115,6 +115,26 @@ describe('analyzeInvestmentDrawdownMath', () => {
         ], [{ id: 'a', effectiveAt: '2026-11-01T16:00:00.000Z' }, { id: 'b', effectiveAt: '2026-11-01T16:00:00.000Z' }]))).toThrow('sequence simultaneous flows explicitly');
     });
 
+    it('rejects flow-boundary observations that disagree with the authoritative event timestamp', () => {
+        expect(() => analyzeInvestmentDrawdownMath(input([
+            observation({ id: 'd1', kind: 'DailyClose', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1000 }),
+            observation({ id: 'pre', kind: 'ExternalFlowPre', flowId: 'flow-time', effectiveAt: '2026-11-02T10:01:00.000Z', portfolioValue: 1100 }),
+            observation({ id: 'post', kind: 'ExternalFlowPost', flowId: 'flow-time', effectiveAt: '2026-11-02T10:01:00.000Z', portfolioValue: 2100 })
+        ], [{ id: 'flow-time', effectiveAt: '2026-11-02T10:00:00.000Z' }]))).toThrow('effective timestamp');
+    });
+
+    it('reflects portfolio costs as performance loss rather than neutralizing them as external flows', () => {
+        const result = analyzeInvestmentDrawdownMath(input([
+            observation({ id: 'd1', kind: 'DailyClose', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1000 }),
+            observation({ id: 'd2', kind: 'DailyClose', effectiveAt: '2026-11-02T16:00:00.000Z', portfolioValue: 990 })
+        ]));
+        expect(result.status).toBe('available');
+        expect(result.points.at(-1)?.wealthIndex).toBeCloseTo(0.99, 12);
+        expect(result.maximumDrawdown).toBeCloseTo(-0.01, 12);
+        expect(result.startAt).toBe('2026-11-01T00:00:00.000Z');
+        expect(result.coverageStartAt).toBe('2026-11-01T16:00:00.000Z');
+    });
+
     it('ignores records outside the effective window and records after the knowledge cutoff', () => {
         const result = analyzeInvestmentDrawdownMath(input([
             observation({ id: 'before', kind: 'DailyClose', effectiveAt: '2026-10-31T16:00:00.000Z', portfolioValue: 900 }),
