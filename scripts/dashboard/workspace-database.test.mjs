@@ -40,6 +40,7 @@ function payload(overrides = {}) {
         ...(schemaVersion >= 8 ? { investmentConcentrationPolicies: [] } : {}),
         ...(schemaVersion >= 9 ? { investmentExposureClassifications: [] } : {}),
         ...(schemaVersion >= 10 ? { investmentExposurePolicies: [] } : {}),
+        ...(schemaVersion >= 11 ? { investmentDrawdownSnapshots: [] } : {}),
         ...overrides
     };
 }
@@ -48,8 +49,8 @@ afterEach(async () => {
     await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
-describe('SQLite workspace persistence schema v10', () => {
-    it('persists all seventeen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
+describe('SQLite workspace persistence schema v11', () => {
+    it('persists all eighteen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const first = new WorkspaceDatabase(path); databases.push(first);
@@ -57,7 +58,7 @@ describe('SQLite workspace persistence schema v10', () => {
         expect(saved).toMatchObject({ database: 'SQLite', configured: true, hasWorkspace: true, schemaVersion: 11,
             recordCount: 2, goalCount: 0, cashFlowTransactionCount: 1, budgetCount: 1, historicalSnapshotCount: 1,
             investmentAccountCount: 1, investmentInstrumentCount: 1, investmentTransactionCount: 1, investmentValuationCount: 1, investmentCashAccountCount: 0, investmentCashMovementCount: 0,
-            investmentCashTransferCount: 0, investmentCashStatementCount: 0, investmentAllocationPolicyCount: 0, investmentConcentrationPolicyCount: 0, investmentExposureClassificationCount: 0, investmentExposurePolicyCount: 0 });
+            investmentCashTransferCount: 0, investmentCashStatementCount: 0, investmentAllocationPolicyCount: 0, investmentConcentrationPolicyCount: 0, investmentExposureClassificationCount: 0, investmentExposurePolicyCount: 0, investmentDrawdownSnapshotCount: 0 });
         first.close(); databases.splice(databases.indexOf(first), 1);
         const reopened = new WorkspaceDatabase(path); databases.push(reopened);
         expect(reopened.getWorkspace().payload).toEqual(payload());
@@ -298,7 +299,7 @@ describe('SQLite workspace persistence schema v10', () => {
         expect(readdirSync(directory).filter((name) => name.includes('.pre-v8-'))).toHaveLength(0);
     });
 
-    it('migrates a v8 workspace through schema v10 while preserving the v9 recovery artifact', async () => {
+    it('migrates a v8 workspace through schema v11 while preserving the v9 recovery artifact', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-v8-migration-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const legacy = payload({ schemaVersion: 8, investmentConcentrationPolicies: [{
