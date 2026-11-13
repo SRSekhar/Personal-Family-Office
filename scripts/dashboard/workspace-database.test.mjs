@@ -616,7 +616,7 @@ describe('SQLite workspace persistence schema v11', () => {
             investmentCashTransfers: ['cash-transfer-recovery-1'],
             investmentCashStatements: ['cash-statement-1', 'cash-statement-2'],
             investmentAllocationPolicies: ['allocation-policy-recovery-1'],
-            investmentConcentrationPolicies: ['concentration-policy-recovery-1'], investmentExposureClassifications: [], investmentDrawdownSnapshots: [], investmentDrawdownSnapshots: []
+            investmentConcentrationPolicies: ['concentration-policy-recovery-1'], investmentExposureClassifications: [], investmentDrawdownSnapshots: []
         });
         expect(recovered.payload.investmentCashTransfers[0].amount).toEqual({ amount: 100, currency: 'INR' });
         expect(recovered.payload.investmentValuations[0].sourceName).toBe('User-entered');
