@@ -1829,7 +1829,7 @@ try {
         { key: 'pfo-os.cash-flow.v1', message: 'Could not save cash-flow transactions.' },
         { key: 'pfo-os.cash-flow-budgets.v1', message: 'Could not save category budgets.' },
         { key: 'pfo-os.historical-snapshots.v1', message: 'Could not save historical snapshots.' },
-        { key: 'pfo-os.investment-exposure-classifications.v1', message: 'Could not save investment exposure classifications.' },
+        { key: 'pfo-os.investment-exposure-classifications.v1', message: 'Could not save investment exposure classifications to browser storage.' },
         { key: 'pfo-os.investment-cash-accounts.v1', message: 'Could not save investmentCashAccounts to browser storage.' },
         { key: 'pfo-os.investment-cash-movements.v1', message: 'Could not save investmentCashMovements to browser storage.' },
         { key: 'pfo-os.investment-cash-transfers.v1', message: 'Could not save investmentCashTransfers to browser storage.' },
@@ -1887,23 +1887,9 @@ try {
         });
         const confirmationMessage = await failedRestoreConfirmation;
         assert.match(confirmationMessage, /Backup import preview/);
-        process.stdout.write('Testing restore rollback for ' + failureCase.key + '\\n');
-        try {
-            await page.waitForFunction((expectedMessage) =>
-                globalThis.document.querySelector('#toast')?.textContent.includes(expectedMessage),
-            failureCase.message, { timeout: 5000 });
-        } catch (error) {
-            const diagnostics = await page.evaluate(() => ({
-                toast: globalThis.document.querySelector('#toast')?.textContent,
-                workspace: globalThis.document.querySelector('#workspace-label')?.textContent,
-                exposureError: globalThis.document.querySelector('#investment-exposure-error')?.textContent,
-                exposureCount: globalThis.document.querySelector('#investment-exposure-count')?.textContent
-            }));
-            process.stdout.write('RESTORE FAILURE DIAGNOSTICS: ' + JSON.stringify({
-                key: failureCase.key, expected: failureCase.message, diagnostics
-            }) + '\\n');
-            throw error;
-        }
+        await page.waitForFunction((expectedMessage) =>
+            globalThis.document.querySelector('#toast')?.textContent.includes(expectedMessage),
+        failureCase.message, { timeout: 5000 });
         const afterFailedRestore = await readWorkspaceStorage();
         assert.deepEqual(afterFailedRestore, priorWorkspace,
             'a failed write to ' + failureCase.key + ' must roll back every workspace collection');
