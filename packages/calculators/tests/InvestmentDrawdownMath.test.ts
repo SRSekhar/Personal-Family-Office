@@ -90,7 +90,7 @@ describe('analyzeInvestmentDrawdownMath', () => {
     it('uses recorded-at cutoff and refuses a flow with only one boundary known at that cutoff', () => {
         const result = analyzeInvestmentDrawdownMath({
             ...input([
-                observation({ id: 'd1', kind: 'DailyClose', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1000 }),
+                observation({ id: 'd1', kind: 'DailyClose', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1000, recordedAt: '2026-11-01T17:00:00.000Z' }),
                 observation({ id: 'pre', kind: 'ExternalFlowPre', flowId: 'flow-late', effectiveAt: '2026-11-02T10:00:00.000Z', portfolioValue: 1100, recordedAt: '2026-11-02T11:00:00.000Z' }),
                 observation({ id: 'post', kind: 'ExternalFlowPost', flowId: 'flow-late', effectiveAt: '2026-11-02T10:00:00.000Z', portfolioValue: 2100, recordedAt: '2026-11-14T11:00:00.000Z' })
             ], [{ id: 'flow-late', effectiveAt: '2026-11-02T10:00:00.000Z', recordedAt: '2026-11-02T12:00:00.000Z' }]),
