@@ -11,11 +11,11 @@ function observation(overrides: Partial<InvestmentDrawdownObservation> & Pick<In
         ...(overrides.unavailableReason === undefined ? {} : { unavailableReason: overrides.unavailableReason })
     };
 }
-function input(observations: InvestmentDrawdownObservation[], externalFlows: Array<{ id: string; effectiveAt: string; recordedAt?: string }> = []) {
+function input(observations: InvestmentDrawdownObservation[], externalFlows: Array<{ id: string; effectiveAt: string; recordedAt?: string }> = [], expectedDailyCloseAt = observations.filter((item) => item.kind === 'DailyClose').map((item) => item.effectiveAt)) {
     return {
         scopeId: 'portfolio-main', currency: 'INR',
         startAt: '2026-11-01T00:00:00.000Z', endAt: '2026-11-13T23:59:59.999Z',
-        recordedAtCutoff: cutoff, observations, externalFlows: externalFlows.map((flow) => ({ ...flow, recordedAt: flow.recordedAt ?? '2026-11-13T12:00:00.000Z' }))
+        recordedAtCutoff: cutoff, observations, expectedDailyCloseAt, externalFlows: externalFlows.map((flow) => ({ ...flow, recordedAt: flow.recordedAt ?? '2026-11-13T12:00:00.000Z' }))
     };
 }
 
@@ -136,15 +136,15 @@ describe('analyzeInvestmentDrawdownMath', () => {
         expect(result.coverageStartAt).toBe('2026-11-01T16:00:00.000Z');
     });
 
-    it('ignores records outside the effective window and records after the knowledge cutoff', () => {
+    it('does not bridge an expected daily close that is missing at the knowledge cutoff', () => {
         const result = analyzeInvestmentDrawdownMath(input([
             observation({ id: 'before', kind: 'DailyClose', effectiveAt: '2026-10-31T16:00:00.000Z', portfolioValue: 900 }),
             observation({ id: 'd1', kind: 'DailyClose', effectiveAt: '2026-11-01T16:00:00.000Z', portfolioValue: 1000 }),
             observation({ id: 'future-recorded', kind: 'DailyClose', effectiveAt: '2026-11-02T16:00:00.000Z', portfolioValue: 1200, recordedAt: '2026-11-14T00:00:00.000Z' }),
             observation({ id: 'd2', kind: 'DailyClose', effectiveAt: '2026-11-03T16:00:00.000Z', portfolioValue: 1100 })
-        ]));
-        expect(result.status).toBe('available');
+        ], [], ['2026-11-01T16:00:00.000Z', '2026-11-02T16:00:00.000Z', '2026-11-03T16:00:00.000Z']));
+        expect(result.status).toBe('unavailable');
+        expect(result.reason).toContain('expected daily-close valuation');
         expect(result.observationCount).toBe(2);
-        expect(result.points.at(-1)?.portfolioValue).toBe(1100);
     });
 });
