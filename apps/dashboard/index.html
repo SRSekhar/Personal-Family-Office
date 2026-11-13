@@ -12,6 +12,7 @@
     <script type="module" src="./investment-csv-workspace.js"></script>
     <script type="module" src="./investment-concentration-workspace.js"></script>
     <script type="module" src="./investment-exposure-workspace.js"></script>
+<script type="module" src="./investment-exposure-policy-workspace.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -33,6 +34,7 @@
                 <a class="nav-item" href="#investment-performance"><span class="nav-icon">↗</span> Investment returns</a>
                 <a class="nav-item" href="#investment-ledger"><span class="nav-icon">▥</span> Investment portfolio</a>
                 <a class="nav-item" href="#investment-exposure-workspace"><span class="nav-icon">◉</span> Look-through exposure</a>
+                <a class="nav-item" href="#investment-exposure-policy-workspace"><span class="nav-icon">⊙</span> Exposure policies</a>
                 <a class="nav-item" href="#return-risk-analysis"><span class="nav-icon">△</span> Return risk analysis</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
                 <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
@@ -1001,6 +1003,40 @@
                     </div>
                     <div id="investment-exposure-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
                     <p class="form-note">This is descriptive portfolio analysis, not investment advice. It does not perform FX conversion, nested fund recursion, provider synchronization or automatic classification.</p>
+                </section>
+                <section class="investment-exposure-policy-workspace" id="investment-exposure-policy-workspace" aria-labelledby="investment-exposure-policy-heading">
+                    <div class="section-heading"><div><p class="eyebrow">USER-DEFINED EXPOSURE LIMITS</p><h3 id="investment-exposure-policy-heading">Exposure policy evaluation</h3>
+                        <p class="form-note">Create immutable versions of your own maximum group-exposure limits. No thresholds are preconfigured or inferred. Evaluation uses complete weighted exposure and both effective and recorded-at cutoffs.</p></div></div>
+                    <div class="notice" id="investment-exposure-policy-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Exposure policies describe your own risk boundaries and remain in this local private workspace.</p></div></div>
+                    <p class="validation-message" id="investment-exposure-policy-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-exposure-policy-message" role="status" aria-live="polite" hidden></p>
+                    <div class="investment-ledger-stats"><div><strong id="investment-exposure-policy-count">0</strong><span>Policy versions</span></div></div>
+                    <form id="investment-exposure-policy-form" class="panel-card">
+                        <h4>Create an exposure policy version</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Policy set<select id="investment-exposure-policy-version-set"><option value="">Create a new policy set</option></select></label>
+                            <label class="field-label">Policy name<input id="investment-exposure-policy-name" name="name" required maxlength="120" placeholder="e.g. My sector concentration limits"></label>
+                            <label class="field-label">Currency<select id="investment-exposure-policy-currency" name="currency" required></select></label>
+                            <label class="field-label">Scope<select id="investment-exposure-policy-scope" name="scope" required><option value="portfolio">Portfolio</option><option value="account">One investment account</option></select></label>
+                            <label class="field-label" id="investment-exposure-policy-account-row" hidden>Investment account<select id="investment-exposure-policy-account" name="accountId"><option value="">Select account</option></select></label>
+                            <label class="field-label">Classification dimension<select id="investment-exposure-policy-dimension" required><option value="">Select a classification dimension</option></select></label>
+                            <label class="field-label">Effective from<input id="investment-exposure-policy-effective-from" name="effectiveFrom" type="date" required></label>
+                        </div>
+                        <div class="investment-allocation-target-heading"><div><h4>Explicit maximum exposure limits</h4><p class="form-note">Each rule must select a classified group, your maximum percentage, and whether breach means greater than (&gt;) or greater than/equal to (&gt;=).</p></div>
+                            <button class="button button-secondary button-small" id="investment-exposure-policy-add-rule" type="button">Add limit</button></div>
+                        <div id="investment-exposure-policy-rules" class="investment-allocation-targets"></div>
+                        <div class="button-row"><button class="button button-primary" type="submit">Save immutable policy version</button></div>
+                    </form>
+                    <h4>Policy version history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Policy</th><th>Set ID</th><th>Version</th><th>Currency</th><th>Scope</th><th>Dimension</th><th>Effective from</th><th>Recorded at (UTC)</th><th>Explicit limits</th></tr></thead><tbody id="investment-exposure-policy-history"></tbody></table></div>
+                    <div class="investment-allocation-target-heading"><div><h4>Evaluate your limits</h4><p class="form-note">The selected policy is applied only to a complete weighted exposure result for the same currency, scope and dimension.</p></div></div>
+                    <div class="field-grid">
+                        <label class="field-label">Policy set<select id="investment-exposure-policy-analyze-set"><option value="">Choose a policy set</option></select></label>
+                        <label class="field-label">As-of date<input id="investment-exposure-policy-as-of" type="date"></label>
+                        <label class="field-label">Known by (local time)<input id="investment-exposure-policy-recorded-at-cutoff" type="datetime-local" step="1"></label>
+                    </div>
+                    <div id="investment-exposure-policy-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
+                    <p class="form-note">Results only compare your explicit limits with calculated exposure. They are not investment advice, risk scores, or instructions to trade.</p>
                 </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
