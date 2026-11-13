@@ -1812,7 +1812,7 @@ try {
     assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
     assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private schema-v6 backup includes records, goals, cash flow, budgets, history, and investment ledger.\\n');
+    process.stdout.write('PASS: private schema-v9 backup includes records, goals, cash flow, budgets, history, investment ledger and exposure classifications.\\n');
 
     const restoreFailureCases = [
         { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
@@ -3173,7 +3173,8 @@ try {
         investmentCashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
         investmentCashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
         investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
-        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]')
+        investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
+        investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
         'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all sixteen collections');
