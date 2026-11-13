@@ -15,9 +15,9 @@ function timestamp(value, label) {
     }
     return value;
 }
-function money(value, currency, label) {
+function money(value, currency, label, allowNegative = false) {
     if (!value || typeof value !== 'object' || !Number.isFinite(value.amount)
-        || typeof value.currency !== 'string' || value.currency !== currency || value.amount < 0) {
+        || typeof value.currency !== 'string' || value.currency !== currency || (!allowNegative && value.amount < 0)) {
         throw new Error(label + ' must be a finite, non-negative amount in the snapshot currency.');
     }
     return { amount: value.amount, currency: value.currency };
@@ -88,7 +88,7 @@ export function validateInvestmentDrawdownSnapshots(input) {
             const componentSourceType = text(component.sourceType, 'Drawdown component source type');
             const componentSourceName = text(component.sourceName, 'Drawdown component source name');
             if (!SOURCE_TYPES.has(componentSourceType)) throw new Error('Drawdown component source type must be manual or provider.');
-            const value = money(component.value, currency, 'Drawdown component value');
+            const value = money(component.value, currency, 'Drawdown component value', type === 'cash');
             if (type === 'position') {
                 const componentAccountId = text(component.accountId, 'Position component account ID');
                 const instrumentId = text(component.instrumentId, 'Position component instrument ID');
