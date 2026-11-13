@@ -61,6 +61,17 @@ describe('investment drawdown snapshot contract', () => {
         expect(validate([snapshot({ complete: false, unavailableReason: 'Missing one position.' })])[0].complete).toBe(false);
     });
 
+
+    it('allows a signed cash balance when the total portfolio value remains non-negative', () => {
+        const valuedAt = '2026-01-01T16:00:00.000Z';
+        const components = [
+            positionComponent('position-1', 200, valuedAt),
+            { id: 'cash-component-1', type: 'cash', cashAccountId: 'cash-1',
+                value: { amount: -50, currency: 'INR' }, valuedAt, sourceType: 'manual', sourceName: 'Broker statement' }
+        ];
+        expect(validate([snapshot({ components, totalValue: { amount: 150, currency: 'INR' } })])[0].totalValue.amount).toBe(150);
+    });
+
     it('requires snapshot totals to equal the component sum', () => {
         expect(() => validate([snapshot({ totalValue: { amount: 201, currency: 'INR' } })])).toThrow(/reconcile to its component values/i);
     });
