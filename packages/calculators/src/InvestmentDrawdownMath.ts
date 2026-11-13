@@ -258,7 +258,10 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
     return {
         status: 'available', reason: null, scopeId: input.scopeId, currency: input.currency,
         startAt: input.startAt, endAt: input.endAt,
-        recordedAtCutoff: input.recordedAtCutoff, methodology: 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1',\n        observationCount: eligible.length, flowBoundaryCount: expectedFlows.size,\n        coverageStartAt: initial.effectiveAt, coverageEndAt: groups[groups.length - 1]!.effectiveAt,\n        maximumDrawdown, peakAt: maximumPeakAt, troughAt: maximumTroughAt,
+        recordedAtCutoff: input.recordedAtCutoff, methodology: 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1',
+        observationCount: eligible.length, flowBoundaryCount: expectedFlows.size,
+        coverageStartAt: initial.effectiveAt, coverageEndAt: groups[groups.length - 1]!.effectiveAt,
+        maximumDrawdown, peakAt: maximumPeakAt, troughAt: maximumTroughAt,
         recoveryAt, recovered, points
     };
 }
