@@ -256,14 +256,14 @@ if ($('#investment-exposure-workspace')) {
         const existing = readClassifications(ledger);
         const validated = validateInvestmentExposureClassifications([...existing, classification], { instruments: ledger.investmentInstruments });
         localStorage.setItem(CLASSIFICATION_KEY, JSON.stringify(validated));
-        const now = new Date();
-        $('#investment-exposure-recorded-at-cutoff').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        const cutoff = new Date(Math.ceil(Date.now() / 1000) * 1000);
+        $('#investment-exposure-recorded-at-cutoff').value = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
         window.dispatchEvent(new Event('pfo:workspace-updated'));
     });
     $('#investment-exposure-currency').value = 'INR';
     $('#investment-exposure-as-of').value = new Date().toISOString().slice(0, 10);
-    const now = new Date();
-    $('#investment-exposure-recorded-at-cutoff').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const cutoff = new Date(Math.ceil(Date.now() / 1000) * 1000);
+    $('#investment-exposure-recorded-at-cutoff').value = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
     addAllocationRow();
     window.addEventListener('pfo:investment-updated', render);
     window.addEventListener('pfo:workspace-updated', render);
