@@ -96,7 +96,7 @@ Build a privacy-conscious, explainable, AI-assisted Personal Family Office platf
 - Dashboard for assets, liabilities, net worth, category allocation, record CRUD, search, filtering, sorting, reset, validated CSV import/export, and versioned JSON backup/restore
 - Imported custom categories are preserved when editing records (PR #176)
 - Investment ledger, FIFO positions, manual valuations, cash ledger and immutable allocation/concentration policy histories.
-- Weighted multi-group investment exposure classifications with provenance and bitemporal history (PR #450); user-configured exposure limits with explicit thresholds and comparators are in draft PR #452.
+- Weighted multi-group investment exposure classifications with provenance and bitemporal history (PR #450); user-configured exposure limits with explicit thresholds and comparators are implemented and merged in PR #452.
 - Local-only FIRE planner with readiness calculation, required annual contribution, and ordered three-scenario comparison
 - Explicit download of self-contained offline FIRE scenario HTML reports
 - Persistent multi-goal tracker with create/edit/confirmed-delete, deadline and progress status, and an approximate monthly savings pace that assumes no investment returns (PRs #169, #175)
