@@ -118,6 +118,7 @@ function renderAnalysis(ledger, classifications) {
     const scope = $('#investment-exposure-scope').value;
     const accountId = $('#investment-exposure-account').value;
     const date = $('#investment-exposure-as-of').value;
+    const recordedAtInput = $('#investment-exposure-recorded-at-cutoff').value;
     if (!dimensionId || !date || (scope === 'account' && !accountId)) {
         const note = document.createElement('p'); note.className = 'form-note';
         note.textContent = 'Choose a classification dimension, currency, scope and as-of date to calculate look-through exposure.';
@@ -129,7 +130,8 @@ function renderAnalysis(ledger, classifications) {
         if (asOfDate.getUTCFullYear() !== year || asOfDate.getUTCMonth() !== month - 1 || asOfDate.getUTCDate() !== day) {
             throw new Error('Select a valid calendar date.');
         }
-        const recordedAtCutoff = new Date();
+        const recordedAtCutoff = recordedAtInput ? new Date(recordedAtInput) : new Date();
+        if (!Number.isFinite(recordedAtCutoff.getTime())) throw new Error('Select a valid recorded-at cutoff.');
         const dimensionName = classifications.find((item) => item.dimensionId === dimensionId)?.dimensionName ?? dimensionId;
         const positions = analyzeInvestmentPortfolio({
             accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
@@ -186,7 +188,7 @@ function render() {
     if (!panel) return;
     const enabled = privateWorkspace();
     $('#investment-exposure-demo-note').hidden = enabled;
-    panel.querySelectorAll('form input, form select, form button, #investment-exposure-dimension, #investment-exposure-currency, #investment-exposure-scope, #investment-exposure-account, #investment-exposure-as-of')
+    panel.querySelectorAll('form input, form select, form button, #investment-exposure-dimension, #investment-exposure-currency, #investment-exposure-scope, #investment-exposure-account, #investment-exposure-as-of, #investment-exposure-recorded-at-cutoff')
         .forEach((control) => { control.disabled = !enabled; });
     if (!enabled) {
         $('#investment-exposure-history').replaceChildren();
@@ -231,7 +233,7 @@ if ($('#investment-exposure-workspace')) {
     $('#investment-exposure-currency').innerHTML = CURRENCIES.map((currency) => '<option value="' + currency + '">' + currency + '</option>').join('');
     $('#investment-exposure-scope').addEventListener('change', render);
     $('#investment-exposure-currency').addEventListener('change', render);
-    for (const id of ['investment-exposure-dimension', 'investment-exposure-as-of', 'investment-exposure-account']) {
+    for (const id of ['investment-exposure-dimension', 'investment-exposure-as-of', 'investment-exposure-recorded-at-cutoff', 'investment-exposure-account']) {
         $('#' + id).addEventListener('change', render);
     }
     bindForm('#investment-exposure-form', (form) => {
@@ -258,6 +260,8 @@ if ($('#investment-exposure-workspace')) {
     });
     $('#investment-exposure-currency').value = 'INR';
     $('#investment-exposure-as-of').value = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    $('#investment-exposure-recorded-at-cutoff').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     addAllocationRow();
     window.addEventListener('pfo:investment-updated', render);
     window.addEventListener('pfo:workspace-updated', render);
