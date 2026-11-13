@@ -54,7 +54,7 @@ describe('investment exposure classification validation', () => {
                 { groupId: 'y', groupName: 'Y', weightPercent: 39.98 }]
         }), { instruments })).toThrow(/reconcile to 100%/);
     });
-    it('rejects duplicate groups, zero/negative weights and unknown instruments', () => {
+    it('rejects duplicate groups, zero/negative weights, conflicting dimension labels and unknown instruments', () => {
         expect(() => validateInvestmentExposureClassification(classification({
             allocations: [{ groupId: 'x', groupName: 'X', weightPercent: 50 },
                 { groupId: 'x', groupName: 'X again', weightPercent: 50 }]
@@ -64,6 +64,7 @@ describe('investment exposure classification validation', () => {
                 { groupId: 'y', groupName: 'Y', weightPercent: 100 }]
         }), { instruments })).toThrow(/greater than 0/);
         expect(() => validateInvestmentExposureClassification(classification({ instrumentId: 'missing' }), { instruments })).toThrow(/unknown/);
+        expect(() => validateInvestmentExposureClassifications([classification(), classification({ id: 'other', instrumentId: 'equity', dimensionName: 'Industry' })], { instruments })).toThrow(/conflicting display names/);
     });
     it('requires provenance and canonical bitemporal dates', () => {
         expect(() => validateInvestmentExposureClassification(classification({ sourceName: '' }), { instruments })).toThrow(/source name/);
@@ -114,6 +115,24 @@ describe('weighted investment exposure analysis', () => {
         ]);
         expect(result.rows.reduce((sum, row) => sum + row.actualValue, 0)).toBe(1000);
         expect(result.rows.reduce((sum, row) => sum + row.actualWeightPercent, 0)).toBe(100);
+    });
+    it('normalizes a permitted rounding tolerance so total exposure still reconciles to 100%', () => {
+        const rounded = classification({ allocations: [
+            { groupId: 'technology', groupName: 'Technology', weightPercent: 60 },
+            { groupId: 'healthcare', groupName: 'Healthcare', weightPercent: 39.995 }
+        ] });
+        const result = analyzeInvestmentExposurePositions({
+            positions: [positions[0]], instruments, accounts, classifications: [rounded],
+            dimensionId: 'sector', dimensionName: 'Sector', currency: 'INR', ...cutoffs
+        });
+        expect(result.rows.reduce((sum, row) => sum + row.actualValue, 0)).toBeCloseTo(600, 8);
+        expect(result.rows.reduce((sum, row) => sum + row.actualWeightPercent, 0)).toBeCloseTo(100, 8);
+    });
+    it('rejects an account scope whose account is missing or uses a different currency', () => {
+        expect(() => analyzeInvestmentExposurePositions({
+            positions, instruments, accounts, classifications: [classification(), direct],
+            dimensionId: 'sector', dimensionName: 'Sector', currency: 'INR', scope: 'account', accountId: 'usd', ...cutoffs
+        })).toThrow(/must exist and use the requested currency/);
     });
     it('aggregates the same instrument held in separate accounts', () => {
         const result = analyzeInvestmentExposurePositions({
