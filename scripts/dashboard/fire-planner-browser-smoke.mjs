@@ -1887,9 +1887,23 @@ try {
         });
         const confirmationMessage = await failedRestoreConfirmation;
         assert.match(confirmationMessage, /Backup import preview/);
-        await page.waitForFunction((expectedMessage) =>
-            globalThis.document.querySelector('#toast')?.textContent.includes(expectedMessage),
-        failureCase.message);
+        process.stdout.write('Testing restore rollback for ' + failureCase.key + '\\n');
+        try {
+            await page.waitForFunction((expectedMessage) =>
+                globalThis.document.querySelector('#toast')?.textContent.includes(expectedMessage),
+            failureCase.message, { timeout: 5000 });
+        } catch (error) {
+            const diagnostics = await page.evaluate(() => ({
+                toast: globalThis.document.querySelector('#toast')?.textContent,
+                workspace: globalThis.document.querySelector('#workspace-label')?.textContent,
+                exposureError: globalThis.document.querySelector('#investment-exposure-error')?.textContent,
+                exposureCount: globalThis.document.querySelector('#investment-exposure-count')?.textContent
+            }));
+            process.stdout.write('RESTORE FAILURE DIAGNOSTICS: ' + JSON.stringify({
+                key: failureCase.key, expected: failureCase.message, diagnostics
+            }) + '\\n');
+            throw error;
+        }
         const afterFailedRestore = await readWorkspaceStorage();
         assert.deepEqual(afterFailedRestore, priorWorkspace,
             'a failed write to ' + failureCase.key + ' must roll back every workspace collection');
