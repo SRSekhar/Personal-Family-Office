@@ -48,7 +48,11 @@ export interface InvestmentDrawdownMathResult {
     readonly startAt: string;
     readonly endAt: string;
     readonly recordedAtCutoff: string;
+    readonly methodology: 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1';
     readonly observationCount: number;
+    readonly flowBoundaryCount: number;
+    readonly coverageStartAt: string | null;
+    readonly coverageEndAt: string | null;
     readonly maximumDrawdown: number | null;
     readonly peakAt: string | null;
     readonly troughAt: string | null;
@@ -75,7 +79,8 @@ function unavailable(input: InvestmentDrawdownMathInput, reason: string, count =
     return {
         status: 'unavailable', reason, scopeId: input.scopeId, currency: input.currency,
         startAt: input.startAt, endAt: input.endAt, recordedAtCutoff: input.recordedAtCutoff,
-        observationCount: count, maximumDrawdown: null, peakAt: null, troughAt: null,
+        methodology: 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1', observationCount: count, flowBoundaryCount: 0,
+        coverageStartAt: null, coverageEndAt: null, maximumDrawdown: null, peakAt: null, troughAt: null,
         recoveryAt: null, recovered: false, points: []
     };
 }
@@ -252,9 +257,8 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
 
     return {
         status: 'available', reason: null, scopeId: input.scopeId, currency: input.currency,
-        startAt: initial.effectiveAt, endAt: groups[groups.length - 1]!.effectiveAt,
-        recordedAtCutoff: input.recordedAtCutoff, observationCount: eligible.length,
-        maximumDrawdown, peakAt: maximumPeakAt, troughAt: maximumTroughAt,
+        startAt: input.startAt, endAt: input.endAt,
+        recordedAtCutoff: input.recordedAtCutoff, methodology: 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1',\n        observationCount: eligible.length, flowBoundaryCount: expectedFlows.size,\n        coverageStartAt: initial.effectiveAt, coverageEndAt: groups[groups.length - 1]!.effectiveAt,\n        maximumDrawdown, peakAt: maximumPeakAt, troughAt: maximumTroughAt,
         recoveryAt, recovered, points
     };
 }
