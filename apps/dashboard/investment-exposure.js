@@ -91,7 +91,7 @@ export function validateInvestmentExposureClassifications(classifications, conte
 }
 
 /** Select the latest classification that was both effective and known at the requested cutoffs. */
-export function selectInvestmentExposureClassification(validatedClassifications, { instrumentId, dimensionId, asOfDate, recordedAtCutoff }) {
+export function selectInvestmentExposureClassification(classifications, { instrumentId, dimensionId, asOfDate, recordedAtCutoff }) {
     if (!Array.isArray(classifications)) throw new TypeError('Exposure classifications must be an array.');
     if (!(asOfDate instanceof Date) || !Number.isFinite(asOfDate.getTime())
         || !(recordedAtCutoff instanceof Date) || !Number.isFinite(recordedAtCutoff.getTime())) {
