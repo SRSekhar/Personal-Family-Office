@@ -1,6 +1,6 @@
 # ADR — Portfolio drawdown metric
 
-- Status: **Decision accepted — Option B (time-weighted, external-flow-adjusted drawdown); implementation blocked on data-contract prerequisites**
+- Status: **Decision accepted — Option B; pure calculation kernel implemented; production data pipeline and UI remain blocked on data-contract prerequisites**
 - Date: 2026-11-13
 - Scope: historical, currency-separated investment-portfolio performance drawdown
 - Related: `INVESTMENT-RISK-POLICY-READINESS.md`, `ADR-INVESTMENT-CONCENTRATION-POLICY.md`, `ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`
@@ -128,7 +128,7 @@ The current repository has immutable investment transactions with effective `dat
 
 Therefore, do not implement a drawdown calculator against the existing point-valuations and cash statements alone. First design and approve the smallest additive data contract for immutable portfolio snapshots and flow-boundary valuations, including provenance, effective timestamp, recorded-at timestamp, scope, currency, position coverage and validation status. Reuse existing ledger records as event sources where valid; do not duplicate or mutate the financial ledger to simulate snapshots.
 
-No schema migration is authorized by this ADR. A separate implementation design must demonstrate how the new observations are generated, validated, persisted, replayed and backed up before schema changes begin.
+A pure, deterministic calculation kernel now exists in `packages/calculators/src/InvestmentDrawdownMath.ts`. It chains daily observations, requires authoritative external-flow events plus exact paired pre/post valuations, neutralizes flow-only NAV changes, applies effective/recorded-at cutoffs, and reports maximum drawdown, peak, trough, recovery, coverage and unavailable reasons. Hand-calculated unit tests cover market movement, contribution neutrality, withdrawal neutrality, unpaired/incomplete observations, flow timestamp mismatch, mixed currency/scope, ambiguous simultaneous flows and bitemporal filtering. This is deliberately only a math kernel: it does not construct or certify complete portfolio snapshots, discover missing calendar observations, classify ledger events, or persist history. It must not be wired to existing point-valuations/cash statements as if they formed a complete series.\n\nNo schema migration is authorized by this ADR. A separate implementation design must demonstrate how the new observations are generated, validated, persisted, replayed and backed up before schema changes begin.
 
 ## Required acceptance evidence
 
@@ -170,6 +170,6 @@ This ADR does not approve:
 3. Implement deterministic snapshot construction/validation and persistence with provenance and bitemporal semantics.
 4. Implement the flow-adjusted wealth-index calculator and maximum drawdown only after snapshot prerequisites are satisfied.
 5. Add hand-calculated unit/integration tests, then descriptive UI and export support.
-6. Keep liquidity analytics separately gated; this decision does not approve a liquidity metric.
+
 
 **Quality rule:** a truthful “not enough reliable history to calculate” is preferable to a precise-looking but mathematically invalid drawdown number.
