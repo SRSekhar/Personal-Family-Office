@@ -26,6 +26,8 @@ export interface InvestmentDrawdownMathInput {
     readonly endAt: string;
     readonly recordedAtCutoff: string;
     readonly observations: readonly InvestmentDrawdownObservation[];
+    /** Required end-of-day observation timestamps from an explicit market/valuation calendar. */
+    readonly expectedDailyCloseAt: readonly string[];
     /** External flows independently selected from the authoritative cash/transaction ledgers. */
     readonly externalFlows: readonly InvestmentDrawdownExternalFlow[];
 }
@@ -106,7 +108,15 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
     assertTimestamp(input.recordedAtCutoff, 'Recorded-at cutoff');
     if (input.startAt > input.endAt) throw new RangeError('Analysis start must not be after analysis end.');
     if (!Array.isArray(input.observations)) throw new TypeError('Drawdown observations must be an array.');
+    if (!Array.isArray(input.expectedDailyCloseAt)) throw new TypeError('An explicit expected daily-close schedule is required.');
     if (!Array.isArray(input.externalFlows)) throw new TypeError('Authoritative external flows must be an array.');
+
+    const expectedDailyCloseTimes = new Set<string>();
+    for (const timestamp of input.expectedDailyCloseAt) {
+        assertTimestamp(timestamp, 'Expected daily-close timestamp');
+        if (expectedDailyCloseTimes.has(timestamp)) throw new RangeError('Expected daily-close timestamps must be unique.');
+        if (timestamp >= input.startAt && timestamp <= input.endAt) expectedDailyCloseTimes.add(timestamp);
+    }
 
     const flowIds = new Set<string>();
     const expectedFlows = new Map<string, string>();
@@ -136,6 +146,8 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
         }
         if (typeof item.complete !== 'boolean') throw new TypeError('Observation completeness must be explicit.');
         if (item.kind === 'DailyClose' && item.flowId !== undefined) throw new RangeError('Daily-close observations cannot reference an external flow.');
+        if (item.kind === 'DailyClose' && item.effectiveAt >= input.startAt && item.effectiveAt <= input.endAt
+            && !expectedDailyCloseTimes.has(item.effectiveAt)) throw new RangeError('A daily-close observation is not present in the explicit observation calendar.');
         if (item.kind !== 'DailyClose' && (typeof item.flowId !== 'string' || !item.flowId.trim())) {
             throw new RangeError('External-flow boundary observations require a flow ID.');
         }
@@ -167,6 +179,10 @@ export function analyzeInvestmentDrawdownMath(input: InvestmentDrawdownMathInput
                 grouped.set(item.effectiveAt, { ...current, post: item });
             }
         }
+    }
+
+    for (const expectedAt of expectedDailyCloseTimes) {
+        if (!grouped.get(expectedAt)?.daily) return unavailable(input, 'An expected daily-close valuation is missing or was not known by the recorded-at cutoff.', eligible.length);
     }
 
     const observedFlowIds = new Set<string>();
