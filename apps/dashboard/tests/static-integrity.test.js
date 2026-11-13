@@ -696,7 +696,7 @@ describe('full workspace backup contract', () => {
             readDashboardFile('backup.js'),
             readDashboardFile('cashflow.js')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 10 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 11 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
@@ -706,6 +706,9 @@ describe('full workspace backup contract', () => {
         expect(app).toContain('Object.assign(payload, readInvestmentAllocationPolicies())');
         expect(app).toContain('Object.assign(payload, readInvestmentConcentrationPolicies())');
         expect(app).toContain('Object.assign(payload, readInvestmentExposurePolicies())');
+        expect(app).toContain('Object.assign(payload, readInvestmentDrawdownSnapshots())');
+        expect(app).toContain('persistInvestmentDrawdownSnapshots(backup.investmentDrawdownSnapshots, backup)');
+        expect(app).toContain('INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY');
         expect(app).toContain('persistInvestmentExposurePolicies(backup.investmentExposurePolicies)');
         expect(app).toContain('INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY');
         expect(app).toContain('INVESTMENT_CONCENTRATION_STORAGE_KEY');
@@ -718,6 +721,7 @@ describe('full workspace backup contract', () => {
         expect(backup).toContain('includesCashFlow');
         expect(backup).toContain('includesHistoricalSnapshots');
         expect(backup).toContain('includesInvestmentLedger');
+        expect(backup).toContain('includesInvestmentDrawdownSnapshots');
         expect(backup).toContain('includesInvestmentAllocationPolicies');
         expect(backup).toContain('includesInvestmentConcentrationPolicies');
         expect(backup).toContain('includesInvestmentExposurePolicies');
