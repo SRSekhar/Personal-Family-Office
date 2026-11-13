@@ -129,4 +129,4 @@ The implementation contract is:
 - The first private-workspace UI is implemented in `apps/dashboard/investment-exposure-workspace.js` and the dashboard HTML. It supports user-entered immutable classification snapshots and historical exposure analysis.
 - SQLite schema v9 adds `investmentExposureClassifications`; v8→v9 migration is transactional, creates a mode-restricted pre-v9 JSON recovery artifact, and never infers classifications.
 - JSON backup validation and preview recognize schema v9 while preserving imports from schemas 1–8. Legacy restores preserve existing classifications only when they remain valid against the restored instrument collection.
-- CI, Chromium browser smoke, dashboard deployment and Secret Scan passed on PR #450 head. PR #450 remains a draft pending owner review; main remains on schema v8 until merge.
+- CI, Chromium browser smoke, dashboard deployment and Secret Scan passed on PR #450 head. PR #450 was squash-merged to `main` as `ec0f8ea959b971dea88969d4c38c2431ecdb9c68`; post-merge CI and deployment are running.
