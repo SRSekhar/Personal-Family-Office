@@ -84,7 +84,7 @@ describe('investment exposure policy validation', () => {
     it('validates immutable history IDs, versions and stable policy-set dimensions', () => {
         expect(() => validateInvestmentExposurePolicies([policy(), policy()], context)).toThrow(/IDs must be unique/);
         expect(() => validateInvestmentExposurePolicies([policy(), policy({ id: 'policy-v2' })], context)).toThrow(/version must be unique/);
-        expect(() => validateInvestmentExposurePolicies([policy(), policy({ id: 'policy-v2', version: 2, dimensionId: 'other' })], context))
+        expect(() => validateInvestmentExposurePolicies([policy(), policy({ id: 'policy-v2', version: 2, currency: 'USD', rules: [{ groupId: 'sovereign', maxWeightPercent: 30, operator: '>' }] })], context))
             .toThrow(/retain currency, scope, account and dimension/);
     });
     it('requires complete classification context when validating persisted policy collections', () => {
@@ -132,7 +132,7 @@ describe('investment exposure policy evaluation', () => {
     });
     it('preserves strict and inclusive boundary semantics', () => {
         const exact = exposure({ rows: [
-            { key: 'technology', actualWeightPercent: 35 }, { key: 'healthcare', actualWeightPercent: 25 }
+            { key: 'technology', actualWeightPercent: 35 }, { key: 'healthcare', actualWeightPercent: 25 }, { key: 'industrials', actualWeightPercent: 40 }
         ] });
         const result = evaluateInvestmentExposurePolicy({ exposure: exact, policy: policy(), ...cutoffs, ...context });
         expect(result.results.map((item) => item.status)).toEqual(['withinLimit', 'breach']);
