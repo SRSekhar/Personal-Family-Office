@@ -161,6 +161,7 @@ export function evaluateInvestmentExposurePolicy({
     }
     if (exposure.currency !== validated.currency || exposure.scope !== validated.scope
         || (validated.scope === 'account' && exposure.accountId !== validated.accountId)
+        || (validated.scope === 'portfolio' && exposure.accountId !== undefined)
         || exposure.dimensionId !== validated.dimensionId || exposure.dimensionName !== validated.dimensionName) {
         throw new RangeError('Exposure policy dimensions must match the analyzed currency, scope, account and classification dimension.');
     }
