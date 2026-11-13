@@ -21,10 +21,11 @@ function requireTimestamp(value, label) {
     return value;
 }
 
-function classificationGroups(classifications, dimensionId) {
+function classificationGroups(classifications, dimensionId, currency, instruments) {
     const groups = new Map();
+    const instrumentMap = new Map(instruments.map((item) => [item.id, item]));
     for (const classification of classifications) {
-        if (classification.dimensionId !== dimensionId) continue;
+        if (classification.dimensionId !== dimensionId || instrumentMap.get(classification.instrumentId)?.currency !== currency) continue;
         for (const allocation of classification.allocations) {
             const existing = groups.get(allocation.groupId);
             if (existing !== undefined && existing !== allocation.groupName) {
@@ -63,9 +64,10 @@ export function validateInvestmentExposurePolicy(policy, { accounts, instruments
     const dimensionName = requireText(policy.dimensionName, 'Exposure policy dimension name');
     const effectiveFrom = requireDate(policy.effectiveFrom, 'Exposure policy effective date');
     const recordedAt = requireTimestamp(policy.recordedAt, 'Exposure policy recorded-at timestamp');
-    const groups = classificationGroups(classifications, dimensionId);
+    const groups = classificationGroups(classifications, dimensionId, policy.currency, instruments);
     if (!groups.size) throw new RangeError('Exposure policy dimension must exist in validated investment classifications.');
-    const classificationDimension = classifications.find((item) => item.dimensionId === dimensionId);
+    const classificationDimension = classifications.find((item) => item.dimensionId === dimensionId
+        && instruments.find((instrument) => instrument.id === item.instrumentId)?.currency === policy.currency);
     if (classificationDimension && classificationDimension.dimensionName !== dimensionName) {
         throw new RangeError('Exposure policy dimension name must match the stable classification dimension name.');
     }
