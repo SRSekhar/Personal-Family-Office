@@ -512,7 +512,7 @@ describe('dashboard accessibility contracts', () => {
                 expect(
                     section,
                     sectionName + ' control #' + id + ' must have an explicitly associated label'
-                ).toMatch(new RegExp("<label\\b[^>]*\\bfor=[\"']" + id + "[\"']"));
+                ).toMatch(new RegExp("<label\b[^>]*\bfor=[\"']" + id + "[\"']"));
             }
         }
     });
@@ -764,9 +764,9 @@ describe('weighted investment exposure workspace integrity', () => {
         expect(workspace).toContain("from './investment-exposure.js'");
         expect(workspace).toContain("from './investment-portfolio.js'");
         expect(domain).toContain('export function analyzeInvestmentExposurePositions');
-        const ids = new Set([...html.matchAll(/\\bid=["']([^"']+)["']/g)].map((match) => match[1]));
+        const ids = new Set([...html.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]));
         const referencedIds = [...new Set(
-            [...workspace.matchAll(/\\$\\(['"]#([^'"]+)['"]\\)/g)].map((match) => match[1])
+            [...workspace.matchAll(/\$\(['"]#([^'"]+)['"]\)/g)].map((match) => match[1])
         )];
         expect(referencedIds.filter((id) => !ids.has(id)), 'exposure workspace selectors must exist in HTML').toEqual([]);
     });
