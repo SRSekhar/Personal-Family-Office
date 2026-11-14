@@ -7,6 +7,7 @@ import { validateInvestmentExposureClassifications } from './investment-exposure
 import { validateInvestmentExposurePolicyCollections } from './investment-exposure-policy.js';
 import { validateInvestmentDrawdownSnapshots } from './investment-drawdown-snapshots.js';
 import { validateInvestmentDrawdownCalendars } from './investment-drawdown-calendars.js';
+import { initializeInvestmentDrawdownCalendarWorkspace } from './investment-drawdown-calendar-workspace.js';
 import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
@@ -108,6 +109,7 @@ let investmentExposureStorageHealthy = true;
 let investmentExposurePolicyStorageHealthy = true;
 let investmentDrawdownSnapshotStorageHealthy = true;
 let investmentDrawdownCalendarStorageHealthy = true;
+let drawdownCalendarWorkspace;
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -945,6 +947,7 @@ function switchWorkspace(nextWorkspace) {
     $('#sample-notice').hidden = workspace !== 'demo';
     $('#switch-demo-button').hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
+    drawdownCalendarWorkspace?.render();
     render();
     window.dispatchEvent(new Event('pfo:workspace-updated'));
 }
@@ -2976,7 +2979,7 @@ function syncActiveNavigation() {
 document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', syncActiveNavigation));
 window.addEventListener('hashchange', syncActiveNavigation);
 window.addEventListener('pfo:cashflow-updated', () => { renderFinancialHealth(); scheduleDatabaseAutoSave(); });
-window.addEventListener('pfo:workspace-updated', scheduleDatabaseAutoSave);
+window.addEventListener('pfo:workspace-updated', () => { drawdownCalendarWorkspace?.render(); scheduleDatabaseAutoSave(); });
 syncActiveNavigation();
 
 refreshDatabaseStatus();
@@ -3002,4 +3005,13 @@ initializeInvestmentWorkspace();
 initializeGrowthProjectionCalculator();
 initializeCagrCalculator();
 initializeReturnRiskCalculator();
+drawdownCalendarWorkspace = initializeInvestmentDrawdownCalendarWorkspace({
+    readCalendars: readInvestmentDrawdownCalendars,
+    persistCalendars: persistInvestmentDrawdownCalendars,
+    readAccounts: readInvestmentLedgerCollections,
+    isPrivateWorkspace: () => workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname),
+    isLedgerHealthy: () => investmentStorageHealthy,
+    isCalendarStorageHealthy: () => investmentDrawdownCalendarStorageHealthy,
+    notify: showToast
+});
 switchWorkspace('demo');
