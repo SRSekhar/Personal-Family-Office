@@ -7,7 +7,7 @@ function escapeHtml(value) {
 
 function escapeCsvText(value) {
     const text = String(value ?? '');
-    const safe = /^\\s*[=+@-]/u.test(text) ? "'" + text : text;
+    const safe = /^\s*[=+@-]/u.test(text) ? "'" + text : text;
     return '"' + safe.replaceAll('"', '""') + '"';
 }
 
@@ -35,7 +35,7 @@ function formatMoney(value, currency) {
 function formatPercent(value) {
     if (!Number.isFinite(value)) return 'Unavailable';
     return new Intl.NumberFormat('en-IN', {
-        style: 'percent', maximumFractionDigits: 2
+        style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2
     }).format(value);
 }
 
