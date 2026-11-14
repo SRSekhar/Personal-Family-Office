@@ -62,6 +62,15 @@ describe('investment drawdown calendars', () => {
         })).toThrow(/must match the investment account currency/i);
     });
 
+    it('requires a validated investment-account collection for account scope', () => {
+        const accountCalendar = calendar({
+            id: 'account-calendar-1', calendarSetId: 'account-inr-2026', scope: 'account', accountId: 'account-1'
+        });
+        expect(() => validateInvestmentDrawdownCalendars({
+            investmentDrawdownCalendars: [accountCalendar]
+        })).toThrow(/validated investment account collection/i);
+    });
+
     it('rejects account-scoped calendars that reference an unknown investment account', () => {
         const accountCalendar = calendar({
             id: 'account-calendar-1', calendarSetId: 'account-inr-2026', scope: 'account', accountId: 'missing-account'
