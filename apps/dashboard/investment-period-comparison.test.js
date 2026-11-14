@@ -16,7 +16,8 @@ function analysis(startAt, endAt, overrides = {}) {
         observationCount: 2, flowBoundaryCount: 0,
         coverageStartAt: startAt, coverageEndAt: endAt,
         maximumDrawdown: 0, peakAt: null, troughAt: null, recoveryAt: null, recovered: null,
-        points, ...overrides
+        ...overrides,
+        points: (overrides.points ?? points).map((point) => ({ kind: 'DailyClose', ...point }))
     };
 }
 
