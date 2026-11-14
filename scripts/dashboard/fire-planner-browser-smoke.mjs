@@ -1529,8 +1529,20 @@ try {
     await page.locator('#investment-drawdown-report-form [name="endAt"]').fill(drawdownFinalCloseAt);
     await page.locator('#investment-drawdown-report-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
     await page.locator('#investment-drawdown-report-form button[type="submit"]').click();
-    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-report-preview')?.getAttribute('srcdoc')?.includes('Calculation available'));
-    const reportHtml = await page.locator('#investment-drawdown-report-preview').getAttribute('srcdoc');
+    await page.waitForFunction(() => {
+        const preview = globalThis.document.querySelector('#investment-drawdown-report-preview')?.getAttribute('srcdoc') ?? '';
+        const error = globalThis.document.querySelector('#investment-drawdown-report-error')?.textContent?.trim() ?? '';
+        return preview.length > 0 || error.length > 0;
+    });
+    const reportState = await page.evaluate(() => ({
+        html: globalThis.document.querySelector('#investment-drawdown-report-preview')?.getAttribute('srcdoc') ?? '',
+        error: globalThis.document.querySelector('#investment-drawdown-report-error')?.textContent?.trim() ?? '',
+        status: globalThis.document.querySelector('#investment-drawdown-report-status')?.textContent?.trim() ?? ''
+    }));
+    if (!reportState.html.includes('Calculation available')) {
+        throw new Error('Drawdown report did not become available: ' + reportState.error + ' ' + reportState.status);
+    }
+    const reportHtml = reportState.html;
     assert.match(reportHtml, /Investment drawdown/u);
     assert.match(reportHtml, /Maximum drawdown/u);
     assert.match(reportHtml, /Paired external flows/u);
