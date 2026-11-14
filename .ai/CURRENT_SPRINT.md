@@ -1,6 +1,27 @@
 # Current Sprint
 
-## 2026-11-13 — Sprint 11: Flow-adjusted portfolio drawdown (in progress — PR #453)
+## Current status — 2026-11-14
+
+### Sprint 11 — Flow-adjusted portfolio drawdown: implementation complete on PR #453
+
+- Option B time-weighted, external-flow-adjusted drawdown is implemented end-to-end on `feature/ipm-drawdown-contract-discovery`: pure calculator, bitemporal snapshot contract, ledger-derived completeness, authoritative external-flow classification, persisted explicit daily-close calendar, manual private capture/import, paired pre/post-flow authoring, series orchestration and private descriptive reporting.
+- SQLite schema v12 contains 19 collections; transactional v10→v11→v12 migrations, protected recovery artifacts, JSON backup/restore and SQLite persistence are covered.
+- Independent hand-calculated acceptance covers a same-time correction, multiple flows, scope-crossing transfer, fees, taxes, a fully closed position and a missing expected daily close.
+- Private HTML and spreadsheet-safe CSV reports include scope, currency, methodology, analysis window, observed coverage, recorded-at cutoff, peak/trough/recovery, completeness evidence and unavailable reasons. Unavailable analyses emit no partial statistics.
+- Browser smoke covers manual capture, paired flow boundaries, report downloads, demo/private isolation, JSON backup/restore and SQLite persistence.
+- Code head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1889, Secret Scan #1683 and dashboard packaging #1125. Documentation-only follow-ups bring the PR head to `53f7979bbcd3b2ec0f8480c61ee0a352a7190250`; CI #1893 was queued at the last check, while Secret Scan #1687 and dashboard packaging #1129 passed.
+- PR #453 remains open, draft and unmerged. Do not merge without explicit owner approval. Main remains schema v10; PR branch is schema v12.
+- In-kind contributions/withdrawals and corporate actions remain unsupported pending a separate ledger-model decision. Liquidity remains separately gated.
+
+### Next sprint — IPM performance analytics discovery
+
+- Review the existing ledger, cash reconciliation, XIRR, drawdown, allocation, concentration and exposure contracts before changing code.
+- Identify which IPM-04 outputs are already supported and which are missing: realised/unrealised P&L, open cost basis, dividends, interest, fees/taxes, transaction/position reconciliation and historical performance reporting.
+- Define the exact inputs, formulas, currency/scope rules, effective/recorded-at semantics and incomplete-data behavior for each proposed output. Reuse existing calculations rather than duplicate XIRR or drawdown.
+- Do not infer prices, tax treatment, corporate actions, FX or terminal values. No metric is added until it can be derived from existing authoritative data and independently hand-calculated.
+
+
+## Historical planning snapshot — Sprint 11: Flow-adjusted portfolio drawdown (superseded by completion record below)
 
 - Sprint 10 exposure limits remain complete and merged in PR #452.
 - Approved Option B: time-weighted, external-flow-adjusted drawdown; raw NAV and Modified Dietz fallback are rejected.
