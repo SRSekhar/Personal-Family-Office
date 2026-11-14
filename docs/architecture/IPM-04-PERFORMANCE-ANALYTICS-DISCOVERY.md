@@ -114,7 +114,7 @@ The cash-ledger and current investment transaction taxonomy do not represent the
 ## Implementation complete — historical period comparison (PR #454)
 
 - `apps/dashboard/investment-period-comparison.js` validates explicit periods backed by existing drawdown-series analyses and derives only the endpoint wealth-index return.
-- It enforces shared scope/account/currency/methodology/recorded-at cutoff, persisted calendar provenance, positive strictly increasing observations, unique labels and explicit unavailable states.
+- It enforces shared scope/account/currency/methodology/recorded-at cutoff, persisted calendar provenance, positive wealth-index values, chronological observations and unique labels. Equal timestamps are accepted only for an adjacent ExternalFlowPre/ExternalFlowPost pair at the same effective time.
 - It sorts periods chronologically and marks overlaps; overlapping windows are not represented as disjoint or additive.
 - `apps/dashboard/investment-period-comparison-workspace.js` provides the local private-only form. Every period is passed independently through `analyzeInvestmentDrawdownSeries`; the user must enter exact UTC period boundaries and the existing calendar selector must find one persisted revision for each window.
 - `apps/dashboard/investment-period-comparison-report.js` produces standalone script-free HTML and spreadsheet-safe CSV with return, drawdown, peak/trough/recovery, coverage, calendar provenance, observation counts, overlap and unavailable reasons.
