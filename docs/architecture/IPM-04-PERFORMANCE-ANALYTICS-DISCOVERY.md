@@ -109,3 +109,15 @@ The cash-ledger and current investment transaction taxonomy do not represent the
 - `apps/dashboard/investment-drawdown-report.js`
 - `packages/calculators/src/InvestmentDrawdownMath.ts`
 - `docs/architecture/ADR-0002-historical-snapshot-persistence-requirements.md`
+
+
+## Implementation progress — period comparison adapter
+
+The first implementation slice is now present:
+
+- `apps/dashboard/investment-period-comparison.js` validates explicit periods backed by existing drawdown-series analyses and derives only the endpoint wealth-index return.
+- It enforces shared scope/account/currency/methodology/recorded-at cutoff, persisted calendar provenance, positive strictly increasing observations, unique labels and explicit unavailable states.
+- It sorts periods chronologically and marks overlaps; it does not imply disjoint or additive windows.
+- `apps/dashboard/investment-period-comparison.test.js` includes hand-calculated endpoint cases (+25% and -10%) and fail-closed contract cases.
+
+The private report/workspace integration remains pending CI validation. No schema or financial-data changes were made.
