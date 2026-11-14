@@ -87,11 +87,16 @@ export function renderInvestmentPeriodComparisonHtml(input) {
         const available = period.status === 'available';
         const recovery = !available ? 'Unavailable' : period.maximumDrawdown === 0
             ? 'Not applicable' : period.recovered ? 'Recovered' : 'Not recovered';
+        const peak = available ? (period.peakAt ?? 'Not applicable') : 'Unavailable';
+        const trough = available ? (period.troughAt ?? 'Not applicable') : 'Unavailable';
+        const recoveryAt = available ? (period.maximumDrawdown === 0 ? 'Not applicable'
+            : period.recovered ? (period.recoveryAt ?? 'Unavailable') : 'Not recovered') : 'Unavailable';
         return '<tr><td>' + escapeHtml(period.label) + '</td><td>' + escapeHtml(period.startAt) + ' – ' +
             escapeHtml(period.endAt) + '</td><td>' + escapeHtml(period.status) + '</td><td class="numeric">' +
             escapeHtml(available ? percent(period.periodReturn) : 'Unavailable') + '</td><td class="numeric">' +
             escapeHtml(available ? percent(period.maximumDrawdown) : 'Unavailable') + '</td><td>' +
-            escapeHtml(available ? recovery : 'Unavailable') + '</td><td>' +
+            escapeHtml(peak) + '</td><td>' + escapeHtml(trough) + '</td><td>' + escapeHtml(recoveryAt) +
+            '</td><td>' + escapeHtml(available ? recovery : 'Unavailable') + '</td><td>' +
             escapeHtml(period.coverageStartAt ?? 'Unavailable') + ' – ' +
             escapeHtml(period.coverageEndAt ?? 'Unavailable') + '</td><td class="numeric">' +
             period.observationCount + '</td><td class="numeric">' + period.flowBoundaryCount +
@@ -120,7 +125,7 @@ footer{font-size:.88rem;color:#52645d}@page{margin:14mm}
 <p class="muted">Recorded-at cutoff: ${escapeHtml(comparison.recordedAtCutoff)}<br>Generated: ${escapeHtml(generatedAt)}<br>
 Period windows are explicit and may overlap. Returns are derived only from each existing flow-adjusted wealth-index start/end point.</p></header>
 <section><h2>Comparison status</h2><p class="status">${comparison.status === 'available' ? 'All selected periods are available.' : 'One or more periods are unavailable. No partial statistics are shown for those periods.'}</p>
-<div class="table-wrap"><table><thead><tr><th>Period</th><th>Window (UTC)</th><th>Status</th><th class="numeric">Period return</th><th class="numeric">Maximum drawdown</th><th>Recovery</th><th>Observed coverage</th><th class="numeric">Observations</th><th class="numeric">Flow boundaries</th><th>Calendar</th><th>Completeness / overlap</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+<div class="table-wrap"><table><thead><tr><th>Period</th><th>Window (UTC)</th><th>Status</th><th class="numeric">Period return</th><th class="numeric">Maximum drawdown</th><th>Peak (UTC)</th><th>Trough (UTC)</th><th>Recovery (UTC)</th><th>Recovery status</th><th>Observed coverage</th><th class="numeric">Observations</th><th class="numeric">Flow boundaries</th><th>Calendar</th><th>Completeness / overlap</th></tr></thead><tbody>${rows}</tbody></table></div></section>
 <footer><strong>Interpretation and safeguards</strong><p>Period return is the ratio of the last to first existing chain-linked wealth-index values, less one. Maximum drawdown and recovery are reused unchanged from the existing drawdown calculation. No annualization, benchmark, FX conversion, interpolation, missing-date generation, forecast, risk score, threshold, recommendation or trading signal is produced. Overlapping periods are not disjoint and must not be added together.</p>
 <p>This standalone report contains sensitive household financial information. It is generated locally with no scripts, remote assets or network dependencies; keep it private.</p></footer>
 </main></body></html>`;
