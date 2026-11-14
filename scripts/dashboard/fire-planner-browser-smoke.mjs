@@ -1280,16 +1280,30 @@ try {
         'portfolio totals should be grouped and displayed in their ledger currency');
     assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Portfolio XIRR · INR[\s\S]*annualized money-weighted return[\s\S]*Terminal value[\s\S]*1,605/,
         'portfolio XIRR should include explicit external flows and a complete terminal value of cash plus valued holdings');
+    const [portfolioHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-portfolio-export-html').click()
+    ]);
+    assert.match(portfolioHtmlDownload.suggestedFilename(), /\\.html$/u);
+    const [portfolioCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-portfolio-export-csv').click()
+    ]);
+    assert.match(portfolioCsvDownload.suggestedFilename(), /\\.csv$/u);
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-cash-account-count').innerText(), '0', 'demo workspace must not expose private cash account counts');
     assert.equal(await page.locator('#investment-cash-account-rows').innerText(), '', 'demo workspace must not expose private cash account rows');
     assert.equal(await page.locator('#investment-cash-unlinked-transaction-rows').innerText(), '', 'demo workspace must not expose private transaction-link details');
     assert.equal(await page.locator('#investment-portfolio-performance').innerText(), '', 'demo workspace must not expose private portfolio XIRR');
+    assert.equal(await page.locator('#investment-portfolio-export-html').isDisabled(), true, 'demo workspace must disable private portfolio HTML export');
+    assert.equal(await page.locator('#investment-portfolio-export-csv').isDisabled(), true, 'demo workspace must disable private portfolio CSV export');
     assert.equal(await page.locator('#investment-cash-owner option').count(), 0, 'demo workspace must clear private account names from selectors');
     assert.equal(await page.locator('#investment-account-count').innerText(), '0', 'demo workspace must not expose private investment counts');
     assert.equal(await page.locator('#investment-transaction-rows').innerText(), '', 'demo workspace must not expose private investment transactions');
     assert.equal(await page.locator('#investment-transaction-cash-account option').count(), 0, 'demo workspace must clear private settlement account names');
     await page.locator('#switch-private-button').click();
+    assert.equal(await page.locator('#investment-portfolio-export-html').isDisabled(), false, 'private workspace should restore the validated portfolio HTML export');
+    assert.equal(await page.locator('#investment-portfolio-export-csv').isDisabled(), false, 'private workspace should restore the validated portfolio CSV export');
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /Browser test broker cash/, 'switching back to private must restore local cash ledger records');
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
