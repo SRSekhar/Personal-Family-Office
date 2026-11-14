@@ -36,10 +36,10 @@ export function validateInvestmentDrawdownCalendars(input) {
         const scope = text(item.scope, 'Drawdown calendar scope');
         if (!['portfolio', 'account'].includes(scope)) throw new Error('Drawdown calendar scope must be portfolio or account.');
         const accountId = item.accountId === undefined ? undefined : text(item.accountId, 'Drawdown calendar account ID');
+        const currency = text(item.currency, 'Drawdown calendar currency');
         if ((scope === 'account') !== (accountId !== undefined)) throw new Error('Account-scoped calendars require an account ID; portfolio calendars cannot specify one.');
         if (scope === 'account' && Array.isArray(input.investmentAccounts) && !accountById.has(accountId)) throw new Error('Account-scoped calendars must reference a known investment account.');
         if (scope === 'account' && Array.isArray(input.investmentAccounts) && accountById.get(accountId).currency !== currency) throw new Error('An account-scoped calendar currency must match the investment account currency.');
-        const currency = text(item.currency, 'Drawdown calendar currency');
         if (!CURRENCIES.has(currency)) throw new Error('Drawdown calendar currency is unsupported.');
         const startAt = timestamp(item.startAt, 'Drawdown calendar startAt');
         const endAt = timestamp(item.endAt, 'Drawdown calendar endAt');
