@@ -96,8 +96,8 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
                 return linkedAccount && accountIds.has(linkedAccount.investmentAccountId) && linkedAccount.currency === input.currency;
             }));
         if (sameTimeTransactions.length) reasons.push('Investment transactions share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
-        if (sameTimeMovements.some((item) => !boundarySourceIds.has(item.id))) reasons.push('Other cash movements share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
-        if (sameTimeTransfers.some((item) => !boundarySourceIds.has(item.id))) reasons.push('Other cash transfers share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
+        if (sameTimeMovements.some((item) => !boundarySourceIds.has((item.type === 'Correction' ? 'cash-correction:' : 'cash-movement:') + item.id))) reasons.push('Other cash movements share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
+        if (sameTimeTransfers.some((item) => !boundarySourceIds.has('cash-transfer:' + item.id))) reasons.push('Other cash transfers share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
     }
     const cashAccounts = cash.investmentCashAccounts.filter((item) => accountIds.has(item.investmentAccountId)
         && item.currency === input.currency && item.createdAt <= effectiveAt);
@@ -114,7 +114,8 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
     for (const cashAccount of cashAccounts) {
         const movements = cash.investmentCashMovements.filter((item) => item.cashAccountId === cashAccount.id
             && item.effectiveAt <= effectiveAt && item.recordedAt <= recordedAtCutoff
-            && !(kind === 'ExternalFlowPre' && boundarySourceIds.has(item.id)));
+            && !(kind === 'ExternalFlowPre' && (boundarySourceIds.has('cash-movement:' + item.id)
+                || boundarySourceIds.has('cash-correction:' + item.id))));
         const opening = movements.filter((item) => item.type === 'OpeningBalance');
         if (opening.length !== 1) {
             reasons.push('Cash account ' + cashAccount.id + ' has no eligible opening-balance baseline at the snapshot time.');
@@ -123,7 +124,7 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
         let balance = movements.reduce((sum, item) => sum + item.amount.amount, 0);
         for (const transfer of cash.investmentCashTransfers) {
             if (transfer.effectiveAt > effectiveAt || transfer.recordedAt > recordedAtCutoff
-                || (kind === 'ExternalFlowPre' && boundarySourceIds.has(transfer.id))) continue;
+                || (kind === 'ExternalFlowPre' && boundarySourceIds.has('cash-transfer:' + transfer.id))) continue;
             const isSource = transfer.sourceCashAccountId === cashAccount.id;
             const isDestination = transfer.destinationCashAccountId === cashAccount.id;
             if (isSource) balance -= transfer.amount.amount;
@@ -289,7 +290,7 @@ export function buildInvestmentDrawdownExternalFlows(input) {
             recordedAt,
             amount: { amount: netAmount, currency: input.currency },
             classification: movement.type,
-            sourceIds: [movement.id, ...corrections.map((item) => item.id)]
+            sourceIds: ['cash-movement:' + movement.id, ...corrections.map((item) => 'cash-correction:' + item.id)]
         });
     }
 
@@ -307,7 +308,7 @@ export function buildInvestmentDrawdownExternalFlows(input) {
             recordedAt: transfer.recordedAt,
             amount: { amount: destinationInScope ? transfer.amount.amount : -transfer.amount.amount, currency: input.currency },
             classification: destinationInScope ? 'TransferIntoScope' : 'TransferOutOfScope',
-            sourceIds: [transfer.id]
+            sourceIds: ['cash-transfer:' + transfer.id]
         });
     }
 
