@@ -76,6 +76,7 @@ export function initializeInvestmentDrawdownCalendarWorkspace(dependencies) {
         const selectedSupersedes = supersedesSelect.value;
         const ledger = dependencies.readAccounts();
         if (!dependencies.isLedgerHealthy()) {
+            for (const control of form.querySelectorAll('input, select, textarea, button')) control.disabled = true;
             showMessage(error, 'Investment accounts could not be validated. Calendar editing is paused; existing data was left untouched.');
             history.innerHTML = '<tr><td colspan="8">Calendar history is unavailable until the investment ledger is recovered.</td></tr>';
             return;
@@ -83,6 +84,7 @@ export function initializeInvestmentDrawdownCalendarWorkspace(dependencies) {
         accounts = ledger.investmentAccounts;
         const stored = dependencies.readCalendars();
         if (!dependencies.isCalendarStorageHealthy()) {
+            for (const control of form.querySelectorAll('input, select, textarea, button')) control.disabled = true;
             showMessage(error, 'Saved calendars could not be validated. Existing data was left untouched; restore a valid backup before editing.');
             history.innerHTML = '<tr><td colspan="8">Calendar history is unavailable until recovery.</td></tr>';
             return;
@@ -135,6 +137,7 @@ export function initializeInvestmentDrawdownCalendarWorkspace(dependencies) {
         }
         try {
             const current = dependencies.readCalendars().investmentDrawdownCalendars;
+            if (!dependencies.isLedgerHealthy() || !dependencies.isCalendarStorageHealthy()) throw new Error('Investment ledger or calendar storage is not healthy; calendar changes are paused.');
             const previous = current.find((item) => item.id === supersedesSelect.value);
             const expectedDailyCloseAt = closesInput.value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
             const calendar = {
