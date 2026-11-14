@@ -1612,7 +1612,8 @@ try {
         cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
         exposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
         exposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
-        drawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]')
+        drawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'),
+        drawdownCalendars: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]')
     }));
     assert.deepEqual(restoredInvestmentStorage, investmentStorage,
         'schema-v12 JSON restore must round-trip investment and exposure collections without changing IDs or values');
