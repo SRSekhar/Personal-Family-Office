@@ -1491,8 +1491,71 @@ try {
     const privateDrawdownHistory = await page.evaluate(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '');
     assert.match(privateDrawdownHistory, /DailyClose/u,
         'switching back to private mode should restore the locally saved drawdown observation');
-    investmentStorage.drawdownSnapshots = capturedFlowSnapshots;
-    process.stdout.write('PASS: private manual daily-close and paired flow capture persist without exposing private observations in demo mode.\\n');
+    const drawdownFinalCloseAt = new Date(Date.parse(flowEffectiveAt) + 1000).toISOString();
+    await page.locator('#investment-drawdown-snapshot-form [name="kind"]').selectOption('DailyClose');
+    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test final close valuation and cash statement');
+    await page.locator('#investment-drawdown-snapshot-form [name="dailyComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 455, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').click();
+    await page.waitForFunction(() => {
+        const rows = globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '';
+        return rows.includes('DailyClose') && rows.includes('ExternalFlowPost');
+    });
+    const capturedFinalSnapshots = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'));
+    assert.equal(capturedFinalSnapshots.length, 4, 'the smoke fixture should contain two daily closes and one paired external flow');
+    assert.equal(capturedFinalSnapshots[3].complete, true);
+    investmentStorage.drawdownSnapshots = capturedFinalSnapshots;
+
+    await page.locator('#investment-drawdown-calendar-form [name="calendarSetId"]').fill('drawdown-report-smoke-window');
+    await page.locator('#investment-drawdown-calendar-form [name="scope"]').selectOption('portfolio');
+    await page.locator('#investment-drawdown-calendar-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-drawdown-calendar-form [name="startAt"]').fill(drawdownEffectiveAt);
+    await page.locator('#investment-drawdown-calendar-form [name="endAt"]').fill(drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-calendar-form [name="expectedDailyCloseAt"]').fill(drawdownEffectiveAt + '\\n' + drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-calendar-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-calendar-history')?.innerText.includes('drawdown-report-smoke-window'));
+    investmentStorage.drawdownCalendars = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]'));
+    assert.equal(investmentStorage.drawdownCalendars.length, 2, 'the report smoke should retain both explicit calendar sets');
+
+    await page.locator('#investment-drawdown-report-form [name="scope"]').selectOption('portfolio');
+    await page.locator('#investment-drawdown-report-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-drawdown-report-form [name="startAt"]').fill(drawdownEffectiveAt);
+    await page.locator('#investment-drawdown-report-form [name="endAt"]').fill(drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-report-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-drawdown-report-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-report-preview')?.getAttribute('srcdoc')?.includes('Calculation available'));
+    const reportHtml = await page.locator('#investment-drawdown-report-preview').getAttribute('srcdoc');
+    assert.match(reportHtml, /Investment drawdown/u);
+    assert.match(reportHtml, /Maximum drawdown/u);
+    assert.match(reportHtml, /Paired external flows/u);
+    const [drawdownHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-drawdown-report-download-html').click()
+    ]);
+    assert.match(drawdownHtmlDownload.suggestedFilename(), /\\.html$/u);
+    const [drawdownCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-drawdown-report-download-csv').click()
+    ]);
+    assert.match(drawdownCsvDownload.suggestedFilename(), /\\.csv$/u);
+    process.stdout.write('PASS: private flow-adjusted drawdown analysis generates a descriptive HTML report and spreadsheet-safe CSV export.\\n');
+
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#investment-drawdown-report-preview').isHidden(), true,
+        'demo mode must clear the private drawdown report preview');
+    assert.equal(await page.locator('#investment-drawdown-report-download-html').isDisabled(), true,
+        'demo mode must disable private drawdown report exports');
+    await page.locator('#switch-private-button').click();
+    assert.equal(await page.locator('#investment-drawdown-report-preview').isHidden(), true,
+        'switching back to private mode must not restore a stale drawdown report');
+    investmentStorage.drawdownSnapshots = capturedFinalSnapshots;
+    process.stdout.write('PASS: private drawdown reports and exports are cleared when switching to demo mode.\\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
