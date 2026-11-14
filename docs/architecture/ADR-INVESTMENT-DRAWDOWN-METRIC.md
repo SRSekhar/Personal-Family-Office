@@ -229,3 +229,10 @@ The current ledger schema does not represent in-kind contributions/withdrawals o
 The acquisition tests cover FIFO partial sales, cash roll-forward, omitted position components, missing opening balances, unlinked investment transactions, internal versus scope-crossing transfers, opening-balance exclusion, correction netting and recorded-at cutoffs.
 
 This completes the **ledger-derived completeness and existing-ledger event-classification milestones**, not the entire drawdown feature. Manual capture/import UI, explicit daily-close calendar management, flow-boundary snapshot authoring, independently hand-calculated end-to-end acceptance cases, and descriptive private reporting remain outstanding. No historical snapshots or prices are fabricated.
+
+
+## Calculation pipeline orchestration
+
+The feature branch now includes `apps/dashboard/investment-drawdown-series.js` as the application-level composition boundary. It does not duplicate the pure calculator or infer acquisition data. Callers must provide the explicit daily-close timestamp calendar and calculator dependency. The orchestrator validates the selected immutable snapshots, independently reconciles each one against the bitemporal FIFO/cash ledger, classifies external flows through the existing authoritative cash-ledger taxonomy, and invokes the pure calculator only when those prerequisites are satisfied. A reconciliation or flow-classification failure returns an unavailable result with evidence and does not invoke the calculator.
+
+This module does not persist or manage the daily-close calendar, provide capture/import controls, or render a report. Those remain required production gates. The calendar must ultimately be part of the schema-versioned SQLite workspace and JSON/SQLite backup/restore contract; browser-only local storage is not an acceptable source of truth for this workflow.
