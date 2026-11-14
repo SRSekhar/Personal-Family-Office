@@ -3230,7 +3230,7 @@ try {
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
     assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
-    assert.match(onlineBackupStatus, /18 collections/i,
+    assert.match(onlineBackupStatus, /19 collections/i,
         'the online backup UI should report validation across all 18 workspace collections');
     assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
@@ -3285,7 +3285,8 @@ try {
         investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
         investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
         investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
-        investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]')
+        investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'),
+        investmentDrawdownCalendars: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
         'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nineteen collections');
