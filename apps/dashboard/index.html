@@ -1067,6 +1067,46 @@
                     <div class="table-wrap"><table><thead><tr><th>Calendar set</th><th>Version</th><th>Scope</th><th>Currency</th><th>Window (UTC)</th><th class="align-right">Expected closes</th><th>Recorded at (UTC)</th><th>Status</th></tr></thead><tbody id="investment-drawdown-calendar-history"></tbody></table></div>
                     <p class="form-note">A calendar only defines the expected observation schedule. It does not create valuations or prove that any close was captured. Missing or incomplete observations keep the drawdown result unavailable.</p>
                 </section>
+                <section class="investment-drawdown-calendar-workspace" id="investment-drawdown-snapshots" aria-labelledby="investment-drawdown-snapshot-heading">
+                    <div class="section-heading"><div><p class="eyebrow">HISTORICAL PERFORMANCE · MANUAL ACQUISITION</p><h3 id="investment-drawdown-snapshot-heading">Investment valuation observations</h3>
+                        <p class="form-note">Capture exact daily-close values or paired pre-flow/post-flow observations. Position quantities are checked against FIFO ledgers and cash balances against the cash ledger. Prices and balances must come from your statements or valuation evidence; nothing is estimated.</p></div></div>
+                    <div class="notice" id="investment-drawdown-snapshot-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Financial observations are stored locally and included in your private workspace backups. This interface is disabled in the hosted demo.</p></div></div>
+                    <p class="validation-message" id="investment-drawdown-snapshot-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-drawdown-snapshot-message" role="status" aria-live="polite" hidden></p>
+                    <form id="investment-drawdown-snapshot-form" class="panel-card">
+                        <h4>Capture a daily close or an external-flow boundary pair</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Observation type<select name="kind" required><option value="DailyClose">Daily close</option><option value="ExternalFlowPair">Paired external-flow boundary</option></select></label>
+                            <label class="field-label">Scope<select name="scope" required><option value="portfolio">Portfolio</option><option value="account">One investment account</option></select></label>
+                            <label class="field-label" id="investment-drawdown-snapshot-account-row" hidden>Investment account<select name="accountId"><option value="">Select investment account</option></select></label>
+                            <label class="field-label">Currency<select name="currency" required><option value="INR">INR</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="AED">AED</option><option value="SGD">SGD</option><option value="JPY">JPY</option><option value="AUD">AUD</option><option value="CAD">CAD</option><option value="CHF">CHF</option></select></label>
+                            <label class="field-label">Effective timestamp (canonical UTC)<input name="effectiveAt" required spellcheck="false" placeholder="2026-11-14T15:30:00.000Z"></label>
+                            <label class="field-label">Recorded-at knowledge cutoff (canonical UTC)<input name="recordedAtCutoff" required spellcheck="false"></label>
+                            <label class="field-label">Valuation source / statement reference<input name="sourceName" required maxlength="200" placeholder="Broker statement or valuation evidence reference"></label>
+                            <label class="field-label" id="investment-drawdown-snapshot-flow-row" hidden>Authoritative external flow<select name="flowId"><option value="">Select external flow</option></select></label>
+                        </div>
+                        <div id="investment-drawdown-snapshot-daily-rows">
+                            <label class="field-label">Daily-close components (JSON array)
+                                <textarea name="dailyComponents" rows="8" spellcheck="false" placeholder='[{"type":"position","accountId":"<ledger-account-id>","instrumentId":"<ledger-instrument-id>","quantity":10,"unitPrice":{"amount":125.50,"currency":"INR"}},{"type":"cash","cashAccountId":"<ledger-cash-account-id>","value":{"amount":5000,"currency":"INR"}}]'></textarea>
+                            </label>
+                        </div>
+                        <div id="investment-drawdown-snapshot-pre-rows" hidden>
+                            <label class="field-label">Pre-flow components (JSON array)
+                                <textarea name="preComponents" rows="7" spellcheck="false" placeholder='Enter the complete component array immediately before the selected flow. Position rows use quantity and unitPrice; cash rows use value.amount.'></textarea>
+                            </label>
+                        </div>
+                        <div id="investment-drawdown-snapshot-post-rows" hidden>
+                            <label class="field-label">Post-flow components (JSON array)
+                                <textarea name="postComponents" rows="7" spellcheck="false" placeholder='Enter the same component IDs/references immediately after the selected flow. Only the explicitly observed quantities and balances may differ.'></textarea>
+                            </label>
+                        </div>
+                        <p class="form-note">For position rows, enter type, accountId, instrumentId, quantity and unitPrice.amount. Position value is calculated only as quantity × the price you supplied. For cash rows, enter type, cashAccountId and value.amount (negative cash balances are allowed). Currency defaults to the selected currency; component timestamps and manual provenance are recorded from this capture. Use exact IDs from your investment ledger. A flow pair must reference a flow detected in the authoritative cash ledger and must cover the same component universe on both sides.</p>
+                        <div class="button-row"><button class="button button-primary" type="submit">Validate and save immutable observation</button></div>
+                    </form>
+                    <h4>Current observation history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Effective at (UTC)</th><th>Kind</th><th>Scope</th><th>Currency</th><th class="align-right">Components</th><th class="align-right">Total value</th><th>Status</th></tr></thead><tbody id="investment-drawdown-snapshot-history"></tbody></table></div>
+                    <p class="form-note">A saved observation is independently reconciled again before analysis. Incomplete captures remain visibly incomplete and never produce partial drawdown statistics.</p>
+                </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
                         <p class="form-note">Export each of the eight investment and cash collections as a separate PFO-native CSV. Import validates all selected files together and previews the result before changing saved data. JSON workspace backup remains the authoritative full backup.</p></div></div>
