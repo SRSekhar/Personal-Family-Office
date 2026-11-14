@@ -59,7 +59,7 @@ export function validateBackupPayload(payload, expectedCurrency) {
     const exposureClassifications = [9, 10, 11, 12].includes(payload.schemaVersion) ? { investmentExposureClassifications: validateInvestmentExposureClassifications(payload.investmentExposureClassifications, { instruments: investmentLedger.investmentInstruments }) } : null;
     const exposurePolicies = [10, 11, 12].includes(payload.schemaVersion) ? validateInvestmentExposurePolicyCollections({ ...investmentLedger, ...exposureClassifications, investmentExposurePolicies: payload.investmentExposurePolicies }) : null;
     const drawdownSnapshots = [11, 12].includes(payload.schemaVersion) ? validateInvestmentDrawdownSnapshots({ ...investmentLedger, ...cashLedger, investmentDrawdownSnapshots: payload.investmentDrawdownSnapshots }) : null;
-    const drawdownCalendars = payload.schemaVersion === 12 ? validateInvestmentDrawdownCalendars({ investmentDrawdownCalendars: payload.investmentDrawdownCalendars }) : null;
+    const drawdownCalendars = payload.schemaVersion === 12 ? validateInvestmentDrawdownCalendars({ ...investmentLedger, investmentDrawdownCalendars: payload.investmentDrawdownCalendars }) : null;
     return {
         records, goals, cashFlowEntries, budgets, historicalSnapshots, ...(investmentLedger ?? {}), ...(cashLedger ?? {}), ...(allocationPolicies ?? {}), ...(concentrationPolicies ?? {}), ...(exposureClassifications ?? {}), ...(exposurePolicies ?? {}), ...(drawdownSnapshots ?? {}), ...(drawdownCalendars ?? {}),
         includesGoals: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(payload.schemaVersion), includesCashFlow, includesHistoricalSnapshots,
