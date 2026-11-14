@@ -122,6 +122,10 @@ export function initializeInvestmentDrawdownCalendarWorkspace(dependencies) {
     scopeSelect.addEventListener('change', () => {
         accountRow.hidden = scopeSelect.value !== 'account';
     });
+    accountSelect.addEventListener('change', () => {
+        const account = accounts.find((item) => item.id === accountSelect.value);
+        if (account && CURRENCIES.includes(account.currency)) currencySelect.value = account.currency;
+    });
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();
