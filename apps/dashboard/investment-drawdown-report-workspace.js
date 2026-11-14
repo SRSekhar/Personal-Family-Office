@@ -110,6 +110,10 @@ export function initializeInvestmentDrawdownReportWorkspace(dependencies) {
     }
 
     function invalidate() {
+        try {
+            accounts = dependencies.readLedger().investmentAccounts;
+            renderAccounts(account.value);
+        } catch { /* the health gate below prevents reporting from invalid ledger state */ }
         clearReport();
         show(status, 'Investment data changed. Run the analysis again before exporting a report.');
     }
@@ -133,6 +137,10 @@ export function initializeInvestmentDrawdownReportWorkspace(dependencies) {
             const cash = dependencies.readCash();
             const snapshots = dependencies.readSnapshots();
             const calendars = dependencies.readCalendars();
+            if (!dependencies.isLedgerHealthy() || !dependencies.isSnapshotStorageHealthy()
+                || !dependencies.isCalendarStorageHealthy()) {
+                throw new Error('Investment ledger, drawdown snapshots or calendars failed validation. No report was generated.');
+            }
             const selectedScope = scope.value;
             const selectedAccount = selectedScope === 'account' ? account.value : undefined;
             const selectedCurrency = currency.value;
