@@ -5,6 +5,11 @@ import {
 
 const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'JPY', 'AUD', 'CAD', 'CHF'];
 
+function escapeHtml(value) {
+    return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+}
+
 function timestamp(value, label) {
     if (typeof value !== 'string' || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value) {
         throw new Error(label + ' must be a canonical UTC ISO-8601 timestamp.');
@@ -130,8 +135,8 @@ export function initializeInvestmentDrawdownSnapshotWorkspace(dependencies) {
 
     function renderAccounts(selected = '') {
         account.innerHTML = '<option value="">Select investment account</option>' + accounts
-            .map((item) => '<option value="' + item.id.replaceAll('&', '&amp;').replaceAll('"', '&quot;') + '">' +
-                item.name.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;') +
+            .map((item) => '<option value="' + escapeHtml(item.id) + '">' +
+                escapeHtml(item.name) +
                 ' (' + item.currency + ')</option>').join('');
         account.value = selected;
     }
@@ -165,7 +170,7 @@ export function initializeInvestmentDrawdownSnapshotWorkspace(dependencies) {
             });
             if (flows.status === 'unavailable') throw new Error(flows.reason);
             const matching = flows.flows.filter((item) => item.effectiveAt === effectiveAt.value);
-            flowId.innerHTML += matching.map((item) => '<option value="' + item.id + '">' +
+            flowId.innerHTML += matching.map((item) => '<option value="' + escapeHtml(item.id) + '">' +
                 item.classification + ' · ' + item.id + ' · ' + item.amount.amount + ' ' + item.amount.currency +
                 '</option>').join('');
             if (!matching.length) show(error, 'No authoritative external flow exists at this exact timestamp and recorded-at cutoff.');
@@ -286,6 +291,7 @@ export function initializeInvestmentDrawdownSnapshotWorkspace(dependencies) {
             window.dispatchEvent(new Event('pfo:workspace-updated'));
             render();
             form.reset();
+            cutoff.value = new Date().toISOString();
             render();
             show(message, paired
                 ? 'Both immutable flow-boundary observations were saved. Completeness is independently checked again during analysis.'
