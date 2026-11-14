@@ -45,7 +45,8 @@ describe('historical investment performance period comparison', () => {
             periods: [{ label: 'January', analysis: jan }, { label: 'February', analysis: feb }]
         });
         expect(result.status).toBe('available');
-        expect(result.periods.map((row) => row.periodReturn)).toEqual([0.25, -0.1]);
+        expect(result.periods[0].periodReturn).toBeCloseTo(0.25, 12);
+        expect(result.periods[1].periodReturn).toBeCloseTo(-0.1, 12);
         expect(result.periods[1]).toMatchObject({ maximumDrawdown: -0.1, overlapsPrevious: false });
     });
 
