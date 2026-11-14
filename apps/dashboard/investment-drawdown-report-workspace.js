@@ -92,6 +92,7 @@ export function initializeInvestmentDrawdownReportWorkspace(dependencies) {
         if (!healthy) {
             clearReport();
             show(error, 'Investment ledgers, drawdown snapshots or calendars could not be validated. Reporting is paused; existing data was left untouched.');
+            show(status, '');
             return;
         }
         try {
@@ -101,6 +102,7 @@ export function initializeInvestmentDrawdownReportWorkspace(dependencies) {
             currency.value = CURRENCIES.includes(currency.value) ? currency.value : 'INR';
             accountRow.hidden = scope.value !== 'account';
             show(error, '');
+            show(status, '');
         } catch (cause) {
             clearReport();
             show(error, cause instanceof Error ? cause.message : 'Drawdown report inputs could not be loaded.');
