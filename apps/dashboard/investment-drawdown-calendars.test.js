@@ -48,6 +48,16 @@ describe('investment drawdown calendars', () => {
         })] })).toThrow(/require an account ID/i);
     });
 
+    it('rejects account-scoped calendars that reference an unknown investment account', () => {
+        const accountCalendar = calendar({
+            id: 'account-calendar-1', calendarSetId: 'account-inr-2026', scope: 'account', accountId: 'missing-account'
+        });
+        expect(() => validateInvestmentDrawdownCalendars({
+            investmentAccounts: [{ id: 'account-1' }],
+            investmentDrawdownCalendars: [accountCalendar]
+        })).toThrow(/known investment account/i);
+    });
+
     it('requires append-only corrections to preserve identity and increment version', () => {
         const first = calendar();
         const correction = calendar({
