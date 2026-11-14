@@ -35,6 +35,7 @@
                 <a class="nav-item" href="#investment-ledger"><span class="nav-icon">▥</span> Investment portfolio</a>
                 <a class="nav-item" href="#investment-exposure-workspace"><span class="nav-icon">◉</span> Look-through exposure</a>
                 <a class="nav-item" href="#investment-exposure-policy-workspace"><span class="nav-icon">⚑</span> Exposure limits</a>
+                <a class="nav-item" href="#investment-drawdown-calendar"><span class="nav-icon">↘</span> Portfolio drawdown</a>
                 <a class="nav-item" href="#return-risk-analysis"><span class="nav-icon">△</span> Return risk analysis</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
                 <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
@@ -1038,6 +1039,33 @@
                     </div>
                     <div id="investment-exposure-policy-analysis" class="investment-allocation-analysis" aria-live="polite"></div>
                     <p class="form-note">A breach is a descriptive comparison with your own saved threshold, not investment advice, a severity rating or an instruction to trade.</p>
+                </section>
+                <section class="investment-drawdown-calendar-workspace" id="investment-drawdown-calendar" aria-labelledby="investment-drawdown-calendar-heading">
+                    <div class="section-heading"><div><p class="eyebrow">HISTORICAL PERFORMANCE · OPTION B</p><h3 id="investment-drawdown-calendar-heading">Portfolio drawdown observation calendar</h3>
+                        <p class="form-note">Author the exact daily-close timestamps required by the flow-adjusted drawdown calculation. The application does not generate weekdays, exchange sessions, holidays or missing dates. Calendar revisions are immutable and recorded-at audited.</p></div></div>
+                    <div class="notice" id="investment-drawdown-calendar-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Drawdown calendars are stored with your local private workspace and included in SQLite and JSON backups.</p></div></div>
+                    <p class="validation-message" id="investment-drawdown-calendar-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-drawdown-calendar-message" role="status" aria-live="polite" hidden></p>
+                    <form id="investment-drawdown-calendar-form" class="panel-card">
+                        <h4>Create a calendar or append a correction</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Calendar-set ID<input name="calendarSetId" maxlength="100" required placeholder="e.g. portfolio-inr-fy2027"></label>
+                            <label class="field-label">Supersedes existing revision<select name="supersedesCalendarId"><option value="">Create a new calendar</option></select></label>
+                            <label class="field-label">Scope<select name="scope" required><option value="portfolio">Portfolio</option><option value="account">One investment account</option></select></label>
+                            <label class="field-label" id="investment-drawdown-calendar-account-row" hidden>Investment account<select name="accountId"><option value="">Select investment account</option></select></label>
+                            <label class="field-label">Currency<select name="currency" required><option value="INR">INR</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="AED">AED</option><option value="SGD">SGD</option><option value="JPY">JPY</option><option value="AUD">AUD</option><option value="CAD">CAD</option><option value="CHF">CHF</option></select></label>
+                            <label class="field-label">Window start (canonical UTC)<input name="startAt" required placeholder="2026-04-01T00:00:00.000Z"></label>
+                            <label class="field-label">Window end (canonical UTC)<input name="endAt" required placeholder="2027-03-31T23:59:59.999Z"></label>
+                        </div>
+                        <label class="field-label">Expected daily-close timestamps — one canonical UTC ISO timestamp per line
+                            <textarea name="expectedDailyCloseAt" rows="7" required spellcheck="false" placeholder="2026-04-01T15:30:00.000Z&#10;2026-04-02T15:30:00.000Z"></textarea>
+                        </label>
+                        <p class="form-note">Every close must be explicitly entered in increasing order and inside the selected window. The recorded-at timestamp is assigned automatically when you save. To correct a calendar, select its current revision; the new version preserves its scope, currency and window.</p>
+                        <div class="button-row"><button class="button button-primary" type="submit">Save immutable calendar version</button></div>
+                    </form>
+                    <h4>Calendar revision history</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Calendar set</th><th>Version</th><th>Scope</th><th>Currency</th><th>Window (UTC)</th><th class="align-right">Expected closes</th><th>Recorded at (UTC)</th><th>Status</th></tr></thead><tbody id="investment-drawdown-calendar-history"></tbody></table></div>
+                    <p class="form-note">A calendar only defines the expected observation schedule. It does not create valuations or prove that any close was captured. Missing or incomplete observations keep the drawdown result unavailable.</p>
                 </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
