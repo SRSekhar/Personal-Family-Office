@@ -216,4 +216,22 @@ describe('investment drawdown acquisition and event taxonomy', () => {
         expect(flows.status).toBe('available');
         expect(flows.flows[1].amount.amount).toBe(-100);
     });
+
+    it('invalidates an in-window correction to an external flow originally outside the window', () => {
+        const input = base();
+        input.investmentCashMovements.push(
+            { id: 'old-contribution', cashAccountId: 'cash-1', type: 'ExternalContribution', amount: { amount: 100, currency: 'INR' },
+                effectiveAt: '2026-01-03T10:00:00.000Z', recordedAt: '2026-01-03T11:00:00.000Z' },
+            { id: 'in-window-correction', cashAccountId: 'cash-1', type: 'Correction', amount: { amount: -10, currency: 'INR' },
+                effectiveAt: '2026-01-04T10:00:00.000Z', recordedAt: '2026-01-04T11:00:00.000Z',
+                reason: 'Late correction to an earlier flow', reversesMovementId: 'old-contribution' }
+        );
+        const flows = buildInvestmentDrawdownExternalFlows({
+            ...input, scope: 'portfolio', currency: 'INR',
+            startAt: '2026-01-04T00:00:00.000Z', endAt: '2026-01-05T00:00:00.000Z', recordedAtCutoff: '2026-01-06T00:00:00.000Z'
+        });
+        expect(flows.status).toBe('unavailable');
+        expect(flows.reason).toMatch(/different effective timestamp/i);
+    });
+
 });
