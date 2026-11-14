@@ -1405,13 +1405,14 @@ try {
     const drawdownIds = await page.evaluate(() => ({
         accountId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]')[0]?.id,
         instrumentId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]')[0]?.id,
-        cashAccountId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]')[0]?.id
+        cashAccount: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]')[0]
     }));
-    assert.ok(drawdownIds.accountId && drawdownIds.instrumentId && drawdownIds.cashAccountId,
+    assert.ok(drawdownIds.accountId && drawdownIds.instrumentId && drawdownIds.cashAccount?.id,
         'drawdown capture smoke should use existing ledger identifiers');
+    drawdownIds.cashAccountId = drawdownIds.cashAccount.id;
     await page.locator('#investment-drawdown-snapshot-form').scrollIntoViewIfNeeded();
-    const drawdownEffectiveAt = new Date(Date.now() + 60_000).toISOString();
-    const drawdownRecordedAtCutoff = new Date(Date.now() + 120_000).toISOString();
+    const drawdownEffectiveAt = new Date(Math.max(Date.parse(drawdownIds.cashAccount.createdAt) + 1000, Date.now() - 5000)).toISOString();
+    const drawdownRecordedAtCutoff = new Date(Date.now() + 5000).toISOString();
     await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(drawdownEffectiveAt);
     await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(drawdownRecordedAtCutoff);
     await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test broker valuation and cash statement');
@@ -1432,6 +1433,50 @@ try {
         'the captured observation should retain one position and one cash component');
     assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('Complete'), true,
         'the private observation history should visibly mark the reconciled observation complete');
+    const flowEffectiveAt = new Date(Date.parse(drawdownEffectiveAt) + 1000).toISOString();
+    await page.evaluate(({ cashAccountId, effectiveAt }) => {
+        const key = 'pfo-os.investment-cash-movements.v1';
+        const movements = JSON.parse(globalThis.localStorage.getItem(key) || '[]');
+        movements.push({
+            id: globalThis.crypto.randomUUID(),
+            cashAccountId,
+            type: 'ExternalContribution',
+            amount: { amount: 50, currency: 'INR' },
+            effectiveAt,
+            recordedAt: new Date().toISOString()
+        });
+        globalThis.localStorage.setItem(key, JSON.stringify(movements));
+        globalThis.window.dispatchEvent(new Event('pfo:workspace-updated'));
+    }, { cashAccountId: drawdownIds.cashAccountId, effectiveAt: flowEffectiveAt });
+    await page.locator('#investment-drawdown-snapshot-form [name="kind"]').selectOption('ExternalFlowPair');
+    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(flowEffectiveAt);
+    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test paired flow-boundary evidence');
+    await page.locator('#investment-drawdown-snapshot-form [name="flowId"]').selectOption({ index: 1 });
+    await page.locator('#investment-drawdown-snapshot-form [name="preComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 405, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form [name="postComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 455, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText.includes('ExternalFlowPre'));
+    const capturedFlowSnapshots = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'));
+    assert.equal(capturedFlowSnapshots.length, 3, 'paired flow capture should append exactly two boundary observations');
+    assert.deepEqual(capturedFlowSnapshots.slice(1).map((item) => item.kind), ['ExternalFlowPre', 'ExternalFlowPost']);
+    assert.ok(capturedFlowSnapshots.slice(1).every((item) => item.complete),
+        'both flow-boundary observations should reconcile independently against their pre/post cash balances');
+    assert.equal(capturedFlowSnapshots[1].flowId, capturedFlowSnapshots[2].flowId,
+        'paired observations must reference the same authoritative cash-ledger flow');
+    assert.equal(capturedFlowSnapshots[1].components.length, capturedFlowSnapshots[2].components.length,
+        'paired observations must retain the same component universe');
+    assert.equal(capturedFlowSnapshots[1].totalValue.amount, 1605);
+    assert.equal(capturedFlowSnapshots[2].totalValue.amount, 1655);
+    investmentStorage.drawdownSnapshots = capturedFlowSnapshots;
+    process.stdout.write('PASS: paired pre-flow/post-flow capture is tied to an authoritative ledger flow and reconciles both cash boundaries.\\n');
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('Switch to the local private workspace'), true,
         'sample mode must not reveal private drawdown observations');
@@ -1440,8 +1485,8 @@ try {
     await page.locator('#switch-private-button').click();
     assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('DailyClose'), true,
         'switching back to private mode should restore the locally saved drawdown observation');
-    investmentStorage.drawdownSnapshots = capturedDrawdownSnapshots;
-    process.stdout.write('PASS: private manual daily-close capture reconciles FIFO quantity and cash balance; demo mode remains isolated.\\n');
+    investmentStorage.drawdownSnapshots = capturedFlowSnapshots;
+    process.stdout.write('PASS: private manual daily-close and paired flow capture persist without exposing private observations in demo mode.\\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
