@@ -757,7 +757,7 @@ Future scope (separate ledger-model decision):
 - In-kind contributions/withdrawals.
 - Corporate actions.
 
-CI follow-up: latest verified head `fe01a85ed8300ab4da7f302058b615294a61d4af` passed CI #1884 (lint, typecheck, package build, unit tests and Chromium browser smoke), Secret Scan #1678 and dashboard packaging #1120. Browser smoke verifies capture, paired flows, HTML/CSV reports, demo/private isolation, JSON backup/restore and SQLite persistence across all 19 collections.
+CI follow-up: latest verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1884 (lint, typecheck, package build, unit tests and Chromium browser smoke), Secret Scan #1678 and dashboard packaging #1120. Browser smoke verifies capture, paired flows, HTML/CSV reports, demo/private isolation, JSON backup/restore and SQLite persistence across all 19 collections.
 
 No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations, rebalancing or trading actions are approved.
 
@@ -775,5 +775,5 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - Manual valuation capture/import, paired flow-boundary authoring, explicit daily-close calendar, series orchestration, independent financial acceptance and private descriptive HTML/CSV report/export are implemented.
 - Independent acceptance covers same-time contribution correction, contribution, withdrawal, account-scope transfer, fees, taxes, closed position and missing daily-close fail-closed behavior.
 - Browser smoke verifies report downloads and private/demo isolation in addition to JSON/SQLite persistence.
-- CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed on `fe01a85ed8300ab4da7f302058b615294a61d4af`.
+- CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
 - Only future scope: in-kind flows and corporate actions, pending a separate ledger-model decision.
