@@ -234,12 +234,16 @@ export function buildInvestmentDrawdownExternalFlows(input) {
     for (const movement of cash.investmentCashMovements) {
         if (!['ExternalContribution', 'ExternalWithdrawal'].includes(movement.type)
             || !selectedCashIds.has(movement.cashAccountId) || movement.amount.currency !== input.currency
-            || movement.recordedAt > recordedAtCutoff || movement.effectiveAt < startAt || movement.effectiveAt > endAt) continue;
+            || movement.recordedAt > recordedAtCutoff) continue;
         const corrections = correctionsByOriginal.get(movement.id) ?? [];
+        const originalInWindow = movement.effectiveAt >= startAt && movement.effectiveAt <= endAt;
+        const correctionInWindow = corrections.some((item) => item.effectiveAt >= startAt && item.effectiveAt <= endAt);
+        if (!originalInWindow && !correctionInWindow) continue;
         if (corrections.some((item) => item.effectiveAt !== movement.effectiveAt)) {
             reasons.push('Correction for external cash movement ' + movement.id + ' has a different effective timestamp; its economic flow cannot be reconstructed unambiguously.');
             continue;
         }
+        if (!originalInWindow) continue;
         const netAmount = movement.amount.amount + corrections.reduce((sum, item) => sum + item.amount.amount, 0);
         const expectedSign = movement.type === 'ExternalContribution' ? 1 : -1;
         if (netAmount !== 0 && Math.sign(netAmount) !== expectedSign) {
