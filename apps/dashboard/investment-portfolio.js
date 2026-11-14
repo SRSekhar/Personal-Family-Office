@@ -6,6 +6,29 @@ const tradeTypes = new Set(['Purchase', 'Sale']);
 const cashTypes = new Set(['Dividend', 'Interest', 'Fee', 'Tax']);
 const $ = (selector) => document.querySelector(selector);
 
+let latestPortfolioReport = null;
+
+function clearPortfolioReport() {
+    latestPortfolioReport = null;
+    const htmlButton = $('#investment-portfolio-export-html');
+    const csvButton = $('#investment-portfolio-export-csv');
+    if (htmlButton) htmlButton.disabled = true;
+    if (csvButton) csvButton.disabled = true;
+}
+
+function downloadPortfolioReport(content, contentType, filename) {
+    const blob = new Blob([content], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.hidden = true;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function validTime(value, label) {
     const time = typeof value === 'string' ? Date.parse(value) : NaN;
     if (!Number.isFinite(time)) throw new RangeError(label + ' must be valid.');
@@ -118,6 +141,7 @@ function formatMoney(amount, currency) {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 }
 function renderPortfolio(performanceCalculator) {
+    clearPortfolioReport();
     const rows = $('#investment-position-rows'), warnings = $('#investment-reconciliation-warnings'), summaries = $('#investment-portfolio-summaries'), performanceSummary = $('#investment-portfolio-performance');
     rows.replaceChildren(); warnings.replaceChildren(); summaries.replaceChildren(); performanceSummary.replaceChildren();
     const isPrivate = $('#workspace-label')?.textContent.includes('PRIVATE');
@@ -131,6 +155,8 @@ function renderPortfolio(performanceCalculator) {
         const ledger = readLedger();
         const positions = analyzeInvestmentPortfolio({ accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
             transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations, asOfDate });
+        let performanceResults = [];
+        let performanceError = null;
         try {
             const cashKeys = {
                 investmentCashAccounts: 'pfo-os.investment-cash-accounts.v1',
@@ -144,17 +170,17 @@ function renderPortfolio(performanceCalculator) {
                 if (!Array.isArray(value)) throw new Error('Saved ' + name + ' data is not a collection.');
                 cashCollections[name] = value;
             }
-            const performance = analyzeInvestmentPortfolioPerformance({
+            performanceResults = analyzeInvestmentPortfolioPerformance({
                 accounts: ledger.investmentAccounts, instruments: ledger.investmentInstruments,
                 transactions: ledger.investmentTransactions, valuations: ledger.investmentValuations,
                 ...cashCollections, asOfDate, recordedAt: new Date(), performanceCalculator
             });
-            if (!performance.length) {
+            if (!performanceResults.length) {
                 const note = document.createElement('p'); note.className = 'form-note';
                 note.textContent = 'Portfolio XIRR will appear when explicit cash accounts, external cash flows and a complete terminal value are recorded.';
                 performanceSummary.append(note);
             }
-            for (const result of performance) {
+            for (const result of performanceResults) {
                 const card = document.createElement('article'); card.className = 'investment-portfolio-card';
                 const title = document.createElement('h4'); title.textContent = 'Portfolio XIRR · ' + result.currency; card.append(title);
                 const status = document.createElement('p'); status.className = result.status === 'available' ? 'investment-performance-available' : 'investment-reconciliation-warning';
@@ -174,8 +200,9 @@ function renderPortfolio(performanceCalculator) {
                 performanceSummary.append(card);
             }
         } catch (error) {
+            performanceError = error instanceof Error ? error.message : 'Portfolio XIRR could not be calculated.';
             const warning = document.createElement('p'); warning.className = 'investment-reconciliation-error';
-            warning.textContent = error instanceof Error ? 'Portfolio XIRR unavailable: ' + error.message : 'Portfolio XIRR could not be calculated.';
+            warning.textContent = 'Portfolio XIRR unavailable: ' + performanceError;
             performanceSummary.append(warning);
         }
         for (const currency of [...new Set(positions.map((p) => p.currency))].sort()) {
@@ -208,6 +235,18 @@ function renderPortfolio(performanceCalculator) {
         }
         if (!positions.length) { const row = document.createElement('tr'); addCell(row, 'No investment transactions are recorded on or before ' + date + '.'); rows.append(row); }
         if (!warnings.childElementCount) { const note = document.createElement('p'); note.className = 'form-note'; note.textContent = 'No missing-valuation or FIFO quantity exceptions were found for this as-of date.'; warnings.append(note); }
+        latestPortfolioReport = {
+            positions,
+            performance: performanceResults,
+            ...(performanceError ? { performanceError } : {}),
+            asOfAt: asOfDate.toISOString(),
+            recordedAtCutoff: asOfDate.toISOString(),
+            generatedAt: new Date().toISOString()
+        };
+        const htmlButton = $('#investment-portfolio-export-html');
+        const csvButton = $('#investment-portfolio-export-csv');
+        if (htmlButton) htmlButton.disabled = false;
+        if (csvButton) csvButton.disabled = false;
     } catch (error) {
         const warning = document.createElement('p'); warning.className = 'investment-reconciliation-error';
         warning.textContent = error instanceof Error ? error.message : 'Investment portfolio analysis could not be completed.'; warnings.append(warning);
@@ -217,7 +256,20 @@ export function initializeInvestmentPortfolioView(performanceCalculator) {
     if (!$('#investment-portfolio-analysis')) return;
     $('#investment-portfolio-as-of').value = new Date().toISOString().slice(0, 10);
     $('#investment-portfolio-as-of').addEventListener('change', () => renderPortfolio(performanceCalculator));
-    window.addEventListener('pfo:investment-updated', () => renderPortfolio(performanceCalculator)); window.addEventListener('pfo:workspace-updated', () => renderPortfolio(performanceCalculator));
+    $('#investment-portfolio-export-html').addEventListener('click', () => {
+        if (!latestPortfolioReport || !$('#workspace-label')?.textContent.includes('PRIVATE')) return;
+        const report = renderInvestmentPortfolioReportHtml(latestPortfolioReport);
+        const filename = 'pfo-investment-portfolio-review-' + latestPortfolioReport.asOfAt.slice(0, 10) + '.html';
+        downloadPortfolioReport(report, 'text/html;charset=utf-8', filename);
+    });
+    $('#investment-portfolio-export-csv').addEventListener('click', () => {
+        if (!latestPortfolioReport || !$('#workspace-label')?.textContent.includes('PRIVATE')) return;
+        const report = investmentPortfolioReportToCsv(latestPortfolioReport);
+        const filename = 'pfo-investment-portfolio-review-' + latestPortfolioReport.asOfAt.slice(0, 10) + '.csv';
+        downloadPortfolioReport(report, 'text/csv;charset=utf-8', filename);
+    });
+    window.addEventListener('pfo:investment-updated', () => renderPortfolio(performanceCalculator));
+    window.addEventListener('pfo:workspace-updated', () => renderPortfolio(performanceCalculator));
     renderPortfolio(performanceCalculator);
 }
 
