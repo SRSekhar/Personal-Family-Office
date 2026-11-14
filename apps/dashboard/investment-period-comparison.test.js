@@ -39,7 +39,8 @@ describe('historical investment performance period comparison', () => {
                 { effectiveAt: febStart, wealthIndex: 2.5, portfolioValue: 1250, drawdown: 0, observationId: 'feb-start' },
                 { effectiveAt: febEnd, wealthIndex: 2.25, portfolioValue: 1125, drawdown: -0.1, observationId: 'feb-end' }
             ],
-            coverageStartAt: febStart, coverageEndAt: febEnd, maximumDrawdown: -0.1,\n            peakAt: febStart, troughAt: febEnd, recovered: false
+            coverageStartAt: febStart, coverageEndAt: febEnd, maximumDrawdown: -0.1,
+            peakAt: febStart, troughAt: febEnd, recovered: false
         });
         const result = compareInvestmentPerformancePeriods({
             periods: [{ label: 'January', analysis: jan }, { label: 'February', analysis: feb }]
