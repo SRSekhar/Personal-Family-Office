@@ -406,7 +406,18 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - PR #453 remains open, draft and unmerged on `feature/ipm-drawdown-contract-discovery`.
 - The explicit calendar contract is append-only, versioned and bitemporal. It stores user-authored UTC close timestamps and never infers trading days or holidays.
 - Workspace schema v12 contains 19 collections. The v11→v12 migration is transactional, writes a protected pre-v12 recovery artifact and initializes calendars empty. JSON/SQLite backup and restore include the new collection; schema v1–v11 JSON backups remain supported.
-- Private browser workspace persistence and SQLite workspace persistence are wired for the calendar collection. No calendar authoring UI or calculator-series integration exists yet.
+- Private browser workspace persistence and SQLite workspace persistence are wired for the calendar collection. The private calendar authoring UI is implemented, and the series orchestrator selects the persisted revision by recorded-at cutoff with calendar ID/version provenance.
 - Initial CI on the schema-v12 integration failed on five stale schema-v11 HTTP fixtures, one static source assertion and one overly specific error assertion. The fixtures/assertions were updated. Check the current PR head for final CI, Secret Scan and dashboard packaging status.
 - Continue with calendar authoring and series wiring, then manual component snapshot capture/import, paired pre/post-flow authoring, independent end-to-end financial acceptance and private descriptive reporting/export.
 - Use synthetic fixtures only. Never commit real household financial data or private reports.
+
+
+## Calendar UI and series wiring — 2026-11-14
+
+- Added private-only calendar authoring at `#investment-drawdown-calendar`. Users enter the exact UTC window and every expected close timestamp; the app never generates a schedule.
+- Corrections append a new immutable version and supersede the previous current revision. Scope, account, currency and window remain locked during correction; close timestamps can be amended.
+- Calendar validation requires unique sequential versions, valid supersession, known investment-account references and currency alignment for account-scoped calendars.
+- Save emits the workspace update event so configured SQLite autosave persists the calendar. JSON backup/restore and SQLite save/restore preserve it.
+- The series orchestrator now requires the persisted calendar collection, selects by exact scope/currency/window and recorded-at cutoff, passes the selected explicit close timestamps to the pure calculator and returns calendar ID/version provenance.
+- Browser smoke confirms synthetic calendar creation and JSON/SQLite round-trip. CI #1831, Secret Scan #1625 and dashboard packaging #1067 passed on code head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265`.
+- Remaining production gates: manual snapshot capture/import, paired flow-boundary authoring, independent end-to-end financial acceptance and private reporting/export.
