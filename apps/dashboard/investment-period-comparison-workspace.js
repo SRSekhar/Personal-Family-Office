@@ -45,10 +45,13 @@ function parsePeriods(value) {
     });
 }
 
-function fingerprint(dependencies) {
+function fingerprint(dependencies, form) {
     return JSON.stringify([
         dependencies.readLedger(), dependencies.readCash(),
-        dependencies.readSnapshots(), dependencies.readCalendars()
+        dependencies.readSnapshots(), dependencies.readCalendars(),
+        form.elements.scope.value, form.elements.accountId.value,
+        form.elements.currency.value, form.elements.recordedAtCutoff.value,
+        form.elements.periods.value
     ]);
 }
 
@@ -134,6 +137,14 @@ export function initializeInvestmentPeriodComparisonWorkspace(dependencies) {
         show(status, 'Investment data changed. Run the comparison again before exporting.');
     }
 
+    function invalidateChangedParameters() {
+        if (!latestReport) return;
+        invalidate();
+        show(status, 'Comparison parameters changed. Run the comparison again before exporting.');
+    }
+    form.addEventListener('input', invalidateChangedParameters);
+    form.addEventListener('change', invalidateChangedParameters);
+
     scope.addEventListener('change', () => { accountRow.hidden = scope.value !== 'account'; });
     account.addEventListener('change', () => {
         const selected = accounts.find((item) => item.id === account.value);
@@ -182,7 +193,7 @@ export function initializeInvestmentPeriodComparisonWorkspace(dependencies) {
             const reportInput = { comparison, generatedAt };
             const html = renderInvestmentPeriodComparisonHtml(reportInput);
             const csv = investmentPeriodComparisonToCsv(reportInput);
-            const signature = fingerprint(dependencies);
+            const signature = fingerprint(dependencies, form);
             latestReport = {
                 html, csv, signature,
                 filename: 'pfo-investment-period-comparison-' + selectedScope + '-' + selectedCurrency
@@ -211,7 +222,7 @@ export function initializeInvestmentPeriodComparisonWorkspace(dependencies) {
                 show(error, 'Source ledgers, snapshots or calendars are no longer valid. Export was blocked.');
                 return;
             }
-            if (latestReport.signature !== fingerprint(dependencies)) {
+            if (latestReport.signature !== fingerprint(dependencies, form)) {
                 invalidate();
                 show(status, 'Source data changed after analysis. Run the comparison again before exporting.');
                 return;
