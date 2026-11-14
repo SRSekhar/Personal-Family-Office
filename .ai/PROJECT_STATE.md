@@ -397,7 +397,7 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Existing-ledger flow taxonomy distinguishes owner contributions/withdrawals, opening baselines, internal transfers, account-scope-crossing transfers, investment transactions and corrections. Ambiguous corrections fail closed; later-recorded corrections do not alter as-known historical output.
 - In-kind contributions/withdrawals and corporate actions are not represented by the current ledger schema and remain unsupported.
 - New files: `apps/dashboard/investment-drawdown-acquisition.js` and `apps/dashboard/investment-drawdown-acquisition.test.js`.
-- Remaining production work: independent end-to-end financial acceptance fixtures and private descriptive reporting/export. Private manual snapshot capture/import, paired flow-boundary capture and explicit daily-close calendar authoring are now implemented on the PR branch.
+- The current Option B drawdown deliverable is complete on PR #453: private manual snapshot capture, paired flow-boundary authoring, explicit calendar management, independent end-to-end financial acceptance and private descriptive HTML/CSV reporting are implemented and CI-green. In-kind flows and corporate actions remain deferred pending a separate ledger-model decision.
 - Public repository: synthetic fixtures only. Do not commit household financial data. PR #453 remains open/draft/unmerged; validate latest checks before any merge.
 
 
@@ -408,7 +408,7 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Workspace schema v12 contains 19 collections. The v11→v12 migration is transactional, writes a protected pre-v12 recovery artifact and initializes calendars empty. JSON/SQLite backup and restore include the new collection; schema v1–v11 JSON backups remain supported.
 - Private browser workspace persistence and SQLite workspace persistence are wired for the calendar collection. The private calendar authoring UI is implemented, and the series orchestrator selects the persisted revision by recorded-at cutoff with calendar ID/version provenance.
 - Initial CI on the schema-v12 integration failed on five stale schema-v11 HTTP fixtures, one static source assertion and one overly specific error assertion. The fixtures/assertions were updated. Check the current PR head for final CI, Secret Scan and dashboard packaging status.
-- Calendar authoring, series wiring, manual component snapshot capture/import and paired pre/post-flow authoring are now implemented on the PR branch. Continue with independent end-to-end financial acceptance and private descriptive reporting/export.
+- Calendar authoring, series wiring, manual component snapshot capture/import, paired pre/post-flow authoring, independent financial acceptance and private descriptive reporting/export are now implemented on the PR branch. Do not add in-kind or corporate-action behavior without an explicit ledger-model decision.
 - Use synthetic fixtures only. Never commit real household financial data or private reports.
 
 
@@ -430,5 +430,17 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Flow-boundary capture selects only authoritative external cash-ledger flow IDs at the exact effective timestamp and recorded-at cutoff. Pre/post observations must share the same component universe and are persisted together.
 - Browser smoke verifies daily-close and paired contribution capture, independent FIFO/cash reconciliation, private/demo isolation, JSON backup/restore and SQLite workspace persistence.
 - CI #1854, Secret Scan #1648 and dashboard packaging #1090 passed on head `e91cfb79d557251c27b2a2a13914c463d773bde5`.
-- Remaining: independent hand-calculated acceptance fixtures for multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data; private descriptive drawdown report/export; separate contract decision for in-kind flows/corporate actions.
+- Completed: independent hand-calculated acceptance fixtures and private descriptive HTML/CSV reporting/export. Future scope only: separate contract decision for in-kind flows/corporate actions.
 - No thresholds, alerts, risk scores, recommendations, rebalancing or trading behavior. Public repository fixtures remain synthetic only.
+
+## Latest Drawdown Delivery State — 2026-11-14
+
+- PR #453 remains open, draft and unmerged on `feature/ipm-drawdown-contract-discovery`; main remains schema v10. The PR branch is schema v12 with 19 persisted collections.
+- Delivered manual-first private daily-close valuation capture/import and paired pre-flow/post-flow capture bound to authoritative cash-ledger flow IDs. Component values reconcile against bitemporal FIFO positions and cash roll-forward; missing evidence fails closed.
+- Explicit immutable daily-close calendars and bitemporal as-of selection are persisted and included in JSON/SQLite backups.
+- Added independent hand-calculated acceptance for a same-time external-flow correction, contribution, withdrawal, scope-crossing transfer, fees, taxes, a position closed by sale, and a missing expected daily close. The expected drawdown is independently calculated from the fixture NAV path.
+- Added private-only descriptive HTML and spreadsheet-safe CSV reports with scope, currency, methodology, window, observed coverage, recorded-at cutoff, calendar provenance, peak/trough/recovery, completeness evidence and unavailable reasons. No partial statistic is emitted for unavailable analyses.
+- Browser smoke verifies manual capture, paired flow boundaries, HTML/CSV report downloads, private/demo isolation, JSON backup/restore and SQLite workspace persistence.
+- Snapshot contract rejects `recordedAt` earlier than `effectiveAt`.
+- CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed on head `fe01a85ed8300ab4da7f302058b615294a61d4af`.
+- Future scope only: decide and model in-kind contributions/withdrawals and corporate actions. No thresholds, alerts, risk scores, recommendations, rebalancing or trading actions are introduced. Synthetic data only.
