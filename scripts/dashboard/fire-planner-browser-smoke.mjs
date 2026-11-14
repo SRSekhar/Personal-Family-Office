@@ -1644,7 +1644,7 @@ try {
         (globalThis.document.querySelector('#investment-period-comparison-preview')?.getAttribute('srcdoc') ?? '').length > 0
     );
     await page.locator('#investment-period-comparison-form [name="periods"]').fill(
-        'Renamed A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\\n' +
+        'Renamed A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\n' +
         'Renamed B | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt
     );
     assert.equal(await page.locator('#investment-period-comparison-preview').isHidden(), true,
