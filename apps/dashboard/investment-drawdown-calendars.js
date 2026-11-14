@@ -21,7 +21,7 @@ export function validateInvestmentDrawdownCalendars(input) {
         throw new Error('Investment drawdown calendars must be an array.');
     }
     const calendars = input.investmentDrawdownCalendars;
-    const accountIds = new Set(Array.isArray(input.investmentAccounts) ? input.investmentAccounts.map((account) => account.id) : []);
+    const accountById = new Map(Array.isArray(input.investmentAccounts) ? input.investmentAccounts.map((account) => [account.id, account]) : []);
     const ids = new Set();
     for (const item of calendars) {
         const id = text(item?.id, 'Drawdown calendar ID');
@@ -37,7 +37,8 @@ export function validateInvestmentDrawdownCalendars(input) {
         if (!['portfolio', 'account'].includes(scope)) throw new Error('Drawdown calendar scope must be portfolio or account.');
         const accountId = item.accountId === undefined ? undefined : text(item.accountId, 'Drawdown calendar account ID');
         if ((scope === 'account') !== (accountId !== undefined)) throw new Error('Account-scoped calendars require an account ID; portfolio calendars cannot specify one.');
-        if (scope === 'account' && Array.isArray(input.investmentAccounts) && !accountIds.has(accountId)) throw new Error('Account-scoped calendars must reference a known investment account.');
+        if (scope === 'account' && Array.isArray(input.investmentAccounts) && !accountById.has(accountId)) throw new Error('Account-scoped calendars must reference a known investment account.');
+        if (scope === 'account' && Array.isArray(input.investmentAccounts) && accountById.get(accountId).currency !== currency) throw new Error('An account-scoped calendar currency must match the investment account currency.');
         const currency = text(item.currency, 'Drawdown calendar currency');
         if (!CURRENCIES.has(currency)) throw new Error('Drawdown calendar currency is unsupported.');
         const startAt = timestamp(item.startAt, 'Drawdown calendar startAt');
@@ -66,6 +67,14 @@ export function validateInvestmentDrawdownCalendars(input) {
     });
 
     const byId = new Map(normalized.map((item) => [item.id, item]));
+    const versionKeys = new Set();
+    for (const calendar of normalized) {
+        const versionKey = calendar.calendarSetId + ':' + calendar.version;
+        if (versionKeys.has(versionKey)) throw new Error('Each calendar set must have unique, sequential versions.');
+        versionKeys.add(versionKey);
+        if (calendar.version === 1 && calendar.supersedesCalendarId) throw new Error('A first calendar version cannot supersede another calendar.');
+        if (calendar.version > 1 && !calendar.supersedesCalendarId) throw new Error('A corrected calendar version must supersede the immediately previous version.');
+    }
     const superseded = new Set();
     for (const calendar of normalized) {
         if (!calendar.supersedesCalendarId) continue;
