@@ -46,6 +46,10 @@ function uniqueReasons(reasons) {
 export function buildInvestmentDrawdownSnapshotRequirements(input) {
     const effectiveAt = requireTimestamp(input?.effectiveAt, 'Snapshot effectiveAt');
     const recordedAtCutoff = requireTimestamp(input?.recordedAtCutoff, 'Snapshot recorded-at cutoff');
+    const kind = input.kind ?? 'DailyClose';
+    const flowId = input.flowId;
+    if (!['DailyClose', 'ExternalFlowPre', 'ExternalFlowPost'].includes(kind)) throw new Error('Snapshot observation kind is unsupported.');
+    if ((kind === 'DailyClose') === (flowId !== undefined)) throw new Error('Only flow-boundary snapshots may specify a flow ID.');
     if (recordedAtCutoff < effectiveAt) {
         throw new Error('Snapshot recorded-at cutoff cannot precede its effective timestamp.');
     }
@@ -58,6 +62,11 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
     const transactions = ledger.investmentTransactions.filter((item) => accountIds.has(item.accountId)
         && instrumentIds.has(item.instrumentId));
     const valuations = ledger.investmentValuations.filter((item) => instrumentIds.has(item.instrumentId));
+    const boundaryFlows = kind === 'DailyClose' ? null : buildInvestmentDrawdownExternalFlows({
+        ...input, startAt: effectiveAt, endAt: effectiveAt, recordedAtCutoff
+    });
+    const boundaryFlow = boundaryFlows?.flows.find((item) => item.id === flowId);
+    const boundarySourceIds = new Set(boundaryFlow?.sourceIds ?? []);
     const positions = analyzeInvestmentPortfolio({
         accounts,
         instruments,
@@ -74,6 +83,17 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
     }));
 
     const reasons = [];
+    if (kind !== 'DailyClose') {
+        if (boundaryFlows.status === 'unavailable') reasons.push(boundaryFlows.reason);
+        if (!boundaryFlow) reasons.push('The flow boundary ID is not present in the authoritative external-flow ledger.');
+        const sameTimeTransactions = transactions.filter((item) => item.date === effectiveAt && item.recordedAt <= recordedAtCutoff);
+        const sameTimeMovements = cash.investmentCashMovements.filter((item) => item.effectiveAt === effectiveAt
+            && item.recordedAt <= recordedAtCutoff && accountIds.has(cash.investmentCashAccounts.find((account) => account.id === item.cashAccountId)?.investmentAccountId));
+        const sameTimeTransfers = cash.investmentCashTransfers.filter((item) => item.effectiveAt === effectiveAt && item.recordedAt <= recordedAtCutoff);
+        if (sameTimeTransactions.length) reasons.push('Investment transactions share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
+        if (sameTimeMovements.some((item) => !boundarySourceIds.has(item.id))) reasons.push('Other cash movements share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
+        if (sameTimeTransfers.some((item) => !boundarySourceIds.has(item.id))) reasons.push('Other cash transfers share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
+    }
     const cashAccounts = cash.investmentCashAccounts.filter((item) => accountIds.has(item.investmentAccountId)
         && item.currency === input.currency && item.createdAt <= effectiveAt);
     const cashAccountIds = new Set(cashAccounts.map((item) => item.id));
@@ -88,7 +108,8 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
     const cashAccountById = new Map(cashAccounts.map((item) => [item.id, item]));
     for (const cashAccount of cashAccounts) {
         const movements = cash.investmentCashMovements.filter((item) => item.cashAccountId === cashAccount.id
-            && item.effectiveAt <= effectiveAt && item.recordedAt <= recordedAtCutoff);
+            && item.effectiveAt <= effectiveAt && item.recordedAt <= recordedAtCutoff
+            && !(kind === 'ExternalFlowPre' && boundarySourceIds.has(item.id)));
         const opening = movements.filter((item) => item.type === 'OpeningBalance');
         if (opening.length !== 1) {
             reasons.push('Cash account ' + cashAccount.id + ' has no eligible opening-balance baseline at the snapshot time.');
@@ -96,7 +117,8 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
         }
         let balance = movements.reduce((sum, item) => sum + item.amount.amount, 0);
         for (const transfer of cash.investmentCashTransfers) {
-            if (transfer.effectiveAt > effectiveAt || transfer.recordedAt > recordedAtCutoff) continue;
+            if (transfer.effectiveAt > effectiveAt || transfer.recordedAt > recordedAtCutoff
+                || (kind === 'ExternalFlowPre' && boundarySourceIds.has(transfer.id))) continue;
             const isSource = transfer.sourceCashAccountId === cashAccount.id;
             const isDestination = transfer.destinationCashAccountId === cashAccount.id;
             if (isSource) balance -= transfer.amount.amount;
@@ -136,6 +158,8 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
         currency: input.currency,
         effectiveAt,
         recordedAtCutoff,
+        kind,
+        ...(flowId ? { flowId } : {}),
         expectedComponents,
         reasons: uniqueReasons(reasons)
     };
@@ -156,7 +180,9 @@ export function validateInvestmentDrawdownSnapshotCompleteness({ snapshotId, ...
         accountId: snapshot.accountId,
         currency: snapshot.currency,
         effectiveAt: snapshot.effectiveAt,
-        recordedAtCutoff: snapshot.recordedAt
+        recordedAtCutoff: snapshot.recordedAt,
+        kind: snapshot.kind,
+        flowId: snapshot.flowId
     });
     const expected = new Map(requirements.expectedComponents.map((item) => [componentKey(item), item]));
     const actual = new Map(snapshot.components.map((item) => [componentKey(item), item]));
