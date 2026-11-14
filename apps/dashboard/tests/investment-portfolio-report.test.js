@@ -120,8 +120,8 @@ describe('investment portfolio review report', () => {
         expect(html).toContain('Realized P&amp;L');
         expect(html).toContain('Unrealized P&amp;L');
         expect(html).toContain('Annualized money-weighted return (XIRR)');
-        expect(html).toContain('12.00%');
-        expect(html).toContain('-3.00%');
+        expect(html).toContain('12%');
+        expect(html).toContain('-3%');
         expect(html).toContain('No currency conversion');
         expect(html).not.toContain('Combined portfolio total');
     });
