@@ -82,9 +82,9 @@ export function renderInvestmentDrawdownReportHtml(input) {
     const available = analysis.status === 'available';
     const metrics = [
         ['Maximum drawdown', available ? formatPercent(analysis.maximumDrawdown) : 'Unavailable'],
-        ['Peak', available ? formatTimestamp(analysis.peakAt) : 'Unavailable'],
-        ['Trough', available ? formatTimestamp(analysis.troughAt) : 'Unavailable'],
-        ['Recovery', available ? (analysis.recovered ? formatTimestamp(analysis.recoveryAt) : 'Not recovered') : 'Unavailable'],
+        ['Peak', available ? (analysis.maximumDrawdown < 0 ? formatTimestamp(analysis.peakAt) : 'Not applicable') : 'Unavailable'],
+        ['Trough', available ? (analysis.maximumDrawdown < 0 ? formatTimestamp(analysis.troughAt) : 'Not applicable') : 'Unavailable'],
+        ['Recovery', available ? (analysis.maximumDrawdown === 0 ? 'Not applicable' : (analysis.recovered ? formatTimestamp(analysis.recoveryAt) : 'Not recovered')) : 'Unavailable'],
         ['Observations', String(analysis.observationCount)],
         ['Paired external flows', String(analysis.flowBoundaryCount)]
     ].map(([label, value]) => '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>').join('');
