@@ -11,6 +11,23 @@
 - PR #454 is open/draft/unmerged and stacked on PR #453. No merge is authorized by this work.
 
 
+## 2026-11-14 — IPM-04 historical period comparison delivered on PR #454
+
+- [x] Complete discovery inventory of existing FIFO, cash reconciliation, XIRR, drawdown and reporting contracts; reuse existing financial calculations.
+- [x] Add pure historical comparison adapter for independently analyzed periods; validate common scope/account/currency/methodology/recorded-at cutoff and persisted calendar provenance.
+- [x] Derive period return only from existing wealth-index endpoints; reuse drawdown/peak/trough/recovery values; reject malformed observations and preserve unavailable periods without partial metrics.
+- [x] Add explicit private UI for period labels and exact UTC start/end windows; no auto-generated calendars, dates, prices or missing observations.
+- [x] Add standalone script-free HTML and spreadsheet-safe CSV with period return, drawdown, peak/trough/recovery timestamps, coverage, provenance, overlap flags and unavailable reasons.
+- [x] Invalidate reports on workspace changes and block exports when the underlying validated source signature has changed.
+- [x] Add unit tests, static UI wiring checks and Chromium smoke for private/demo isolation, downloads and stale-source invalidation.
+- No schema migration, persistence collection, FX, external market data or tax/accounting assumptions were introduced. CI/Secret Scan/dashboard packaging are being validated for current code head 198f55ddb83c22a3e681f4205ee4554110bcf684.
+- PR #454 remains draft/open/unmerged and stacked on PR #453. No merge is authorized by this work.
+
+## Gated follow-up — transaction statement reconciliation and accounting events
+
+- Transaction-to-position reconciliation remains unimplemented until the statement-evidence contract is approved: source identity, statement period, account/currency, reference matching, duplicate/unmatched/ambiguous rows, opening baseline, closing quantity comparison, correction behavior and recorded-at cutoff.
+- Cost-basis adjustments, corporate actions and in-kind contributions/withdrawals require separate event-model, accounting allocation, bitemporal, reversal/restatement and migration/backup decisions. Do not implement them as synthetic trades, fees, taxes or cash movements.
+
 ## Overview
 
 This document represents the long-term product backlog for PFO OS.
