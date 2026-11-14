@@ -38,7 +38,12 @@ describe('historical period comparison report', () => {
         expect(rows[1][2]).toContain("'January <script>");
         expect(csv).toContain('Missing <close> evidence.');
         expect(csv).toContain('0.25');
+        expect(csv).toContain('-0.1');
         expect(csv).toContain('PeriodReturn');
+        const formulaInput = structuredClone(comparison);
+        formulaInput.periods[0].label = '=DANGER';
+        expect(investmentPeriodComparisonToCsv({ comparison: formulaInput, generatedAt: '2026-04-02T00:00:00.000Z' }))
+            .toContain("'=DANGER");
     });
 
     it('rejects a partial numeric result for an unavailable period', () => {
