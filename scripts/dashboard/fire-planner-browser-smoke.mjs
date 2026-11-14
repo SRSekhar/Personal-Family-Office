@@ -1592,6 +1592,55 @@ try {
     assert.match(drawdownCsvDownload.suggestedFilename(), /\.csv$/u);
     process.stdout.write('PASS: private flow-adjusted drawdown analysis generates a descriptive HTML report and spreadsheet-safe CSV export.\\n');
 
+    await page.locator('#investment-period-comparison-form').scrollIntoViewIfNeeded();
+    await page.locator('#investment-period-comparison-form [name="scope"]').selectOption('portfolio');
+    await page.locator('#investment-period-comparison-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-period-comparison-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-period-comparison-form [name="periods"]').fill(
+        'Window A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\\n' +
+        'Window B | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt
+    );
+    await page.locator('#investment-period-comparison-form button[type="submit"]').click();
+    await page.waitForFunction(() => {
+        const preview = globalThis.document.querySelector('#investment-period-comparison-preview')?.getAttribute('srcdoc') ?? '';
+        const error = globalThis.document.querySelector('#investment-period-comparison-error')?.textContent?.trim() ?? '';
+        return preview.length > 0 || error.length > 0;
+    });
+    const comparisonState = await page.evaluate(() => ({
+        html: globalThis.document.querySelector('#investment-period-comparison-preview')?.getAttribute('srcdoc') ?? '',
+        error: globalThis.document.querySelector('#investment-period-comparison-error')?.textContent?.trim() ?? '',
+        status: globalThis.document.querySelector('#investment-period-comparison-status')?.textContent?.trim() ?? ''
+    }));
+    if (!comparisonState.html.includes('Historical investment performance comparison')) {
+        throw new Error('Historical period comparison did not become available: ' + comparisonState.error + ' ' + comparisonState.status);
+    }
+    assert.match(comparisonState.html, /Period return/u);
+    assert.match(comparisonState.html, /Overlaps previous period/u);
+    const [comparisonHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-period-comparison-download-html').click()
+    ]);
+    assert.match(comparisonHtmlDownload.suggestedFilename(), /\\.html$/u);
+    const [comparisonCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-period-comparison-download-csv').click()
+    ]);
+    assert.match(comparisonCsvDownload.suggestedFilename(), /\\.csv$/u);
+    await page.evaluate(() => {
+        const key = 'pfo-os.investment-drawdown-snapshots.v1';
+        const snapshots = JSON.parse(globalThis.localStorage.getItem(key) || '[]');
+        snapshots[0].sourceName = 'Changed after comparison';
+        globalThis.localStorage.setItem(key, JSON.stringify(snapshots));
+    });
+    await page.locator('#investment-period-comparison-download-html').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#investment-period-comparison-download-html')?.disabled === true
+        && globalThis.document.querySelector('#investment-period-comparison-preview')?.hidden === true
+    );
+    assert.match(await page.locator('#investment-period-comparison-status').innerText(), /Source data changed/u);
+    process.stdout.write('PASS: historical comparison produces HTML/CSV and blocks stale exports after source data changes.\\n');
+
+
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-drawdown-report-preview').isHidden(), true,
         'demo mode must clear the private drawdown report preview');
