@@ -1410,8 +1410,10 @@ try {
     assert.ok(drawdownIds.accountId && drawdownIds.instrumentId && drawdownIds.cashAccountId,
         'drawdown capture smoke should use existing ledger identifiers');
     await page.locator('#investment-drawdown-snapshot-form').scrollIntoViewIfNeeded();
-    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill('2026-10-31T16:00:00.000Z');
-    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(new Date().toISOString());
+    const drawdownEffectiveAt = new Date(Date.now() + 60_000).toISOString();
+    const drawdownRecordedAtCutoff = new Date(Date.now() + 120_000).toISOString();
+    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(drawdownEffectiveAt);
+    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(drawdownRecordedAtCutoff);
     await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test broker valuation and cash statement');
     await page.locator('#investment-drawdown-snapshot-form [name="dailyComponents"]').fill(JSON.stringify([
         { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
