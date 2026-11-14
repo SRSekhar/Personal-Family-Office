@@ -118,12 +118,28 @@ function validatePeriod(period, index) {
     if (analysis.coverageStartAt !== first.effectiveAt || analysis.coverageEndAt !== last.effectiveAt) {
         throw new RangeError(label + ' coverage must match the first and last observed points.');
     }
-    if (analysis.recovered !== true && analysis.recovered !== false) {
-        throw new TypeError(label + ' recovery state must be explicit.');
+    if (analysis.maximumDrawdown === 0) {
+        if (analysis.recovered !== null || analysis.peakAt !== null
+            || analysis.troughAt !== null || analysis.recoveryAt !== null) {
+            throw new TypeError(label + ' with no drawdown must have null peak, trough and recovery metadata.');
+        }
+    } else {
+        if (analysis.recovered !== true && analysis.recovered !== false) {
+            throw new TypeError(label + ' recovery state must be explicit when a drawdown exists.');
+        }
+        if (analysis.peakAt === null || analysis.troughAt === null) {
+            throw new TypeError(label + ' with drawdown requires peak and trough timestamps.');
+        }
+        timestamp(analysis.peakAt, label + ' peak timestamp');
+        timestamp(analysis.troughAt, label + ' trough timestamp');
+        if (analysis.recoveryAt !== null) timestamp(analysis.recoveryAt, label + ' recovery timestamp');
+        if (analysis.recovered && analysis.recoveryAt === null) {
+            throw new TypeError(label + ' recovered drawdown requires a recovery timestamp.');
+        }
+        if (!analysis.recovered && analysis.recoveryAt !== null) {
+            throw new TypeError(label + ' unrecovered drawdown cannot have a recovery timestamp.');
+        }
     }
-    if (analysis.peakAt !== null) timestamp(analysis.peakAt, label + ' peak timestamp');
-    if (analysis.troughAt !== null) timestamp(analysis.troughAt, label + ' trough timestamp');
-    if (analysis.recoveryAt !== null) timestamp(analysis.recoveryAt, label + ' recovery timestamp');
 
     return {
         label: period.label.trim(),
