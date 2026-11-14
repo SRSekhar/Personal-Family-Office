@@ -65,11 +65,6 @@ try {
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
-    page.on('close', () => process.stderr.write('DIAGNOSTIC: main dashboard page closed.\\n'));
-    page.on('crash', () => process.stderr.write('DIAGNOSTIC: main dashboard page crashed.\\n'));
-    page.on('framenavigated', (frame) => {
-        if (frame === page.mainFrame() && frame.url() !== baseUrl) process.stderr.write('DIAGNOSTIC: main frame navigated to ' + frame.url() + '\\n');
-    });
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
@@ -1455,6 +1450,8 @@ try {
         globalThis.localStorage.setItem(key, JSON.stringify(movements));
         globalThis.window.dispatchEvent(new globalThis.Event('pfo:workspace-updated'));
     }, { cashAccountId: drawdownIds.cashAccountId, effectiveAt: flowEffectiveAt });
+    investmentStorage.cashMovements = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'));
     await page.locator('#investment-drawdown-snapshot-form [name="kind"]').selectOption('ExternalFlowPair');
     await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(flowEffectiveAt);
     await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
