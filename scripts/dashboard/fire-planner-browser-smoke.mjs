@@ -67,23 +67,6 @@ try {
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
-    const comparisonControls = page.locator('#investment-period-comparison-form').locator('input, select, textarea, button');
-    assert.ok(await page.locator('#investment-period-comparison-demo-note').isVisible(),
-        'historical period comparison must show its private-workspace notice in demo mode');
-    assert.ok((await comparisonControls.count()) > 0, 'historical comparison controls should be present');
-    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => control.disabled)), true,
-        'historical comparison inputs and actions must be disabled in demo mode');
-    assert.equal(await page.locator('#investment-period-comparison-download-html').isDisabled(), true);
-    assert.equal(await page.locator('#investment-period-comparison-download-csv').isDisabled(), true);
-    await page.locator('#switch-private-button').click();
-    assert.equal(await page.locator('#workspace-label').innerText(), 'PRIVATE WORKSPACE');
-    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => !control.disabled)), true,
-        'comparison controls should be enabled only in the validated local private workspace');
-    await page.locator('#switch-demo-button').click();
-    assert.equal(await page.locator('#workspace-label').innerText(), 'SAMPLE WORKSPACE');
-    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => control.disabled)), true,
-        'switching back to demo must disable historical comparison controls');
-    process.stdout.write('PASS: historical comparison is isolated to the local private workspace.\\n');
     assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
     assert.equal(await page.locator('#historical-snapshot-rows tr').count(), 3,
         'local development sample workspace should show fictional multi-year history points only');
@@ -194,6 +177,24 @@ try {
         'activating the skip link should move focus to the main content landmark'
     );
     process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
+
+    const comparisonControls = page.locator('#investment-period-comparison-form').locator('input, select, textarea, button');
+    assert.ok(await page.locator('#investment-period-comparison-demo-note').isVisible(),
+        'historical period comparison must show its private-workspace notice in demo mode');
+    assert.ok((await comparisonControls.count()) > 0, 'historical comparison controls should be present');
+    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => control.disabled)), true,
+        'historical comparison inputs and actions must be disabled in demo mode');
+    assert.equal(await page.locator('#investment-period-comparison-download-html').isDisabled(), true);
+    assert.equal(await page.locator('#investment-period-comparison-download-csv').isDisabled(), true);
+    await page.locator('#switch-private-button').click();
+    assert.equal(await page.locator('#workspace-label').innerText(), 'PRIVATE WORKSPACE');
+    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => !control.disabled)), true,
+        'comparison controls should be enabled only in the validated local private workspace');
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#workspace-label').innerText(), 'SAMPLE WORKSPACE');
+    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => control.disabled)), true,
+        'switching back to demo must disable historical comparison controls');
+    process.stdout.write('PASS: historical comparison is isolated to the local private workspace.\\n');
     const [historyHtmlDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-historical-snapshots-html').click()
