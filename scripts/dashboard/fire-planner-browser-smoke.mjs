@@ -1397,7 +1397,49 @@ try {
     assert.equal(investmentStorage.drawdownCalendars.length, 1, 'private calendar UI should persist one explicitly entered schedule');
     assert.equal(investmentStorage.drawdownCalendars[0].expectedDailyCloseAt.length, 3,
         'calendar UI should persist only the three explicitly entered close timestamps');
-    process.stdout.write('PASS: private calendar authoring stores an explicit UTC close schedule without generating dates.\n');
+    process.stdout.write('PASS: private calendar authoring stores an explicit UTC close schedule without generating dates.\\n');
+
+    // Capture a manually valued daily-close observation from the explicitly synthetic
+    // browser-test investment ledger. The UI derives quantities/balances from the ledgers
+    // and accepts only the valuation evidence entered below.
+    const drawdownIds = await page.evaluate(() => ({
+        accountId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]')[0]?.id,
+        instrumentId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]')[0]?.id,
+        cashAccountId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]')[0]?.id
+    }));
+    assert.ok(drawdownIds.accountId && drawdownIds.instrumentId && drawdownIds.cashAccountId,
+        'drawdown capture smoke should use existing ledger identifiers');
+    await page.locator('#investment-drawdown-snapshot-form').scrollIntoViewIfNeeded();
+    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill('2026-10-31T16:00:00.000Z');
+    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(new Date().toISOString());
+    await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test broker valuation and cash statement');
+    await page.locator('#investment-drawdown-snapshot-form [name="dailyComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 405, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText.includes('DailyClose'));
+    const capturedDrawdownSnapshots = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'));
+    assert.equal(capturedDrawdownSnapshots.length, 1, 'manual drawdown capture should persist one immutable observation');
+    assert.equal(capturedDrawdownSnapshots[0].complete, true,
+        'the manually captured observation should pass its independent FIFO and cash-ledger completeness contract');
+    assert.equal(capturedDrawdownSnapshots[0].totalValue.amount, 1605,
+        'the captured total should reconcile the explicit 1,200 position valuation and 405 cash balance');
+    assert.equal(capturedDrawdownSnapshots[0].components.length, 2,
+        'the captured observation should retain one position and one cash component');
+    assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('Complete'), true,
+        'the private observation history should visibly mark the reconciled observation complete');
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('Switch to the local private workspace'), true,
+        'sample mode must not reveal private drawdown observations');
+    assert.equal(await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').isDisabled(), true,
+        'sample mode must disable manual drawdown capture');
+    await page.locator('#switch-private-button').click();
+    assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('DailyClose'), true,
+        'switching back to private mode should restore the locally saved drawdown observation');
+    investmentStorage.drawdownSnapshots = capturedDrawdownSnapshots;
+    process.stdout.write('PASS: private manual daily-close capture reconciles FIFO quantity and cash balance; demo mode remains isolated.\\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
