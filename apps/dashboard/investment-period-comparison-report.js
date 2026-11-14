@@ -141,5 +141,5 @@ export function investmentPeriodComparisonToCsv(input) {
         period.recoveryAt ?? '', period.recovered ?? '', period.observationCount, period.flowBoundaryCount,
         period.calendarId, period.calendarVersion, period.overlapsPrevious, period.reason ?? ''
     ]);
-    return [header, ...rows].map((row) => row.map(csvText).join(',')).join('\r\n') + '\\r\\n';
+    return [header, ...rows].map((row) => row.map(csvText).join(',')).join('\r\n') + '\r\n';
 }
