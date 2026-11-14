@@ -557,7 +557,7 @@ Next: manual snapshot capture/import and flow-boundary authoring, followed by ex
 - Added as-of selection by recorded-at cutoff. Missing or ambiguous calendars fail closed.
 - Added SQLite schema v12 (19 workspace collections), transactional v11→v12 migration and a protected pre-v12 JSON recovery artifact. Existing schema-v11 workspaces receive an empty calendar collection; no historical calendar is fabricated.
 - JSON backup/restore, private browser workspace state and SQLite save/restore/online backup now include the calendar collection. Legacy schemas v1–v11 remain accepted; legacy imports preserve existing calendars only when their account references remain valid.
-- Added calendar contract and schema migration/backup round-trip tests. Initial CI exposed stale schema-v11 dashboard fixtures and one overly specific orchestration assertion; those test expectations were corrected. The latest head's CI must be rechecked before calling this increment validated.
+- Added calendar contract and schema migration/backup round-trip tests. After correcting schema-v11 dashboard fixtures and browser smoke expectations, implementation head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI #1831, Secret Scan #1625 and dashboard packaging #1067. Later commits are documentation-only.
 - PR #453 remains open, draft and unmerged. No merge is authorized.
 
 Next: implement the private manual daily-close calendar authoring workflow and connect its selected schedule to `analyzeInvestmentDrawdownSeries`; then build manual snapshot capture and paired flow-boundary authoring.
