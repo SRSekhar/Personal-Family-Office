@@ -854,6 +854,6 @@ describe('historical investment period comparison workspace', () => {
         expect(workspace).toContain('dependencies.isPrivateWorkspace()');
         expect(report).toContain('renderInvestmentPeriodComparisonHtml');
         expect(report).toContain('investmentPeriodComparisonToCsv');
-        expect(report).not.toMatch(/<script\\b/i);
+        expect(report).not.toMatch(/<script\b/i);
     });
 });
