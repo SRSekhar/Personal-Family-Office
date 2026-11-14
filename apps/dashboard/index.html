@@ -821,7 +821,11 @@
                 </div>
                 <section class="investment-portfolio-analysis" id="investment-portfolio-analysis" aria-labelledby="investment-portfolio-heading">
                     <div class="investment-portfolio-heading"><div><h3 id="investment-portfolio-heading">Portfolio positions &amp; reconciliation</h3><p class="form-note">FIFO cost basis and performance use recorded ledger events. Valuations are selected only when both effective and recorded dates are on or before the selected date.</p></div>
-                        <label class="field-label" for="investment-portfolio-as-of">As-of date<input id="investment-portfolio-as-of" type="date"></label></div>
+                        <label class="field-label" for="investment-portfolio-as-of">As-of date<input id="investment-portfolio-as-of" type="date"></label>
+                        <div class="panel-header-actions" aria-label="Portfolio performance exports">
+                            <button class="button button-secondary button-small" id="investment-portfolio-export-html" type="button" disabled>Download performance report</button>
+                            <button class="button button-secondary button-small" id="investment-portfolio-export-csv" type="button" disabled>Export performance CSV</button>
+                        </div></div>
                     <div class="notice" id="investment-portfolio-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Portfolio calculations use only your saved private investment ledger.</p></div></div>
                     <div id="investment-portfolio-summaries" class="investment-portfolio-summaries"></div>
                     <h4>Money-weighted portfolio performance</h4><div id="investment-portfolio-performance" class="investment-portfolio-summaries" aria-live="polite"></div>
