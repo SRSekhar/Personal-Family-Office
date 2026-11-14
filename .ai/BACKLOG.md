@@ -745,21 +745,19 @@ Delivered:
 - JSON backup/restore and private-workspace/SQLite persistence integration, retaining legacy schema v1–v11 import support.
 - Calendar contract, migration and persistence round-trip tests.
 
-Still required:
-Completed:
-1. Private calendar authoring UI; users explicitly enter each expected UTC close timestamp. No weekday, market-holiday or exchange-calendar inference.
-2. Persisted calendar selection wired into `analyzeInvestmentDrawdownSeries`, including recorded-at cutoff and calendar ID/version provenance.
-
-Still required:
 Completed on PR #453:
+1. Private calendar authoring UI with explicit UTC daily-close timestamps; no generated weekdays, holidays or exchange sessions.
+2. Persisted calendar selection wired into `analyzeInvestmentDrawdownSeries`, including recorded-at cutoff and calendar ID/version provenance.
 3. Private manual position/cash snapshot capture/import with explicit unit price, quantity/balance, source and effective timestamp.
 4. Paired pre-flow/post-flow boundary authoring using exact authoritative flow ID/effective timestamp and matching component universe.
+5. Independent hand-calculated end-to-end acceptance for a corrected contribution, multiple flows, scope-crossing transfer, fees/taxes, closed position and missing daily close.
+6. Private descriptive HTML/CSV drawdown report/export with methodology, scope, currency, analysis window, observed coverage, peak/trough/recovery, completeness evidence and unavailable reasons.
 
-Still required:
-5. Independently hand-calculated end-to-end acceptance tests for multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data.
-6. Private descriptive drawdown report/export with methodology, scope, currency, coverage, peak/trough/recovery and unavailable evidence.
+Future scope (separate ledger-model decision):
+- In-kind contributions/withdrawals.
+- Corporate actions.
 
-CI follow-up: the latest verified code head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI run #1831 (lint, typecheck, package build, unit tests and Chromium browser smoke), Secret Scan #1625 and dashboard packaging #1067. The browser smoke creates a synthetic calendar, verifies the JSON backup/restore, and round-trips the SQLite workspace across all 19 collections.
+CI follow-up: latest verified head `fe01a85ed8300ab4da7f302058b615294a61d4af` passed CI #1884 (lint, typecheck, package build, unit tests and Chromium browser smoke), Secret Scan #1678 and dashboard packaging #1120. Browser smoke verifies capture, paired flows, HTML/CSV reports, demo/private isolation, JSON backup/restore and SQLite persistence across all 19 collections.
 
 No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations, rebalancing or trading actions are approved.
 
@@ -771,3 +769,11 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - Browser smoke verifies a reconciled daily close, paired contribution boundaries, demo/private isolation, and JSON/SQLite backup persistence.
 - CI #1854, Secret Scan #1648 and dashboard packaging #1090 passed on head `e91cfb79d557251c27b2a2a13914c463d773bde5`.
 - Remaining gates: independent hand-calculated end-to-end financial acceptance and private descriptive drawdown reporting/export. In-kind flows/corporate actions remain unsupported.
+
+## 2026-11-14 — Option B drawdown deliverable complete on PR #453
+
+- Manual valuation capture/import, paired flow-boundary authoring, explicit daily-close calendar, series orchestration, independent financial acceptance and private descriptive HTML/CSV report/export are implemented.
+- Independent acceptance covers same-time contribution correction, contribution, withdrawal, account-scope transfer, fees, taxes, closed position and missing daily-close fail-closed behavior.
+- Browser smoke verifies report downloads and private/demo isolation in addition to JSON/SQLite persistence.
+- CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed on `fe01a85ed8300ab4da7f302058b615294a61d4af`.
+- Only future scope: in-kind flows and corporate actions, pending a separate ledger-model decision.
