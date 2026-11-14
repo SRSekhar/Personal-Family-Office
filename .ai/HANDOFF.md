@@ -612,5 +612,16 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Completeness is computed against `buildInvestmentDrawdownSnapshotRequirements`; position quantities and cash balances must reconcile. Incomplete captures are preserved as incomplete and are excluded from usable calculations.
 - Browser smoke now covers a complete daily close, an authoritative external contribution pair, demo/private isolation, JSON backup/restore and SQLite workspace round-trip.
 - Verified head `e91cfb79d557251c27b2a2a13914c463d773bde5`: CI #1854, Secret Scan #1648 and dashboard packaging #1090 all passed.
-- Next: independent hand-calculated end-to-end acceptance fixtures (multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data), then private descriptive drawdown reporting/export.
+- Completed: independent hand-calculated end-to-end acceptance fixtures and private descriptive HTML/CSV reporting/export. Future work is limited to a separate design decision for in-kind contributions/withdrawals and corporate actions.
 - In-kind contributions/withdrawals and corporate actions remain unsupported; do not infer them. PR #453 remains open/draft/unmerged; do not merge without explicit approval. Synthetic data only.
+
+## Latest Handoff — 2026-11-14 (drawdown acceptance and reporting)
+
+- Current branch: `feature/ipm-drawdown-contract-discovery`; existing PR #453 only. PR remains open, draft and unmerged. Do not merge without explicit approval.
+- Current Option B drawdown deliverable is implemented: manual daily-close capture, paired authoritative pre/post-flow capture, persisted explicit calendars, series orchestration, ledger reconciliation and private descriptive reporting/export.
+- Independent acceptance test covers contribution correction netting, external contribution, withdrawal, account-scope transfer out, fees, taxes, sale closing a position and missing expected daily-close fail-closed behavior. The expected drawdown is hand-calculated from fixture NAVs.
+- Snapshot contract rejects `recordedAt < effectiveAt`.
+- Report modules: `apps/dashboard/investment-drawdown-report.js` and `apps/dashboard/investment-drawdown-report-workspace.js`. HTML preview is sandboxed; HTML/CSV downloads are private-only; CSV protects text cells against spreadsheet formula injection. Report includes observed coverage and completeness evidence; unavailable analysis has no partial points/statistics.
+- Browser smoke verifies report generation/downloads and clearing private report state on demo switch, in addition to capture, JSON backup/restore and SQLite round-trip.
+- Verified head `fe01a85ed8300ab4da7f302058b615294a61d4af`: CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed.
+- Future scope only: in-kind flows and corporate actions require a separate ledger-model ADR. Do not infer them or add thresholds/alerts/recommendations/trading behavior. Synthetic data only.
