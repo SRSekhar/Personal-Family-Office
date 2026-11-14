@@ -442,3 +442,12 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Snapshot contract rejects `recordedAt` earlier than `effectiveAt`.
 - CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
 - Future scope only: decide and model in-kind contributions/withdrawals and corporate actions. No thresholds, alerts, risk scores, recommendations, rebalancing or trading actions are introduced. Synthetic data only.
+
+## IPM-04 Performance Analytics Discovery — 2026-11-14
+
+- Inspected the existing ledger, FIFO projection, cash reconciliation, XIRR, drawdown series and private reporting contracts on `feature/ipm-performance-review`.
+- Discovery record: `docs/architecture/IPM-04-PERFORMANCE-ANALYTICS-DISCOVERY.md`.
+- Existing outputs include FIFO open cost basis and realized/unrealized P&L, recorded income/fees/taxes, explicit valuation provenance, cash reconciliation, per-currency XIRR, and a separate historical flow-adjusted wealth/drawdown series.
+- Historical period comparison is not yet a delivered user workflow. Its safe candidate contract derives period return only from endpoints of independently available wealth-index series and requires matching scope, currency, methodology and recorded-at cutoff, with explicit persisted calendars per period.
+- Transaction-to-position statement reconciliation and cost-basis adjustment/corporate-action event models remain gaps. No new formulas, assumptions or schema changes were made.
+- Next engineering increment: pure period-comparison adapter and independent tests; no report/UI until the adapter is validated.
