@@ -3231,7 +3231,7 @@ try {
     assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
     assert.match(onlineBackupStatus, /19 collections/i,
-        'the online backup UI should report validation across all 18 workspace collections');
+        'the online backup UI should report validation across all 19 workspace collections');
     assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
     process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
@@ -3290,7 +3290,7 @@ try {
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
         'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nineteen collections');
-    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all eighteen workspace collections.\\n');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all nineteen workspace collections.\\n');
 
     // Open an isolated second browser tab with the same persisted browser baseline.
     // Its localStorage copy is deliberately isolated so it cannot see the first tab's later edit.
