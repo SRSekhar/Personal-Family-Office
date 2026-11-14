@@ -1973,7 +1973,7 @@ try {
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
     assert.equal(goalBackup.schemaVersion, 12, 'private backup should use schema v12 and include saved goals, history, and exposure policy collections');
     assert.equal(goalBackup.investmentExposurePolicies.length, 1, 'full backup should preserve exposure policy history');
-    assert.deepEqual(goalBackup.investmentDrawdownSnapshots, [], 'goal backup should preserve the empty drawdown collection');
+    assert.deepEqual(goalBackup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots, 'goal backup should preserve all captured drawdown observations');
     assert.equal(goalBackup.investmentDrawdownCalendars.length, 1, 'goal backup should preserve the explicit drawdown calendar');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
@@ -3318,8 +3318,8 @@ try {
         'schema-v12 backup should include the weighted exposure classification history');
     assert.equal(databaseBackup.investmentDrawdownCalendars.length, 1,
         'schema-v12 backup should include the explicitly authored daily-close calendar');
-    assert.equal(databaseBackup.investmentDrawdownSnapshots.length, 0,
-        'schema-v12 backup should include the drawdown collection without inventing historical observations');
+    assert.deepEqual(databaseBackup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots,
+        'schema-v12 SQLite backup should preserve the manually captured drawdown observations');
     assert.equal(databaseBackup.investmentExposurePolicies.length, 1,
         'schema-v12 backup should include user-defined exposure policy history');
     await page.locator('#database-online-backup-button').click();
