@@ -1107,6 +1107,33 @@
                     <div class="table-wrap"><table><thead><tr><th>Effective at (UTC)</th><th>Kind</th><th>Scope</th><th>Currency</th><th class="align-right">Components</th><th class="align-right">Total value</th><th>Status</th></tr></thead><tbody id="investment-drawdown-snapshot-history"></tbody></table></div>
                     <p class="form-note">A saved observation is independently reconciled again before analysis. Incomplete captures remain visibly incomplete and never produce partial drawdown statistics.</p>
                 </section>
+                <section class="investment-drawdown-calendar-workspace" id="investment-drawdown-report" aria-labelledby="investment-drawdown-report-heading">
+                    <div class="section-heading"><div><p class="eyebrow">HISTORICAL PERFORMANCE · DESCRIPTIVE REPORTING</p><h3 id="investment-drawdown-report-heading">Flow-adjusted drawdown analysis</h3>
+                        <p class="form-note">Run a ledger-reconciled analysis for an exact scope, currency, observation window and recorded-at cutoff. Reports show maximum drawdown, peak, trough, recovery, observation coverage and completeness evidence. No thresholds, alerts, scores or recommendations are generated.</p></div></div>
+                    <div class="notice" id="investment-drawdown-report-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Drawdown analysis and exports may reveal sensitive household holdings and valuations. They are disabled in the hosted demo.</p></div></div>
+                    <p class="validation-message" id="investment-drawdown-report-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-drawdown-report-status" role="status" aria-live="polite" hidden></p>
+                    <form id="investment-drawdown-report-form" class="panel-card">
+                        <h4>Analysis parameters</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Scope<select name="scope" required><option value="portfolio">Whole portfolio</option><option value="account">One investment account</option></select></label>
+                            <label class="field-label" id="investment-drawdown-report-account-row" hidden>Investment account<select name="accountId"><option value="">Select investment account</option></select></label>
+                            <label class="field-label">Currency<select name="currency" required><option value="INR">INR</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="AED">AED</option><option value="SGD">SGD</option><option value="JPY">JPY</option><option value="AUD">AUD</option><option value="CAD">CAD</option><option value="CHF">CHF</option></select></label>
+                            <label class="field-label">Analysis start (canonical UTC)<input name="startAt" required spellcheck="false" placeholder="2026-04-01T00:00:00.000Z"></label>
+                            <label class="field-label">Analysis end (canonical UTC)<input name="endAt" required spellcheck="false" placeholder="2027-03-31T23:59:59.999Z"></label>
+                            <label class="field-label">Recorded-at knowledge cutoff (canonical UTC)<input name="recordedAtCutoff" required spellcheck="false"></label>
+                        </div>
+                        <p class="form-note">The selected window must match an explicitly authored calendar revision. The recorded-at cutoff controls which calendar, ledger corrections and observations were known at analysis time; it may precede the analysis end. Missing or ambiguous evidence makes the result unavailable.</p>
+                        <div class="button-row"><button class="button button-primary" type="submit">Run drawdown analysis</button></div>
+                    </form>
+                    <div class="button-row">
+                        <button class="button button-secondary button-small" id="investment-drawdown-report-download-html" type="button" disabled>Download standalone HTML report</button>
+                        <button class="button button-secondary button-small" id="investment-drawdown-report-download-csv" type="button" disabled>Download CSV evidence</button>
+                    </div>
+                    <iframe id="investment-drawdown-report-preview" title="Investment drawdown report preview" sandbox="" hidden
+                        style="display:block;width:100%;min-height:720px;border:1px solid var(--border-color, #d6e0da);border-radius:10px;background:#fff"></iframe>
+                    <p class="form-note">Unavailable analyses can still be exported with their reasons and completeness evidence. Partial drawdown statistics are never displayed or exported.</p>
+                </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>
                         <p class="form-note">Export each of the eight investment and cash collections as a separate PFO-native CSV. Import validates all selected files together and previews the result before changing saved data. JSON workspace backup remains the authoritative full backup.</p></div></div>
