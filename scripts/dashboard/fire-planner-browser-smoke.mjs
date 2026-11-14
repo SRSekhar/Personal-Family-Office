@@ -1485,12 +1485,14 @@ try {
     investmentStorage.drawdownSnapshots = capturedFlowSnapshots;
     process.stdout.write('PASS: paired pre-flow/post-flow capture is tied to an authoritative ledger flow and reconciles both cash boundaries.\\n');
     await page.locator('#switch-demo-button').click();
-    assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('Switch to the local private workspace'), true,
+    const demoDrawdownHistory = await page.evaluate(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '');
+    assert.match(demoDrawdownHistory, /Switch to the local private workspace/u,
         'sample mode must not reveal private drawdown observations');
     assert.equal(await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').isDisabled(), true,
         'sample mode must disable manual drawdown capture');
     await page.locator('#switch-private-button').click();
-    assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('DailyClose'), true,
+    const privateDrawdownHistory = await page.evaluate(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '');
+    assert.match(privateDrawdownHistory, /DailyClose/u,
         'switching back to private mode should restore the locally saved drawdown observation');
     investmentStorage.drawdownSnapshots = capturedFlowSnapshots;
     process.stdout.write('PASS: private manual daily-close and paired flow capture persist without exposing private observations in demo mode.\\n');
