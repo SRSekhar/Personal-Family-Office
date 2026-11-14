@@ -584,5 +584,5 @@ Remaining future scope: in-kind contributions/withdrawals and corporate actions 
 - Added private-only descriptive HTML and CSV reporting with exact scope, currency, window, observed coverage, recorded-at cutoff, methodology, calendar provenance, peak/trough/recovery, per-snapshot completeness and unavailable reasons.
 - HTML preview is sandboxed and contains no remote assets or scripts. CSV text cells are protected against spreadsheet formula injection. Report data and downloads are cleared/disabled when switching to demo mode or when source data changes.
 - Browser smoke verifies manual capture, paired flow boundaries, report generation and HTML/CSV downloads, demo/private isolation, JSON backup/restore and SQLite persistence.
-- Verified head `fe01a85ed8300ab4da7f302058b615294a61d4af`: CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed.
+- Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
 - PR #453 remains open, draft and unmerged. No merge is authorized.
