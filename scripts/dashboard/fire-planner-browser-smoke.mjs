@@ -1382,6 +1382,21 @@ try {
     assert.equal(investmentStorage.cashTransfers.length, 0);
     assert.equal(investmentStorage.exposurePolicies.length, 1, 'the saved exposure policy version should persist locally');
     process.stdout.write('PASS: private investment and cash ledgers record funding, withdrawals, trade settlement and statement reconciliation.\n');
+    await page.locator('#investment-drawdown-calendar-form').scrollIntoViewIfNeeded();
+    await page.locator('#investment-drawdown-calendar-form [name="calendarSetId"]').fill('browser-portfolio-inr-2026');
+    await page.locator('#investment-drawdown-calendar-form [name="startAt"]').fill('2026-11-02T00:00:00.000Z');
+    await page.locator('#investment-drawdown-calendar-form [name="endAt"]').fill('2026-11-04T23:59:59.999Z');
+    await page.locator('#investment-drawdown-calendar-form [name="expectedDailyCloseAt"]').fill(
+        '2026-11-02T15:30:00.000Z\\n2026-11-03T15:30:00.000Z\\n2026-11-04T15:30:00.000Z'
+    );
+    await page.locator('#investment-drawdown-calendar-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-calendar-history')?.innerText.includes('browser-portfolio-inr-2026'));
+    investmentStorage.drawdownCalendars = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]'));
+    assert.equal(investmentStorage.drawdownCalendars.length, 1, 'private calendar UI should persist one explicitly entered schedule');
+    assert.equal(investmentStorage.drawdownCalendars[0].expectedDailyCloseAt.length, 3,
+        'calendar UI should persist only the three explicitly entered close timestamps');
+    process.stdout.write('PASS: private calendar authoring stores an explicit UTC close schedule without generating dates.\\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -1390,9 +1405,10 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 11, 'private JSON backup should use schema version 11 with exposure policy history');
+    assert.equal(backup.schemaVersion, 12, 'private JSON backup should use schema version 11 with exposure policy history');
     assert.equal(backup.investmentExposurePolicies.length, 1, 'private JSON backup should include exposure policy history');
-    assert.deepEqual(backup.investmentDrawdownSnapshots, [], 'schema-v11 backup should include the empty drawdown snapshot collection without fabricating history');
+    assert.deepEqual(backup.investmentDrawdownSnapshots, [], 'schema-v12 backup should include the empty drawdown snapshot collection without fabricating history');
+    assert.equal(backup.investmentDrawdownCalendars.length, 1, 'schema-v12 backup should include the explicitly authored daily-close calendar');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -1401,8 +1417,8 @@ try {
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
-    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots']) {
-        assert.ok(Array.isArray(backup[collection]), `schema-v11 backup should include ${collection}`);
+    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots', 'investmentDrawdownCalendars']) {
+        assert.ok(Array.isArray(backup[collection]), `schema-v12 backup should include ${collection}`);
         const expectedCount = {
             investmentAccounts: investmentStorage.accounts.length,
             investmentInstruments: investmentStorage.instruments.length,
@@ -1416,9 +1432,10 @@ try {
             investmentConcentrationPolicies: 0,
             investmentExposureClassifications: investmentStorage.exposureClassifications.length,
             investmentExposurePolicies: investmentStorage.exposurePolicies.length,
-            investmentDrawdownSnapshots: investmentStorage.drawdownSnapshots.length
+            investmentDrawdownSnapshots: investmentStorage.drawdownSnapshots.length,
+            investmentDrawdownCalendars: investmentStorage.drawdownCalendars.length
         }[collection];
-        assert.equal(backup[collection].length, expectedCount, `schema-v11 backup should preserve the saved ${collection}`);
+        assert.equal(backup[collection].length, expectedCount, `schema-v12 backup should preserve the saved ${collection}`);
     }
     assert.deepEqual(backup.investmentCashAccounts, investmentStorage.cashAccounts);
     assert.deepEqual(backup.investmentCashMovements, investmentStorage.cashMovements);
@@ -1597,8 +1614,8 @@ try {
         drawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]')
     }));
     assert.deepEqual(restoredInvestmentStorage, investmentStorage,
-        'schema-v11 JSON restore must round-trip investment and exposure collections without changing IDs or values');
-    process.stdout.write('PASS: schema-v11 JSON backup restore round-trips accounts, instruments, transactions, valuations and exposure classifications.\n');
+        'schema-v12 JSON restore must round-trip investment and exposure collections without changing IDs or values');
+    process.stdout.write('PASS: schema-v12 JSON backup restore round-trips accounts, instruments, transactions, valuations and exposure classifications.\n');
 
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
@@ -1857,16 +1874,17 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 11, 'private backup should use schema v11 and include saved goals, history, and exposure policy collections');
+    assert.equal(goalBackup.schemaVersion, 12, 'private backup should use schema v12 and include saved goals, history, and exposure policy collections');
     assert.equal(goalBackup.investmentExposurePolicies.length, 1, 'full backup should preserve exposure policy history');
     assert.deepEqual(goalBackup.investmentDrawdownSnapshots, [], 'goal backup should preserve the empty drawdown collection');
+    assert.equal(goalBackup.investmentDrawdownCalendars.length, 1, 'goal backup should preserve the explicit drawdown calendar');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
     assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
     assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private schema-v11 backup includes records, goals, cash flow, budgets, history, and complete investment exposure policy history.\\n');
+    process.stdout.write('PASS: private schema-v12 backup includes records, goals, cash flow, budgets, history, and complete investment exposure policy history.\\n');
 
     const restoreFailureCases = [
         { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
@@ -3106,10 +3124,11 @@ try {
     const policyBackupPath = join(temporaryDirectory, policyBackupDownload.suggestedFilename());
     await policyBackupDownload.saveAs(policyBackupPath);
     const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
-    assert.equal(policyBackup.schemaVersion, 11);
+    assert.equal(policyBackup.schemaVersion, 12);
     assert.equal(policyBackup.investmentAllocationPolicies.length, 3);
     assert.equal(policyBackup.investmentConcentrationPolicies.length, 2);
     assert.equal(policyBackup.investmentExposurePolicies.length, 1);
+    assert.equal(policyBackup.investmentDrawdownCalendars.length, 1);
     const legacyV6Backup = JSON.parse(JSON.stringify(policyBackup));
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
@@ -3117,6 +3136,7 @@ try {
     delete legacyV6Backup.investmentExposureClassifications;
     delete legacyV6Backup.investmentExposurePolicies;
     delete legacyV6Backup.investmentDrawdownSnapshots;
+    delete legacyV6Backup.investmentDrawdownCalendars;
     const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
     await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
 
@@ -3178,7 +3198,7 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 11, 'SQLite backup should retain the supported full-workspace schema version');
+    assert.equal(databaseBackup.schemaVersion, 12, 'SQLite backup should retain the supported full-workspace schema version');
     for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
@@ -3194,15 +3214,17 @@ try {
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
     assert.equal(databaseBackup.investmentAllocationPolicies.length, 3,
-        'schema-v11 backup should include all saved allocation policy versions, including those preserved by legacy restore');
+        'schema-v12 backup should include all saved allocation policy versions, including those preserved by legacy restore');
     assert.equal(databaseBackup.investmentConcentrationPolicies.length, 2,
-        'schema-v11 backup should include all user-defined concentration policy versions');
+        'schema-v12 backup should include all user-defined concentration policy versions');
     assert.equal(databaseBackup.investmentExposureClassifications.length, 1,
-        'schema-v11 backup should include the weighted exposure classification history');
+        'schema-v12 backup should include the weighted exposure classification history');
+    assert.equal(databaseBackup.investmentDrawdownCalendars.length, 1,
+        'schema-v12 backup should include the explicitly authored daily-close calendar');
     assert.equal(databaseBackup.investmentDrawdownSnapshots.length, 0,
-        'schema-v11 backup should include the drawdown collection without inventing historical observations');
+        'schema-v12 backup should include the drawdown collection without inventing historical observations');
     assert.equal(databaseBackup.investmentExposurePolicies.length, 1,
-        'schema-v11 backup should include user-defined exposure policy history');
+        'schema-v12 backup should include user-defined exposure policy history');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
@@ -3233,7 +3255,8 @@ try {
         investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
         investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
         investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
-        investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]')
+        investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'),
+        investmentDrawdownCalendars: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -3265,7 +3288,7 @@ try {
         investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all eighteen collections');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nineteen collections');
     process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all eighteen workspace collections.\\n');
 
     // Open an isolated second browser tab with the same persisted browser baseline.
