@@ -69,6 +69,7 @@ export function validateInvestmentDrawdownSnapshots(input) {
         if (!KINDS.has(kind)) throw new Error('Drawdown snapshot kind is unsupported.');
         const effectiveAt = timestamp(item.effectiveAt, 'Drawdown snapshot effectiveAt');
         const recordedAt = timestamp(item.recordedAt, 'Drawdown snapshot recordedAt');
+        if (recordedAt < effectiveAt) throw new Error('Drawdown snapshot recordedAt cannot precede its effectiveAt timestamp.');
         const sourceType = text(item.sourceType, 'Drawdown snapshot source type');
         const sourceName = text(item.sourceName, 'Drawdown snapshot source name');
         if (!SOURCE_TYPES.has(sourceType)) throw new Error('Drawdown snapshot source type must be manual or provider.');
