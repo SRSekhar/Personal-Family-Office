@@ -141,7 +141,9 @@ describe('recurring-tagged cash-flow summary contract', () => {
     it('summarizes explicitly recurring-tagged recorded transactions without forecasting', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
-            readDashboardFile('cashflow.js')
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('investment-drawdown-calendar-workspace.js'),
+            readDashboardFile('index.html')
         ]);
         expect(html).toContain('id="cash-flow-recurring-summary-heading"');
         expect(html).toContain('id="cash-flow-recurring-income"');
