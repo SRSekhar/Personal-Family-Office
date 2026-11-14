@@ -1566,8 +1566,8 @@ try {
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
     assert.equal(backup.schemaVersion, 12, 'private JSON backup should use schema version 12 with exposure policy history');
     assert.equal(backup.investmentExposurePolicies.length, 1, 'private JSON backup should include exposure policy history');
-    assert.deepEqual(backup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots, 'schema-v12 backup should preserve the manually captured drawdown observation');
-    assert.equal(backup.investmentDrawdownCalendars.length, 1, 'schema-v12 backup should include the explicitly authored daily-close calendar');
+    assert.deepEqual(backup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots, 'schema-v12 backup should preserve all manually captured drawdown observations');
+    assert.equal(backup.investmentDrawdownCalendars.length, 2, 'schema-v12 backup should include both explicitly authored daily-close calendars');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -2037,7 +2037,7 @@ try {
     assert.equal(goalBackup.schemaVersion, 12, 'private backup should use schema v12 and include saved goals, history, and exposure policy collections');
     assert.equal(goalBackup.investmentExposurePolicies.length, 1, 'full backup should preserve exposure policy history');
     assert.deepEqual(goalBackup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots, 'goal backup should preserve all captured drawdown observations');
-    assert.equal(goalBackup.investmentDrawdownCalendars.length, 1, 'goal backup should preserve the explicit drawdown calendar');
+    assert.equal(goalBackup.investmentDrawdownCalendars.length, 2, 'goal backup should preserve both explicit drawdown calendars');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
@@ -3288,7 +3288,7 @@ try {
     assert.equal(policyBackup.investmentAllocationPolicies.length, 3);
     assert.equal(policyBackup.investmentConcentrationPolicies.length, 2);
     assert.equal(policyBackup.investmentExposurePolicies.length, 1);
-    assert.equal(policyBackup.investmentDrawdownCalendars.length, 1);
+    assert.equal(policyBackup.investmentDrawdownCalendars.length, 2);
     const legacyV6Backup = JSON.parse(JSON.stringify(policyBackup));
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
@@ -3379,7 +3379,7 @@ try {
         'schema-v12 backup should include all user-defined concentration policy versions');
     assert.equal(databaseBackup.investmentExposureClassifications.length, 1,
         'schema-v12 backup should include the weighted exposure classification history');
-    assert.equal(databaseBackup.investmentDrawdownCalendars.length, 1,
+    assert.equal(databaseBackup.investmentDrawdownCalendars.length, 2,
         'schema-v12 backup should include the explicitly authored daily-close calendar');
     assert.deepEqual(databaseBackup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots,
         'schema-v12 SQLite backup should preserve the manually captured drawdown observations');
