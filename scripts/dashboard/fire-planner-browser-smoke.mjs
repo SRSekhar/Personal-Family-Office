@@ -3477,6 +3477,7 @@ try {
     ));
     const secondTabContext = await browser.newContext();
     await secondTabContext.addInitScript((entries) => {
+        if (globalThis.window !== globalThis.window.top) return;
         for (const [key, value] of Object.entries(entries)) globalThis.localStorage.setItem(key, value);
     }, secondTabStorage);
     const secondTab = await secondTabContext.newPage();
