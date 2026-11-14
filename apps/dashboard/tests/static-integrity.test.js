@@ -850,7 +850,8 @@ describe('historical investment period comparison workspace', () => {
         expect(app).toContain('periodComparisonWorkspace = initializeInvestmentPeriodComparisonWorkspace({');
         expect(app).toContain('periodComparisonWorkspace?.invalidate()');
         expect(workspace).toContain('compareInvestmentPerformancePeriods({ periods: analyses })');
-        expect(workspace).toContain('latestReport.signature !== fingerprint(dependencies)');
+        expect(workspace).toContain('latestReport.signature !== fingerprint(dependencies, form)');
+        expect(workspace).toContain("form.addEventListener('input', invalidateChangedParameters)");
         expect(workspace).toContain('dependencies.isPrivateWorkspace()');
         expect(report).toContain('renderInvestmentPeriodComparisonHtml');
         expect(report).toContain('investmentPeriodComparisonToCsv');
