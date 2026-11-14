@@ -386,3 +386,16 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Main investment workspace remains schema v8 with 15 persisted collections. No classification collection or exposure calculation has been implemented.
 - Sprint 9 remains in discovery. Single-group classification versus weighted multi-group look-through is not yet decided. Weighted look-through is documented as a recommendation only; implementation is gated on explicit owner approval and hand-calculated examples.
 - Existing boundaries remain: local-first, user-controlled workspace policies, synthetic public-repository fixtures, explicit currency separation/no implicit FX, no investment advice or trading automation. Local SQLite and backups are not encrypted; dashboard is loopback-only, not a hosted multi-user service.
+
+
+## Latest Feature State — 2026-11-14 (PR #453)
+
+- Main remains schema v10; PR #453 branch adds schema v11 / 18 collections and is not merged.
+- Drawdown uses Option B: time-weighted, external-cash-flow-adjusted performance. The pure calculator kernel and immutable snapshot contract are implemented.
+- Ledger-derived acquisition now derives open FIFO positions at effective/recorded cutoffs and cash balances from explicit opening balances plus bitemporal movements, transfers and linked investment settlements.
+- Snapshot completeness checks missing/extra components, position quantities and cash balances. It does not fabricate valuation prices; manual/provider evidence must exist at the exact snapshot effective timestamp.
+- Existing-ledger flow taxonomy distinguishes owner contributions/withdrawals, opening baselines, internal transfers, account-scope-crossing transfers, investment transactions and corrections. Ambiguous corrections fail closed; later-recorded corrections do not alter as-known historical output.
+- In-kind contributions/withdrawals and corporate actions are not represented by the current ledger schema and remain unsupported.
+- New files: `apps/dashboard/investment-drawdown-acquisition.js` and `apps/dashboard/investment-drawdown-acquisition.test.js`.
+- Remaining production work: private manual snapshot capture/import, paired flow-boundary capture, explicit daily-close calendar, independent end-to-end financial acceptance fixtures and private reporting/export UI.
+- Public repository: synthetic fixtures only. Do not commit household financial data. PR #453 remains open/draft/unmerged; validate latest checks before any merge.
