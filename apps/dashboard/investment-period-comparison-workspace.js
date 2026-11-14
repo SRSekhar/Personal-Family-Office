@@ -205,6 +205,12 @@ export function initializeInvestmentPeriodComparisonWorkspace(dependencies) {
     function exportReport(format) {
         if (!latestReport || !dependencies.isPrivateWorkspace()) return;
         try {
+            if (!dependencies.isLedgerHealthy() || !dependencies.isSnapshotStorageHealthy()
+                || !dependencies.isCalendarStorageHealthy()) {
+                invalidate();
+                show(error, 'Source ledgers, snapshots or calendars are no longer valid. Export was blocked.');
+                return;
+            }
             if (latestReport.signature !== fingerprint(dependencies)) {
                 invalidate();
                 show(status, 'Source data changed after analysis. Run the comparison again before exporting.');
