@@ -1,6 +1,6 @@
 # ADR — Portfolio drawdown metric
 
-- Status: **Decision accepted — Option B; pure calculation kernel and component-level snapshot contract implemented; capture/completeness pipeline and UI remain pending**
+- Status: **Decision accepted — Option B; calculator, ledger-derived completeness, flow taxonomy, orchestration, explicit calendar contract and schema-v12 persistence implemented; capture UI and reporting remain pending**
 - Date: 2026-11-13
 - Scope: historical, currency-separated investment-portfolio performance drawdown
 - Related: `INVESTMENT-RISK-POLICY-READINESS.md`, `ADR-INVESTMENT-CONCENTRATION-POLICY.md`, `ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`
@@ -236,3 +236,22 @@ This completes the **ledger-derived completeness and existing-ledger event-class
 The feature branch now includes `apps/dashboard/investment-drawdown-series.js` as the application-level composition boundary. It does not duplicate the pure calculator or infer acquisition data. Callers must provide the explicit daily-close timestamp calendar and calculator dependency. The orchestrator validates the selected immutable snapshots, independently reconciles each one against the bitemporal FIFO/cash ledger, classifies external flows through the existing authoritative cash-ledger taxonomy, and invokes the pure calculator only when those prerequisites are satisfied. A reconciliation or flow-classification failure returns an unavailable result with evidence and does not invoke the calculator.
 
 This module does not persist or manage the daily-close calendar, provide capture/import controls, or render a report. Those remain required production gates. The calendar must ultimately be part of the schema-versioned SQLite workspace and JSON/SQLite backup/restore contract; browser-only local storage is not an acceptable source of truth for this workflow.
+
+
+## Explicit daily-close calendar and persistence
+
+The expected observation schedule is now represented by the dedicated `investmentDrawdownCalendars` workspace collection. It is not generated from weekdays or an assumed exchange calendar.
+
+Each immutable calendar revision records:
+- stable calendar-set ID and monotonically incremented version;
+- portfolio or investment-account scope, with account ID required for account scope;
+- one explicit currency and exact UTC start/end timestamps;
+- recorded-at timestamp defining when the schedule became known;
+- ordered, unique `expectedDailyCloseAt` timestamps; and
+- optional superseded-calendar ID for an append-only correction.
+
+A correction must retain calendar-set identity, scope, account, currency and analysis window, increment the version and be recorded later than the revision it supersedes. The selector uses the latest revision known at the requested recorded-at cutoff. Missing or ambiguous calendars are errors; no missing close is filled.
+
+SQLite schema v12 adds the nineteenth workspace collection and performs a transactional v11→v12 migration. Before changing a populated v11 workspace, the migration writes a mode-restricted pre-v12 JSON recovery artifact. The new collection starts empty: no historic close dates are invented. Full JSON backup/restore and SQLite save/restore/online backup carry the collection; JSON schemas v1–v11 remain importable.
+
+The private workspace currently persists calendar records and backup/restore state. The authoring UI and wiring from selected persisted calendar into `analyzeInvestmentDrawdownSeries` are still pending. This is not yet a user-facing drawdown feature. Manual position/cash snapshot capture, paired flow-boundary authoring, independent end-to-end acceptance and descriptive reporting/export remain production gates.
