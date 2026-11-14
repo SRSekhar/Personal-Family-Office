@@ -704,3 +704,21 @@ Sprint 9 begins with exposure-classification data-contract discovery. No issuer,
 - Chromium smoke verifies authoring, weighted exposure output, JSON round-trip, legacy-import preservation, SQLite backup and exact persistence across all 16 collections. PR-head CI #43383278883, dashboard deployment #43383279122 and Secret Scan #43383278898 passed on the same head. Main-branch CI #43383680976, dashboard deployment #43383590536 and Secret Scan #43383590700 also passed.
 - Main now stores schema v9 / 16 collections.
 - User-defined exposure-limit evaluation is a separate planned increment requiring explicit thresholds, comparison semantics, bitemporal policy history and its own persistence/backup contract. No application defaults or household-specific risk limits. Liquidity and drawdown remain independently gated on their own validated input/metric contracts.
+
+
+## 2026-11-14 — Drawdown acquisition progress
+
+Delivered on PR #453:
+- Ledger-derived expected component universe using bitemporal FIFO positions and cash roll-forward.
+- Snapshot completeness comparison for open positions, cash accounts, quantity and balance mismatches.
+- Existing cash-ledger event taxonomy for contributions, withdrawals, opening balances, internal transfers, account-scope transfers, investment transactions and corrections.
+- Bitemporal correction netting with fail-closed handling when the original external flow cannot be reconstructed unambiguously.
+- Deterministic acquisition tests.
+
+Still gated:
+1. Manual-first private snapshot capture/import with explicit source provenance and exact effective timestamp.
+2. Paired pre-flow/post-flow snapshot authoring against authoritative flow IDs.
+3. Explicit daily-close observation calendar and missing-calendar validation in the acquisition workflow.
+4. Independent end-to-end financial acceptance fixtures, including multiple flows, transfer boundaries, fees/taxes, corrections and closed positions.
+5. Private drawdown reporting/export with scope, currency, methodology, coverage and unavailable reasons.
+6. Explicit schema and UX decision for in-kind contributions/withdrawals and corporate actions; current ledger does not model these events.
