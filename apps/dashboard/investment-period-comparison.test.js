@@ -80,6 +80,27 @@ describe('historical investment performance period comparison', () => {
         expect(result.periods.map((row) => row.overlapsPrevious)).toEqual([false, true, true]);
     });
 
+    it('allows equal timestamps only for an adjacent pre-flow/post-flow observation pair', () => {
+        const withFlowPair = analysis(janStart, janEnd, {
+            points: [
+                { effectiveAt: janStart, wealthIndex: 1, kind: 'DailyClose', observationId: 'start' },
+                { effectiveAt: '2026-01-15T15:30:00.000Z', wealthIndex: 1.02, kind: 'ExternalFlowPre', observationId: 'flow-pre' },
+                { effectiveAt: '2026-01-15T15:30:00.000Z', wealthIndex: 1.02, kind: 'ExternalFlowPost', observationId: 'flow-post' },
+                { effectiveAt: janEnd, wealthIndex: 1.1, kind: 'DailyClose', observationId: 'end' }
+            ],
+            observationCount: 4, flowBoundaryCount: 1,
+            coverageStartAt: janStart, coverageEndAt: janEnd
+        });
+        expect(compareInvestmentPerformancePeriods({
+            periods: [{ label: 'Flow pair', analysis: withFlowPair }]
+        }).periods[0].periodReturn).toBeCloseTo(0.1, 12);
+        const invalid = structuredClone(withFlowPair);
+        invalid.points[2].kind = 'DailyClose';
+        expect(() => compareInvestmentPerformancePeriods({
+            periods: [{ label: 'Bad pair', analysis: invalid }]
+        })).toThrow(/equal timestamps are permitted only/u);
+    });
+
     it('retains an unavailable period and emits no partial numeric statistics for it', () => {
         const unavailable = analysis(febStart, febEnd, {
             status: 'unavailable', reason: 'Expected daily close is missing.',
