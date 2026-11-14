@@ -65,6 +65,20 @@ describe('historical investment performance period comparison', () => {
         expect(result.periods.map((row) => row.overlapsPrevious)).toEqual([false, true, true]);
     });
 
+    it('flags overlap with any earlier period, including a containing window', () => {
+        const long = analysis('2026-01-01T00:00:00.000Z', '2026-04-01T00:00:00.000Z');
+        const nested = analysis('2026-02-01T00:00:00.000Z', '2026-03-01T00:00:00.000Z');
+        const afterNestedButInsideLong = analysis('2026-03-15T00:00:00.000Z', '2026-04-15T00:00:00.000Z');
+        const result = compareInvestmentPerformancePeriods({
+            periods: [
+                { label: 'Long', analysis: long },
+                { label: 'Nested', analysis: nested },
+                { label: 'Still overlaps long', analysis: afterNestedButInsideLong }
+            ]
+        });
+        expect(result.periods.map((row) => row.overlapsPrevious)).toEqual([false, true, true]);
+    });
+
     it('retains an unavailable period and emits no partial numeric statistics for it', () => {
         const unavailable = analysis(febStart, febEnd, {
             status: 'unavailable', reason: 'Expected daily close is missing.',
