@@ -146,7 +146,7 @@ describe('historical investment performance period comparison', () => {
             periods: [{ label: 'Bad', analysis: analysis(janStart, janEnd, {
                 points: [{ effectiveAt: janEnd, wealthIndex: 1 }, { effectiveAt: janStart, wealthIndex: 1 }]
             }) }]
-        })).toThrow(/strictly increasing/u);
+        })).toThrow(/point timestamps must be ordered/u);
         expect(() => compareInvestmentPerformancePeriods({
             periods: [{ label: 'Bad', analysis: analysis(janStart, janEnd, { calendarVersion: 0 }) }]
         })).toThrow(/calendar provenance/u);
