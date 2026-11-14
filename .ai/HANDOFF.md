@@ -578,3 +578,13 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - In-kind flows and corporate actions are not supported by the existing event schema and must not be inferred.
 - Snapshot completeness does not invent prices. Every open FIFO position still needs explicit same-timestamp valuation evidence. Every cash account needs an eligible explicit opening balance and all selected-account investment transactions must be linked to eligible cash accounts.
 - PR #453 is still open/draft/unmerged. Check CI, Secret Scan and dashboard packaging against the latest head before reporting verification. Do not merge without explicit approval.
+
+
+## Handoff update — drawdown series orchestration
+
+- Added `apps/dashboard/investment-drawdown-series.js` and `.test.js`.
+- `analyzeInvestmentDrawdownSeries` requires an injected pure math calculator and explicit `expectedDailyCloseAt`; it validates all selected snapshots against the investment/cash ledgers, classifies external flows from the authoritative cash ledger, and only then invokes the calculator.
+- It returns an explicit unavailable result with reconciliation evidence if a selected snapshot is incomplete or a flow cannot be classified.
+- Synthetic integration fixture exercises two ledger-reconciled daily closes and a rising valuation path; a mismatch case proves the calculator is not invoked.
+- Latest code commit at handoff: `9c8b205753a2a5221e07151f0b78cd370ecb1625`. GitHub Actions has not yet reported runs for this head; do not call this increment validated until tests and full workflows execute.
+- Continue on the same branch and PR #453. Next: inspect and design the persisted observation-calendar schema/migration, then implement private capture and reporting against SQLite-backed backup/restore—not localStorage-only calendar state.
