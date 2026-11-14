@@ -71,9 +71,27 @@ function validate(input) {
             }
             timestamp(period.coverageStartAt, 'Coverage start');
             timestamp(period.coverageEndAt, 'Coverage end');
+            if (period.coverageStartAt > period.coverageEndAt
+                || period.coverageStartAt < period.startAt || period.coverageEndAt > period.endAt) {
+                throw new RangeError('Comparison coverage must be ordered and contained within its period.');
+            }
+            if (period.peakAt !== null) timestamp(period.peakAt, 'Peak timestamp');
+            if (period.troughAt !== null) timestamp(period.troughAt, 'Trough timestamp');
+            if (period.recoveryAt !== null) timestamp(period.recoveryAt, 'Recovery timestamp');
+            if (period.maximumDrawdown < 0 && (!period.peakAt || !period.troughAt)) {
+                throw new TypeError('A period with drawdown requires peak and trough timestamps.');
+            }
+            if (period.recovered && period.maximumDrawdown < 0 && !period.recoveryAt) {
+                throw new TypeError('A recovered drawdown requires a recovery timestamp.');
+            }
+            if (!period.recovered && period.recoveryAt !== null) {
+                throw new TypeError('An unrecovered drawdown cannot have a recovery timestamp.');
+            }
         } else if (typeof period.reason !== 'string' || !period.reason.trim()
             || period.periodReturn !== null || period.maximumDrawdown !== null
-            || period.coverageStartAt !== null || period.coverageEndAt !== null) {
+            || period.coverageStartAt !== null || period.coverageEndAt !== null
+            || period.peakAt !== null || period.troughAt !== null || period.recoveryAt !== null
+            || period.recovered !== null) {
             throw new TypeError('Unavailable comparison periods must contain a reason and no partial metrics.');
         }
         return period;
