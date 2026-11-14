@@ -8,6 +8,7 @@ import { validateInvestmentExposurePolicyCollections } from './investment-exposu
 import { validateInvestmentDrawdownSnapshots } from './investment-drawdown-snapshots.js';
 import { validateInvestmentDrawdownCalendars } from './investment-drawdown-calendars.js';
 import { initializeInvestmentDrawdownCalendarWorkspace } from './investment-drawdown-calendar-workspace.js';
+import { initializeInvestmentDrawdownSnapshotWorkspace } from './investment-drawdown-snapshot-workspace.js';
 import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
@@ -110,6 +111,7 @@ let investmentExposurePolicyStorageHealthy = true;
 let investmentDrawdownSnapshotStorageHealthy = true;
 let investmentDrawdownCalendarStorageHealthy = true;
 let drawdownCalendarWorkspace;
+let drawdownSnapshotWorkspace;
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -948,6 +950,7 @@ function switchWorkspace(nextWorkspace) {
     $('#switch-demo-button').hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
     drawdownCalendarWorkspace?.render();
+    drawdownSnapshotWorkspace?.render();
     render();
     window.dispatchEvent(new Event('pfo:workspace-updated'));
 }
@@ -3005,6 +3008,16 @@ initializeInvestmentWorkspace();
 initializeGrowthProjectionCalculator();
 initializeCagrCalculator();
 initializeReturnRiskCalculator();
+drawdownSnapshotWorkspace = initializeInvestmentDrawdownSnapshotWorkspace({
+    readLedger: readInvestmentLedgerCollections,
+    readCash: readInvestmentCashCollections,
+    readSnapshots: readInvestmentDrawdownSnapshots,
+    persistSnapshots: persistInvestmentDrawdownSnapshots,
+    isPrivateWorkspace: () => workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname),
+    isLedgerHealthy: () => investmentStorageHealthy && investmentCashStorageHealthy,
+    isSnapshotStorageHealthy: () => investmentDrawdownSnapshotStorageHealthy,
+    notify: showToast
+});
 drawdownCalendarWorkspace = initializeInvestmentDrawdownCalendarWorkspace({
     readCalendars: readInvestmentDrawdownCalendars,
     persistCalendars: persistInvestmentDrawdownCalendars,
