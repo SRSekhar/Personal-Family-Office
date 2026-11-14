@@ -72,6 +72,8 @@ export function initializeInvestmentDrawdownCalendarWorkspace(dependencies) {
             return;
         }
 
+        const selectedCurrency = currencySelect.value;
+        const selectedSupersedes = supersedesSelect.value;
         const ledger = dependencies.readAccounts();
         if (!dependencies.isLedgerHealthy()) {
             showMessage(error, 'Investment accounts could not be validated. Calendar editing is paused; existing data was left untouched.');
@@ -88,11 +90,13 @@ export function initializeInvestmentDrawdownCalendarWorkspace(dependencies) {
         calendars = stored.investmentDrawdownCalendars;
         renderAccountOptions(accountSelect.value);
         currencySelect.innerHTML = CURRENCIES.map((currency) => '<option value="' + currency + '">' + currency + '</option>').join('');
+        currencySelect.value = CURRENCIES.includes(selectedCurrency) ? selectedCurrency : 'INR';
         const supersededIds = new Set(calendars.map((item) => item.supersedesCalendarId).filter(Boolean));
         const active = calendars.filter((item) => !supersededIds.has(item.id));
         supersedesSelect.innerHTML = '<option value="">Create a new calendar</option>' + active
             .map((item) => '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.calendarSetId) + ' · v' + item.version + ' · ' + escapeHtml(item.scope) + ' · ' + escapeHtml(item.currency) + '</option>')
             .join('');
+        supersedesSelect.value = active.some((item) => item.id === selectedSupersedes) ? selectedSupersedes : '';
         renderCalendarHistory();
         accountRow.hidden = scopeSelect.value !== 'account';
         lockCorrectionFields(Boolean(supersedesSelect.value));
