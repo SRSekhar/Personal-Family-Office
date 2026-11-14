@@ -9,6 +9,7 @@ import { validateInvestmentDrawdownSnapshots } from './investment-drawdown-snaps
 import { validateInvestmentDrawdownCalendars } from './investment-drawdown-calendars.js';
 import { initializeInvestmentDrawdownCalendarWorkspace } from './investment-drawdown-calendar-workspace.js';
 import { initializeInvestmentDrawdownSnapshotWorkspace } from './investment-drawdown-snapshot-workspace.js';
+import { initializeInvestmentDrawdownReportWorkspace } from './investment-drawdown-report-workspace.js';
 import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
@@ -112,6 +113,7 @@ let investmentDrawdownSnapshotStorageHealthy = true;
 let investmentDrawdownCalendarStorageHealthy = true;
 let drawdownCalendarWorkspace;
 let drawdownSnapshotWorkspace;
+let drawdownReportWorkspace;
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -951,6 +953,7 @@ function switchWorkspace(nextWorkspace) {
     $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
     drawdownCalendarWorkspace?.render();
     drawdownSnapshotWorkspace?.render();
+    drawdownReportWorkspace?.render();
     render();
     window.dispatchEvent(new Event('pfo:workspace-updated'));
 }
@@ -2982,7 +2985,12 @@ function syncActiveNavigation() {
 document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', syncActiveNavigation));
 window.addEventListener('hashchange', syncActiveNavigation);
 window.addEventListener('pfo:cashflow-updated', () => { renderFinancialHealth(); scheduleDatabaseAutoSave(); });
-window.addEventListener('pfo:workspace-updated', () => { drawdownCalendarWorkspace?.render(); scheduleDatabaseAutoSave(); });
+window.addEventListener('pfo:workspace-updated', () => {
+    drawdownCalendarWorkspace?.render();
+    drawdownSnapshotWorkspace?.render();
+    drawdownReportWorkspace?.invalidate();
+    scheduleDatabaseAutoSave();
+});
 syncActiveNavigation();
 
 refreshDatabaseStatus();
@@ -3027,4 +3035,15 @@ drawdownCalendarWorkspace = initializeInvestmentDrawdownCalendarWorkspace({
     isCalendarStorageHealthy: () => investmentDrawdownCalendarStorageHealthy,
     notify: showToast
 });
+drawdownReportWorkspace = initializeInvestmentDrawdownReportWorkspace({
+    readLedger: readInvestmentLedgerCollections,
+    readCash: readInvestmentCashCollections,
+    readSnapshots: readInvestmentDrawdownSnapshots,
+    readCalendars: readInvestmentDrawdownCalendars,
+    isPrivateWorkspace: () => workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname),
+    isLedgerHealthy: () => investmentStorageHealthy && investmentCashStorageHealthy,
+    isSnapshotStorageHealthy: () => investmentDrawdownSnapshotStorageHealthy,
+    isCalendarStorageHealthy: () => investmentDrawdownCalendarStorageHealthy
+});
+
 switchWorkspace('demo');
