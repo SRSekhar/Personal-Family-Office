@@ -619,3 +619,12 @@ Remaining future scope: in-kind contributions/withdrawals and corporate actions 
 - Browser smoke verifies manual capture, paired flow boundaries, report generation and HTML/CSV downloads, demo/private isolation, JSON backup/restore and SQLite persistence.
 - Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
 - PR #453 remains open, draft and unmerged. No merge is authorized.
+
+## 2026-11-14 — IPM-04 performance analytics discovery
+
+- Reviewed the existing investment transaction validator, FIFO position projection, cash-ledger reconciliation, per-currency XIRR, drawdown series orchestration, calculator and private reports.
+- Recorded the supported-versus-missing capability matrix and the proposed historical period-comparison input/validation contract in `docs/architecture/IPM-04-PERFORMANCE-ANALYTICS-DISCOVERY.md`.
+- Existing single-date portfolio review and historical flow-adjusted drawdown are supported; no second XIRR/drawdown formula is needed.
+- A historical period return may be derived only from the first/last wealth-index points of a separately available drawdown analysis, with identical scope, currency, methodology and recorded-at cutoff. Each period must use its persisted explicit calendar; no automatic windows or missing observations.
+- Transaction-to-position statement reconciliation, cost-basis adjustment events, corporate actions and in-kind flows remain separate gaps requiring explicit source/event contracts. No new metric, schema or accounting assumption was introduced in this discovery increment.
+- Next: implement the pure comparison adapter against already validated drawdown analyses, with hand-calculated endpoint-return tests and fail-closed mismatch/unavailable handling. Keep the UI/report integration separate until the adapter contract is proven.
