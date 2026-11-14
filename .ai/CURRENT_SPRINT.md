@@ -30,10 +30,10 @@
 - Completed the discovery inventory across the investment ledger, FIFO projection, cash reconciliation, XIRR, drawdown series and private reports. Existing supported metrics are reused; no duplicate XIRR or drawdown formula was added.
 - Added a pure comparison adapter that accepts independently available drawdown-series analyses, enforces identical scope/account/currency/methodology/recorded-at cutoff, validates persisted calendar provenance and observation ordering, preserves unavailable periods without partial metrics, sorts periods and flags overlaps.
 - Added a private-only historical comparison workspace. Users enter explicit period labels and exact UTC start/end timestamps; each period independently selects its matching persisted calendar and runs the existing drawdown-series orchestrator.
-- Added standalone script-free HTML and spreadsheet-safe CSV reports with period return, maximum drawdown, peak/trough/recovery timestamps, actual coverage, observation and flow-boundary counts, calendar provenance, overlap flags and unavailable reasons.
+- Added standalone script-free HTML and spreadsheet-safe CSV reports with period return, maximum drawdown, peak/trough/recovery timestamps, actual coverage, observation and flow-boundary counts, calendar provenance, snapshot-level completeness evidence, limitations, overlap flags and unavailable reasons.
 - Added source-data signature verification before export, workspace-change invalidation, demo-mode disablement, report unit tests and Chromium smoke for private/demo isolation, exports and stale-source export blocking.
 - No schema migration, persistence collection, price provider, generated calendar, missing observation, FX conversion, tax treatment or financial-data fixture was introduced.
-- Current code head: 198f55ddb83c22a3e681f4205ee4554110bcf684; CI/Secret Scan/dashboard packaging results are being checked.
+- Current code head: c14184811b00ff4fa6867cbc14daa482ba2c54b6; CI/Secret Scan/dashboard packaging results are being checked.
 - PR #454 remains open/draft/unmerged and stacked on PR #453. Neither PR may be merged without explicit owner approval.
 
 ### Remaining gated work — not safe to implement in this sprint without a domain decision
