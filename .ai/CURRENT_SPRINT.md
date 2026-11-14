@@ -33,7 +33,7 @@
 - Added standalone script-free HTML and spreadsheet-safe CSV reports with period return, maximum drawdown, peak/trough/recovery timestamps, actual coverage, observation and flow-boundary counts, calendar provenance, snapshot-level completeness evidence, limitations, overlap flags and unavailable reasons.
 - Added source-data signature verification before export, workspace-change invalidation, demo-mode disablement, report unit tests and Chromium smoke for private/demo isolation, exports and stale-source export blocking.
 - No schema migration, persistence collection, price provider, generated calendar, missing observation, FX conversion, tax treatment or financial-data fixture was introduced.
-- Current code head: c14184811b00ff4fa6867cbc14daa482ba2c54b6; CI/Secret Scan/dashboard packaging results are being checked.
+- Current code head: 7592fa363f873b2137849231168931056adcd2f0; CI/Secret Scan/dashboard packaging results are being checked.
 - PR #454 remains open/draft/unmerged and stacked on PR #453. Neither PR may be merged without explicit owner approval.
 
 ### Remaining gated work — not safe to implement in this sprint without a domain decision
