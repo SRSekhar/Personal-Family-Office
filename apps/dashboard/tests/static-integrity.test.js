@@ -696,7 +696,7 @@ describe('full workspace backup contract', () => {
             readDashboardFile('backup.js'),
             readDashboardFile('cashflow.js')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 11 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 12 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
@@ -708,6 +708,7 @@ describe('full workspace backup contract', () => {
         expect(app).toContain('Object.assign(payload, readInvestmentExposurePolicies())');
         expect(app).toContain('Object.assign(payload, readInvestmentDrawdownSnapshots())');
         expect(app).toContain('persistInvestmentDrawdownSnapshots(backup.investmentDrawdownSnapshots, backup)');
+        expect(app).toContain('persistInvestmentDrawdownCalendars(backup.investmentDrawdownCalendars, backup)');
         expect(app).toContain('INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY');
         expect(app).toContain('persistInvestmentExposurePolicies(backup.investmentExposurePolicies)');
         expect(app).toContain('INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY');
