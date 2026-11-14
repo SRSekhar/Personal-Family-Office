@@ -31,9 +31,20 @@ A liquidity policy therefore requires a user-entered data contract or a separate
 
 ### Drawdown
 
-Option B — time-weighted, external-cash-flow-adjusted drawdown — is approved in `ADR-INVESTMENT-DRAWDOWN-METRIC.md`. A pure calculator kernel is implemented in `packages/calculators/src/InvestmentDrawdownMath.ts`; it requires authoritative external-flow events and paired same-timestamp pre/post portfolio valuations, chains returns, and reports maximum drawdown, peak, trough, recovery and explicit unavailable states. Deterministic tests cover hand-calculated market movement, contribution/withdrawal neutrality, expenses, incomplete boundaries, currency/scope and bitemporal cutoffs.
+Option B — time-weighted, external-cash-flow-adjusted drawdown — is approved in `ADR-INVESTMENT-DRAWDOWN-METRIC.md` and implemented end-to-end on open draft PR #453. The implementation includes:
 
-The production feature is **not yet delivered**. Open draft PR #453 adds a component-level snapshot contract/validator, bitemporal supersession and point-in-time selection, plus schema-v11 SQLite migration and JSON/SQLite backup integration. The validator checks declared references, provenance, timestamp equality, component totals and paired flow-boundary component universes, but it does not independently derive the complete set of open FIFO holdings and included cash accounts at each historical cutoff. The repository still needs a trusted capture/completeness builder, authoritative external-flow taxonomy, explicit daily observation calendar, independent integration tests and private-workspace UI/export. Do not connect the math kernel directly to sparse point-valuations or infer missing history. Until those prerequisites are implemented, the production drawdown metric must remain unavailable.
+- Pure calculator with paired pre-flow/post-flow boundaries and chain-linked wealth index.
+- Bitemporal snapshot validation and ledger-derived completeness against FIFO positions and cash roll-forward.
+- Authoritative external-flow taxonomy, including correction handling and scope-crossing transfers.
+- Explicit persisted daily-close calendar; no weekdays, market holidays, stale prices or missing observations are inferred.
+- Private manual daily-close capture/import and paired flow-boundary authoring.
+- Independent hand-calculated end-to-end acceptance covering corrections, multiple flows, transfers, fees/taxes, a closed position and missing daily close.
+- Private descriptive HTML/CSV reporting with scope, currency, methodology, analysis window, observed coverage, recorded-at cutoff, peak/trough/recovery, completeness evidence and unavailable reasons.
+- SQLite schema v12 (19 collections), transactional migrations, protected recovery artifacts, JSON backup/restore and SQLite persistence tests.
+
+Unavailable analyses produce no partial points or statistics. The HTML preview is sandboxed and standalone; CSV text fields are protected against spreadsheet formula injection. Browser smoke verifies capture, reports/downloads, demo/private isolation and persistence. Code head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1889, Secret Scan #1683 and dashboard packaging #1125. PR #453 remains open/draft/unmerged; main remains schema v10 until reviewed and explicitly merged.
+
+In-kind contributions/withdrawals and corporate actions are unsupported because the current ledger model does not define their authoritative valuation/economic-event semantics. They require a separate ledger-model decision. Liquidity remains independently gated.
 
 ## Decisions required before coding
 
@@ -54,7 +65,7 @@ For each risk-policy family, product requirements must define:
 - Concentration: the first metric contract is defined in `ADR-INVESTMENT-CONCENTRATION-POLICY.md`; the validator, bitemporal selector, valued-position aggregation, evaluator, schema-v8 persistence, v7→v8 migration, JSON backup/restore and private-workspace configuration UI are implemented with deterministic and browser smoke coverage.
 - Implement only the remaining metric families whose input data and formulas have been approved and can be independently hand-calculated.
 - Treat liquidity as blocked until the liquidity input/provenance model is selected.
-- Drawdown methodology is approved and the pure math kernel is implemented; production delivery remains blocked until the trusted snapshot/flow-boundary data pipeline, bitemporal persistence, backup/restore and UI are delivered.
+- Drawdown methodology and production implementation are complete on PR #453, including trusted snapshot/flow-boundary acquisition, bitemporal persistence, backup/restore, private UI/reporting and independent acceptance. The PR remains unmerged.
 - Keep existing HHI and allocation drift as separate descriptive analytics; do not retroactively label them risk classifications.
 - Add browser workflows and persistence only after domain contracts and deterministic tests pass. Any schema change must include migration, backup/restore, CSV compatibility and SQLite acceptance.
 
@@ -69,4 +80,4 @@ For each risk-policy family, product requirements must define:
 
 ## Current disposition
 
-Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. Concentration policy evaluation is delivered in PR #443 and schema-v8 persistence/UI. Weighted exposure classifications are delivered in PR #450 and schema-v9. User-configured exposure limits are implemented and merged in PR #452 with schema-v10 persistence, pre-v10 recovery artifact, JSON backup/restore and private-workspace UI. Open draft PR #453 adds schema-v11 drawdown snapshot persistence and backup groundwork on its feature branch; main remains schema v10 until that PR is reviewed and merged. The drawdown production metric remains gated on trusted capture/completeness, event classification, daily calendar, integration tests and UI.
+Allocation target and drift work was merged to `main` via PR #435 on 2026-11-08. Concentration policy evaluation is delivered in PR #443 and schema-v8 persistence/UI. Weighted exposure classifications are delivered in PR #450 and schema-v9. User-configured exposure limits are implemented and merged in PR #452 with schema-v10 persistence, pre-v10 recovery artifact, JSON backup/restore and private-workspace UI. Open draft PR #453 adds the complete Option B drawdown feature and schema-v12 persistence on its feature branch; main remains schema v10 until that PR is reviewed and merged. In-kind flows and corporate actions remain deferred pending a separate ledger-model decision.
