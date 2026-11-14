@@ -1,5 +1,6 @@
 import { validateInvestmentLedgerCollections } from './investment-ledger.js';
 import { reconcileInvestmentCashAccount, validateInvestmentCashCollections } from './investment-cash-ledger.js';
+import { renderInvestmentPortfolioReportHtml, investmentPortfolioReportToCsv } from './investment-portfolio-report.js';
 
 const EPSILON = 1e-10;
 const tradeTypes = new Set(['Purchase', 'Sale']);
