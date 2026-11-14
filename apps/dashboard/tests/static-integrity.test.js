@@ -124,9 +124,7 @@ describe('recurring-tagged cash-flow export contract', () => {
     it('exports only recurring-tagged entries in the selected reporting period using the standard safe CSV schema', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
-            readDashboardFile('cashflow.js'),
-            readDashboardFile('investment-drawdown-calendar-workspace.js'),
-            readDashboardFile('index.html')
+            readDashboardFile('cashflow.js')
         ]);
         expect(html).toContain('id="cash-flow-export-recurring-csv"');
         expect(cashFlow).toContain("$('#cash-flow-export-recurring-csv').addEventListener('click'");
@@ -141,9 +139,7 @@ describe('recurring-tagged cash-flow summary contract', () => {
     it('summarizes explicitly recurring-tagged recorded transactions without forecasting', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
-            readDashboardFile('cashflow.js'),
-            readDashboardFile('investment-drawdown-calendar-workspace.js'),
-            readDashboardFile('index.html')
+            readDashboardFile('cashflow.js')
         ]);
         expect(html).toContain('id="cash-flow-recurring-summary-heading"');
         expect(html).toContain('id="cash-flow-recurring-income"');
@@ -160,9 +156,7 @@ describe('monthly budget export contract', () => {
     it('provides a budget export action and builds a formula-safe selected-month comparison CSV', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
-            readDashboardFile('cashflow.js'),
-            readDashboardFile('investment-drawdown-calendar-workspace.js'),
-            readDashboardFile('index.html')
+            readDashboardFile('cashflow.js')
         ]);
         expect(html).toContain('id="cash-flow-budget-export-csv"');
         expect(cashFlow).toContain("$('#cash-flow-budget-export-csv').addEventListener('click'");
@@ -700,7 +694,9 @@ describe('full workspace backup contract', () => {
         const [app, backup, cashflow, calendarWorkspace, html] = await Promise.all([
             readDashboardFile('app.js'),
             readDashboardFile('backup.js'),
-            readDashboardFile('cashflow.js')
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('investment-drawdown-calendar-workspace.js'),
+            readDashboardFile('index.html')
         ]);
         expect(app).toContain('schemaVersion: isPrivateExport ? 12 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
