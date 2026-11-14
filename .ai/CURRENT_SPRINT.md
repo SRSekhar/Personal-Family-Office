@@ -537,3 +537,13 @@ On the existing PR #453 branch:
 - In-kind events and corporate actions are not represented by the current cash-ledger schema and remain gated.
 
 Next: manual snapshot capture/import and flow-boundary authoring, followed by explicit daily-close calendar management and independent end-to-end financial acceptance fixtures. PR #453 remains open and unmerged; run status for the latest code commit must be checked before calling this increment verified.
+
+
+## 2026-11-14 — Drawdown series orchestration increment
+
+- Added `apps/dashboard/investment-drawdown-series.js` to join the approved calculator to the validated snapshot and acquisition contracts.
+- The orchestration independently rechecks each selected snapshot against the bitemporal FIFO/cash ledger before invoking the math kernel.
+- It obtains external flows only from the authoritative cash-ledger classifier and passes the caller-supplied explicit daily-close calendar unchanged to the pure calculator.
+- Missing calculator dependency, missing calendar, failed component reconciliation or unavailable flow classification fails closed; no partial statistic is returned.
+- Added deterministic orchestration tests using synthetic INR ledger and valuation fixtures.
+- This is calculation-pipeline wiring only. Manual capture UI, a persisted calendar contract, export/reporting, broader financial acceptance cases and CI validation of the new commits remain outstanding.
