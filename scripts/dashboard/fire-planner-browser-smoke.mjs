@@ -1284,12 +1284,12 @@ try {
         page.waitForEvent('download'),
         page.locator('#investment-portfolio-export-html').click()
     ]);
-    assert.match(portfolioHtmlDownload.suggestedFilename(), /\\.html$/u);
+    assert.match(portfolioHtmlDownload.suggestedFilename(), /\.html$/u);
     const [portfolioCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#investment-portfolio-export-csv').click()
     ]);
-    assert.match(portfolioCsvDownload.suggestedFilename(), /\\.csv$/u);
+    assert.match(portfolioCsvDownload.suggestedFilename(), /\.csv$/u);
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-cash-account-count').innerText(), '0', 'demo workspace must not expose private cash account counts');
     assert.equal(await page.locator('#investment-cash-account-rows').innerText(), '', 'demo workspace must not expose private cash account rows');
