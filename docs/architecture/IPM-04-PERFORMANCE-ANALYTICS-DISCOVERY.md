@@ -25,9 +25,9 @@ The current branch already supports a substantial point-in-time performance revi
 | Private performance report | Existing FIFO projection + per-currency XIRR | Standalone HTML and safe CSV, exact as-of and recorded-at cutoffs | A single point-in-time portfolio review, not a period-comparison report |
 | Private drawdown report | Validated drawdown analysis | HTML/CSV with scope, calendar provenance, coverage, completeness and unavailable reasons | No partial statistics; no recommendations or thresholds |
 
-## Candidate next capability: historical period comparison
+## Implemented capability: historical period comparison
 
-A comparison can be built without a new financial formula only if each compared period is independently supplied to the existing drawdown-series orchestration and returns an `available` result.
+A comparison can be built without a new financial formula when each selected period is independently supplied to the existing drawdown-series orchestration. Each period may be available or unavailable; only available periods contribute numeric metrics, while unavailable periods remain visible with their explicit reasons and no partial statistics.
 
 ### Required input contract
 
@@ -50,7 +50,7 @@ No automatic calendar periods, business days, missing observations, prices, cash
 - **Coverage and completeness:** show each period's actual coverage and evidence; never imply calendar days not observed.
 - **Unavailable period:** show its explicit reason and omit all return/drawdown statistics for that period. Do not compare a partial series.
 
-The first and last wealth-index points must be validated as finite and positive before deriving a period return. Periods must contain at least two points and must be independently available. Comparison rows must be ordered by their supplied period start; overlapping periods may be displayed but must not be represented as disjoint or additive.
+The first and last wealth-index points must be validated as finite and positive before deriving a period return. Available periods must contain at least two points; unavailable periods must contain no points or partial statistics. Comparison rows are ordered by their supplied period start; overlapping periods may be displayed but must not be represented as disjoint or additive.
 
 ### Explicitly out of scope
 
@@ -79,7 +79,7 @@ The cash-ledger and current investment transaction taxonomy do not represent the
 
 ## Acceptance gates for a comparison implementation
 
-1. Every row is backed by a separately available `analyzeInvestmentDrawdownSeries` result.
+1. Every row is backed by a separately evaluated `analyzeInvestmentDrawdownSeries` result; unavailable results remain visible and emit no partial metrics.
 2. All rows share exact scope, currency, methodology and recorded-at cutoff.
 3. Period-return derivation uses only the existing wealth-index endpoints and is independently hand-calculated in tests.
 4. An unavailable period contributes no numeric statistics; one unavailable period does not silently disappear from the comparison.
