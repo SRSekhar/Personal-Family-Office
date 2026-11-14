@@ -1411,7 +1411,10 @@ try {
         'drawdown capture smoke should use existing ledger identifiers');
     drawdownIds.cashAccountId = drawdownIds.cashAccount.id;
     await page.locator('#investment-drawdown-snapshot-form').scrollIntoViewIfNeeded();
-    const drawdownEffectiveAt = new Date(Math.max(Date.parse(drawdownIds.cashAccount.createdAt) + 1000, Date.now() - 5000)).toISOString();
+    const drawdownAccountCreatedAt = Date.parse(drawdownIds.cashAccount.createdAt);
+    const waitForPastDrawdownWindow = drawdownAccountCreatedAt + 4000 - Date.now();
+    if (waitForPastDrawdownWindow > 0) await page.waitForTimeout(waitForPastDrawdownWindow);
+    const drawdownEffectiveAt = new Date(drawdownAccountCreatedAt + 1000).toISOString();
     const drawdownRecordedAtCutoff = new Date(Date.now() + 5000).toISOString();
     await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(drawdownEffectiveAt);
     await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(drawdownRecordedAtCutoff);
