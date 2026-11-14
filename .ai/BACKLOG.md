@@ -17,10 +17,10 @@
 - [x] Add pure historical comparison adapter for independently analyzed periods; validate common scope/account/currency/methodology/recorded-at cutoff and persisted calendar provenance.
 - [x] Derive period return only from existing wealth-index endpoints; reuse drawdown/peak/trough/recovery values; reject malformed observations and preserve unavailable periods without partial metrics.
 - [x] Add explicit private UI for period labels and exact UTC start/end windows; no auto-generated calendars, dates, prices or missing observations.
-- [x] Add standalone script-free HTML and spreadsheet-safe CSV with period return, drawdown, peak/trough/recovery timestamps, coverage, provenance, overlap flags and unavailable reasons.
+- [x] Add standalone script-free HTML and spreadsheet-safe CSV with period return, drawdown, peak/trough/recovery timestamps, coverage, snapshot completeness evidence, limitations, provenance, overlap flags and unavailable reasons.
 - [x] Invalidate reports on workspace changes and block exports when the underlying validated source signature has changed.
 - [x] Add unit tests, static UI wiring checks and Chromium smoke for private/demo isolation, downloads and stale-source invalidation.
-- No schema migration, persistence collection, FX, external market data or tax/accounting assumptions were introduced. CI/Secret Scan/dashboard packaging are being validated for current code head 198f55ddb83c22a3e681f4205ee4554110bcf684.
+- No schema migration, persistence collection, FX, external market data or tax/accounting assumptions were introduced. CI/Secret Scan/dashboard packaging are being validated for current code head c14184811b00ff4fa6867cbc14daa482ba2c54b6.
 - PR #454 remains draft/open/unmerged and stacked on PR #453. No merge is authorized by this work.
 
 ## Gated follow-up — transaction statement reconciliation and accounting events
