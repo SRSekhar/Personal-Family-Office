@@ -124,7 +124,9 @@ describe('recurring-tagged cash-flow export contract', () => {
     it('exports only recurring-tagged entries in the selected reporting period using the standard safe CSV schema', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
-            readDashboardFile('cashflow.js')
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('investment-drawdown-calendar-workspace.js'),
+            readDashboardFile('index.html')
         ]);
         expect(html).toContain('id="cash-flow-export-recurring-csv"');
         expect(cashFlow).toContain("$('#cash-flow-export-recurring-csv').addEventListener('click'");
@@ -691,7 +693,7 @@ describe('monthly financial review report contract', () => {
 
 describe('full workspace backup contract', () => {
     it('exports and restores validated records, goals, cash-flow transactions, and budgets as one local backup', async () => {
-        const [app, backup, cashflow] = await Promise.all([
+        const [app, backup, cashflow, calendarWorkspace, html] = await Promise.all([
             readDashboardFile('app.js'),
             readDashboardFile('backup.js'),
             readDashboardFile('cashflow.js')
@@ -709,6 +711,13 @@ describe('full workspace backup contract', () => {
         expect(app).toContain('Object.assign(payload, readInvestmentDrawdownSnapshots())');
         expect(app).toContain('persistInvestmentDrawdownSnapshots(backup.investmentDrawdownSnapshots, backup)');
         expect(app).toContain('persistInvestmentDrawdownCalendars(backup.investmentDrawdownCalendars, backup)');
+        expect(app).toContain('initializeInvestmentDrawdownCalendarWorkspace');
+        expect(app).toContain('investmentDrawdownCalendars');
+        expect(calendarWorkspace).toContain('expectedDailyCloseAt');
+        expect(calendarWorkspace).toContain('supersedesCalendarId');
+        expect(calendarWorkspace).toContain('dependencies.isPrivateWorkspace()');
+        expect(html).toContain('id="investment-drawdown-calendar"');
+        expect(html).toContain('id="investment-drawdown-calendar-history"');
         expect(app).toContain('INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY');
         expect(app).toContain('persistInvestmentExposurePolicies(backup.investmentExposurePolicies)');
         expect(app).toContain('INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY');
