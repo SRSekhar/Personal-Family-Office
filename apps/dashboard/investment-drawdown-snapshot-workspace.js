@@ -115,6 +115,7 @@ export function initializeInvestmentDrawdownSnapshotWorkspace(dependencies) {
     const postComponents = form.elements.postComponents;
     let accounts = [];
     let snapshots = [];
+    if (!cutoff.value) cutoff.value = new Date().toISOString();
 
     function show(target, text) {
         target.textContent = text;
@@ -213,7 +214,7 @@ export function initializeInvestmentDrawdownSnapshotWorkspace(dependencies) {
         accountRow.hidden = scope.value !== 'account';
         refreshFlows();
     });
-    kind.addEventListener('change', render);
+    kind.addEventListener('change', () => { render(); refreshFlows(); });
     effectiveAt.addEventListener('change', refreshFlows);
     cutoff.addEventListener('change', refreshFlows);
     currency.addEventListener('change', refreshFlows);
