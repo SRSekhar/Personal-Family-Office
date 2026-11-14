@@ -1387,7 +1387,7 @@ try {
     await page.locator('#investment-drawdown-calendar-form [name="startAt"]').fill('2026-11-02T00:00:00.000Z');
     await page.locator('#investment-drawdown-calendar-form [name="endAt"]').fill('2026-11-04T23:59:59.999Z');
     await page.locator('#investment-drawdown-calendar-form [name="expectedDailyCloseAt"]').fill(
-        '2026-11-02T15:30:00.000Z\\n2026-11-03T15:30:00.000Z\\n2026-11-04T15:30:00.000Z'
+        '2026-11-02T15:30:00.000Z\n2026-11-03T15:30:00.000Z\n2026-11-04T15:30:00.000Z'
     );
     await page.locator('#investment-drawdown-calendar-form button[type="submit"]').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-calendar-history')?.innerText.includes('browser-portfolio-inr-2026'));
@@ -1396,7 +1396,7 @@ try {
     assert.equal(investmentStorage.drawdownCalendars.length, 1, 'private calendar UI should persist one explicitly entered schedule');
     assert.equal(investmentStorage.drawdownCalendars[0].expectedDailyCloseAt.length, 3,
         'calendar UI should persist only the three explicitly entered close timestamps');
-    process.stdout.write('PASS: private calendar authoring stores an explicit UTC close schedule without generating dates.\\n');
+    process.stdout.write('PASS: private calendar authoring stores an explicit UTC close schedule without generating dates.\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -1405,7 +1405,7 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 12, 'private JSON backup should use schema version 11 with exposure policy history');
+    assert.equal(backup.schemaVersion, 12, 'private JSON backup should use schema version 12 with exposure policy history');
     assert.equal(backup.investmentExposurePolicies.length, 1, 'private JSON backup should include exposure policy history');
     assert.deepEqual(backup.investmentDrawdownSnapshots, [], 'schema-v12 backup should include the empty drawdown snapshot collection without fabricating history');
     assert.equal(backup.investmentDrawdownCalendars.length, 1, 'schema-v12 backup should include the explicitly authored daily-close calendar');
