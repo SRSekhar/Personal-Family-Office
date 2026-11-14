@@ -601,3 +601,16 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Earlier CI attempts exposed stale schema-v11 dashboard fixtures, a static-integrity source-loading issue, browser smoke assertions that omitted the calendar collection, and a hard-coded 18-collection status message. These were corrected. Verified implementation head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI #1831, Secret Scan #1625 and dashboard packaging #1067.
 - Next: add private calendar authoring UI and wire the selected persisted schedule into `analyzeInvestmentDrawdownSeries`; then deliver manual position/cash snapshot capture/import, paired flow-boundary authoring, independent end-to-end financial acceptance and private reporting/export.
 - PR #453 remains open, draft and unmerged. Do not merge without explicit approval.
+
+
+## Latest Handoff — 2026-11-14 (manual drawdown acquisition)
+
+- Continue on existing branch `feature/ipm-drawdown-contract-discovery` and PR #453. Do not create a second PR for this cohesive increment.
+- New UI module: `apps/dashboard/investment-drawdown-snapshot-workspace.js`; wired through `apps/dashboard/app.js` and `apps/dashboard/index.html`.
+- Private-only capture supports `DailyClose` and paired `ExternalFlowPre` / `ExternalFlowPost` observations. Component JSON input uses ledger account/instrument/cash-account IDs. Position values are quantity × explicitly entered unit price; cash values are explicitly entered.
+- Flow options come from `buildInvestmentDrawdownExternalFlows` at the exact effective timestamp and recorded-at cutoff. The UI saves both boundary snapshots together; validator enforces matching component universes and exact timestamps.
+- Completeness is computed against `buildInvestmentDrawdownSnapshotRequirements`; position quantities and cash balances must reconcile. Incomplete captures are preserved as incomplete and are excluded from usable calculations.
+- Browser smoke now covers a complete daily close, an authoritative external contribution pair, demo/private isolation, JSON backup/restore and SQLite workspace round-trip.
+- Verified head `e91cfb79d557251c27b2a2a13914c463d773bde5`: CI #1854, Secret Scan #1648 and dashboard packaging #1090 all passed.
+- Next: independent hand-calculated end-to-end acceptance fixtures (multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data), then private descriptive drawdown reporting/export.
+- In-kind contributions/withdrawals and corporate actions remain unsupported; do not infer them. PR #453 remains open/draft/unmerged; do not merge without explicit approval. Synthetic data only.
