@@ -13,7 +13,19 @@
 - PR #453 remains open, draft and unmerged. Do not merge without explicit owner approval. Main remains schema v10; PR branch is schema v12.
 - In-kind contributions/withdrawals and corporate actions remain unsupported pending a separate ledger-model decision. Liquidity remains separately gated.
 
-### Next sprint — IPM performance analytics discovery
+
+### Sprint 12 increment — Private portfolio performance review: complete on PR #454
+
+- Added standalone HTML and spreadsheet-safe CSV exports to the private portfolio positions/reconciliation view.
+- Report reuses the existing FIFO projection and ledger-backed per-currency XIRR; no new performance formula or schema collection was introduced.
+- Currency-separated report summaries include open cost basis, market value, realized/unrealized P&L, dividends, interest, recorded fees/taxes and net gain/loss, plus per-position valuation provenance and XIRR terminal-value details.
+- Exports carry the exact selected as-of timestamp and recorded-at cutoff. Missing open-position valuations suppress market value, unrealized P&L and net-gain totals for the affected currency; closed positions show unrealized P&L as not applicable.
+- HTML is standalone and script-free. CSV text fields are escaped and formula-injection protected. No cross-currency aggregation or FX conversion.
+- Export controls are disabled in demo mode and cleared on workspace/data changes. Chromium smoke verifies HTML/CSV downloads and private/demo isolation.
+- CI #1900 passed (lint, typecheck, package build, unit tests and Chromium browser smoke); Secret Scan #1694 passed; dashboard packaging #1136 passed on code head ec32db25dd22c822965727e8648b7092f87b7c5c.
+- PR #454 is open, draft and stacked on PR #453. Neither PR is merged. Do not merge without explicit owner approval.
+
+### Next increment — IPM-04 performance analytics discovery
 
 - Review the existing ledger, cash reconciliation, XIRR, drawdown, allocation, concentration and exposure contracts before changing code.
 - Identify which IPM-04 outputs are already supported and which are missing: realised/unrealised P&L, open cost basis, dividends, interest, fees/taxes, transaction/position reconciliation and historical performance reporting.
