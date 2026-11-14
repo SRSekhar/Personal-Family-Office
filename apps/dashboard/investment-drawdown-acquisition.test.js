@@ -234,4 +234,46 @@ describe('investment drawdown acquisition and event taxonomy', () => {
         expect(flows.reason).toMatch(/different effective timestamp/i);
     });
 
+
+    it('uses distinct pre-flow and post-flow cash ledger boundaries at the same effective timestamp', () => {
+        const input = base();
+        const flowEffectiveAt = '2026-01-02T10:00:00.000Z';
+        const common = {
+            ...input, scope: 'portfolio', currency: 'INR', effectiveAt: flowEffectiveAt,
+            recordedAtCutoff: '2026-01-05T17:00:00.000Z', flowId: 'cash-movement:contribution-1'
+        };
+        const pre = buildInvestmentDrawdownSnapshotRequirements({ ...common, kind: 'ExternalFlowPre' });
+        const post = buildInvestmentDrawdownSnapshotRequirements({ ...common, kind: 'ExternalFlowPost' });
+        expect(pre.status).toBe('available');
+        expect(post.status).toBe('available');
+        expect(pre.expectedComponents).toEqual([
+            { type: 'cash', cashAccountId: 'cash-1', balance: 1000, currency: 'INR' }
+        ]);
+        expect(post.expectedComponents).toEqual([
+            { type: 'cash', cashAccountId: 'cash-1', balance: 1500, currency: 'INR' }
+        ]);
+
+        const boundarySnapshot = (id, kind, value) => ({
+            id, scope: 'portfolio', currency: 'INR', kind, flowId: 'cash-movement:contribution-1',
+            effectiveAt: flowEffectiveAt, recordedAt: '2026-01-02T12:00:00.000Z',
+            sourceType: 'manual', sourceName: 'Manual flow-boundary capture', complete: true,
+            components: [{ id: id + '-cash', type: 'cash', cashAccountId: 'cash-1',
+                value: { amount: value, currency: 'INR' }, valuedAt: flowEffectiveAt,
+                sourceType: 'manual', sourceName: 'Bank balance' }],
+            totalValue: { amount: value, currency: 'INR' }
+        });
+        const snapshots = [
+            boundarySnapshot('pre-snapshot', 'ExternalFlowPre', 1000),
+            boundarySnapshot('post-snapshot', 'ExternalFlowPost', 1500)
+        ];
+        const preCheck = validateInvestmentDrawdownSnapshotCompleteness({
+            ...input, investmentDrawdownSnapshots: snapshots, snapshotId: 'pre-snapshot'
+        });
+        const postCheck = validateInvestmentDrawdownSnapshotCompleteness({
+            ...input, investmentDrawdownSnapshots: snapshots, snapshotId: 'post-snapshot'
+        });
+        expect(preCheck.complete).toBe(true);
+        expect(postCheck.complete).toBe(true);
+    });
+
 });
