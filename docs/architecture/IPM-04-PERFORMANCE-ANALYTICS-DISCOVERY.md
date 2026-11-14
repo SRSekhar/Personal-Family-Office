@@ -2,7 +2,7 @@
 
 - **Status:** Discovery and historical period comparison implementation complete on PR #454; statement reconciliation and accounting-event changes remain gated
 - **Date:** 2026-11-14
-- **Implementation revision:** `feature/ipm-performance-review` at `c14184811b00ff4fa6867cbc14daa482ba2c54b6`
+- **Implementation revision:** `feature/ipm-performance-review` at `7592fa363f873b2137849231168931056adcd2f0`
 - **Scope:** Existing investment ledger, FIFO projection, cash reconciliation, XIRR, drawdown series and private reports
 - **Data policy:** Synthetic fixtures only; never commit household records or private reports.
 
@@ -121,7 +121,7 @@ The cash-ledger and current investment transaction taxonomy do not represent the
 - The workspace invalidates on the existing workspace-update event and recomputes a validated source-data signature before either export; stale exports are blocked.
 - Unit tests cover hand-calculated +25% and -10% endpoint returns, malformed/mismatched inputs, unavailable periods, HTML escaping, formula-safe CSV and signed numeric preservation. Static UI tests and Chromium smoke cover wiring, private/demo isolation, HTML/CSV downloads and stale-source invalidation.
 - No schema migration, new collection, external data provider, inferred calendar, missing observation, FX conversion or new financial formula was introduced.
-- Current code head at documentation update: `c14184811b00ff4fa6867cbc14daa482ba2c54b6`; final CI/Secret Scan/dashboard packaging results must be confirmed on the latest PR head.
+- Current code head at documentation update: `7592fa363f873b2137849231168931056adcd2f0`; final CI/Secret Scan/dashboard packaging results must be confirmed on the latest PR head.
 
 ## Explicitly gated follow-up
 
