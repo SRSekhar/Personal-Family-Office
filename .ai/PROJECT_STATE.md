@@ -451,3 +451,14 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Historical period comparison is not yet a delivered user workflow. Its safe candidate contract derives period return only from endpoints of independently available wealth-index series and requires matching scope, currency, methodology and recorded-at cutoff, with explicit persisted calendars per period.
 - Transaction-to-position statement reconciliation and cost-basis adjustment/corporate-action event models remain gaps. No new formulas, assumptions or schema changes were made.
 - Next engineering increment: pure period-comparison adapter and independent tests; no report/UI until the adapter is validated.
+
+
+## Historical Period Comparison Adapter — 2026-11-14
+
+- Added a pure adapter in `apps/dashboard/investment-period-comparison.js` that consumes existing available/unavailable drawdown analyses.
+- Period return uses only the first/last wealth-index endpoints; drawdown and recovery metrics are reused unchanged.
+- Enforces common scope/account/currency/methodology/recorded-at cutoff, explicit calendar provenance, canonical time windows, positive strictly ordered wealth-index points, unique labels and fail-closed unavailable rows.
+- Overlapping windows are retained and explicitly flagged.
+- Added independent hand-calculated and contract tests in `apps/dashboard/investment-period-comparison.test.js`.
+- No UI, report, schema migration, provider, new market data or private financial data added. CI validation is pending.
+- Next: validate CI, then implement private-only comparison workspace and exports.
