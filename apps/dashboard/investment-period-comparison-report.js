@@ -66,8 +66,11 @@ function validate(input) {
         if (period.status === 'available') {
             availableCount += 1;
             if (!Number.isFinite(period.periodReturn) || !Number.isFinite(period.maximumDrawdown)
-                || period.maximumDrawdown > 0 || typeof period.recovered !== 'boolean') {
-                throw new TypeError('Available comparison periods require complete return and drawdown metrics.');
+                || period.maximumDrawdown > 0
+                || (period.maximumDrawdown === 0
+                    ? period.recovered !== null || period.peakAt !== null || period.troughAt !== null || period.recoveryAt !== null
+                    : typeof period.recovered !== 'boolean')) {
+                throw new TypeError('Available comparison periods require consistent return and drawdown metrics.');
             }
             timestamp(period.coverageStartAt, 'Coverage start');
             timestamp(period.coverageEndAt, 'Coverage end');
