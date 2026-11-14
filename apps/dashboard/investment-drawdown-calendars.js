@@ -21,6 +21,7 @@ export function validateInvestmentDrawdownCalendars(input) {
         throw new Error('Investment drawdown calendars must be an array.');
     }
     const calendars = input.investmentDrawdownCalendars;
+    const accountIds = new Set(Array.isArray(input.investmentAccounts) ? input.investmentAccounts.map((account) => account.id) : []);
     const ids = new Set();
     for (const item of calendars) {
         const id = text(item?.id, 'Drawdown calendar ID');
@@ -36,6 +37,7 @@ export function validateInvestmentDrawdownCalendars(input) {
         if (!['portfolio', 'account'].includes(scope)) throw new Error('Drawdown calendar scope must be portfolio or account.');
         const accountId = item.accountId === undefined ? undefined : text(item.accountId, 'Drawdown calendar account ID');
         if ((scope === 'account') !== (accountId !== undefined)) throw new Error('Account-scoped calendars require an account ID; portfolio calendars cannot specify one.');
+        if (scope === 'account' && Array.isArray(input.investmentAccounts) && !accountIds.has(accountId)) throw new Error('Account-scoped calendars must reference a known investment account.');
         const currency = text(item.currency, 'Drawdown calendar currency');
         if (!CURRENCIES.has(currency)) throw new Error('Drawdown calendar currency is unsupported.');
         const startAt = timestamp(item.startAt, 'Drawdown calendar startAt');
