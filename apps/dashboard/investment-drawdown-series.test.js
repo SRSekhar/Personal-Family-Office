@@ -9,12 +9,13 @@ const firstAt = '2026-01-05T16:00:00.000Z';
 const secondAt = '2026-01-06T16:00:00.000Z';
 const cutoff = '2026-01-07T00:00:00.000Z';
 
-function calendar() {
+function calendar(overrides = {}) {
     return {
         id: 'calendar-1', calendarSetId: 'portfolio-inr-2026-01', version: 1,
         scope: 'portfolio', currency: 'INR', startAt: firstAt, endAt: secondAt,
         recordedAt: '2026-01-04T12:00:00.000Z',
-        expectedDailyCloseAt: [firstAt, secondAt]
+        expectedDailyCloseAt: [firstAt, secondAt],
+        ...overrides
     };
 }
 
@@ -93,7 +94,7 @@ describe('investment drawdown series orchestration', () => {
             startAt: firstAt,
             endAt: firstAt,
             recordedAtCutoff: cutoff,
-            investmentDrawdownCalendars: [calendar()],
+            investmentDrawdownCalendars: [calendar({ endAt: firstAt, expectedDailyCloseAt: [firstAt] })],
             analyzeInvestmentDrawdownMath: calculate
         });
         expect(result.status).toBe('unavailable');
