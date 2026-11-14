@@ -94,7 +94,10 @@ export function selectInvestmentDrawdownCalendar(input) {
     if (!['portfolio', 'account'].includes(scope)) throw new Error('A portfolio or account scope is required.');
     if (scope === 'account') text(accountId, 'Analysis account ID');
     if (scope === 'portfolio' && accountId !== undefined) throw new Error('Portfolio analysis cannot specify an account ID.');
-    const validated = validateInvestmentDrawdownCalendars({ investmentDrawdownCalendars });
+    const validated = validateInvestmentDrawdownCalendars({
+        ...(Array.isArray(input?.investmentAccounts) ? { investmentAccounts: input.investmentAccounts } : {}),
+        investmentDrawdownCalendars
+    });
     const candidates = validated.investmentDrawdownCalendars.filter((item) =>
         item.scope === scope && item.accountId === accountId && item.currency === currency
         && item.startAt === startAt && item.endAt === endAt && item.recordedAt <= recordedAtCutoff);
