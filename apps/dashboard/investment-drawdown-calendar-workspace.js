@@ -154,6 +154,7 @@ export function initializeInvestmentDrawdownCalendarWorkspace(dependencies) {
                 ...(previous ? { supersedesCalendarId: previous.id } : {})
             };
             dependencies.persistCalendars([...current, calendar]);
+            window.dispatchEvent(new Event('pfo:workspace-updated'));
             form.reset();
             render();
             showMessage(message, previous ? 'Calendar correction saved as a new immutable version.' : 'Daily-close calendar saved. No dates were generated or inferred.');
