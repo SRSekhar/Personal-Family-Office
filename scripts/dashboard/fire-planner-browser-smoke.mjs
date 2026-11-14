@@ -1553,12 +1553,12 @@ try {
         page.waitForEvent('download'),
         page.locator('#investment-drawdown-report-download-html').click()
     ]);
-    assert.match(drawdownHtmlDownload.suggestedFilename(), /\\.html$/u);
+    assert.match(drawdownHtmlDownload.suggestedFilename(), /\.html$/u);
     const [drawdownCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#investment-drawdown-report-download-csv').click()
     ]);
-    assert.match(drawdownCsvDownload.suggestedFilename(), /\\.csv$/u);
+    assert.match(drawdownCsvDownload.suggestedFilename(), /\.csv$/u);
     process.stdout.write('PASS: private flow-adjusted drawdown analysis generates a descriptive HTML report and spreadsheet-safe CSV export.\\n');
 
     await page.locator('#switch-demo-button').click();
