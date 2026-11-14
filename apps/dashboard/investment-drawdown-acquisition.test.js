@@ -179,7 +179,7 @@ describe('investment drawdown acquisition and event taxonomy', () => {
         expect(flows.flows[1]).toMatchObject({
             id: 'cash-movement:withdrawal-1',
             amount: { amount: -80, currency: 'INR' },
-            sourceIds: ['withdrawal-1', 'correction-1']
+            sourceIds: ['cash-movement:withdrawal-1', 'cash-correction:correction-1']
         });
     });
 
