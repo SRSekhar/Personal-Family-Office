@@ -633,3 +633,13 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Browser smoke verifies report generation/downloads and clearing private report state on demo switch, in addition to capture, JSON backup/restore and SQLite round-trip.
 - Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
 - Future scope only: in-kind flows and corporate actions require a separate ledger-model ADR. Do not infer them or add thresholds/alerts/recommendations/trading behavior. Synthetic data only.
+
+## Latest Handoff — 2026-11-14 (IPM-04 performance analytics discovery)
+
+- Working branch: `feature/ipm-performance-review`, stacked on PR #453. PR #454 remains open, draft and unmerged. Do not merge without explicit owner approval.
+- Added `docs/architecture/IPM-04-PERFORMANCE-ANALYTICS-DISCOVERY.md` (commit `76d99cda7926ed6108f370f30662c81e45e8eead`).
+- The discovery inventories existing FIFO P&L/cost basis, valuation provenance, cash reconciliation, per-currency XIRR, historical flow-adjusted drawdown and the two private report surfaces.
+- Proposed period-comparison return is strictly the ratio of the last and first wealth-index points from each independently available drawdown analysis, minus one. Comparison requires the same scope, currency, methodology and recorded-at cutoff; every period uses its own persisted explicit calendar. No partial results or auto-generated periods.
+- Statement-to-position reconciliation, cost-basis adjustment events, corporate actions and in-kind flows remain unimplemented pending explicit data/event contracts.
+- No application code, calculation formula, schema, migration or financial data was changed in this discovery commit.
+- Next: implement the pure adapter and hand-calculated tests only; then validate before introducing a private report/UI.
