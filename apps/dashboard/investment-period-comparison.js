@@ -99,7 +99,7 @@ function validatePeriod(period, index) {
     if (!first || !last) {
         throw new RangeError(label + ' must contain endpoint wealth-index points.');
     }
-    let previousAt = null;
+    let previousPoint = null;
     for (const [pointIndex, point] of analysis.points.entries()) {
         const pointLabel = label + ' point ' + (pointIndex + 1);
         timestamp(point?.effectiveAt, pointLabel + ' timestamp');
@@ -107,13 +107,27 @@ function validatePeriod(period, index) {
         if (wealthIndex <= 0) {
             throw new RangeError(pointLabel + ' wealth index must be positive.');
         }
-        if (previousAt !== null && point.effectiveAt <= previousAt) {
-            throw new RangeError(label + ' point timestamps must be strictly increasing.');
-        }
         if (point.effectiveAt < analysis.startAt || point.effectiveAt > analysis.endAt) {
             throw new RangeError(pointLabel + ' falls outside the selected period.');
         }
-        previousAt = point.effectiveAt;
+        if (previousPoint) {
+            if (point.effectiveAt < previousPoint.effectiveAt) {
+                throw new RangeError(label + ' point timestamps must be ordered.');
+            }
+            if (point.effectiveAt === previousPoint.effectiveAt
+                && !(previousPoint.kind === 'ExternalFlowPre' && point.kind === 'ExternalFlowPost')) {
+                throw new RangeError(label + ' equal timestamps are permitted only for an ordered pre-flow/post-flow pair.');
+            }
+            if (previousPoint.kind === 'ExternalFlowPre'
+                && (point.effectiveAt !== previousPoint.effectiveAt || point.kind !== 'ExternalFlowPost')) {
+                throw new RangeError(label + ' external-flow pre/post observations must be adjacent at the same timestamp.');
+            }
+            if (point.kind === 'ExternalFlowPost'
+                && !(previousPoint.kind === 'ExternalFlowPre' && point.effectiveAt === previousPoint.effectiveAt)) {
+                throw new RangeError(label + ' external-flow post observation requires its immediately preceding pre-flow observation.');
+            }
+        }
+        previousPoint = point;
     }
     if (analysis.coverageStartAt !== first.effectiveAt || analysis.coverageEndAt !== last.effectiveAt) {
         throw new RangeError(label + ' coverage must match the first and last observed points.');
