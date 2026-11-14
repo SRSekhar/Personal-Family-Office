@@ -1516,7 +1516,7 @@ try {
     await page.locator('#investment-drawdown-calendar-form [name="currency"]').selectOption('INR');
     await page.locator('#investment-drawdown-calendar-form [name="startAt"]').fill(drawdownEffectiveAt);
     await page.locator('#investment-drawdown-calendar-form [name="endAt"]').fill(drawdownFinalCloseAt);
-    await page.locator('#investment-drawdown-calendar-form [name="expectedDailyCloseAt"]').fill(drawdownEffectiveAt + '\\n' + drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-calendar-form [name="expectedDailyCloseAt"]').fill(drawdownEffectiveAt + '\n' + drawdownFinalCloseAt);
     await page.locator('#investment-drawdown-calendar-form button[type="submit"]').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-calendar-history')?.innerText.includes('drawdown-report-smoke-window'));
     investmentStorage.drawdownCalendars = await page.evaluate(() =>
