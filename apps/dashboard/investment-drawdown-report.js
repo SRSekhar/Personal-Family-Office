@@ -198,7 +198,7 @@ export function investmentDrawdownReportToCsv(input) {
         rows.push([
             text('Completeness'), text(item.status), text(scope), text(accountId ?? ''), text(currency),
             text(analysis.methodology ?? 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1'), text(startAt), text(endAt),
-            text(recordedAtCutoff), text(generatedAt), '', text(analysis.calendarId ?? ''),
+            text(analysis.coverageStartAt ?? ''), text(analysis.coverageEndAt ?? ''), text(recordedAtCutoff), text(generatedAt), '', text(analysis.calendarId ?? ''),
             analysis.calendarVersion ?? '', analysis.observationCount ?? 0, analysis.flowBoundaryCount ?? 0,
             '', '', '', '', '', '', text(item.snapshotId), '', '', '', '',
             item.expectedComponentCount ?? '', item.actualComponentCount ?? '', text(reasons)
