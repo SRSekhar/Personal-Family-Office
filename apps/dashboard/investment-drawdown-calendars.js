@@ -38,6 +38,7 @@ export function validateInvestmentDrawdownCalendars(input) {
         const accountId = item.accountId === undefined ? undefined : text(item.accountId, 'Drawdown calendar account ID');
         const currency = text(item.currency, 'Drawdown calendar currency');
         if ((scope === 'account') !== (accountId !== undefined)) throw new Error('Account-scoped calendars require an account ID; portfolio calendars cannot specify one.');
+        if (scope === 'account' && !Array.isArray(input.investmentAccounts)) throw new Error('Account-scoped calendars require the validated investment account collection.');
         if (scope === 'account' && Array.isArray(input.investmentAccounts) && !accountById.has(accountId)) throw new Error('Account-scoped calendars must reference a known investment account.');
         if (scope === 'account' && Array.isArray(input.investmentAccounts) && accountById.get(accountId).currency !== currency) throw new Error('An account-scoped calendar currency must match the investment account currency.');
         if (!CURRENCIES.has(currency)) throw new Error('Drawdown calendar currency is unsupported.');
