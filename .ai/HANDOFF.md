@@ -623,5 +623,5 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Snapshot contract rejects `recordedAt < effectiveAt`.
 - Report modules: `apps/dashboard/investment-drawdown-report.js` and `apps/dashboard/investment-drawdown-report-workspace.js`. HTML preview is sandboxed; HTML/CSV downloads are private-only; CSV protects text cells against spreadsheet formula injection. Report includes observed coverage and completeness evidence; unavailable analysis has no partial points/statistics.
 - Browser smoke verifies report generation/downloads and clearing private report state on demo switch, in addition to capture, JSON backup/restore and SQLite round-trip.
-- Verified head `fe01a85ed8300ab4da7f302058b615294a61d4af`: CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed.
+- Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
 - Future scope only: in-kind flows and corporate actions require a separate ledger-model ADR. Do not infer them or add thresholds/alerts/recommendations/trading behavior. Synthetic data only.
