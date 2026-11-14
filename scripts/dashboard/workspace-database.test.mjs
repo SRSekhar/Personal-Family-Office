@@ -51,7 +51,7 @@ afterEach(async () => {
 });
 
 describe('SQLite workspace persistence schema v12', () => {
-    it('persists all eighteen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
+    it('persists all nineteen collections atomically and preserves IDs and valuation provenance after reopen', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-sqlite-reopen-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const first = new WorkspaceDatabase(path); databases.push(first);
@@ -431,7 +431,7 @@ describe('SQLite workspace persistence schema v12', () => {
         expect(database.getWorkspace().payload).toEqual(payload());
         expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
     });
-    it('migrates a v10 workspace to v11 with an exact recovery artifact and no fabricated drawdown history', async () => {
+    it('migrates a v10 workspace through v11 to v12 with exact recovery artifacts and no fabricated history', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-v10-migration-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const legacy = payload({ schemaVersion: 10 });
@@ -626,7 +626,8 @@ describe('SQLite workspace persistence schema v12', () => {
             investmentAllocationPolicies: recovered.payload.investmentAllocationPolicies.map((item) => item.id),
             investmentConcentrationPolicies: recovered.payload.investmentConcentrationPolicies.map((item) => item.id),
             investmentExposureClassifications: recovered.payload.investmentExposureClassifications.map((item) => item.id),
-            investmentDrawdownSnapshots: recovered.payload.investmentDrawdownSnapshots.map((item) => item.id)
+            investmentDrawdownSnapshots: recovered.payload.investmentDrawdownSnapshots.map((item) => item.id),
+            investmentDrawdownCalendars: recovered.payload.investmentDrawdownCalendars.map((item) => item.id)
         };
         expect(stableIds).toEqual({
             records: ['record-1', 'record-2'], goals: ['goal-recovery-1'], cashFlowEntries: ['cash-1'],
