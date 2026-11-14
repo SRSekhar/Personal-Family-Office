@@ -138,7 +138,6 @@ export function initializeInvestmentDrawdownReportWorkspace(dependencies) {
             const end = timestamp(endAt.value, 'Analysis end');
             const cutoff = timestamp(recordedAtCutoff.value, 'Recorded-at cutoff');
             if (start > end) throw new Error('Analysis start must not be after analysis end.');
-            if (cutoff < end) throw new Error('Recorded-at cutoff cannot precede the analysis window end.');
             if (selectedScope === 'account' && !selectedAccount) throw new Error('Select an investment account for account-scoped analysis.');
             if (!CURRENCIES.includes(selectedCurrency)) throw new Error('Select a supported analysis currency.');
 
