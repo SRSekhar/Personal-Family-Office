@@ -722,3 +722,15 @@ Still gated:
 4. Independent end-to-end financial acceptance fixtures, including multiple flows, transfer boundaries, fees/taxes, corrections and closed positions.
 5. Private drawdown reporting/export with scope, currency, methodology, coverage and unavailable reasons.
 6. Explicit schema and UX decision for in-kind contributions/withdrawals and corporate actions; current ledger does not model these events.
+
+
+## 2026-11-14 — Drawdown calculation pipeline
+
+Delivered on PR #453 branch (validation pending):
+- End-to-end orchestration module joins the calculator, validated snapshots, ledger-derived completeness and authoritative external-flow classifier.
+- Explicit daily-close calendar and calculator are required inputs; neither is inferred.
+- Every selected observation is independently reconciled against bitemporal FIFO position quantities and cash roll-forward before calculation.
+- Unavailable snapshot/flow evidence suppresses the statistic and preserves reconciliation reasons.
+- Synthetic integration tests cover successful rising NAV path, cash reconciliation failure and missing explicit dependencies.
+
+Remaining: persistent calendar schema/backup/migration, manual capture/import UI, paired flow boundary authoring UI, private drawdown reporting/export, expanded financial acceptance fixtures and full CI validation. In-kind/corporate actions remain a separate ledger-model decision and are explicitly unsupported.
