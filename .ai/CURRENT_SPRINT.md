@@ -560,4 +560,17 @@ Next: manual snapshot capture/import and flow-boundary authoring, followed by ex
 - Added calendar contract and schema migration/backup round-trip tests. After correcting schema-v11 dashboard fixtures and browser smoke expectations, implementation head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI #1831, Secret Scan #1625 and dashboard packaging #1067. Later commits are documentation-only.
 - PR #453 remains open, draft and unmerged. No merge is authorized.
 
-Next: implement the private manual daily-close calendar authoring workflow and connect its selected schedule to `analyzeInvestmentDrawdownSeries`; then build manual snapshot capture and paired flow-boundary authoring.
+Delivered: private manual daily-close calendar authoring, persisted calendar selection in `analyzeInvestmentDrawdownSeries`, manual valuation snapshot capture/import, and paired pre-flow/post-flow boundary authoring tied to authoritative cash-ledger flow IDs. Browser smoke now verifies daily-close capture, paired cash-flow boundaries, demo/private isolation, and JSON/SQLite backup compatibility.
+
+Remaining: independently hand-calculated end-to-end acceptance across multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data; then private descriptive drawdown reporting/export. In-kind flows and corporate actions remain unsupported pending a separate ledger-model decision.
+
+
+## 2026-11-14 — Manual drawdown observation acquisition delivered
+
+- Added `apps/dashboard/investment-drawdown-snapshot-workspace.js` and private-only manual capture/import UI.
+- Supports explicit daily-close observations and paired pre-flow/post-flow observations. Flow choices are sourced from the authoritative cash-ledger classifier at the exact effective timestamp and recorded-at cutoff.
+- Position values are calculated only from user-entered quantity × unit price; cash balances are explicitly entered. Every component records exact effective timestamp and manual source provenance.
+- Completeness is derived from FIFO position quantities and cash roll-forward. Incomplete observations remain incomplete; no price, balance, position or missing observation is fabricated.
+- Browser smoke verifies a ledger-reconciled daily close, paired contribution boundaries, demo/private isolation, and JSON/SQLite backup round-trips.
+- Verified head `e91cfb79d557251c27b2a2a13914c463d773bde5`: CI #1854, Secret Scan #1648 and dashboard packaging #1090 passed.
+- PR #453 remains open, draft and unmerged. Do not merge without explicit approval.
