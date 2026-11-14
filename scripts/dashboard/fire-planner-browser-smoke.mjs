@@ -1615,7 +1615,7 @@ try {
         throw new Error('Historical period comparison did not become available: ' + comparisonState.error + ' ' + comparisonState.status);
     }
     assert.match(comparisonState.html, /Period return/u);
-    assert.match(comparisonState.html, /Overlaps previous period/u);
+    assert.match(comparisonState.html, /Overlaps an earlier period/u);
     const [comparisonHtmlDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#investment-period-comparison-download-html').click()
