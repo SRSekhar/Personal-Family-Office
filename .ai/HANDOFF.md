@@ -643,3 +643,14 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Statement-to-position reconciliation, cost-basis adjustment events, corporate actions and in-kind flows remain unimplemented pending explicit data/event contracts.
 - No application code, calculation formula, schema, migration or financial data was changed in this discovery commit.
 - Next: implement the pure adapter and hand-calculated tests only; then validate before introducing a private report/UI.
+
+
+## Latest Handoff — 2026-11-14 (period comparison adapter)
+
+- Branch: `feature/ipm-performance-review`, stacked on PR #453; PR #454 remains draft/open/unmerged. Do not merge without explicit owner approval.
+- Added `apps/dashboard/investment-period-comparison.js` and `apps/dashboard/investment-period-comparison.test.js`.
+- Adapter accepts explicit period labels plus existing drawdown-series analysis results. It validates matching scope/account/currency/methodology/recorded-at cutoff and persisted calendar provenance.
+- Return is derived only from last/first existing positive wealth-index points. Drawdown/recovery are reused. Unavailable periods retain reasons and null metrics; overlapping windows are explicitly flagged.
+- Hand-calculated tests cover +25% and -10%, unavailable periods, overlap, metadata mismatches, invalid endpoints, timestamp order, calendar provenance and duplicate labels.
+- Commits: `cd736e007e831df49109f7123f1451e8f21c003d` (adapter), `fa1c052565d5b6155a4d2e35bb35b818e9602506` (tests).
+- No UI, exports, schema changes or financial data added. Check CI before proceeding to report/workspace integration.
