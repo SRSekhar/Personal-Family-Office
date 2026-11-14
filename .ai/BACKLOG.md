@@ -734,3 +734,25 @@ Delivered on PR #453 branch (validation pending):
 - Synthetic integration tests cover successful rising NAV path, cash reconciliation failure and missing explicit dependencies.
 
 Remaining: persistent calendar schema/backup/migration, manual capture/import UI, paired flow boundary authoring UI, private drawdown reporting/export, expanded financial acceptance fixtures and full CI validation. In-kind/corporate actions remain a separate ledger-model decision and are explicitly unsupported.
+
+
+## 2026-11-14 — Drawdown calendar persistence update (PR #453)
+
+Delivered:
+- Explicit versioned/bitemporal daily-close calendar contract with exact UTC timestamps, scope, account, currency and requested window.
+- Append-only calendar corrections with supersession and recorded-at selection.
+- Schema-v12 SQLite persistence (19 collections), transactional v11→v12 migration and protected pre-v12 recovery artifact.
+- JSON backup/restore and private-workspace/SQLite persistence integration, retaining legacy schema v1–v11 import support.
+- Calendar contract, migration and persistence round-trip tests.
+
+Still required:
+1. Private calendar authoring UI; user explicitly enters every expected close timestamp. No automatic weekday, market-holiday or exchange-calendar inference.
+2. Wire selected persisted calendar to `analyzeInvestmentDrawdownSeries` and show missing expected closes as unavailable.
+3. Private manual position/cash snapshot capture/import with explicit unit price, quantity/balance, source and effective timestamp.
+4. Paired pre-flow/post-flow boundary authoring using exact authoritative flow ID/effective timestamp and matching component universe.
+5. Independently hand-calculated end-to-end acceptance tests for multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data.
+6. Private descriptive drawdown report/export with methodology, scope, currency, coverage, peak/trough/recovery and unavailable evidence.
+
+CI follow-up: the first schema-v12 CI run failed on stale schema-v11 HTTP fixtures, a static source assertion and one overly specific error assertion. Those test expectations were corrected. Latest head validation remains pending; do not mark this increment complete until CI, Secret Scan and dashboard packaging pass on the latest head.
+
+No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations, rebalancing or trading actions are approved.
