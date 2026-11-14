@@ -134,6 +134,7 @@ footer{font-size:.88rem;color:#52645d}
 <header><p class="muted">PFO OS · PRIVATE LOCAL REPORT</p><h1>Investment drawdown</h1>
 <p class="muted">Scope: ${escapeHtml(scopeLabel)} · Currency: ${escapeHtml(currency)} · Generated: ${escapeHtml(generatedLabel)}</p>
 <p class="muted">Analysis window: ${escapeHtml(formatTimestamp(startAt))} to ${escapeHtml(formatTimestamp(endAt))}<br>
+Observed coverage: ${escapeHtml(formatTimestamp(analysis.coverageStartAt))} to ${escapeHtml(formatTimestamp(analysis.coverageEndAt))}<br>
 Recorded-at cutoff: ${escapeHtml(formatTimestamp(recordedAtCutoff))}<br>
 Methodology: ${escapeHtml(analysis.methodology || 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1')} · Calendar: ${escapeHtml(analysis.calendarId || 'Unavailable')} · Version: ${analysis.calendarVersion ?? 'Unavailable'}</p>
 </header>
@@ -155,7 +156,7 @@ export function investmentDrawdownReportToCsv(input) {
     const data = validateReportInput(input);
     const { analysis, scope, accountId, currency, startAt, endAt, recordedAtCutoff, generatedAt } = data;
     const header = [
-        'RecordType', 'Status', 'Scope', 'AccountId', 'Currency', 'Methodology', 'StartAt', 'EndAt',
+        'RecordType', 'Status', 'Scope', 'AccountId', 'Currency', 'Methodology', 'StartAt', 'EndAt', 'CoverageStartAt', 'CoverageEndAt',
         'RecordedAtCutoff', 'GeneratedAt', 'Reason', 'CalendarId', 'CalendarVersion',
         'ObservationCount', 'FlowBoundaryCount', 'MaximumDrawdown', 'PeakAt', 'TroughAt',
         'RecoveryAt', 'Recovered', 'EffectiveAt', 'ObservationId', 'ObservationKind',
@@ -167,7 +168,7 @@ export function investmentDrawdownReportToCsv(input) {
     rows.push([
         text('Summary'), text(analysis.status), text(scope), text(accountId ?? ''), text(currency),
         text(analysis.methodology ?? 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1'), text(startAt), text(endAt),
-        text(recordedAtCutoff), text(generatedAt), text(analysis.reason ?? ''), text(analysis.calendarId ?? ''),
+        text(analysis.coverageStartAt ?? ''), text(analysis.coverageEndAt ?? ''), text(recordedAtCutoff), text(generatedAt), text(analysis.reason ?? ''), text(analysis.calendarId ?? ''),
         analysis.calendarVersion ?? '', analysis.observationCount ?? 0, analysis.flowBoundaryCount ?? 0,
         Number.isFinite(analysis.maximumDrawdown) ? analysis.maximumDrawdown : '',
         text(analysis.peakAt ?? ''), text(analysis.troughAt ?? ''), text(analysis.recoveryAt ?? ''),
@@ -178,7 +179,7 @@ export function investmentDrawdownReportToCsv(input) {
         rows.push([
             text('Point'), text(analysis.status), text(scope), text(accountId ?? ''), text(currency),
             text(analysis.methodology ?? 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1'), text(startAt), text(endAt),
-            text(recordedAtCutoff), text(generatedAt), '', text(analysis.calendarId ?? ''),
+            text(analysis.coverageStartAt ?? ''), text(analysis.coverageEndAt ?? ''), text(recordedAtCutoff), text(generatedAt), '', text(analysis.calendarId ?? ''),
             analysis.calendarVersion ?? '', analysis.observationCount ?? 0, analysis.flowBoundaryCount ?? 0,
             Number.isFinite(analysis.maximumDrawdown) ? analysis.maximumDrawdown : '',
             text(analysis.peakAt ?? ''), text(analysis.troughAt ?? ''), text(analysis.recoveryAt ?? ''),
