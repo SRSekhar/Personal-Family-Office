@@ -66,9 +66,9 @@ describe('local dashboard preview server', () => {
         expect(missing.status).toBe(404);
 
         const payload = {
-            schemaVersion: 11, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 12, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: [], investmentDrawdownCalendars: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
@@ -91,7 +91,7 @@ describe('local dashboard preview server', () => {
         const origin = await startServer(root, { databasePath: join(root, '..', 'concurrency-workspace.sqlite') });
         // Two browser tabs read the same baseline snapshot and updatedAt token.
         const payload = {
-            schemaVersion: 11, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 12, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
             goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [],
             investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
@@ -107,7 +107,7 @@ describe('local dashboard preview server', () => {
                 asOf: '2026-10-03T00:00:00.000Z', recordedAt: '2026-10-03T00:00:00.000Z',
                 sourceType: 'manual', sourceName: 'User-entered'
             }],
-            investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: []
+            investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: [], investmentDrawdownCalendars: []
         };
         const firstSave = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -144,9 +144,9 @@ describe('local dashboard preview server', () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'protected-workspace.sqlite') });
         const payload = {
-            schemaVersion: 11, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 12, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1000 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: [], investmentDrawdownCalendars: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload, expectedUpdatedAt: null })
@@ -173,9 +173,9 @@ describe('local dashboard preview server', () => {
         const root = await createRoot();
         const origin = await startServer(root, { databasePath: join(root, '..', 'request-boundary.sqlite') });
         const payload = {
-            schemaVersion: 11, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 12, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'api-record-stable', name: 'Savings', category: 'Cash', type: 'asset', value: 123456 }],
-            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: []
+            goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [], investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: [], investmentDrawdownCalendars: []
         };
         const initial = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -246,11 +246,11 @@ describe('verified online SQLite backup API', () => {
         const databasePath = join(root, '..', 'online-backup.sqlite');
         const origin = await startServer(root, { databasePath });
         const payload = {
-            schemaVersion: 11, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
+            schemaVersion: 12, currency: 'INR', exportedAt: '2026-10-28T00:00:00.000Z',
             records: [{ id: 'backup-record-1', name: 'Savings', category: 'Cash', type: 'asset', value: 1250 }],
             goals: [], cashFlowEntries: [], budgets: [], historicalSnapshots: [],
             investmentAccounts: [], investmentInstruments: [], investmentTransactions: [], investmentValuations: [],
-            investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: []
+            investmentCashAccounts: [], investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [], investmentAllocationPolicies: [], investmentConcentrationPolicies: [], investmentExposureClassifications: [], investmentExposurePolicies: [], investmentDrawdownSnapshots: [], investmentDrawdownCalendars: []
         };
         const save = await fetch(`${origin}/api/v1/workspace`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -264,7 +264,7 @@ describe('verified online SQLite backup API', () => {
         expect(backup).toMatchObject({
             filename: expect.stringMatching(/^pfo-os-sqlite-.*\.sqlite$/),
             directory: databasePath + '.backups', path: expect.stringContaining('.backups'),
-            bytes: expect.any(Number), updatedAt: before.updatedAt, schemaVersion: 11,
+            bytes: expect.any(Number), updatedAt: before.updatedAt, schemaVersion: 12,
             collectionCounts: { records: 1, goals: 0, cashFlowEntries: 0, budgets: 0, historicalSnapshots: 0, investmentExposurePolicies: 0, investmentDrawdownSnapshots: 0 }
         });
         expect(backup.bytes).toBeGreaterThan(0);
