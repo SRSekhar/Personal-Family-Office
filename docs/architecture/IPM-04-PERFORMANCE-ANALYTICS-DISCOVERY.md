@@ -1,14 +1,14 @@
 # IPM-04 Performance Analytics — Contract Discovery
 
-- **Status:** Discovery complete; implementation decisions remain gated
+- **Status:** Discovery and historical period comparison implementation complete on PR #454; statement reconciliation and accounting-event changes remain gated
 - **Date:** 2026-11-14
-- **Inspected revision:** `feature/ipm-performance-review` at `cce9cd46d444eb17430e542b26c0121474376a80`
+- **Implementation revision:** `feature/ipm-performance-review` at `198f55ddb83c22a3e681f4205ee4554110bcf684`
 - **Scope:** Existing investment ledger, FIFO projection, cash reconciliation, XIRR, drawdown series and private reports
 - **Data policy:** Synthetic fixtures only; never commit household records or private reports.
 
 ## Executive finding
 
-The current branch already supports a substantial point-in-time performance review and a separate flow-adjusted historical drawdown series. The next increment should not introduce another generic return formula. The remaining material gaps are (1) transaction-to-position/cash-statement reconciliation as an explicit workflow, (2) documented adjustment/corporate-action event semantics, and (3) period comparison presentation built only from explicitly selected, fully available historical drawdown analyses.
+The current branch already supports a substantial point-in-time performance review and a separate flow-adjusted historical drawdown series. The next increment should not introduce another generic return formula. Historical period comparison is now implemented using independently available drawdown-series results. Remaining material gaps are (1) transaction-to-position statement reconciliation as an explicit workflow and (2) documented adjustment/corporate-action/in-kind event semantics; both require separate domain decisions before implementation.
 
 ## Existing supported contracts
 
@@ -111,13 +111,20 @@ The cash-ledger and current investment transaction taxonomy do not represent the
 - `docs/architecture/ADR-0002-historical-snapshot-persistence-requirements.md`
 
 
-## Implementation progress — period comparison adapter
-
-The first implementation slice is now present:
+## Implementation complete — historical period comparison (PR #454)
 
 - `apps/dashboard/investment-period-comparison.js` validates explicit periods backed by existing drawdown-series analyses and derives only the endpoint wealth-index return.
 - It enforces shared scope/account/currency/methodology/recorded-at cutoff, persisted calendar provenance, positive strictly increasing observations, unique labels and explicit unavailable states.
-- It sorts periods chronologically and marks overlaps; it does not imply disjoint or additive windows.
-- `apps/dashboard/investment-period-comparison.test.js` includes hand-calculated endpoint cases (+25% and -10%) and fail-closed contract cases.
+- It sorts periods chronologically and marks overlaps; overlapping windows are not represented as disjoint or additive.
+- `apps/dashboard/investment-period-comparison-workspace.js` provides the local private-only form. Every period is passed independently through `analyzeInvestmentDrawdownSeries`; the user must enter exact UTC period boundaries and the existing calendar selector must find one persisted revision for each window.
+- `apps/dashboard/investment-period-comparison-report.js` produces standalone script-free HTML and spreadsheet-safe CSV with return, drawdown, peak/trough/recovery, coverage, calendar provenance, observation counts, overlap and unavailable reasons.
+- The workspace invalidates on the existing workspace-update event and recomputes a validated source-data signature before either export; stale exports are blocked.
+- Unit tests cover hand-calculated +25% and -10% endpoint returns, malformed/mismatched inputs, unavailable periods, HTML escaping, formula-safe CSV and signed numeric preservation. Static UI tests and Chromium smoke cover wiring, private/demo isolation, HTML/CSV downloads and stale-source invalidation.
+- No schema migration, new collection, external data provider, inferred calendar, missing observation, FX conversion or new financial formula was introduced.
+- Current code head at documentation update: `198f55ddb83c22a3e681f4205ee4554110bcf684`; final CI/Secret Scan/dashboard packaging results must be confirmed on the latest PR head.
 
-The private report/workspace integration remains pending CI validation. No schema or financial-data changes were made.
+## Explicitly gated follow-up
+
+Transaction-to-position statement reconciliation remains a separate feature until the statement-evidence contract is approved: source identity, statement period, account/currency, reference matching, duplicate/unmatched/ambiguous rows, opening quantity baseline, closing quantity comparison, correction behavior and recorded-at cutoff. The implementation must not auto-create or silently mutate ledger transactions.
+
+Cost-basis adjustments, corporate actions and in-kind flows require separately approved event types, quantity/cost allocation, effective/recorded-at semantics, reversal/restatement and schema/backup decisions. They must not be represented as synthetic trades, fees, taxes or cash movements.
