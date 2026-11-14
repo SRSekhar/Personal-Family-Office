@@ -260,7 +260,7 @@ export function investmentPortfolioReportToCsv(input) {
             result?.status === 'available' ? csvNumber(result.cashBalance) : '',
             result?.status === 'available' ? csvNumber(result.holdingsValue) : '',
             result?.status === 'available' ? csvNumber(result.cashFlowCount) : '',
-            csvText(performanceError ?? (result?.status === 'unavailable' ? result.reason : reason))
+            csvText(reason)
         ].join(','));
         for (const item of items) {
             const netGain = item.quantity > 0 && item.unrealizedGain === null ? null
