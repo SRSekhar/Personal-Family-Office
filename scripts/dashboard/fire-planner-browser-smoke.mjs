@@ -1639,6 +1639,19 @@ try {
         && globalThis.document.querySelector('#investment-period-comparison-preview')?.hidden === true
     );
     assert.match(await page.locator('#investment-period-comparison-status').innerText(), /Source data changed/u);
+    await page.locator('#investment-period-comparison-form button[type="submit"]').click();
+    await page.waitForFunction(() =>
+        (globalThis.document.querySelector('#investment-period-comparison-preview')?.getAttribute('srcdoc') ?? '').length > 0
+    );
+    await page.locator('#investment-period-comparison-form [name="periods"]').fill(
+        'Renamed A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\\n' +
+        'Renamed B | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt
+    );
+    assert.equal(await page.locator('#investment-period-comparison-preview').isHidden(), true,
+        'editing comparison parameters must clear the previously generated report');
+    assert.equal(await page.locator('#investment-period-comparison-download-html').isDisabled(), true,
+        'editing comparison parameters must disable stale HTML export');
+    assert.match(await page.locator('#investment-period-comparison-status').innerText(), /parameters changed/u);
     process.stdout.write('PASS: historical comparison produces HTML/CSV and blocks stale exports after source data changes.\\n');
 
 
