@@ -37,6 +37,13 @@ describe('investment drawdown snapshot contract', () => {
         expect(result[0].components[0]).toMatchObject({ type: 'position', quantity: 2, sourceName: 'User valuation' });
     });
 
+    it('rejects a future-effective observation recorded before its effective timestamp', () => {
+        expect(() => validate([snapshot({
+            effectiveAt: '2026-01-02T16:00:00.000Z',
+            components: [positionComponent('position-1', 200, '2026-01-02T16:00:00.000Z')]
+        })])).toThrow(/recordedAt cannot precede its effectiveAt/i);
+    });
+
     it('requires every component valuation to use the exact snapshot effective timestamp', () => {
         expect(() => validate([snapshot({ components: [positionComponent('p1', 200, '2026-01-01T15:59:00.000Z')] })]))
             .toThrow(/stale carry-forward is not permitted/i);
