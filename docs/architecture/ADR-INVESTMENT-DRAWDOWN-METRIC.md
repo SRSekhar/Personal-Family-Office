@@ -1,6 +1,6 @@
 # ADR — Portfolio drawdown metric
 
-- Status: **Decision accepted — Option B; calculator, ledger-derived completeness, flow taxonomy, orchestration, explicit calendar contract and schema-v12 persistence implemented; capture UI and reporting remain pending**
+- Status: **Decision accepted and implementation complete on PR #453 — calculator, ledger-derived completeness, flow taxonomy, orchestration, explicit calendar, manual capture, paired flow-boundary authoring, independent acceptance, private HTML/CSV reporting and schema-v12 persistence**
 - Date: 2026-11-13
 - Scope: historical, currency-separated investment-portfolio performance drawdown
 - Related: `INVESTMENT-RISK-POLICY-READINESS.md`, `ADR-INVESTMENT-CONCENTRATION-POLICY.md`, `ADR-INVESTMENT-EXPOSURE-CLASSIFICATION.md`
@@ -14,7 +14,7 @@ This is the correct choice for PFO because the product tracks investments and po
 
 The decision is deliberately strict: **if the data cannot support a mathematically valid flow-adjusted return path, the metric is unavailable.** Do not silently substitute raw NAV, Modified Dietz, XIRR, stale prices, interpolation or estimated boundary values.
 
-This ADR approves the methodology, not permission to ship a partial or misleading metric. The data model currently lacks the complete valuation observations needed to calculate it reliably. Implementation remains blocked until the prerequisites below are delivered and tested.
+This ADR approves the methodology and the implementation contract. PR #453 implements the trusted acquisition, completeness, calendar, persistence, reporting and acceptance gates described below. The PR remains draft/open/unmerged; main remains schema v10 until owner review and explicit merge approval.
 
 ## Why Option B
 
