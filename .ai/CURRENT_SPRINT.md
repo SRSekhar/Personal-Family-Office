@@ -7,9 +7,9 @@
 - Implemented a pure calculator kernel with chain-linked wealth index, paired pre/post external-flow boundaries, authoritative flow-event matching, scope/currency validation, bitemporal cutoffs, maximum drawdown, peak/trough/recovery and explicit unavailable states.
 - Added hand-calculated tests for market movement, contribution neutrality, withdrawal neutrality, costs, missing/incomplete boundaries, flow timestamp mismatch, simultaneous flow ambiguity, mixed scope/currency and recorded-at cutoff.
 - Added a component-level snapshot contract and validator for position/cash references, component provenance, exact effective timestamps, component-total reconciliation, incomplete states, paired flow-boundary component universes, immutable supersession and recorded-at selection. This does not yet independently prove that every open holding/cash account is included.
-- Added SQLite schema v11 (18 collections), transactional v10→v11 migration with a protected pre-v11 recovery artifact, and full JSON/SQLite backup/restore integration. Legacy v1–v10 JSON backups remain supported; old backups preserve existing drawdown snapshots only if their references remain valid.
+- Added SQLite schema v11 for drawdown snapshots and schema v12 for the explicit daily-close calendar (19 collections), with transactional v10→v11→v12 migrations and protected pre-v11/pre-v12 recovery artifacts. JSON and SQLite backup/restore now carry the calendar collection while schemas v1–v11 remain importable. Legacy v1–v10 JSON backups remain supported; old backups preserve existing drawdown snapshots only if their references remain valid.
 - Added deterministic snapshot-contract, backup compatibility and migration tests. Verified latest head `c84c2305c30de50e6678081f537a65fe4cf304d9`: CI run #1759 passed (86 test files / 833 tests, lint, typecheck, package build and Chromium browser smoke); Secret Scan #1553 passed; dashboard deployment workflow #995 passed.
-- Production delivery is not complete: trusted capture/completeness builder, authoritative flow taxonomy, explicit daily calendar, integration acceptance and private UI/export remain required. Do not present drawdown as an end-user feature yet.
+- Production delivery is not complete: private manual snapshot capture/import, paired flow-boundary authoring, calendar authoring UI, independent end-to-end financial acceptance and private reporting/export remain required. Do not present drawdown as an end-user feature yet.
 
 ### Next gated work
 
@@ -547,3 +547,17 @@ Next: manual snapshot capture/import and flow-boundary authoring, followed by ex
 - Missing calculator dependency, missing calendar, failed component reconciliation or unavailable flow classification fails closed; no partial statistic is returned.
 - Added deterministic orchestration tests using synthetic INR ledger and valuation fixtures.
 - This is calculation-pipeline wiring only. Manual capture UI, a persisted calendar contract, export/reporting, broader financial acceptance cases and CI validation of the new commits remain outstanding.
+
+
+## 2026-11-14 — Explicit daily-close calendar persistence (schema v12)
+
+- Added `apps/dashboard/investment-drawdown-calendars.js` with an immutable, versioned and bitemporal calendar contract.
+- Each calendar explicitly stores its scope, account (when applicable), currency, exact analysis window, recorded-at timestamp and ordered `expectedDailyCloseAt` timestamps. No weekdays, holidays, trading sessions or missing dates are generated.
+- Calendar corrections are append-only: a new version supersedes one prior version, preserves its identity/scope/currency/window and has a later recorded-at timestamp.
+- Added as-of selection by recorded-at cutoff. Missing or ambiguous calendars fail closed.
+- Added SQLite schema v12 (19 workspace collections), transactional v11→v12 migration and a protected pre-v12 JSON recovery artifact. Existing schema-v11 workspaces receive an empty calendar collection; no historical calendar is fabricated.
+- JSON backup/restore, private browser workspace state and SQLite save/restore/online backup now include the calendar collection. Legacy schemas v1–v11 remain accepted; legacy imports preserve existing calendars only when their account references remain valid.
+- Added calendar contract and schema migration/backup round-trip tests. Initial CI exposed stale schema-v11 dashboard fixtures and one overly specific orchestration assertion; those test expectations were corrected. The latest head's CI must be rechecked before calling this increment validated.
+- PR #453 remains open, draft and unmerged. No merge is authorized.
+
+Next: implement the private manual daily-close calendar authoring workflow and connect its selected schedule to `analyzeInvestmentDrawdownSeries`; then build manual snapshot capture and paired flow-boundary authoring.
