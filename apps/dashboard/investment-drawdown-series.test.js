@@ -9,6 +9,15 @@ const firstAt = '2026-01-05T16:00:00.000Z';
 const secondAt = '2026-01-06T16:00:00.000Z';
 const cutoff = '2026-01-07T00:00:00.000Z';
 
+function calendar() {
+    return {
+        id: 'calendar-1', calendarSetId: 'portfolio-inr-2026-01', version: 1,
+        scope: 'portfolio', currency: 'INR', startAt: firstAt, endAt: secondAt,
+        recordedAt: '2026-01-04T12:00:00.000Z',
+        expectedDailyCloseAt: [firstAt, secondAt]
+    };
+}
+
 function ledger() {
     return {
         scope: 'portfolio',
@@ -61,11 +70,12 @@ describe('investment drawdown series orchestration', () => {
             startAt: firstAt,
             endAt: secondAt,
             recordedAtCutoff: cutoff,
-            expectedDailyCloseAt: [firstAt, secondAt],
+            investmentDrawdownCalendars: [calendar()],
             analyzeInvestmentDrawdownMath
         });
         expect(result.status).toBe('available');
         expect(result.methodology).toBe('TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1');
+        expect(result).toMatchObject({ calendarId: 'calendar-1', calendarVersion: 1 });
         expect(result.maximumDrawdown).toBe(0);
         expect(result.completeness).toHaveLength(2);
         expect(result.completeness.every((item) => item.complete)).toBe(true);
@@ -83,7 +93,7 @@ describe('investment drawdown series orchestration', () => {
             startAt: firstAt,
             endAt: firstAt,
             recordedAtCutoff: cutoff,
-            expectedDailyCloseAt: [firstAt],
+            investmentDrawdownCalendars: [calendar()],
             analyzeInvestmentDrawdownMath: calculate
         });
         expect(result.status).toBe('unavailable');
@@ -100,10 +110,10 @@ describe('investment drawdown series orchestration', () => {
             recordedAtCutoff: cutoff
         };
         expect(() => analyzeInvestmentDrawdownSeries({
-            ...common, analyzeInvestmentDrawdownMath, expectedDailyCloseAt: undefined
-        })).toThrow(/explicit daily-close calendar/i);
+            ...common, analyzeInvestmentDrawdownMath, investmentDrawdownCalendars: undefined
+        })).toThrow(/persisted daily-close calendar collection/i);
         expect(() => analyzeInvestmentDrawdownSeries({
-            ...common, expectedDailyCloseAt: [firstAt, secondAt]
+            ...common, investmentDrawdownCalendars: [calendar()]
         })).toThrow(/calculator must be supplied/i);
     });
 });
