@@ -116,7 +116,7 @@ describe('historical investment performance period comparison', () => {
     });
 
     it('rejects duplicate labels and an empty period set', () => {
-        expect(() => compareInvestmentPerformancePeriods({ periods: [] })).toThrow(/at least one/u);
+        expect(() => compareInvestmentPerformancePeriods({ periods: [] })).toThrow(/at least one/iu);
         expect(() => compareInvestmentPerformancePeriods({
             periods: [{ label: 'Same', analysis: analysis(janStart, janEnd) },
                 { label: 'Same', analysis: analysis(febStart, febEnd) }]
