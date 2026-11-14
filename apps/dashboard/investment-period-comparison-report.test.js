@@ -9,8 +9,11 @@ const comparison = {
         { label: 'January <script>', status: 'available', startAt: '2026-01-01T00:00:00.000Z',
             endAt: '2026-02-01T00:00:00.000Z', coverageStartAt: '2026-01-01T00:00:00.000Z',
             coverageEndAt: '2026-02-01T00:00:00.000Z', periodReturn: 0.25, maximumDrawdown: -0.1,
-            peakAt: null, troughAt: null, recoveryAt: null, recovered: false, observationCount: 2,
-            flowBoundaryCount: 0, calendarId: 'calendar-1', calendarVersion: 1, overlapsPrevious: false },
+            peakAt: '2026-01-10T00:00:00.000Z', troughAt: '2026-01-20T00:00:00.000Z',
+            recoveryAt: null, recovered: false, observationCount: 2, flowBoundaryCount: 0,
+            completeness: [{ snapshotId: 'snapshot-jan', status: 'complete', expectedComponentCount: 2,
+                actualComponentCount: 2, missingComponents: [], unexpectedComponents: [], mismatchedComponents: [], reasons: [] }],
+            calendarId: 'calendar-1', calendarVersion: 1, overlapsPrevious: false },
         { label: 'February', status: 'unavailable', reason: 'Missing <close> evidence.',
             startAt: '2026-02-01T00:00:00.000Z', endAt: '2026-03-01T00:00:00.000Z',
             coverageStartAt: null, coverageEndAt: null, periodReturn: null, maximumDrawdown: null,
@@ -23,6 +26,9 @@ describe('historical period comparison report', () => {
     it('renders a standalone script-free report and escapes period labels and reasons', () => {
         const html = renderInvestmentPeriodComparisonHtml({ comparison, generatedAt: '2026-04-02T00:00:00.000Z' });
         expect(html).toContain('25.00%');
+        expect(html).toContain('2026-01-10T00:00:00.000Z');
+        expect(html).toContain('2026-01-20T00:00:00.000Z');
+        expect(html).toContain('snapshot-jan: complete (2/2 components)');
         expect(html).toContain('Unavailable');
         expect(html).toContain('Missing &lt;close&gt; evidence.');
         expect(html).toContain('January &lt;script&gt;');
