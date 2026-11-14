@@ -1,6 +1,19 @@
 # Current Sprint
 
-## 2026-11-13 — Sprint 10: User-configured investment exposure limits (completed — PR #452 merged)
+## 2026-11-13 — Sprint 11: Flow-adjusted portfolio drawdown (in progress — PR #453)
+
+- Sprint 10 exposure limits remain complete and merged in PR #452.
+- Approved Option B: time-weighted, external-flow-adjusted drawdown; raw NAV and Modified Dietz fallback are rejected.
+- Implemented a pure calculator kernel with chain-linked wealth index, paired pre/post external-flow boundaries, authoritative flow-event matching, scope/currency validation, bitemporal cutoffs, maximum drawdown, peak/trough/recovery and explicit unavailable states.
+- Added hand-calculated tests for market movement, contribution neutrality, withdrawal neutrality, costs, missing/incomplete boundaries, flow timestamp mismatch, simultaneous flow ambiguity, mixed scope/currency and recorded-at cutoff.
+- Added a component-level snapshot contract and validator for position/cash references, component provenance, exact effective timestamps, component-total reconciliation, incomplete states, paired flow-boundary component universes, immutable supersession and recorded-at selection. This does not yet independently prove that every open holding/cash account is included.
+- Added SQLite schema v11 for drawdown snapshots and schema v12 for the explicit daily-close calendar (19 collections), with transactional v10→v11→v12 migrations and protected pre-v11/pre-v12 recovery artifacts. JSON and SQLite backup/restore now carry the calendar collection while schemas v1–v11 remain importable. Legacy v1–v10 JSON backups remain supported; old backups preserve existing drawdown snapshots only if their references remain valid.
+- Added deterministic snapshot-contract, backup compatibility and migration tests. Verified latest head `c84c2305c30de50e6678081f537a65fe4cf304d9`: CI run #1759 passed (86 test files / 833 tests, lint, typecheck, package build and Chromium browser smoke); Secret Scan #1553 passed; dashboard deployment workflow #995 passed.
+- Production delivery is not complete: private manual snapshot capture/import, paired flow-boundary authoring, calendar authoring UI, independent end-to-end financial acceptance and private reporting/export remain required. Do not present drawdown as an end-user feature yet.
+
+### Next gated work
+
+Next: implement the manual-first, provider-neutral capture/import workflow and independently verify complete position/cash component coverage against the immutable ledgers at both effective-time and recorded-at cutoffs. Then add authoritative external-flow taxonomy, explicit daily observation calendar, integration acceptance and private UI/export. Do not add a provider or external transmission. Liquidity remains separately gated.
 
 - Sprint 9 weighted multi-group look-through was approved as Option B and merged in PR #450.
 - Completed immutable, bitemporal exposure policy versions with stable policy-set identity, currency, portfolio/account scope and classification dimension.
@@ -510,3 +523,66 @@ Implemented on draft PR #435:
 - Operational residuals remain explicit: local SQLite and exports are not encrypted; backups are manual, with no automated rotation/retention or remote copy. Use synthetic data in the public repository and loopback-only private workspace for household records.
 
 - Post-merge main push CI run #1542 passed on `4ee5fadc936758cea4ada0f1c7ec903bf3bd5081` after PR #437 was merged.
+
+
+## 2026-11-14 — Drawdown acquisition milestones
+
+On the existing PR #453 branch:
+
+- Added ledger-derived snapshot requirements using bitemporal FIFO quantities and a cash-account roll-forward from explicit opening balances, movements, transfers and linked investment transactions.
+- Added snapshot completeness verification for missing/extra components, position quantity mismatches and cash balance mismatches. Missing baselines and unlinked transactions return an incomplete result; no zero balance or price is inferred.
+- Added external-flow classification: contributions/withdrawals are flows; opening balances are excluded; transfers are internal when both endpoints are in scope and external when crossing an account scope; investment transactions are not external flows.
+- Same-effective-time corrections restate the original external event without a duplicate flow. A correction with a different effective timestamp makes the affected flow unavailable. Corrections after the knowledge cutoff do not rewrite the as-known view.
+- Added acquisition tests for FIFO partial sales, cash roll-forward, missing components/baselines, transaction links, scope-crossing transfers, correction netting and bitemporal cutoffs.
+- In-kind events and corporate actions are not represented by the current cash-ledger schema and remain gated.
+
+Next: manual snapshot capture/import and flow-boundary authoring, followed by explicit daily-close calendar management and independent end-to-end financial acceptance fixtures. PR #453 remains open and unmerged; run status for the latest code commit must be checked before calling this increment verified.
+
+
+## 2026-11-14 — Drawdown series orchestration increment
+
+- Added `apps/dashboard/investment-drawdown-series.js` to join the approved calculator to the validated snapshot and acquisition contracts.
+- The orchestration independently rechecks each selected snapshot against the bitemporal FIFO/cash ledger before invoking the math kernel.
+- It obtains external flows only from the authoritative cash-ledger classifier and passes the caller-supplied explicit daily-close calendar unchanged to the pure calculator.
+- Missing calculator dependency, missing calendar, failed component reconciliation or unavailable flow classification fails closed; no partial statistic is returned.
+- Added deterministic orchestration tests using synthetic INR ledger and valuation fixtures.
+- This is calculation-pipeline wiring only. Manual capture UI, a persisted calendar contract, export/reporting, broader financial acceptance cases and CI validation of the new commits remain outstanding.
+
+
+## 2026-11-14 — Explicit daily-close calendar persistence (schema v12)
+
+- Added `apps/dashboard/investment-drawdown-calendars.js` with an immutable, versioned and bitemporal calendar contract.
+- Each calendar explicitly stores its scope, account (when applicable), currency, exact analysis window, recorded-at timestamp and ordered `expectedDailyCloseAt` timestamps. No weekdays, holidays, trading sessions or missing dates are generated.
+- Calendar corrections are append-only: a new version supersedes one prior version, preserves its identity/scope/currency/window and has a later recorded-at timestamp.
+- Added as-of selection by recorded-at cutoff. Missing or ambiguous calendars fail closed.
+- Added SQLite schema v12 (19 workspace collections), transactional v11→v12 migration and a protected pre-v12 JSON recovery artifact. Existing schema-v11 workspaces receive an empty calendar collection; no historical calendar is fabricated.
+- JSON backup/restore, private browser workspace state and SQLite save/restore/online backup now include the calendar collection. Legacy schemas v1–v11 remain accepted; legacy imports preserve existing calendars only when their account references remain valid.
+- Added calendar contract and schema migration/backup round-trip tests. After correcting schema-v11 dashboard fixtures and browser smoke expectations, implementation head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI #1831, Secret Scan #1625 and dashboard packaging #1067. Later commits are documentation-only.
+- PR #453 remains open, draft and unmerged. No merge is authorized.
+
+Delivered: private manual daily-close calendar authoring, persisted calendar selection in `analyzeInvestmentDrawdownSeries`, manual valuation snapshot capture/import, and paired pre-flow/post-flow boundary authoring tied to authoritative cash-ledger flow IDs. Browser smoke now verifies daily-close capture, paired cash-flow boundaries, demo/private isolation, and JSON/SQLite backup compatibility.
+
+Completed on PR #453: independent hand-calculated end-to-end acceptance covers a same-time correction, multiple external flows, a scope-crossing transfer, fees, taxes, a fully closed position and missing daily-close fail-closed behavior. Private descriptive HTML and spreadsheet-safe CSV reports include scope, currency, methodology, analysis window, observed coverage, recorded-at cutoff, peak/trough/recovery, completeness evidence and unavailable reasons.
+
+Remaining future scope: in-kind contributions/withdrawals and corporate actions require a separate ledger-model decision; they are not inferred or part of the current Option B contract.
+
+
+## 2026-11-14 — Manual drawdown observation acquisition delivered
+
+- Added `apps/dashboard/investment-drawdown-snapshot-workspace.js` and private-only manual capture/import UI.
+- Supports explicit daily-close observations and paired pre-flow/post-flow observations. Flow choices are sourced from the authoritative cash-ledger classifier at the exact effective timestamp and recorded-at cutoff.
+- Position values are calculated only from user-entered quantity × unit price; cash balances are explicitly entered. Every component records exact effective timestamp and manual source provenance.
+- Completeness is derived from FIFO position quantities and cash roll-forward. Incomplete observations remain incomplete; no price, balance, position or missing observation is fabricated.
+- Browser smoke verifies a ledger-reconciled daily close, paired contribution boundaries, demo/private isolation, and JSON/SQLite backup round-trips.
+- Verified head `e91cfb79d557251c27b2a2a13914c463d773bde5`: CI #1854, Secret Scan #1648 and dashboard packaging #1090 passed.
+- PR #453 remains open, draft and unmerged. Do not merge without explicit approval.
+
+## 2026-11-14 — Drawdown acceptance and reporting delivered
+
+- Added independent hand-calculated series acceptance for a corrected contribution, withdrawal, account-scope transfer, fees, taxes, a sale that closes the position and a missing expected daily close. The expected maximum drawdown is calculated independently from the fixture NAVs.
+- Snapshot validation now rejects a valuation recorded before its effective timestamp.
+- Added private-only descriptive HTML and CSV reporting with exact scope, currency, window, observed coverage, recorded-at cutoff, methodology, calendar provenance, peak/trough/recovery, per-snapshot completeness and unavailable reasons.
+- HTML preview is sandboxed and contains no remote assets or scripts. CSV text cells are protected against spreadsheet formula injection. Report data and downloads are cleared/disabled when switching to demo mode or when source data changes.
+- Browser smoke verifies manual capture, paired flow boundaries, report generation and HTML/CSV downloads, demo/private isolation, JSON backup/restore and SQLite persistence.
+- Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
+- PR #453 remains open, draft and unmerged. No merge is authorized.

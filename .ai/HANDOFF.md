@@ -6,7 +6,7 @@ PFO OS — Personal Family Office Operating System
 
 ## Current State
 
-The repository is the source of truth. Main includes the investment ledger, FIFO positions and valuation provenance, cash ledger and statement reconciliation, allocation/concentration policies, weighted multi-group exposure classifications (PR #450), and user-configured exposure limits (PR #452). The private workspace is stored in a validated schema-v10 SQLite snapshot with 17 collections. PR #452 merged on 2026-11-13 after CI #1670, dashboard packaging #955, Secret Scan #1464 and Chromium browser smoke passed. Liquidity and drawdown remain gated on separately approved input/metric contracts. The repository is public: use synthetic fixtures only; never commit real household financial data, statements, credentials or private reports. SQLite and JSON exports are not encrypted, backups remain manual, and remote backup/cloud sync/multi-user hosted access are not shipped. Customer demand, licensing/distribution review and owner-side GitHub Pages setup remain release gates.
+The repository is the source of truth. Main includes the investment ledger, FIFO positions and valuation provenance, cash ledger and statement reconciliation, allocation/concentration policies, weighted multi-group exposure classifications (PR #450), and user-configured exposure limits (PR #452). Main remains schema v10 with 17 collections. Open draft PR #453 now adds the approved Option B drawdown kernel, ledger-derived snapshot completeness, authoritative external-flow classification, series orchestration, explicit daily-close calendar contract, SQLite schema v12 (19 collections), transactional v11→v12 migration and protected pre-v12 recovery artifact, plus JSON/SQLite backup integration. PR #453 is not merged. The first CI attempts exposed stale schema-v11 fixtures, a stale collection count and missing calendar state in the browser smoke. Those were corrected. Implementation head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI #1831, Secret Scan #1625 and dashboard packaging #1067; later commits are documentation-only. Manual capture/import UI, paired flow-boundary authoring, calendar authoring UI, end-to-end financial acceptance and private reporting/export remain outstanding. Do not describe drawdown as shipped until those gates pass. Liquidity remains separately gated. The repository is public: use synthetic fixtures only; never commit real household financial data, statements, credentials or private reports. SQLite and JSON exports are not encrypted, backups remain manual, and remote backup/cloud sync/multi-user hosted access are not shipped. Customer demand, licensing/distribution review and owner-side GitHub Pages setup remain release gates.
 
 ## Latest Follow-up (2026-10-14)
 
@@ -562,3 +562,66 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - CI #1670, dashboard packaging #955, Secret Scan #1464 and Chromium browser smoke passed before merge.
 - No default thresholds, risk scores, severity bands, recommendations, alerts, FX conversion, nested fund recursion, provider synchronization or trading behavior were introduced.
 - Next gated work: define and validate liquidity and drawdown data/metric contracts before implementation. Continue to use synthetic data only.
+
+
+## Latest Handoff — 2026-11-14 (PR #453 drawdown acquisition)
+
+- Continue on branch `feature/ipm-drawdown-contract-discovery`, PR #453. Do not create another PR for this cohesive drawdown increment.
+- New module: `apps/dashboard/investment-drawdown-acquisition.js`.
+- Exports:
+  - `buildInvestmentDrawdownSnapshotRequirements`: bitemporal FIFO open-position universe and explicit cash-ledger roll-forward.
+  - `validateInvestmentDrawdownSnapshotCompleteness`: compare persisted components, quantities and cash balances to ledger-derived requirements.
+  - `buildInvestmentDrawdownExternalFlows`: explicit flow classification, scope-boundary transfer handling and correction restatement.
+- New tests: `apps/dashboard/investment-drawdown-acquisition.test.js`.
+- External cash contributions/withdrawals are flows; opening balances are baselines; transfers wholly inside scope are internal; transfers crossing account scope are external. Purchases/sales/dividends/interest/fees/taxes are not external flows.
+- Corrections restate the referenced external flow only when the correction shares the original effective timestamp. Otherwise return unavailable. Recorded-at cutoffs prevent later corrections from rewriting historical as-known results.
+- In-kind flows and corporate actions are not supported by the existing event schema and must not be inferred.
+- Snapshot completeness does not invent prices. Every open FIFO position still needs explicit same-timestamp valuation evidence. Every cash account needs an eligible explicit opening balance and all selected-account investment transactions must be linked to eligible cash accounts.
+- PR #453 is still open/draft/unmerged. Check CI, Secret Scan and dashboard packaging against the latest head before reporting verification. Do not merge without explicit approval.
+
+
+## Handoff update — drawdown series orchestration
+
+- Added `apps/dashboard/investment-drawdown-series.js` and `.test.js`.
+- `analyzeInvestmentDrawdownSeries` requires an injected pure math calculator and explicit `expectedDailyCloseAt`; it validates all selected snapshots against the investment/cash ledgers, classifies external flows from the authoritative cash ledger, and only then invokes the calculator.
+- It returns an explicit unavailable result with reconciliation evidence if a selected snapshot is incomplete or a flow cannot be classified.
+- Synthetic integration fixture exercises two ledger-reconciled daily closes and a rising valuation path; a mismatch case proves the calculator is not invoked.
+- Latest code commit at handoff: `9c8b205753a2a5221e07151f0b78cd370ecb1625`. GitHub Actions has not yet reported runs for this head; do not call this increment validated until tests and full workflows execute.
+- Continue on the same branch and PR #453. Next: inspect and design the persisted observation-calendar schema/migration, then implement private capture and reporting against SQLite-backed backup/restore—not localStorage-only calendar state.
+
+
+## Latest Handoff — 2026-11-14 (drawdown calendar schema v12)
+
+- Continue on the existing branch `feature/ipm-drawdown-contract-discovery` and PR #453. Do not create a second PR for this feature.
+- Added `apps/dashboard/investment-drawdown-calendars.js` and tests. The calendar is an explicit list of UTC close timestamps; it never generates business days, exchange holidays or missing observations.
+- Calendar records are immutable and versioned. Corrections supersede one prior revision, retain scope/currency/window, increment version and record a later knowledge timestamp. Selection is as-of the requested recorded-at cutoff and fails when missing or ambiguous.
+- SQLite workspace schema is now v12 with 19 collections. Transactional v11→v12 migration writes a protected `.pre-v12-*.json` recovery artifact before changing the live workspace. Existing v11 workspaces gain an empty calendar collection; no schedule is fabricated.
+- `backup.js`, private workspace export/import, SQLite workspace validation/save/restore and online SQLite backup include `investmentDrawdownCalendars`. JSON schemas v1–v11 remain importable. Legacy imports preserve existing calendars only if their investment-account references remain valid.
+- Tests were added for calendar ordering, uniqueness, scope/currency/timestamp validation, append-only correction, recorded-at selection, v11→v12 migration and backup round-trip.
+- Earlier CI attempts exposed stale schema-v11 dashboard fixtures, a static-integrity source-loading issue, browser smoke assertions that omitted the calendar collection, and a hard-coded 18-collection status message. These were corrected. Verified implementation head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI #1831, Secret Scan #1625 and dashboard packaging #1067.
+- Next: add private calendar authoring UI and wire the selected persisted schedule into `analyzeInvestmentDrawdownSeries`; then deliver manual position/cash snapshot capture/import, paired flow-boundary authoring, independent end-to-end financial acceptance and private reporting/export.
+- PR #453 remains open, draft and unmerged. Do not merge without explicit approval.
+
+
+## Latest Handoff — 2026-11-14 (manual drawdown acquisition)
+
+- Continue on existing branch `feature/ipm-drawdown-contract-discovery` and PR #453. Do not create a second PR for this cohesive increment.
+- New UI module: `apps/dashboard/investment-drawdown-snapshot-workspace.js`; wired through `apps/dashboard/app.js` and `apps/dashboard/index.html`.
+- Private-only capture supports `DailyClose` and paired `ExternalFlowPre` / `ExternalFlowPost` observations. Component JSON input uses ledger account/instrument/cash-account IDs. Position values are quantity × explicitly entered unit price; cash values are explicitly entered.
+- Flow options come from `buildInvestmentDrawdownExternalFlows` at the exact effective timestamp and recorded-at cutoff. The UI saves both boundary snapshots together; validator enforces matching component universes and exact timestamps.
+- Completeness is computed against `buildInvestmentDrawdownSnapshotRequirements`; position quantities and cash balances must reconcile. Incomplete captures are preserved as incomplete and are excluded from usable calculations.
+- Browser smoke now covers a complete daily close, an authoritative external contribution pair, demo/private isolation, JSON backup/restore and SQLite workspace round-trip.
+- Verified head `e91cfb79d557251c27b2a2a13914c463d773bde5`: CI #1854, Secret Scan #1648 and dashboard packaging #1090 all passed.
+- Completed: independent hand-calculated end-to-end acceptance fixtures and private descriptive HTML/CSV reporting/export. Future work is limited to a separate design decision for in-kind contributions/withdrawals and corporate actions.
+- In-kind contributions/withdrawals and corporate actions remain unsupported; do not infer them. PR #453 remains open/draft/unmerged; do not merge without explicit approval. Synthetic data only.
+
+## Latest Handoff — 2026-11-14 (drawdown acceptance and reporting)
+
+- Current branch: `feature/ipm-drawdown-contract-discovery`; existing PR #453 only. PR remains open, draft and unmerged. Do not merge without explicit approval.
+- Current Option B drawdown deliverable is implemented: manual daily-close capture, paired authoritative pre/post-flow capture, persisted explicit calendars, series orchestration, ledger reconciliation and private descriptive reporting/export.
+- Independent acceptance test covers contribution correction netting, external contribution, withdrawal, account-scope transfer out, fees, taxes, sale closing a position and missing expected daily-close fail-closed behavior. The expected drawdown is hand-calculated from fixture NAVs.
+- Snapshot contract rejects `recordedAt < effectiveAt`.
+- Report modules: `apps/dashboard/investment-drawdown-report.js` and `apps/dashboard/investment-drawdown-report-workspace.js`. HTML preview is sandboxed; HTML/CSV downloads are private-only; CSV protects text cells against spreadsheet formula injection. Report includes observed coverage and completeness evidence; unavailable analysis has no partial points/statistics.
+- Browser smoke verifies report generation/downloads and clearing private report state on demo switch, in addition to capture, JSON backup/restore and SQLite round-trip.
+- Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
+- Future scope only: in-kind flows and corporate actions require a separate ledger-model ADR. Do not infer them or add thresholds/alerts/recommendations/trading behavior. Synthetic data only.

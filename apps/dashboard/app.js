@@ -5,6 +5,11 @@ import { validateInvestmentAllocationCollections } from './investment-allocation
 import { validateInvestmentConcentrationCollections } from './investment-concentration.js';
 import { validateInvestmentExposureClassifications } from './investment-exposure.js';
 import { validateInvestmentExposurePolicyCollections } from './investment-exposure-policy.js';
+import { validateInvestmentDrawdownSnapshots } from './investment-drawdown-snapshots.js';
+import { validateInvestmentDrawdownCalendars } from './investment-drawdown-calendars.js';
+import { initializeInvestmentDrawdownCalendarWorkspace } from './investment-drawdown-calendar-workspace.js';
+import { initializeInvestmentDrawdownSnapshotWorkspace } from './investment-drawdown-snapshot-workspace.js';
+import { initializeInvestmentDrawdownReportWorkspace } from './investment-drawdown-report-workspace.js';
 import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
@@ -59,6 +64,8 @@ const INVESTMENT_ALLOCATION_STORAGE_KEY = 'pfo-os.investment-allocation-policies
 const INVESTMENT_CONCENTRATION_STORAGE_KEY = 'pfo-os.' + 'investment-concentration-policies.v1';
 const INVESTMENT_EXPOSURE_STORAGE_KEY = 'pfo-os.investment-exposure-classifications.v1';
 const INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY = 'pfo-os.' + 'investment-exposure-policies.v1';
+const INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY = 'pfo-os.investment-drawdown-snapshots.v1';
+const INVESTMENT_DRAWDOWN_CALENDAR_STORAGE_KEY = 'pfo-os.investment-drawdown-calendars.v1';
 const DATABASE_AUTO_SAVE_KEY = 'pfo-os.sqlite-auto-save.v1';
 const CURRENCY = 'INR';
 const COLORS = ['#176b4d', '#4d8b70', '#9dbb9f', '#c4a15d', '#7898b6', '#a18cb5', '#d18b70', '#7c8a82'];
@@ -102,6 +109,11 @@ let investmentAllocationStorageHealthy = true;
 let investmentConcentrationStorageHealthy = true;
 let investmentExposureStorageHealthy = true;
 let investmentExposurePolicyStorageHealthy = true;
+let investmentDrawdownSnapshotStorageHealthy = true;
+let investmentDrawdownCalendarStorageHealthy = true;
+let drawdownCalendarWorkspace;
+let drawdownSnapshotWorkspace;
+let drawdownReportWorkspace;
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -873,18 +885,78 @@ function persistInvestmentExposurePolicies(policies) {
     return validated;
 }
 
+function readInvestmentDrawdownSnapshots() {
+    try {
+        const raw = localStorage.getItem(INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY);
+        const snapshots = raw === null ? [] : JSON.parse(raw);
+        if (!Array.isArray(snapshots)) throw new Error('Saved investment drawdown snapshots are not a collection.');
+        const ledger = readInvestmentLedgerCollections();
+        const cash = readInvestmentCashCollections();
+        if (!investmentStorageHealthy || !investmentCashStorageHealthy) throw new Error('Investment ledger or cash ledger could not be validated.');
+        const validated = validateInvestmentDrawdownSnapshots({ ...ledger, ...cash, investmentDrawdownSnapshots: snapshots });
+        investmentDrawdownSnapshotStorageHealthy = true;
+        return validated;
+    } catch (error) {
+        investmentDrawdownSnapshotStorageHealthy = false;
+        showToast(error instanceof Error ? 'Investment drawdown snapshots could not be validated and were left untouched: ' + error.message : 'Investment drawdown snapshots could not be validated. Existing storage was left untouched.');
+        return { investmentDrawdownSnapshots: [] };
+    }
+}
+
+function persistInvestmentDrawdownSnapshots(snapshots, source = null) {
+    const ledger = source ?? readInvestmentLedgerCollections();
+    const cash = source ?? readInvestmentCashCollections();
+    const validated = validateInvestmentDrawdownSnapshots({ ...ledger, ...cash, investmentDrawdownSnapshots: snapshots });
+    if (!persistJson(localStorage, INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY, validated.investmentDrawdownSnapshots)) {
+        throw new Error('Could not save investment drawdown snapshots to browser storage.');
+    }
+    investmentDrawdownSnapshotStorageHealthy = true;
+    return validated;
+}
+
+function readInvestmentDrawdownCalendars() {
+    try {
+        const raw = localStorage.getItem(INVESTMENT_DRAWDOWN_CALENDAR_STORAGE_KEY);
+        const calendars = raw === null ? [] : JSON.parse(raw);
+        if (!Array.isArray(calendars)) throw new Error('Saved investment drawdown calendars are not a collection.');
+        const ledger = readInvestmentLedgerCollections();
+        if (!investmentStorageHealthy) throw new Error('Investment ledger could not be validated.');
+        const validated = validateInvestmentDrawdownCalendars({ ...ledger, investmentDrawdownCalendars: calendars });
+        investmentDrawdownCalendarStorageHealthy = true;
+        return validated;
+    } catch (error) {
+        investmentDrawdownCalendarStorageHealthy = false;
+        showToast(error instanceof Error ? 'Investment drawdown calendars could not be validated and were left untouched: ' + error.message : 'Investment drawdown calendars could not be validated. Existing storage was left untouched.');
+        return { investmentDrawdownCalendars: [] };
+    }
+}
+
+function persistInvestmentDrawdownCalendars(calendars, source = null) {
+    const ledger = source ?? readInvestmentLedgerCollections();
+    const validated = validateInvestmentDrawdownCalendars({ ...ledger, investmentDrawdownCalendars: calendars });
+    if (!persistJson(localStorage, INVESTMENT_DRAWDOWN_CALENDAR_STORAGE_KEY, validated.investmentDrawdownCalendars)) {
+        throw new Error('Could not save investment drawdown calendars to browser storage.');
+    }
+    investmentDrawdownCalendarStorageHealthy = true;
+    return validated;
+}
+
 function switchWorkspace(nextWorkspace) {
     workspace = nextWorkspace;
     records = workspace === 'demo' ? structuredClone(demoRecords) : readPrivateRecords();
-    if (workspace === 'private') { readInvestmentLedgerCollections(); readInvestmentCashCollections(); readInvestmentAllocationPolicies(); readInvestmentConcentrationPolicies(); readInvestmentExposureClassifications(); readInvestmentExposurePolicies(); }
-    else { investmentStorageHealthy = true; investmentAllocationStorageHealthy = true; investmentConcentrationStorageHealthy = true; investmentExposureStorageHealthy = true; investmentExposurePolicyStorageHealthy = true; }
+    if (workspace === 'private') { readInvestmentLedgerCollections(); readInvestmentCashCollections(); readInvestmentAllocationPolicies(); readInvestmentConcentrationPolicies(); readInvestmentExposureClassifications(); readInvestmentExposurePolicies(); readInvestmentDrawdownSnapshots(); readInvestmentDrawdownCalendars(); }
+    else { investmentStorageHealthy = true; investmentAllocationStorageHealthy = true; investmentConcentrationStorageHealthy = true; investmentExposureStorageHealthy = true; investmentExposurePolicyStorageHealthy = true; investmentDrawdownSnapshotStorageHealthy = true; investmentDrawdownCalendarStorageHealthy = true; }
     loadSavedGoals();
     $('#workspace-label').textContent = workspace === 'demo' ? 'SAMPLE WORKSPACE' : 'PRIVATE WORKSPACE';
     $('#sample-notice').hidden = workspace !== 'demo';
     $('#switch-demo-button').hidden = workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname);
     $('#switch-private-button').textContent = isPrivateWorkspaceAllowed(window.location.hostname) ? 'Use my data →' : 'Use locally →';
+    drawdownCalendarWorkspace?.render();
+    drawdownSnapshotWorkspace?.render();
+    drawdownReportWorkspace?.render();
     render();
     window.dispatchEvent(new Event('pfo:workspace-updated'));
+    drawdownReportWorkspace?.render();
 }
 
 
@@ -1650,12 +1722,12 @@ function showToast(message) {
 
 function exportData() {
     const isPrivateExport = workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname);
-    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy || !investmentExposurePolicyStorageHealthy)) {
+    if (isPrivateExport && (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy || !investmentExposurePolicyStorageHealthy || !investmentDrawdownSnapshotStorageHealthy || !investmentDrawdownCalendarStorageHealthy)) {
         showToast('Export is paused because saved records or goals could not be read safely. Existing storage remains untouched; import a valid backup to recover.');
         return;
     }
     const payload = {
-        schemaVersion: isPrivateExport ? 10 : 1,
+        schemaVersion: isPrivateExport ? 12 : 1,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records
@@ -1682,6 +1754,10 @@ function exportData() {
             if (!investmentExposureStorageHealthy) throw new Error('Investment exposure classification storage could not be validated.');
             Object.assign(payload, readInvestmentExposurePolicies());
             if (!investmentExposurePolicyStorageHealthy) throw new Error('Investment exposure policy storage could not be validated.');
+            Object.assign(payload, readInvestmentDrawdownSnapshots());
+            if (!investmentDrawdownSnapshotStorageHealthy) throw new Error('Investment drawdown snapshot storage could not be validated.');
+            Object.assign(payload, readInvestmentDrawdownCalendars());
+            if (!investmentDrawdownCalendarStorageHealthy) throw new Error('Investment drawdown calendar storage could not be validated.');
         } catch (error) {
             showToast(error instanceof Error ? 'Full workspace export paused: ' + error.message : 'Full workspace data could not be validated; nothing was exported.');
             return;
@@ -2036,7 +2112,7 @@ function buildDatabaseWorkspacePayload() {
     if (workspace !== 'private' || !isPrivateWorkspaceAllowed(window.location.hostname)) {
         throw new Error('Switch to the local private workspace before saving to SQLite.');
     }
-    if (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy || !investmentExposurePolicyStorageHealthy) {
+    if (!privateStorageHealthy || !goalsStorageHealthy || !historicalStorageHealthy || !investmentStorageHealthy || !investmentCashStorageHealthy || !investmentAllocationStorageHealthy || !investmentConcentrationStorageHealthy || !investmentExposureStorageHealthy || !investmentExposurePolicyStorageHealthy || !investmentDrawdownSnapshotStorageHealthy || !investmentDrawdownCalendarStorageHealthy) {
         throw new Error('Database save is paused because saved workspace data could not be validated. Recover from a verified backup first.');
     }
     const entriesRaw = localStorage.getItem('pfo-os.cash-flow.v1');
@@ -2055,8 +2131,12 @@ function buildDatabaseWorkspacePayload() {
     if (!investmentExposureStorageHealthy) throw new Error('Investment exposure classification validation failed; database save is paused.');
     const investmentExposurePolicies = readInvestmentExposurePolicies();
     if (!investmentExposurePolicyStorageHealthy) throw new Error('Investment exposure policy validation failed; database save is paused.');
+    const investmentDrawdownSnapshots = readInvestmentDrawdownSnapshots();
+    if (!investmentDrawdownSnapshotStorageHealthy) throw new Error('Investment drawdown snapshot validation failed; database save is paused.');
+    const investmentDrawdownCalendars = readInvestmentDrawdownCalendars();
+    if (!investmentDrawdownCalendarStorageHealthy) throw new Error('Investment drawdown calendar validation failed; database save is paused.');
     const payload = {
-        schemaVersion: 10,
+        schemaVersion: 12,
         currency: CURRENCY,
         exportedAt: new Date().toISOString(),
         records,
@@ -2069,7 +2149,9 @@ function buildDatabaseWorkspacePayload() {
         ...investmentAllocationPolicies,
         ...investmentConcentrationPolicies,
         ...investmentExposureClassifications,
-        ...investmentExposurePolicies
+        ...investmentExposurePolicies,
+        ...investmentDrawdownSnapshots,
+        ...investmentDrawdownCalendars
     };
     // Run the same backup validator used by file restore before sending anything to the server.
     validateBackupPayload(payload, CURRENCY);
@@ -2090,7 +2172,7 @@ function updateDatabaseAutoSaveButton() {
 
 // Unreadable browser values count as existing data: recovery must never assume they are disposable.
 function hasBrowserWorkspaceData() {
-    const keys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY, ...Object.values(INVESTMENT_STORAGE_KEYS), ...Object.values(INVESTMENT_CASH_STORAGE_KEYS), INVESTMENT_ALLOCATION_STORAGE_KEY, INVESTMENT_CONCENTRATION_STORAGE_KEY, INVESTMENT_EXPOSURE_STORAGE_KEY, INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY];
+    const keys = [STORAGE_KEY, GOALS_STORAGE_KEY, 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', HISTORICAL_STORAGE_KEY, ...Object.values(INVESTMENT_STORAGE_KEYS), ...Object.values(INVESTMENT_CASH_STORAGE_KEYS), INVESTMENT_ALLOCATION_STORAGE_KEY, INVESTMENT_CONCENTRATION_STORAGE_KEY, INVESTMENT_EXPOSURE_STORAGE_KEY, INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY, INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY, INVESTMENT_DRAWDOWN_CALENDAR_STORAGE_KEY];
     try {
         return keys.some((key) => {
             const raw = localStorage.getItem(key);
@@ -2229,7 +2311,7 @@ async function createOnlineSqliteBackup() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'The verified SQLite backup could not be created.');
         const count = Object.values(result.collectionCounts ?? {}).reduce((sum, value) => sum + value, 0);
-        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 17 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
+        resultElement.textContent = `Verified SQLite backup created: ${result.filename} (${number(result.bytes)} bytes; ${count} records across 19 collections). Location: ${result.directory}. Copy this file to separate protected storage. Backups are not automatically rotated or encrypted.`;
     } catch (error) {
         resultElement.textContent = error instanceof Error ? error.message : 'The verified SQLite backup could not be created.';
     } finally {
@@ -2468,6 +2550,35 @@ function importData(file, options = {}) {
                     throw new Error('This backup would invalidate existing exposure policy group or dimension references. Policies were preserved and no data was imported. Review the classification and policy references before retrying.', { cause: error });
                 }
             }
+            if (!backup.includesInvestmentDrawdownSnapshots) {
+                const existingRaw = localStorage.getItem(INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY);
+                const existingSnapshots = existingRaw === null ? [] : JSON.parse(existingRaw);
+                if (!Array.isArray(existingSnapshots)) throw new Error('Existing investment drawdown snapshots are not a valid collection. The older backup was not imported.');
+                const targetLedger = backup.includesInvestmentLedger ? backup : readInvestmentLedgerCollections();
+                const targetCash = backup.includesInvestmentCashLedger ? backup : readInvestmentCashCollections();
+                if (!investmentStorageHealthy || !investmentCashStorageHealthy) {
+                    throw new Error('Current investment ledger or cash data could not be validated. The older backup was not imported.');
+                }
+                try {
+                    validateInvestmentDrawdownSnapshots({ ...targetLedger, ...targetCash, investmentDrawdownSnapshots: existingSnapshots });
+                    investmentDrawdownSnapshotStorageHealthy = true;
+                } catch (error) {
+                    throw new Error('This older backup would invalidate existing drawdown snapshot references. Snapshots were preserved and no data was imported. Review the investment ledger and cash-account references before retrying.', { cause: error });
+                }
+            }
+            if (!backup.includesInvestmentDrawdownCalendars) {
+                const existingRaw = localStorage.getItem(INVESTMENT_DRAWDOWN_CALENDAR_STORAGE_KEY);
+                const existingCalendars = existingRaw === null ? [] : JSON.parse(existingRaw);
+                if (!Array.isArray(existingCalendars)) throw new Error('Existing investment drawdown calendars are not a valid collection. The older backup was not imported.');
+                const targetLedger = backup.includesInvestmentLedger ? backup : readInvestmentLedgerCollections();
+                if (!investmentStorageHealthy) throw new Error('Current investment ledger could not be validated. The older backup was not imported.');
+                try {
+                    validateInvestmentDrawdownCalendars({ ...targetLedger, investmentDrawdownCalendars: existingCalendars });
+                    investmentDrawdownCalendarStorageHealthy = true;
+                } catch (error) {
+                    throw new Error('This older backup would invalidate existing drawdown calendar account references. Calendars were preserved and no data was imported. Review the investment account references before retrying.', { cause: error });
+                }
+            }
             const validatedRecords = backup.records.map((item) => ({
                 ...item,
                 id: options.preserveRecordIds && typeof item.id === 'string' && item.id.trim()
@@ -2513,6 +2624,10 @@ function importData(file, options = {}) {
             else if (backup.includesInvestmentLedger) previewLines.push('Investment exposure classifications: not included (existing classifications will be preserved)');
             if (backup.includesInvestmentExposurePolicies) previewLines.push('Investment exposure policy versions: ' + backup.investmentExposurePolicies.length);
             else if (backup.includesInvestmentLedger) previewLines.push('Investment exposure policies: not included (existing policies will be preserved)');
+            if (backup.includesInvestmentDrawdownSnapshots) previewLines.push('Investment drawdown snapshots: ' + backup.investmentDrawdownSnapshots.length);
+            else previewLines.push('Investment drawdown snapshots: not included (existing snapshots will be preserved if their ledger references remain valid)');
+            if (backup.includesInvestmentDrawdownCalendars) previewLines.push('Investment drawdown calendars: ' + backup.investmentDrawdownCalendars.length);
+            else previewLines.push('Investment drawdown calendars: not included (existing calendars will be preserved if account references remain valid)');
             if (backup.includesInvestmentLedger) {
                 previewLines.push(
                     'Investment accounts: ' + backup.investmentAccounts.length,
@@ -2546,7 +2661,9 @@ function importData(file, options = {}) {
                     ...(backup.includesInvestmentAllocationPolicies ? [INVESTMENT_ALLOCATION_STORAGE_KEY] : []),
                     ...(backup.includesInvestmentConcentrationPolicies ? [INVESTMENT_CONCENTRATION_STORAGE_KEY] : []),
                     ...(backup.includesInvestmentExposureClassifications ? [INVESTMENT_EXPOSURE_STORAGE_KEY] : []),
-                    ...(backup.includesInvestmentExposurePolicies ? [INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY] : [])];
+                    ...(backup.includesInvestmentExposurePolicies ? [INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY] : []),
+                    ...(backup.includesInvestmentDrawdownSnapshots ? [INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY] : []),
+                    ...(backup.includesInvestmentDrawdownCalendars ? [INVESTMENT_DRAWDOWN_CALENDAR_STORAGE_KEY] : [])];
                 let previousValues;
                 try {
                     previousValues = storageKeys.map((key) => [key, localStorage.getItem(key)]);
@@ -2567,6 +2684,8 @@ function importData(file, options = {}) {
                     if (backup.includesInvestmentConcentrationPolicies) persistInvestmentConcentrationPolicies(backup.investmentConcentrationPolicies);
                     if (backup.includesInvestmentExposureClassifications) persistInvestmentExposureClassifications(backup.investmentExposureClassifications);
                     if (backup.includesInvestmentExposurePolicies) persistInvestmentExposurePolicies(backup.investmentExposurePolicies);
+                    if (backup.includesInvestmentDrawdownSnapshots) persistInvestmentDrawdownSnapshots(backup.investmentDrawdownSnapshots, backup);
+                    if (backup.includesInvestmentDrawdownCalendars) persistInvestmentDrawdownCalendars(backup.investmentDrawdownCalendars, backup);
                 } catch (error) {
                     const restored = previousValues.map(([key, value]) => restoreStorageValue(key, value)).every(Boolean);
                     if (!restored) {
@@ -2579,6 +2698,8 @@ function importData(file, options = {}) {
                         investmentConcentrationStorageHealthy = false;
                         investmentExposureStorageHealthy = false;
                         investmentExposurePolicyStorageHealthy = false;
+                        investmentDrawdownSnapshotStorageHealthy = false;
+                        investmentDrawdownCalendarStorageHealthy = false;
                         showToast('Workspace restore failed and rollback was incomplete. Stop editing and preserve this browser profile for recovery.');
                     } else {
                         showToast(error instanceof Error ? error.message + ' The previous workspace data was restored.' : 'Workspace restore failed; the previous data was restored.');
@@ -2597,6 +2718,8 @@ function importData(file, options = {}) {
                 if (backup.includesInvestmentConcentrationPolicies) investmentConcentrationStorageHealthy = true;
                 if (backup.includesInvestmentExposureClassifications) investmentExposureStorageHealthy = true;
                 if (backup.includesInvestmentExposurePolicies) investmentExposurePolicyStorageHealthy = true;
+                if (backup.includesInvestmentDrawdownSnapshots) investmentDrawdownSnapshotStorageHealthy = true;
+                if (backup.includesInvestmentDrawdownCalendars) investmentDrawdownCalendarStorageHealthy = true;
                 renderSavedGoals();
                 showGoalMessage();
                 render();
@@ -2863,7 +2986,13 @@ function syncActiveNavigation() {
 document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', syncActiveNavigation));
 window.addEventListener('hashchange', syncActiveNavigation);
 window.addEventListener('pfo:cashflow-updated', () => { renderFinancialHealth(); scheduleDatabaseAutoSave(); });
-window.addEventListener('pfo:workspace-updated', scheduleDatabaseAutoSave);
+window.addEventListener('pfo:workspace-updated', () => {
+    drawdownCalendarWorkspace?.render();
+    drawdownSnapshotWorkspace?.render();
+    if (workspace === 'private') drawdownReportWorkspace?.invalidate();
+    else drawdownReportWorkspace?.render();
+    scheduleDatabaseAutoSave();
+});
 syncActiveNavigation();
 
 refreshDatabaseStatus();
@@ -2889,4 +3018,34 @@ initializeInvestmentWorkspace();
 initializeGrowthProjectionCalculator();
 initializeCagrCalculator();
 initializeReturnRiskCalculator();
+drawdownSnapshotWorkspace = initializeInvestmentDrawdownSnapshotWorkspace({
+    readLedger: readInvestmentLedgerCollections,
+    readCash: readInvestmentCashCollections,
+    readSnapshots: readInvestmentDrawdownSnapshots,
+    persistSnapshots: persistInvestmentDrawdownSnapshots,
+    isPrivateWorkspace: () => workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname),
+    isLedgerHealthy: () => investmentStorageHealthy && investmentCashStorageHealthy,
+    isSnapshotStorageHealthy: () => investmentDrawdownSnapshotStorageHealthy,
+    notify: showToast
+});
+drawdownCalendarWorkspace = initializeInvestmentDrawdownCalendarWorkspace({
+    readCalendars: readInvestmentDrawdownCalendars,
+    persistCalendars: persistInvestmentDrawdownCalendars,
+    readAccounts: readInvestmentLedgerCollections,
+    isPrivateWorkspace: () => workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname),
+    isLedgerHealthy: () => investmentStorageHealthy,
+    isCalendarStorageHealthy: () => investmentDrawdownCalendarStorageHealthy,
+    notify: showToast
+});
+drawdownReportWorkspace = initializeInvestmentDrawdownReportWorkspace({
+    readLedger: readInvestmentLedgerCollections,
+    readCash: readInvestmentCashCollections,
+    readSnapshots: readInvestmentDrawdownSnapshots,
+    readCalendars: readInvestmentDrawdownCalendars,
+    isPrivateWorkspace: () => workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname),
+    isLedgerHealthy: () => investmentStorageHealthy && investmentCashStorageHealthy,
+    isSnapshotStorageHealthy: () => investmentDrawdownSnapshotStorageHealthy,
+    isCalendarStorageHealthy: () => investmentDrawdownCalendarStorageHealthy
+});
+
 switchWorkspace('demo');

@@ -15,9 +15,9 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Completed Epics:** Local SQLite Persistence (PRs #394, #397, #400, #403, #404) and Backup and Recovery Assurance (PRs #406–#409).
-- **Current Epic:** User-configurable investment risk policies. Concentration policies (PR #443), weighted exposure Option B (PR #450), and user-configured exposure limits (PR #452) are merged. Liquidity and drawdown remain independently gated.
-- **SQLite status:** Main stores the complete private workspace schema-v10 snapshot with 17 collections, including weighted exposure classifications and user-defined exposure policy history. The v9→v10 migration is transactional and writes a pre-v10 recovery artifact. Existing explicit/automatic save, startup recovery protection, optimistic concurrency, portable JSON backup, restore and integrity diagnostics remain intact. PR #452 merged after CI, dashboard packaging and Secret Scan passed. The database defaults outside the checkout; POSIX database and sidecar files are owner-only. Browser-local storage remains the immediate recovery copy.
-- **Recovery assurance:** Sprint 10 adds full-content JSON export/restore coverage across all 17 schema-v10 collections, including investment, concentration, weighted exposure classification and exposure policy history, stable IDs and nested historical records. SQLite v9→v10 migration, pre-migration recovery artifact creation and rollback behavior are covered by tests; CI #1670, dashboard packaging #955 and Secret Scan #1464 passed. Truncated/wrong-schema/oversized backup imports and malformed/oversized API bodies are rejected without replacing existing data. Clean close/reopen persistence and SQLite PRAGMA quick_check are tested. Operational instructions are in docs/operations/LOCAL_BACKUP_AND_RECOVERY.md.
+- **Current Epic:** User-configurable investment risk policies. Concentration policies (PR #443), weighted exposure Option B (PR #450), and user-configured exposure limits (PR #452) are merged. PR #453 (open draft, unmerged) approves Option B flow-adjusted drawdown and adds the pure kernel, ledger-derived snapshot completeness, authoritative event taxonomy, series orchestration, explicit daily-close calendar contract and schema-v12 persistence. Manual capture/import, paired flow-boundary authoring, calendar authoring UI, end-to-end acceptance and private reporting remain outstanding. Liquidity remains independently gated.
+- **SQLite status:** Main stores schema v10 with 17 collections. PR #453's feature branch advances the workspace to schema v12 with 19 collections and transactional v10→v11→v12 migrations, each with a protected pre-migration recovery artifact; the branch is not merged. Existing explicit/automatic save, startup recovery protection, optimistic concurrency, portable JSON backup, restore and integrity diagnostics remain intact. PR #452 merged after CI, dashboard packaging and Secret Scan passed. The database defaults outside the checkout; POSIX database and sidecar files are owner-only. Browser-local storage remains the immediate recovery copy.
+- **Recovery assurance:** Sprint 10 adds full-content JSON export/restore coverage across all 17 schema-v10 collections. PR #453 extends its branch with schema-v11 drawdown snapshots and schema-v12 explicit calendars, JSON backup compatibility, SQLite migrations and pre-migration recovery artifact tests. The first schema-v12 CI run exposed stale schema-v11 dashboard fixtures and assertions; those tests were corrected in later commits. Latest-head CI must be verified before calling this increment validated; CI #1670, dashboard packaging #955 and Secret Scan #1464 passed. Truncated/wrong-schema/oversized backup imports and malformed/oversized API bodies are rejected without replacing existing data. Clean close/reopen persistence and SQLite PRAGMA quick_check are tested. Operational instructions are in docs/operations/LOCAL_BACKUP_AND_RECOVERY.md.
 - **Privacy boundaries:** The database and JSON exports are not encrypted by this feature. Exports require user-managed secure storage and retention. Cloud hosting, multi-user access, remote backup, and automatic backup rotation are not shipped.
 - The planner reuses the existing deterministic calculator APIs, keeps assumptions/results ephemeral, requires explicit annual assumptions, and disables planner controls on hosted non-loopback origins.
 - Scenario comparison preserves entered order, shows the scenario assumptions, and does not rank or recommend scenarios.
@@ -386,3 +386,61 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Main investment workspace remains schema v8 with 15 persisted collections. No classification collection or exposure calculation has been implemented.
 - Sprint 9 remains in discovery. Single-group classification versus weighted multi-group look-through is not yet decided. Weighted look-through is documented as a recommendation only; implementation is gated on explicit owner approval and hand-calculated examples.
 - Existing boundaries remain: local-first, user-controlled workspace policies, synthetic public-repository fixtures, explicit currency separation/no implicit FX, no investment advice or trading automation. Local SQLite and backups are not encrypted; dashboard is loopback-only, not a hosted multi-user service.
+
+
+## Latest Feature State — 2026-11-14 (PR #453)
+
+- Main remains schema v10; PR #453 branch adds schema v12 / 19 collections and is not merged.
+- Drawdown uses Option B: time-weighted, external-cash-flow-adjusted performance. The pure calculator kernel and immutable snapshot contract are implemented.
+- Ledger-derived acquisition now derives open FIFO positions at effective/recorded cutoffs and cash balances from explicit opening balances plus bitemporal movements, transfers and linked investment settlements.
+- Snapshot completeness checks missing/extra components, position quantities and cash balances. It does not fabricate valuation prices; manual/provider evidence must exist at the exact snapshot effective timestamp.
+- Existing-ledger flow taxonomy distinguishes owner contributions/withdrawals, opening baselines, internal transfers, account-scope-crossing transfers, investment transactions and corrections. Ambiguous corrections fail closed; later-recorded corrections do not alter as-known historical output.
+- In-kind contributions/withdrawals and corporate actions are not represented by the current ledger schema and remain unsupported.
+- New files: `apps/dashboard/investment-drawdown-acquisition.js` and `apps/dashboard/investment-drawdown-acquisition.test.js`.
+- The current Option B drawdown deliverable is complete on PR #453: private manual snapshot capture, paired flow-boundary authoring, explicit calendar management, independent end-to-end financial acceptance and private descriptive HTML/CSV reporting are implemented and CI-green. In-kind flows and corporate actions remain deferred pending a separate ledger-model decision.
+- Public repository: synthetic fixtures only. Do not commit household financial data. PR #453 remains open/draft/unmerged; validate latest checks before any merge.
+
+
+## Latest Drawdown State — 2026-11-14
+
+- PR #453 remains open, draft and unmerged on `feature/ipm-drawdown-contract-discovery`.
+- The explicit calendar contract is append-only, versioned and bitemporal. It stores user-authored UTC close timestamps and never infers trading days or holidays.
+- Workspace schema v12 contains 19 collections. The v11→v12 migration is transactional, writes a protected pre-v12 recovery artifact and initializes calendars empty. JSON/SQLite backup and restore include the new collection; schema v1–v11 JSON backups remain supported.
+- Private browser workspace persistence and SQLite workspace persistence are wired for the calendar collection. The private calendar authoring UI is implemented, and the series orchestrator selects the persisted revision by recorded-at cutoff with calendar ID/version provenance.
+- Initial CI on the schema-v12 integration failed on five stale schema-v11 HTTP fixtures, one static source assertion and one overly specific error assertion. The fixtures/assertions were updated. Check the current PR head for final CI, Secret Scan and dashboard packaging status.
+- Calendar authoring, series wiring, manual component snapshot capture/import, paired pre/post-flow authoring, independent financial acceptance and private descriptive reporting/export are now implemented on the PR branch. Do not add in-kind or corporate-action behavior without an explicit ledger-model decision.
+- Use synthetic fixtures only. Never commit real household financial data or private reports.
+
+
+## Calendar UI and series wiring — 2026-11-14
+
+- Added private-only calendar authoring at `#investment-drawdown-calendar`. Users enter the exact UTC window and every expected close timestamp; the app never generates a schedule.
+- Corrections append a new immutable version and supersede the previous current revision. Scope, account, currency and window remain locked during correction; close timestamps can be amended.
+- Calendar validation requires unique sequential versions, valid supersession, known investment-account references and currency alignment for account-scoped calendars.
+- Save emits the workspace update event so configured SQLite autosave persists the calendar. JSON backup/restore and SQLite save/restore preserve it.
+- The series orchestrator now requires the persisted calendar collection, selects by exact scope/currency/window and recorded-at cutoff, passes the selected explicit close timestamps to the pure calculator and returns calendar ID/version provenance.
+- Browser smoke confirms synthetic calendar creation and JSON/SQLite round-trip. CI #1831, Secret Scan #1625 and dashboard packaging #1067 passed on code head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265`.
+- Remaining production gates: manual snapshot capture/import, paired flow-boundary authoring, independent end-to-end financial acceptance and private reporting/export.
+
+
+## Latest Drawdown Acquisition State — 2026-11-14
+
+- PR #453 remains open, draft and unmerged on `feature/ipm-drawdown-contract-discovery`; main remains schema v10. The PR branch is schema v12 with 19 persisted collections.
+- Added private-only manual observation capture/import for exact daily closes and paired external-flow boundaries. Users provide explicit position quantities, unit prices, cash balances and source references. Position values are quantity × user-entered unit price; no prices or balances are inferred.
+- Flow-boundary capture selects only authoritative external cash-ledger flow IDs at the exact effective timestamp and recorded-at cutoff. Pre/post observations must share the same component universe and are persisted together.
+- Browser smoke verifies daily-close and paired contribution capture, independent FIFO/cash reconciliation, private/demo isolation, JSON backup/restore and SQLite workspace persistence.
+- CI #1854, Secret Scan #1648 and dashboard packaging #1090 passed on head `e91cfb79d557251c27b2a2a13914c463d773bde5`.
+- Completed: independent hand-calculated acceptance fixtures and private descriptive HTML/CSV reporting/export. Future scope only: separate contract decision for in-kind flows/corporate actions.
+- No thresholds, alerts, risk scores, recommendations, rebalancing or trading behavior. Public repository fixtures remain synthetic only.
+
+## Latest Drawdown Delivery State — 2026-11-14
+
+- PR #453 remains open, draft and unmerged on `feature/ipm-drawdown-contract-discovery`; main remains schema v10. The PR branch is schema v12 with 19 persisted collections.
+- Delivered manual-first private daily-close valuation capture/import and paired pre-flow/post-flow capture bound to authoritative cash-ledger flow IDs. Component values reconcile against bitemporal FIFO positions and cash roll-forward; missing evidence fails closed.
+- Explicit immutable daily-close calendars and bitemporal as-of selection are persisted and included in JSON/SQLite backups.
+- Added independent hand-calculated acceptance for a same-time external-flow correction, contribution, withdrawal, scope-crossing transfer, fees, taxes, a position closed by sale, and a missing expected daily close. The expected drawdown is independently calculated from the fixture NAV path.
+- Added private-only descriptive HTML and spreadsheet-safe CSV reports with scope, currency, methodology, window, observed coverage, recorded-at cutoff, calendar provenance, peak/trough/recovery, completeness evidence and unavailable reasons. No partial statistic is emitted for unavailable analyses.
+- Browser smoke verifies manual capture, paired flow boundaries, HTML/CSV report downloads, private/demo isolation, JSON backup/restore and SQLite workspace persistence.
+- Snapshot contract rejects `recordedAt` earlier than `effectiveAt`.
+- CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
+- Future scope only: decide and model in-kind contributions/withdrawals and corporate actions. No thresholds, alerts, risk scores, recommendations, rebalancing or trading actions are introduced. Synthetic data only.
