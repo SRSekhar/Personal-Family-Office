@@ -65,6 +65,11 @@ try {
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
+    page.on('close', () => process.stderr.write('DIAGNOSTIC: main dashboard page closed.\\n'));
+    page.on('crash', () => process.stderr.write('DIAGNOSTIC: main dashboard page crashed.\\n'));
+    page.on('framenavigated', (frame) => {
+        if (frame === page.mainFrame() && frame.url() !== baseUrl) process.stderr.write('DIAGNOSTIC: main frame navigated to ' + frame.url() + '\\n');
+    });
 
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('#historical-snapshots-source').innerText(), 'Fictional development fixture · not saved');
@@ -1431,7 +1436,9 @@ try {
         'the captured total should reconcile the explicit 1,200 position valuation and 405 cash balance');
     assert.equal(capturedDrawdownSnapshots[0].components.length, 2,
         'the captured observation should retain one position and one cash component');
-    assert.equal(await page.locator('#investment-drawdown-snapshot-history').innerText().includes('Complete'), true,
+    assert.equal(page.isClosed(), false, 'the dashboard page should remain open after saving a drawdown observation');
+    const drawdownHistoryText = await page.evaluate(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '');
+    assert.match(drawdownHistoryText, /Complete/u,
         'the private observation history should visibly mark the reconciled observation complete');
     const flowEffectiveAt = new Date(Date.parse(drawdownEffectiveAt) + 1000).toISOString();
     await page.evaluate(({ cashAccountId, effectiveAt }) => {
