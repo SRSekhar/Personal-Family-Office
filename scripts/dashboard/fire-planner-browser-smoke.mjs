@@ -1652,6 +1652,12 @@ try {
     assert.equal(await page.locator('#investment-period-comparison-download-html').isDisabled(), true,
         'editing comparison parameters must disable stale HTML export');
     assert.match(await page.locator('#investment-period-comparison-status').innerText(), /parameters changed/u);
+    await page.evaluate(() => {
+        const key = 'pfo-os.investment-drawdown-snapshots.v1';
+        const snapshots = JSON.parse(globalThis.localStorage.getItem(key) || '[]');
+        snapshots[0].sourceName = 'Browser test broker valuation and cash statement';
+        globalThis.localStorage.setItem(key, JSON.stringify(snapshots));
+    });
     process.stdout.write('PASS: historical comparison produces HTML/CSV and blocks stale exports after source data changes.\\n');
 
 
