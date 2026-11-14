@@ -4,6 +4,8 @@ function escapeHtml(value) {
 }
 
 function csvText(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+    if (typeof value === 'boolean') return String(value);
     let text = String(value ?? '');
     if (/^[\s]*[=+@-]/u.test(text)) text = "'" + text;
     return '"' + text.replaceAll('"', '""') + '"';
