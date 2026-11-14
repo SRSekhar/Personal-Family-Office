@@ -628,3 +628,14 @@ Remaining future scope: in-kind contributions/withdrawals and corporate actions 
 - A historical period return may be derived only from the first/last wealth-index points of a separately available drawdown analysis, with identical scope, currency, methodology and recorded-at cutoff. Each period must use its persisted explicit calendar; no automatic windows or missing observations.
 - Transaction-to-position statement reconciliation, cost-basis adjustment events, corporate actions and in-kind flows remain separate gaps requiring explicit source/event contracts. No new metric, schema or accounting assumption was introduced in this discovery increment.
 - Next: implement the pure comparison adapter against already validated drawdown analyses, with hand-calculated endpoint-return tests and fail-closed mismatch/unavailable handling. Keep the UI/report integration separate until the adapter contract is proven.
+
+
+## 2026-11-14 — Historical period comparison adapter
+
+- Added `apps/dashboard/investment-period-comparison.js`, a pure adapter over separately validated drawdown-series results. It does not acquire observations or recalculate daily returns.
+- Period return is derived only from the existing first/last positive wealth-index values. Existing maximum drawdown and peak/trough/recovery fields are passed through unchanged.
+- Enforces canonical timestamps, persisted calendar provenance, supported methodology, positive ordered endpoint values, matching scope/account/currency/recorded-at cutoff, unique labels and explicit unavailable reasons.
+- Unavailable periods remain visible with null numeric statistics. Overlapping windows are allowed only with an explicit overlap flag; they are not described as disjoint/additive.
+- Added independent tests for hand-calculated +25% and -10% endpoint returns, chronology/overlap, unavailable periods, mismatched provenance, malformed wealth-index values, calendar metadata and duplicate labels.
+- This is the pure calculation/contract layer only. No UI, exports, schema, migration or actual financial data was added. CI is required to validate the pushed code.
+- Next: inspect CI results, correct any issues, then add private-only period comparison workflow and safe HTML/CSV exports using the existing drawdown workspace patterns.
