@@ -198,3 +198,34 @@ The open PR #453 feature branch now contains:
 - Deterministic validator, backup compatibility and migration tests.
 
 This is **not** a complete drawdown production pipeline. The validator checks declared component references and internal reconciliation, but it does not independently derive the full set of open FIFO holdings and included cash accounts at each historical effective/recorded cutoff. No UI currently captures snapshots. A trusted completeness builder, authoritative external-flow classifier, explicit daily observation calendar, independent integration cases and private UI/export remain mandatory. Schema migration initializes the new collection empty; it does not fabricate historical observations. PR #453 remains open and unmerged. Latest head `c84c2305c30de50e6678081f537a65fe4cf304d9` passed CI #1759 (86 files / 833 tests, lint, typecheck, build and Chromium browser smoke), Secret Scan #1553 and dashboard deployment workflow #995.
+
+
+## Implementation update — ledger-derived completeness and external-flow taxonomy (2026-11-14)
+
+The feature branch now adds `apps/dashboard/investment-drawdown-acquisition.js` with three deterministic acquisition functions:
+
+- `buildInvestmentDrawdownSnapshotRequirements` derives the expected open-position universe from the FIFO investment ledger at the requested effective timestamp and recorded-at cutoff. It derives each eligible cash-account balance from its explicit opening baseline, effective/recorded cash movements, internal transfers and linked investment-transaction cash settlements. It does not invent a missing opening balance or silently assume zero.
+- `validateInvestmentDrawdownSnapshotCompleteness` independently compares a persisted snapshot with that derived universe. It rejects omissions, extra components, FIFO quantity mismatches and cash-roll-forward mismatches. Position prices remain explicit contemporaneous evidence supplied with the snapshot; the builder does not create prices.
+- `buildInvestmentDrawdownExternalFlows` classifies ledger-represented external flows for the requested scope/currency/window and recorded-at cutoff. It returns stable namespaced event IDs and source references suitable for matching the paired snapshot boundary `flowId`.
+
+The currently supported cash-ledger event taxonomy is:
+
+| Existing event | Drawdown treatment |
+| --- | --- |
+| `ExternalContribution` | External flow into the selected scope. |
+| `ExternalWithdrawal` | External flow out of the selected scope. |
+| `OpeningBalance` | Starting cash baseline; excluded from external flows. |
+| Cash transfer with both endpoints inside the selected scope | Internal transfer; excluded. |
+| Cash transfer with exactly one endpoint inside an account scope | External flow into/out of that account scope. |
+| Purchase, sale, dividend, interest, fee or tax investment transaction | Internal portfolio activity/return; excluded from external-flow treatment. |
+| Correction referencing an external contribution/withdrawal, same effective timestamp | Net correction into the original flow; no second flow is created. |
+| Correction referencing an external contribution/withdrawal, different effective timestamp | Affected flow classification is unavailable; no guessed flow is emitted. |
+| Correction recorded after the selected knowledge cutoff | Not applied to the as-known historical view. |
+
+The correction rule deliberately fails closed when the current cash-ledger records cannot establish an unambiguous restatement. Cash corrections still participate in the cash balance roll-forward at their own effective and recorded timestamps.
+
+The current ledger schema does not represent in-kind contributions/withdrawals or corporate actions as dedicated event types. These remain explicit unsupported cases; a future schema/UX decision is required before they can be included. A manual entry must not be silently treated as a cash flow.
+
+The acquisition tests cover FIFO partial sales, cash roll-forward, omitted position components, missing opening balances, unlinked investment transactions, internal versus scope-crossing transfers, opening-balance exclusion, correction netting and recorded-at cutoffs.
+
+This completes the **ledger-derived completeness and existing-ledger event-classification milestones**, not the entire drawdown feature. Manual capture/import UI, explicit daily-close calendar management, flow-boundary snapshot authoring, independently hand-calculated end-to-end acceptance cases, and descriptive private reporting remain outstanding. No historical snapshots or prices are fabricated.
