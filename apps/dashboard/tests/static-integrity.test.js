@@ -160,7 +160,9 @@ describe('monthly budget export contract', () => {
     it('provides a budget export action and builds a formula-safe selected-month comparison CSV', async () => {
         const [html, cashFlow] = await Promise.all([
             readDashboardFile('index.html'),
-            readDashboardFile('cashflow.js')
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('investment-drawdown-calendar-workspace.js'),
+            readDashboardFile('index.html')
         ]);
         expect(html).toContain('id="cash-flow-budget-export-csv"');
         expect(cashFlow).toContain("$('#cash-flow-budget-export-csv').addEventListener('click'");
