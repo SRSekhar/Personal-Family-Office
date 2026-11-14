@@ -48,6 +48,20 @@ describe('investment drawdown calendars', () => {
         })] })).toThrow(/require an account ID/i);
     });
 
+    it('requires unique calendar-set versions and account currency alignment', () => {
+        const first = calendar();
+        expect(() => validateInvestmentDrawdownCalendars({
+            investmentDrawdownCalendars: [first, { ...first, id: 'calendar-duplicate' }]
+        })).toThrow(/unique, sequential versions/i);
+        const accountCalendar = calendar({
+            id: 'account-calendar-1', calendarSetId: 'account-usd-2026', scope: 'account', accountId: 'account-1', currency: 'USD'
+        });
+        expect(() => validateInvestmentDrawdownCalendars({
+            investmentAccounts: [{ id: 'account-1', currency: 'INR' }],
+            investmentDrawdownCalendars: [accountCalendar]
+        })).toThrow(/must match the investment account currency/i);
+    });
+
     it('rejects account-scoped calendars that reference an unknown investment account', () => {
         const accountCalendar = calendar({
             id: 'account-calendar-1', calendarSetId: 'account-inr-2026', scope: 'account', accountId: 'missing-account'
