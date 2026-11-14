@@ -956,6 +956,7 @@ function switchWorkspace(nextWorkspace) {
     drawdownReportWorkspace?.render();
     render();
     window.dispatchEvent(new Event('pfo:workspace-updated'));
+    drawdownReportWorkspace?.render();
 }
 
 
@@ -2988,7 +2989,8 @@ window.addEventListener('pfo:cashflow-updated', () => { renderFinancialHealth();
 window.addEventListener('pfo:workspace-updated', () => {
     drawdownCalendarWorkspace?.render();
     drawdownSnapshotWorkspace?.render();
-    drawdownReportWorkspace?.invalidate();
+    if (workspace === 'private') drawdownReportWorkspace?.invalidate();
+    else drawdownReportWorkspace?.render();
     scheduleDatabaseAutoSave();
 });
 syncActiveNavigation();
