@@ -562,7 +562,9 @@ Next: manual snapshot capture/import and flow-boundary authoring, followed by ex
 
 Delivered: private manual daily-close calendar authoring, persisted calendar selection in `analyzeInvestmentDrawdownSeries`, manual valuation snapshot capture/import, and paired pre-flow/post-flow boundary authoring tied to authoritative cash-ledger flow IDs. Browser smoke now verifies daily-close capture, paired cash-flow boundaries, demo/private isolation, and JSON/SQLite backup compatibility.
 
-Remaining: independently hand-calculated end-to-end acceptance across multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data; then private descriptive drawdown reporting/export. In-kind flows and corporate actions remain unsupported pending a separate ledger-model decision.
+Completed on PR #453: independent hand-calculated end-to-end acceptance covers a same-time correction, multiple external flows, a scope-crossing transfer, fees, taxes, a fully closed position and missing daily-close fail-closed behavior. Private descriptive HTML and spreadsheet-safe CSV reports include scope, currency, methodology, analysis window, observed coverage, recorded-at cutoff, peak/trough/recovery, completeness evidence and unavailable reasons.
+
+Remaining future scope: in-kind contributions/withdrawals and corporate actions require a separate ledger-model decision; they are not inferred or part of the current Option B contract.
 
 
 ## 2026-11-14 — Manual drawdown observation acquisition delivered
@@ -574,3 +576,13 @@ Remaining: independently hand-calculated end-to-end acceptance across multiple f
 - Browser smoke verifies a ledger-reconciled daily close, paired contribution boundaries, demo/private isolation, and JSON/SQLite backup round-trips.
 - Verified head `e91cfb79d557251c27b2a2a13914c463d773bde5`: CI #1854, Secret Scan #1648 and dashboard packaging #1090 passed.
 - PR #453 remains open, draft and unmerged. Do not merge without explicit approval.
+
+## 2026-11-14 — Drawdown acceptance and reporting delivered
+
+- Added independent hand-calculated series acceptance for a corrected contribution, withdrawal, account-scope transfer, fees, taxes, a sale that closes the position and a missing expected daily close. The expected maximum drawdown is calculated independently from the fixture NAVs.
+- Snapshot validation now rejects a valuation recorded before its effective timestamp.
+- Added private-only descriptive HTML and CSV reporting with exact scope, currency, window, observed coverage, recorded-at cutoff, methodology, calendar provenance, peak/trough/recovery, per-snapshot completeness and unavailable reasons.
+- HTML preview is sandboxed and contains no remote assets or scripts. CSV text cells are protected against spreadsheet formula injection. Report data and downloads are cleared/disabled when switching to demo mode or when source data changes.
+- Browser smoke verifies manual capture, paired flow boundaries, report generation and HTML/CSV downloads, demo/private isolation, JSON backup/restore and SQLite persistence.
+- Verified head `fe01a85ed8300ab4da7f302058b615294a61d4af`: CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed.
+- PR #453 remains open, draft and unmerged. No merge is authorized.
