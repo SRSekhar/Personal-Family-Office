@@ -178,8 +178,10 @@ export function compareInvestmentPerformancePeriods(input) {
         }
     }
     rows.sort((a, b) => a.startAt.localeCompare(b.startAt) || a.endAt.localeCompare(b.endAt));
+    let furthestPreviousEnd = rows[0].endAt;
     for (let index = 1; index < rows.length; index += 1) {
-        rows[index].overlapsPrevious = rows[index].startAt < rows[index - 1].endAt;
+        rows[index].overlapsPrevious = rows[index].startAt < furthestPreviousEnd;
+        if (rows[index].endAt > furthestPreviousEnd) furthestPreviousEnd = rows[index].endAt;
     }
     return {
         status: rows.every((row) => row.status === 'available') ? 'available' : 'partially-unavailable',
