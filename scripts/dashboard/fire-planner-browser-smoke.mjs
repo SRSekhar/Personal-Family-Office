@@ -1452,7 +1452,7 @@ try {
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
     assert.equal(backup.schemaVersion, 12, 'private JSON backup should use schema version 12 with exposure policy history');
     assert.equal(backup.investmentExposurePolicies.length, 1, 'private JSON backup should include exposure policy history');
-    assert.deepEqual(backup.investmentDrawdownSnapshots, [], 'schema-v12 backup should include the empty drawdown snapshot collection without fabricating history');
+    assert.deepEqual(backup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots, 'schema-v12 backup should preserve the manually captured drawdown observation');
     assert.equal(backup.investmentDrawdownCalendars.length, 1, 'schema-v12 backup should include the explicitly authored daily-close calendar');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
