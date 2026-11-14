@@ -58,6 +58,7 @@ describe('investment drawdown reports', () => {
         const html = renderInvestmentDrawdownReportHtml(reportInput());
         expect(html).toContain('TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1');
         expect(html).toContain('Maximum drawdown');
+        expect(html).toContain('Observed coverage');
         expect(html).toContain('20.00%');
         expect(html).toContain('&lt;snapshot-1&gt;');
         expect(html).not.toContain('<script>');
@@ -67,6 +68,7 @@ describe('investment drawdown reports', () => {
     it('exports spreadsheet-safe CSV for summaries, points and completeness evidence', () => {
         const csv = investmentDrawdownReportToCsv(reportInput());
         expect(csv).toContain('RecordType,Status,Scope');
+        expect(csv).toContain('CoverageStartAt,CoverageEndAt');
         expect(csv).toContain('"\'=HYPERLINK(""x"")"');
         expect(csv).toContain('"Point"');
         expect(csv).toContain('"Completeness"');
