@@ -746,13 +746,16 @@ Delivered:
 - Calendar contract, migration and persistence round-trip tests.
 
 Still required:
-1. Private calendar authoring UI; user explicitly enters every expected close timestamp. No automatic weekday, market-holiday or exchange-calendar inference.
-2. Wire selected persisted calendar to `analyzeInvestmentDrawdownSeries` and show missing expected closes as unavailable.
+Completed:
+1. Private calendar authoring UI; users explicitly enter each expected UTC close timestamp. No weekday, market-holiday or exchange-calendar inference.
+2. Persisted calendar selection wired into `analyzeInvestmentDrawdownSeries`, including recorded-at cutoff and calendar ID/version provenance.
+
+Still required:
 3. Private manual position/cash snapshot capture/import with explicit unit price, quantity/balance, source and effective timestamp.
 4. Paired pre-flow/post-flow boundary authoring using exact authoritative flow ID/effective timestamp and matching component universe.
 5. Independently hand-calculated end-to-end acceptance tests for multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data.
 6. Private descriptive drawdown report/export with methodology, scope, currency, coverage, peak/trough/recovery and unavailable evidence.
 
-CI follow-up: the first schema-v12 CI run failed on stale schema-v11 HTTP fixtures, a static source assertion and one overly specific error assertion. Those test expectations were corrected. Latest head validation remains pending; do not mark this increment complete until CI, Secret Scan and dashboard packaging pass on the latest head.
+CI follow-up: the latest verified code head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI run #1831 (lint, typecheck, package build, unit tests and Chromium browser smoke), Secret Scan #1625 and dashboard packaging #1067. The browser smoke creates a synthetic calendar, verifies the JSON backup/restore, and round-trips the SQLite workspace across all 19 collections.
 
 No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations, rebalancing or trading actions are approved.
