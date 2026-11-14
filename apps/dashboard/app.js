@@ -10,6 +10,7 @@ import { validateInvestmentDrawdownCalendars } from './investment-drawdown-calen
 import { initializeInvestmentDrawdownCalendarWorkspace } from './investment-drawdown-calendar-workspace.js';
 import { initializeInvestmentDrawdownSnapshotWorkspace } from './investment-drawdown-snapshot-workspace.js';
 import { initializeInvestmentDrawdownReportWorkspace } from './investment-drawdown-report-workspace.js';
+import { initializeInvestmentPeriodComparisonWorkspace } from './investment-period-comparison-workspace.js';
 import { initializeInvestmentWorkspace } from './investment-workspace.js';
 import { recordsToCsv } from './csv-export.js';
 import { parseRecordsCsv } from './csv-import.js';
@@ -114,6 +115,7 @@ let investmentDrawdownCalendarStorageHealthy = true;
 let drawdownCalendarWorkspace;
 let drawdownSnapshotWorkspace;
 let drawdownReportWorkspace;
+let periodComparisonWorkspace;
 let editingId = null;
 let savedGoals = [];
 let goalsStorageHealthy = true;
@@ -954,6 +956,7 @@ function switchWorkspace(nextWorkspace) {
     drawdownCalendarWorkspace?.render();
     drawdownSnapshotWorkspace?.render();
     drawdownReportWorkspace?.render();
+    periodComparisonWorkspace?.render();
     render();
     window.dispatchEvent(new Event('pfo:workspace-updated'));
     drawdownReportWorkspace?.render();
@@ -2989,8 +2992,13 @@ window.addEventListener('pfo:cashflow-updated', () => { renderFinancialHealth();
 window.addEventListener('pfo:workspace-updated', () => {
     drawdownCalendarWorkspace?.render();
     drawdownSnapshotWorkspace?.render();
-    if (workspace === 'private') drawdownReportWorkspace?.invalidate();
-    else drawdownReportWorkspace?.render();
+    if (workspace === 'private') {
+        drawdownReportWorkspace?.invalidate();
+        periodComparisonWorkspace?.invalidate();
+    } else {
+        drawdownReportWorkspace?.render();
+        periodComparisonWorkspace?.render();
+    }
     scheduleDatabaseAutoSave();
 });
 syncActiveNavigation();
@@ -3038,6 +3046,16 @@ drawdownCalendarWorkspace = initializeInvestmentDrawdownCalendarWorkspace({
     notify: showToast
 });
 drawdownReportWorkspace = initializeInvestmentDrawdownReportWorkspace({
+    readLedger: readInvestmentLedgerCollections,
+    readCash: readInvestmentCashCollections,
+    readSnapshots: readInvestmentDrawdownSnapshots,
+    readCalendars: readInvestmentDrawdownCalendars,
+    isPrivateWorkspace: () => workspace === 'private' && isPrivateWorkspaceAllowed(window.location.hostname),
+    isLedgerHealthy: () => investmentStorageHealthy && investmentCashStorageHealthy,
+    isSnapshotStorageHealthy: () => investmentDrawdownSnapshotStorageHealthy,
+    isCalendarStorageHealthy: () => investmentDrawdownCalendarStorageHealthy
+});
+periodComparisonWorkspace = initializeInvestmentPeriodComparisonWorkspace({
     readLedger: readInvestmentLedgerCollections,
     readCash: readInvestmentCashCollections,
     readSnapshots: readInvestmentDrawdownSnapshots,
