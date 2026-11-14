@@ -57,8 +57,11 @@ function validate(input) {
             throw new TypeError('Every comparison period requires persisted calendar provenance.');
         }
         if (!Number.isInteger(period.observationCount) || period.observationCount < 0
-            || !Number.isInteger(period.flowBoundaryCount) || period.flowBoundaryCount < 0) {
-            throw new TypeError('Comparison observation counts are invalid.');
+            || !Number.isInteger(period.flowBoundaryCount) || period.flowBoundaryCount < 0
+            || (period.completeness !== undefined && !Array.isArray(period.completeness))
+            || (period.limitations !== undefined && !Array.isArray(period.limitations))
+            || typeof period.overlapsPrevious !== 'boolean') {
+            throw new TypeError('Comparison observation counts, completeness evidence or overlap metadata are invalid.');
         }
         if (period.status === 'available') {
             availableCount += 1;
@@ -91,6 +94,16 @@ export function renderInvestmentPeriodComparisonHtml(input) {
         const trough = available ? (period.troughAt ?? 'Not applicable') : 'Unavailable';
         const recoveryAt = available ? (period.maximumDrawdown === 0 ? 'Not applicable'
             : period.recovered ? (period.recoveryAt ?? 'Unavailable') : 'Not recovered') : 'Unavailable';
+        const completeness = (period.completeness ?? []).map((item) => {
+            const reasons = [...(item.reasons ?? [])];
+            if (item.missingComponents?.length) reasons.push(item.missingComponents.length + ' missing component(s)');
+            if (item.unexpectedComponents?.length) reasons.push(item.unexpectedComponents.length + ' unexpected component(s)');
+            if (item.mismatchedComponents?.length) reasons.push(item.mismatchedComponents.length + ' mismatched component(s)');
+            return String(item.snapshotId ?? 'Snapshot') + ': ' + String(item.status ?? 'unknown') +
+                ' (' + String(item.actualComponentCount ?? '?') + '/' + String(item.expectedComponentCount ?? '?') +
+                ' components)' + (reasons.length ? ' — ' + reasons.join('; ') : '');
+        }).join(' | ') || 'No snapshot completeness records';
+        const limitations = (period.limitations ?? []).join('; ');
         return '<tr><td>' + escapeHtml(period.label) + '</td><td>' + escapeHtml(period.startAt) + ' – ' +
             escapeHtml(period.endAt) + '</td><td>' + escapeHtml(period.status) + '</td><td class="numeric">' +
             escapeHtml(available ? percent(period.periodReturn) : 'Unavailable') + '</td><td class="numeric">' +
@@ -101,7 +114,8 @@ export function renderInvestmentPeriodComparisonHtml(input) {
             escapeHtml(period.coverageEndAt ?? 'Unavailable') + '</td><td class="numeric">' +
             period.observationCount + '</td><td class="numeric">' + period.flowBoundaryCount +
             '</td><td>' + escapeHtml(period.calendarId) + ' · v' + period.calendarVersion + '</td><td>' +
-            (period.overlapsPrevious ? 'Overlaps previous period' : 'No overlap with previous period') +
+            (period.overlapsPrevious ? 'Overlaps an earlier period' : 'No overlap with earlier periods') +
+            '<br>' + escapeHtml(completeness) + (limitations ? '<br>Limitations: ' + escapeHtml(limitations) : '') +
             (available ? '' : '<br><span class="reason">' + escapeHtml(period.reason) + '</span>') + '</td></tr>';
     }).join('');
     const scope = comparison.scope === 'account' ? 'Account ' + comparison.accountId : 'Whole portfolio';
@@ -137,14 +151,24 @@ export function investmentPeriodComparisonToCsv(input) {
     const header = ['RecordType','Status','Label','Scope','AccountId','Currency','Methodology','StartAt','EndAt',
         'CoverageStartAt','CoverageEndAt','RecordedAtCutoff','GeneratedAt','PeriodReturn','MaximumDrawdown',
         'PeakAt','TroughAt','RecoveryAt','Recovered','ObservationCount','FlowBoundaryCount','CalendarId',
-        'CalendarVersion','OverlapsPrevious','Reason'];
+        'CalendarVersion','OverlapsPrevious','Reason','CompletenessEvidence','Limitations'];
     const rows = periods.map((period) => [
         'Period', period.status, period.label, comparison.scope, comparison.accountId ?? '', comparison.currency,
         comparison.methodology, period.startAt, period.endAt, period.coverageStartAt ?? '',
         period.coverageEndAt ?? '', comparison.recordedAtCutoff, generatedAt,
         period.periodReturn ?? '', period.maximumDrawdown ?? '', period.peakAt ?? '', period.troughAt ?? '',
         period.recoveryAt ?? '', period.recovered ?? '', period.observationCount, period.flowBoundaryCount,
-        period.calendarId, period.calendarVersion, period.overlapsPrevious, period.reason ?? ''
+        period.calendarId, period.calendarVersion, period.overlapsPrevious, period.reason ?? '',
+        (period.completeness ?? []).map((item) => {
+            const reasons = [...(item.reasons ?? [])];
+            if (item.missingComponents?.length) reasons.push(item.missingComponents.length + ' missing component(s)');
+            if (item.unexpectedComponents?.length) reasons.push(item.unexpectedComponents.length + ' unexpected component(s)');
+            if (item.mismatchedComponents?.length) reasons.push(item.mismatchedComponents.length + ' mismatched component(s)');
+            return String(item.snapshotId ?? 'Snapshot') + ': ' + String(item.status ?? 'unknown') +
+                ' (' + String(item.actualComponentCount ?? '?') + '/' + String(item.expectedComponentCount ?? '?') +
+                ' components)' + (reasons.length ? ' — ' + reasons.join('; ') : '');
+        }).join(' | '),
+        (period.limitations ?? []).join('; ')
     ]);
     return [header, ...rows].map((row) => row.map(csvText).join(',')).join('\r\n') + '\r\n';
 }
