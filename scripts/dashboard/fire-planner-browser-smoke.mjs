@@ -1446,7 +1446,7 @@ try {
             recordedAt: new Date().toISOString()
         });
         globalThis.localStorage.setItem(key, JSON.stringify(movements));
-        globalThis.window.dispatchEvent(new Event('pfo:workspace-updated'));
+        globalThis.window.dispatchEvent(new globalThis.Event('pfo:workspace-updated'));
     }, { cashAccountId: drawdownIds.cashAccountId, effectiveAt: flowEffectiveAt });
     await page.locator('#investment-drawdown-snapshot-form [name="kind"]').selectOption('ExternalFlowPair');
     await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(flowEffectiveAt);
