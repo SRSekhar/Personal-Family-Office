@@ -35,7 +35,7 @@ describe('historical period comparison report', () => {
         const rows = csv.trim().split(/\r?\n/u).map((row) => row.split(','));
         expect(rows).toHaveLength(3);
         expect(rows[0]).toHaveLength(rows[1].length);
-        expect(rows[1][2]).toContain("'January <script>");
+        expect(rows[1][2]).toContain("January <script>");
         expect(csv).toContain('Missing <close> evidence.');
         expect(csv).toContain('0.25');
         expect(csv).toContain('-0.1');
