@@ -1,4 +1,5 @@
 import { validateInvestmentDrawdownSnapshots, buildInvestmentDrawdownObservations } from './investment-drawdown-snapshots.js';
+import { selectInvestmentDrawdownCalendar } from './investment-drawdown-calendars.js';
 import {
     buildInvestmentDrawdownExternalFlows,
     validateInvestmentDrawdownSnapshotCompleteness
@@ -8,14 +9,14 @@ import {
  * Assemble the only supported end-to-end drawdown input from validated,
  * ledger-reconciled snapshots and authoritative cash-ledger external flows.
  *
- * The caller must supply the explicit daily-close calendar and the pure
- * calculator. No prices, dates, flows or missing observations are inferred.
+ * The caller must supply the persisted calendar collection and pure calculator.
+ * Calendar selection is bitemporal; no dates, prices, flows or missing closes are inferred.
  */
 export function analyzeInvestmentDrawdownSeries(input) {
     const {
         analyzeInvestmentDrawdownMath,
         investmentDrawdownSnapshots,
-        expectedDailyCloseAt,
+        investmentDrawdownCalendars,
         scope,
         accountId,
         currency,
@@ -27,9 +28,14 @@ export function analyzeInvestmentDrawdownSeries(input) {
     if (typeof analyzeInvestmentDrawdownMath !== 'function') {
         throw new TypeError('The pure investment drawdown calculator must be supplied.');
     }
-    if (!Array.isArray(expectedDailyCloseAt)) {
-        throw new TypeError('An explicit daily-close calendar is required.');
+    if (!Array.isArray(investmentDrawdownCalendars)) {
+        throw new TypeError('A persisted daily-close calendar collection is required.');
     }
+    const selectedCalendar = selectInvestmentDrawdownCalendar({
+        scope, accountId, currency, startAt, endAt, recordedAtCutoff,
+        investmentAccounts: input?.investmentAccounts,
+        investmentDrawdownCalendars
+    });
     if (!Array.isArray(investmentDrawdownSnapshots)) {
         throw new TypeError('Validated investment drawdown snapshots are required.');
     }
@@ -67,6 +73,10 @@ export function analyzeInvestmentDrawdownSeries(input) {
                 endAt,
                 recordedAtCutoff,
                 methodology: 'TWR_CHAIN_LINKED_FLOW_ADJUSTED_V1',
+            calendarId: selectedCalendar.calendarId,
+            calendarVersion: selectedCalendar.version,
+                calendarId: selectedCalendar.calendarId,
+                calendarVersion: selectedCalendar.version,
                 observationCount: observations.length,
                 flowBoundaryCount: observations.filter((item) => item.kind !== 'DailyClose').length / 2,
                 coverageStartAt: null,
@@ -124,13 +134,15 @@ export function analyzeInvestmentDrawdownSeries(input) {
         endAt,
         recordedAtCutoff,
         observations,
-        expectedDailyCloseAt,
+        expectedDailyCloseAt: selectedCalendar.expectedDailyCloseAt,
         externalFlows: flowResult.flows.map(({ id, effectiveAt, recordedAt }) => ({ id, effectiveAt, recordedAt }))
     });
     return {
         ...result,
         scope,
         ...(accountId ? { accountId } : {}),
+        calendarId: selectedCalendar.calendarId,
+        calendarVersion: selectedCalendar.version,
         completeness,
         limitations: flowResult.limitations
     };
