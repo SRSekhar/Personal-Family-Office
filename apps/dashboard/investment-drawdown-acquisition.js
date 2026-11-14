@@ -89,7 +89,12 @@ export function buildInvestmentDrawdownSnapshotRequirements(input) {
         const sameTimeTransactions = transactions.filter((item) => item.date === effectiveAt && item.recordedAt <= recordedAtCutoff);
         const sameTimeMovements = cash.investmentCashMovements.filter((item) => item.effectiveAt === effectiveAt
             && item.recordedAt <= recordedAtCutoff && accountIds.has(cash.investmentCashAccounts.find((account) => account.id === item.cashAccountId)?.investmentAccountId));
-        const sameTimeTransfers = cash.investmentCashTransfers.filter((item) => item.effectiveAt === effectiveAt && item.recordedAt <= recordedAtCutoff);
+        const sameTimeTransfers = cash.investmentCashTransfers.filter((item) => item.effectiveAt === effectiveAt
+            && item.recordedAt <= recordedAtCutoff
+            && [item.sourceCashAccountId, item.destinationCashAccountId].some((id) => {
+                const linkedAccount = cash.investmentCashAccounts.find((cashAccount) => cashAccount.id === id);
+                return linkedAccount && accountIds.has(linkedAccount.investmentAccountId) && linkedAccount.currency === input.currency;
+            }));
         if (sameTimeTransactions.length) reasons.push('Investment transactions share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
         if (sameTimeMovements.some((item) => !boundarySourceIds.has(item.id))) reasons.push('Other cash movements share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
         if (sameTimeTransfers.some((item) => !boundarySourceIds.has(item.id))) reasons.push('Other cash transfers share the external-flow timestamp and cannot be sequenced by the current ledger schema.');
