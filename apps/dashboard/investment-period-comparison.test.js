@@ -15,7 +15,7 @@ function analysis(startAt, endAt, overrides = {}) {
         calendarId: 'calendar-' + startAt.slice(0, 10), calendarVersion: 1,
         observationCount: 2, flowBoundaryCount: 0,
         coverageStartAt: startAt, coverageEndAt: endAt,
-        maximumDrawdown: 0, peakAt: null, troughAt: null, recoveryAt: null, recovered: true,
+        maximumDrawdown: 0, peakAt: null, troughAt: null, recoveryAt: null, recovered: null,
         points, ...overrides
     };
 }
@@ -39,7 +39,7 @@ describe('historical investment performance period comparison', () => {
                 { effectiveAt: febStart, wealthIndex: 2.5, portfolioValue: 1250, drawdown: 0, observationId: 'feb-start' },
                 { effectiveAt: febEnd, wealthIndex: 2.25, portfolioValue: 1125, drawdown: -0.1, observationId: 'feb-end' }
             ],
-            coverageStartAt: febStart, coverageEndAt: febEnd, maximumDrawdown: -0.1
+            coverageStartAt: febStart, coverageEndAt: febEnd, maximumDrawdown: -0.1,\n            peakAt: febStart, troughAt: febEnd, recovered: false
         });
         const result = compareInvestmentPerformancePeriods({
             periods: [{ label: 'January', analysis: jan }, { label: 'February', analysis: feb }]
