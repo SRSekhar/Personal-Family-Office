@@ -103,6 +103,9 @@ function validatePeriod(period, index) {
     for (const [pointIndex, point] of analysis.points.entries()) {
         const pointLabel = label + ' point ' + (pointIndex + 1);
         timestamp(point?.effectiveAt, pointLabel + ' timestamp');
+        if (!['DailyClose', 'ExternalFlowPre', 'ExternalFlowPost'].includes(point?.kind)) {
+            throw new TypeError(pointLabel + ' has an unsupported observation kind.');
+        }
         const wealthIndex = finite(point?.wealthIndex, pointLabel + ' wealth index');
         if (wealthIndex <= 0) {
             throw new RangeError(pointLabel + ' wealth index must be positive.');
