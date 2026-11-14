@@ -751,11 +751,23 @@ Completed:
 2. Persisted calendar selection wired into `analyzeInvestmentDrawdownSeries`, including recorded-at cutoff and calendar ID/version provenance.
 
 Still required:
+Completed on PR #453:
 3. Private manual position/cash snapshot capture/import with explicit unit price, quantity/balance, source and effective timestamp.
 4. Paired pre-flow/post-flow boundary authoring using exact authoritative flow ID/effective timestamp and matching component universe.
+
+Still required:
 5. Independently hand-calculated end-to-end acceptance tests for multiple flows, scope-crossing transfers, fees/taxes, corrections, closed positions and missing data.
 6. Private descriptive drawdown report/export with methodology, scope, currency, coverage, peak/trough/recovery and unavailable evidence.
 
 CI follow-up: the latest verified code head `a0fbbf8bcebb1056fac2b8d293a8bc2aca876265` passed CI run #1831 (lint, typecheck, package build, unit tests and Chromium browser smoke), Secret Scan #1625 and dashboard packaging #1067. The browser smoke creates a synthetic calendar, verifies the JSON backup/restore, and round-trips the SQLite workspace across all 19 collections.
 
 No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations, rebalancing or trading actions are approved.
+
+
+## 2026-11-14 — Manual drawdown acquisition verified (PR #453)
+
+- Delivered private manual daily-close capture and paired external-flow pre/post capture.
+- Capture derives the expected component universe and reconciliation from the bitemporal FIFO and cash ledgers; values/prices are supplied explicitly by the user and are never fabricated.
+- Browser smoke verifies a reconciled daily close, paired contribution boundaries, demo/private isolation, and JSON/SQLite backup persistence.
+- CI #1854, Secret Scan #1648 and dashboard packaging #1090 passed on head `e91cfb79d557251c27b2a2a13914c463d773bde5`.
+- Remaining gates: independent hand-calculated end-to-end financial acceptance and private descriptive drawdown reporting/export. In-kind flows/corporate actions remain unsupported.
