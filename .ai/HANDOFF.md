@@ -562,3 +562,19 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - CI #1670, dashboard packaging #955, Secret Scan #1464 and Chromium browser smoke passed before merge.
 - No default thresholds, risk scores, severity bands, recommendations, alerts, FX conversion, nested fund recursion, provider synchronization or trading behavior were introduced.
 - Next gated work: define and validate liquidity and drawdown data/metric contracts before implementation. Continue to use synthetic data only.
+
+
+## Latest Handoff — 2026-11-14 (PR #453 drawdown acquisition)
+
+- Continue on branch `feature/ipm-drawdown-contract-discovery`, PR #453. Do not create another PR for this cohesive drawdown increment.
+- New module: `apps/dashboard/investment-drawdown-acquisition.js`.
+- Exports:
+  - `buildInvestmentDrawdownSnapshotRequirements`: bitemporal FIFO open-position universe and explicit cash-ledger roll-forward.
+  - `validateInvestmentDrawdownSnapshotCompleteness`: compare persisted components, quantities and cash balances to ledger-derived requirements.
+  - `buildInvestmentDrawdownExternalFlows`: explicit flow classification, scope-boundary transfer handling and correction restatement.
+- New tests: `apps/dashboard/investment-drawdown-acquisition.test.js`.
+- External cash contributions/withdrawals are flows; opening balances are baselines; transfers wholly inside scope are internal; transfers crossing account scope are external. Purchases/sales/dividends/interest/fees/taxes are not external flows.
+- Corrections restate the referenced external flow only when the correction shares the original effective timestamp. Otherwise return unavailable. Recorded-at cutoffs prevent later corrections from rewriting historical as-known results.
+- In-kind flows and corporate actions are not supported by the existing event schema and must not be inferred.
+- Snapshot completeness does not invent prices. Every open FIFO position still needs explicit same-timestamp valuation evidence. Every cash account needs an eligible explicit opening balance and all selected-account investment transactions must be linked to eligible cash accounts.
+- PR #453 is still open/draft/unmerged. Check CI, Secret Scan and dashboard packaging against the latest head before reporting verification. Do not merge without explicit approval.
