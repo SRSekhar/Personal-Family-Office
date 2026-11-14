@@ -87,7 +87,7 @@ describe('investment drawdown series orchestration', () => {
             analyzeInvestmentDrawdownMath: calculate
         });
         expect(result.status).toBe('unavailable');
-        expect(result.reason).toMatch(/cash value does not match/i);
+        expect(result.reason).toMatch(/cash balances do not reconcile/i);
         expect(calculate).not.toHaveBeenCalled();
     });
 
