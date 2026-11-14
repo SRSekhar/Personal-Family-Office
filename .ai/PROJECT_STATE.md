@@ -442,5 +442,5 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Added private-only descriptive HTML and spreadsheet-safe CSV reports with scope, currency, methodology, window, observed coverage, recorded-at cutoff, calendar provenance, peak/trough/recovery, completeness evidence and unavailable reasons. No partial statistic is emitted for unavailable analyses.
 - Browser smoke verifies manual capture, paired flow boundaries, HTML/CSV report downloads, private/demo isolation, JSON backup/restore and SQLite workspace persistence.
 - Snapshot contract rejects `recordedAt` earlier than `effectiveAt`.
-- CI #1884, Secret Scan #1678 and dashboard packaging #1120 passed on head `fe01a85ed8300ab4da7f302058b615294a61d4af`.
+- CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
 - Future scope only: decide and model in-kind contributions/withdrawals and corporate actions. No thresholds, alerts, risk scores, recommendations, rebalancing or trading actions are introduced. Synthetic data only.
