@@ -30,7 +30,7 @@ function download(content, contentType, filename) {
 }
 
 function parsePeriods(value) {
-    const lines = value.split(/\\r?\\n/u).map((line) => line.trim()).filter(Boolean);
+    const lines = value.split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
     if (lines.length < 2) throw new RangeError('Enter at least two explicit periods.');
     return lines.map((line, index) => {
         const fields = line.split('|').map((field) => field.trim());
