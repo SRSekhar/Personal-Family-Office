@@ -2994,6 +2994,7 @@ window.addEventListener('pfo:workspace-updated', () => {
     drawdownSnapshotWorkspace?.render();
     if (workspace === 'private') {
         drawdownReportWorkspace?.invalidate();
+        periodComparisonWorkspace?.render();
         periodComparisonWorkspace?.invalidate();
     } else {
         drawdownReportWorkspace?.render();
