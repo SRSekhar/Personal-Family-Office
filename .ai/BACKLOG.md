@@ -1,5 +1,16 @@
 # Product Backlog
 
+## 2026-11-14 — IPM performance review export delivered (PR #454)
+
+- [x] Add private standalone HTML and spreadsheet-safe CSV exports for the existing ledger-backed portfolio review.
+- [x] Reuse the existing FIFO projection and per-currency XIRR; do not add duplicate financial formulas.
+- [x] Include currency-separated cost basis, market value, realized/unrealized P&L, dividends, interest, recorded fees/taxes, net gain/loss, valuation provenance, XIRR terminal-value/cash/holdings detail, and exact as-of/recorded-at cutoffs.
+- [x] Suppress market value, unrealized P&L and net-gain totals for a currency when any open position lacks eligible valuation evidence; preserve XIRR unavailable reasons.
+- [x] Protect HTML from injection, make the report standalone/script-free, neutralize spreadsheet formula text, and keep exports private-only.
+- [x] Add report unit tests and Chromium smoke for HTML/CSV downloads and demo/private isolation. CI #1900, Secret Scan #1694 and dashboard packaging #1136 passed on code head ec32db25dd22c822965727e8648b7092f87b7c5c.
+- PR #454 is open/draft/unmerged and stacked on PR #453. No merge is authorized by this work.
+
+
 ## Overview
 
 This document represents the long-term product backlog for PFO OS.
