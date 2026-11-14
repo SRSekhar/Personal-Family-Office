@@ -523,3 +523,17 @@ Implemented on draft PR #435:
 - Operational residuals remain explicit: local SQLite and exports are not encrypted; backups are manual, with no automated rotation/retention or remote copy. Use synthetic data in the public repository and loopback-only private workspace for household records.
 
 - Post-merge main push CI run #1542 passed on `4ee5fadc936758cea4ada0f1c7ec903bf3bd5081` after PR #437 was merged.
+
+
+## 2026-11-14 — Drawdown acquisition milestones
+
+On the existing PR #453 branch:
+
+- Added ledger-derived snapshot requirements using bitemporal FIFO quantities and a cash-account roll-forward from explicit opening balances, movements, transfers and linked investment transactions.
+- Added snapshot completeness verification for missing/extra components, position quantity mismatches and cash balance mismatches. Missing baselines and unlinked transactions return an incomplete result; no zero balance or price is inferred.
+- Added external-flow classification: contributions/withdrawals are flows; opening balances are excluded; transfers are internal when both endpoints are in scope and external when crossing an account scope; investment transactions are not external flows.
+- Same-effective-time corrections restate the original external event without a duplicate flow. A correction with a different effective timestamp makes the affected flow unavailable. Corrections after the knowledge cutoff do not rewrite the as-known view.
+- Added acquisition tests for FIFO partial sales, cash roll-forward, missing components/baselines, transaction links, scope-crossing transfers, correction netting and bitemporal cutoffs.
+- In-kind events and corporate actions are not represented by the current cash-ledger schema and remain gated.
+
+Next: manual snapshot capture/import and flow-boundary authoring, followed by explicit daily-close calendar management and independent end-to-end financial acceptance fixtures. PR #453 remains open and unmerged; run status for the latest code commit must be checked before calling this increment verified.
