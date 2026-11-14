@@ -40,9 +40,6 @@ function validatePosition(position, index) {
         if (value !== null) finite(value, label + ' ' + key, { minimum: 0 });
     }
     if (position.unrealizedGain !== null) finite(position.unrealizedGain, label + ' unrealized gain');
-    if (position.quantity > 0 && (position.marketValue === null || position.unrealizedGain === null)) {
-        // An open position may legitimately have unavailable valuation evidence.
-    }
     if (position.valuationAsOf !== null) canonicalTimestamp(position.valuationAsOf, label + ' valuation timestamp');
     if (position.valuationSource !== null && typeof position.valuationSource !== 'string') {
         throw new RangeError(label + ' valuation source must be text or null.');
@@ -61,9 +58,10 @@ function validatePerformance(result, index) {
     if (result.status === 'available') {
         finite(result.xirr, label + ' XIRR');
         finite(result.terminalValue, label + ' terminal value', { minimum: 0 });
+        if (result.terminalValue <= 0) throw new RangeError(label + ' terminal value must be positive.');
         finite(result.cashBalance, label + ' cash balance');
         finite(result.holdingsValue, label + ' holdings value', { minimum: 0 });
-        finite(result.cashFlowCount, label + ' cash-flow count', { minimum: 0 });
+        finite(result.cashFlowCount, label + ' cash-flow count', { minimum: 2 });
         if (!Number.isInteger(result.cashFlowCount)) throw new RangeError(label + ' cash-flow count must be an integer.');
     } else if (typeof result.reason !== 'string' || !result.reason.trim()) {
         throw new RangeError(label + ' must include an unavailable reason.');
@@ -128,7 +126,7 @@ export function renderInvestmentPortfolioReportHtml(input) {
         + '@page{margin:12mm}@media print{body{padding:0;background:#fff}header,section,footer{break-inside:avoid;border-radius:0}.table-wrap{overflow:visible}table{font-size:7pt;min-width:0}tr{break-inside:avoid}}'
         + '</style></head><body><main><header><p class="muted">PFO OS · PRIVATE LOCAL REPORT</p><h1>Investment portfolio review</h1>'
         + '<p class="muted">As-of: ' + escapeHtml(timestampLabel(asOfAt)) + ' UTC · Recorded-at cutoff: ' + escapeHtml(timestampLabel(recordedAtCutoff))
-        + '<br>Generated locally: ' + escapeHtml(generatedLabel) + ' IST · Currencies are presented separately; no FX conversion is performed.</p></header>'
+        + '<br>Generated locally: ' + escapeHtml(generatedLabel) + ' UTC · Currencies are presented separately; no FX conversion is performed.</p></header>'
         + (performanceError ? '<section><h2>Money-weighted performance status</h2><p>Portfolio XIRR unavailable: ' + escapeHtml(performanceError) + '</p></section>' : '')
         + (sections || empty)
         + '<footer><strong>Methodology and limitations</strong><p>Position quantities and cost basis use the existing FIFO ledger projection. Realized and unrealized P&amp;L, recorded dividends/interest, fees and taxes are descriptive ledger-derived amounts. Net gain is realized plus unrealized price gain plus recorded income less recorded fees and taxes; it is not XIRR, a tax calculation, or a forecast.</p>'
