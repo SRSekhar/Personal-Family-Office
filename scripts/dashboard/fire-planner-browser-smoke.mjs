@@ -1597,7 +1597,7 @@ try {
     await page.locator('#investment-period-comparison-form [name="currency"]').selectOption('INR');
     await page.locator('#investment-period-comparison-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
     await page.locator('#investment-period-comparison-form [name="periods"]').fill(
-        'Window A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\\n' +
+        'Window A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\n' +
         'Window B | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt
     );
     await page.locator('#investment-period-comparison-form button[type="submit"]').click();
@@ -1620,12 +1620,12 @@ try {
         page.waitForEvent('download'),
         page.locator('#investment-period-comparison-download-html').click()
     ]);
-    assert.match(comparisonHtmlDownload.suggestedFilename(), /\\.html$/u);
+    assert.match(comparisonHtmlDownload.suggestedFilename(), /\.html$/u);
     const [comparisonCsvDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#investment-period-comparison-download-csv').click()
     ]);
-    assert.match(comparisonCsvDownload.suggestedFilename(), /\\.csv$/u);
+    assert.match(comparisonCsvDownload.suggestedFilename(), /\.csv$/u);
     await page.evaluate(() => {
         const key = 'pfo-os.investment-drawdown-snapshots.v1';
         const snapshots = JSON.parse(globalThis.localStorage.getItem(key) || '[]');
