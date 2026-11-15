@@ -1,5 +1,16 @@
 # Session Handoff
 
+## Latest development — Sprint 14 / IPM-06 (2026-11-15)
+
+Branch `feature/ipm-market-data-boundary` starts from the verified PR #455 head and adds a provider-neutral market-data package, `@pfo/market-data`.
+
+Three slices are implemented: (1) normalized contracts for identity, quotes, historical bars, fundamentals and corporate actions with source/license/attribution, timezone, delay, freshness, coverage, adjustment and point-in-time metadata; (2) independent optional capability ports and provider conformance validation with synthetic fixtures; (3) explicit bounded timeout/retry/cache policy, transient-only retry, cancellation, bounded in-memory TTL cache and sanitized errors.
+
+No provider SDK/API, endpoint, credentials, database persistence, schema migration, automatic valuation import or corporate-action ledger posting. No provider is registered and no outbound request occurs by default. Manual valuation remains unchanged. Before selecting an adapter, review official API docs, authentication, commercial/data terms, licensing/redistribution, exchange coverage, point-in-time guarantees and retention/rate limits.
+
+Validation is pending on the final branch head. Keep PR #455 draft/unmerged; new IPM-06 work should be a separate stacked draft PR. Do not merge without owner approval.
+
+
 ## Latest development — Sprint 13 / IPM-05 (2026-11-15)
 
 A new branch `feature/ipm-statement-reconciliation` is based on `feature/ipm-performance-review` (PR #454) and implements Option B: both broker transaction statements and holdings/position statements. See `docs/architecture/IPM-05-STATEMENT-RECONCILIATION.md`.

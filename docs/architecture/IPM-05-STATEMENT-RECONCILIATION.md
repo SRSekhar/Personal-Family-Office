@@ -1,6 +1,6 @@
 # IPM-05 — Investment Statement Reconciliation
 
-**Status:** Implemented on feature/ipm-statement-reconciliation; validation pending  
+**Status:** Implemented and verified on PR #455; CI #2001, Secret Scan #1795 and dashboard packaging #1237 passed on 2026-11-15  
 **Decision date:** 2026-11-15  
 **Scope:** Broker transaction statements and holdings/position statements (Option B)
 
