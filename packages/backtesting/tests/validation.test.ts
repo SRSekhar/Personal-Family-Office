@@ -96,6 +96,13 @@ describe('backtesting contracts', () => {
         expect(() => validateBacktestDataset({ ...dataset, contentDigest: 'not-a-digest' })).toThrow(/SHA-256/i);
     });
 
+    it('rejects a bar imported before its evidenced availability and a dataset recorded before retrieval', () => {
+        expect(() => validateBacktestDataset({ ...dataset, bars: [{ ...dataset.bars[0]!, recordedAt: '2026-01-01T10:00:00.000Z' }] }))
+            .toThrow(/imported before/i);
+        expect(() => validateBacktestDataset({ ...dataset, recordedAt: '2025-12-31T00:00:00.000Z' }))
+            .toThrow(/after its source retrieval/i);
+    });
+
     it('requires bitemporal universe membership for point-in-time runs', () => {
         const staticUniverse = { ...universe, pointInTimeComplete: false, memberships: universe.memberships.map(({ availableAt: _availableAt, ...membership }) => membership) };
         expect(() => validateBacktestUniverse(staticUniverse)).not.toThrow();
@@ -106,6 +113,11 @@ describe('backtesting contracts', () => {
         expect(() => validateBacktestTradingCalendar(calendar)).not.toThrow();
         expect(() => validateBacktestTradingCalendar({ ...calendar, coverage: { ...calendar.coverage, expectedBarEndAt: [] } })).toThrow(/explicitly list/i);
         expect(() => validateBacktestTradingCalendar({ ...calendar, coverage: { ...calendar.coverage, expectedBarEndAt: [...calendar.coverage.expectedBarEndAt].reverse() } })).toThrow(/strictly increasing/i);
+    });
+
+    it('requires the selected calendar interval and timezone to match every dataset', () => {
+        expect(() => validateBacktestRunConfiguration(configuration, { datasets: [dataset], universe,
+            calendar: { ...calendar, interval: '1w' } })).toThrow(/same interval/i);
     });
 
     it('validates all run references and refuses cross-currency or implicit execution assumptions', () => {
