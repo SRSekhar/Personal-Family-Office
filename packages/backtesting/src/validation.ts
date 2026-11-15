@@ -93,6 +93,7 @@ export function validateBacktestDataset(dataset: BacktestDataset): void {
     requireTimestamp(dataset.recordedAt, 'Dataset recordedAt');
     requireDigest(dataset.contentDigest, 'Dataset normalized content digest');
     validateSource(dataset.source);
+    if (dataset.source.retrievedAt > dataset.recordedAt) throw new RangeError('Dataset must be recorded at or after its source retrieval timestamp.');
     requireTimestamp(dataset.coverage.startAt, 'Dataset coverage startAt');
     requireTimestamp(dataset.coverage.endAt, 'Dataset coverage endAt');
     if (dataset.coverage.endAt <= dataset.coverage.startAt) throw new RangeError('Dataset coverage endAt must be later than startAt.');
@@ -112,6 +113,8 @@ export function validateBacktestDataset(dataset: BacktestDataset): void {
     for (const bar of dataset.bars) {
         validateBar(bar, dataset);
         if (bar.endAt < dataset.coverage.startAt || bar.endAt > dataset.coverage.endAt) throw new RangeError('Bar endAt is outside dataset coverage.');
+        if (bar.recordedAt > dataset.recordedAt) throw new RangeError('A bar cannot be recorded after its containing dataset snapshot.');
+        if (bar.availableAt !== undefined && bar.availableAt > bar.recordedAt) throw new RangeError('A bar cannot be imported before its evidenced availability timestamp.');
         const key = bar.instrumentId + ':' + bar.interval + ':' + bar.startAt;
         if (barIds.has(key)) throw new RangeError('Dataset contains duplicate instrument/interval/bar-start observations.');
         barIds.add(key);
@@ -146,7 +149,10 @@ export function validateBacktestUniverse(universe: BacktestUniverse): void {
             requireTimestamp(membership.effectiveTo, 'Membership effectiveTo');
             if (membership.effectiveTo <= membership.effectiveFrom) throw new RangeError('Membership effectiveTo must be later than effectiveFrom.');
         }
-        if (membership.availableAt !== undefined) requireTimestamp(membership.availableAt, 'Membership availableAt');
+        if (membership.availableAt !== undefined) {
+            requireTimestamp(membership.availableAt, 'Membership availableAt');
+            if (membership.availableAt > membership.recordedAt) throw new RangeError('Universe membership cannot be recorded before its evidenced availability timestamp.');
+        }
         if (!['included', 'excluded'].includes(membership.status)) throw new RangeError('Universe membership status is unsupported.');
         if (ids.has(membership.id)) throw new RangeError('Universe membership IDs must be unique.');
         ids.add(membership.id);
@@ -194,8 +200,9 @@ export function validateBacktestRunConfiguration(
         || new Set(configuration.datasetIds).size !== configuration.datasetIds.length) {
         throw new RangeError('Backtest dataset IDs must be a non-empty unique array.');
     }
-    if (context.datasets.length !== configuration.datasetIds.length
-        || configuration.datasetIds.some((id) => !context.datasets.some((dataset) => dataset.id === id))) {
+    const resolvedDatasetIds = new Set(context.datasets.map((dataset) => dataset.id));
+    if (resolvedDatasetIds.size !== context.datasets.length || context.datasets.length !== configuration.datasetIds.length
+        || configuration.datasetIds.some((id) => !resolvedDatasetIds.has(id))) {
         throw new RangeError('Backtest configuration must resolve every selected dataset exactly once.');
     }
     validateBacktestUniverse(context.universe);
@@ -220,7 +227,8 @@ export function validateBacktestRunConfiguration(
         if (dataset.recordedAt > configuration.recordedAtCutoff) throw new RangeError('Selected dataset must be recorded by the selected PFO knowledge-state cutoff.');
         if (dataset.instrument.currency !== configuration.currency) throw new RangeError('All backtest instruments must use the run currency; FX is not supported.');
         if (dataset.interval !== first.interval || dataset.marketTimeZone !== first.marketTimeZone
-            || dataset.adjustmentBasis !== first.adjustmentBasis) {
+            || dataset.adjustmentBasis !== first.adjustmentBasis || context.calendar.interval !== dataset.interval
+            || context.calendar.marketTimeZone !== dataset.marketTimeZone) {
             throw new RangeError('All selected datasets must use the same interval, timezone and adjustment basis.');
         }
         if (dataset.source.licenseStatus !== 'reviewed') throw new RangeError('Dataset license must be reviewed before backtest execution.');
@@ -233,8 +241,15 @@ export function validateBacktestRunConfiguration(
             }
         }
     }
+    if (typeof configuration.pointInTimeRequired !== 'boolean' || typeof configuration.survivorshipBiasAcknowledged !== 'boolean') {
+        throw new RangeError('Point-in-time and survivorship-bias choices must be explicit booleans.');
+    }
     if (configuration.universeSelection === 'point-in-time') {
         if (!context.universe.pointInTimeComplete) throw new RangeError('Point-in-time universe selection requires complete bitemporal membership evidence.');
+        const memberInstrumentIds = new Set(context.universe.memberships.filter((item) => item.status === 'included').map((item) => item.instrumentId));
+        if (selected.some((dataset) => !memberInstrumentIds.has(dataset.instrument.instrumentId))) {
+            throw new RangeError('Every selected dataset instrument must have explicit included universe membership evidence.');
+        }
     } else if (configuration.universeSelection === 'static-exploratory') {
         if (!configuration.survivorshipBiasAcknowledged) throw new RangeError('Static exploratory universe requires explicit survivorship-bias acknowledgement.');
     } else {
