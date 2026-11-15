@@ -32,7 +32,7 @@ if (!evidenceItem) {
 
 describe('research request validation', () => {
     it('accepts a valid request', () => {
-        expect(() => validateResearchRequest(base)).not.toThrow();
+        expect(() => { validateResearchRequest(base); }).not.toThrow();
     });
 
     it('rejects non-HTTPS sources and duplicate evidence IDs', () => {

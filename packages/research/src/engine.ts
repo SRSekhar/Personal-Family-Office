@@ -56,7 +56,7 @@ export async function runInvestmentResearch(
     options: ResearchEngineOptions
 ): Promise<ResearchRun> {
     validateResearchRequest(request);
-    const now: () => Date = options.now ?? (() => new Date());
+    const now: () => Date = options.now ?? ((): Date => new Date());
     const startedAt = now().toISOString();
     const normalizedEvidence = request.evidence.map((item) => ({
         ...item,
