@@ -16,9 +16,9 @@ PR #457's final migration-chain test improvement verifies every protected recove
 
 **Integrated main state:** schema v13, 20 persisted workspace collections, and all five investment-management increments are now in main. The post-merge main CI #2018 is being run against merge commit `7db56531b353baa45983e88ed0ef54517740c414`; do not treat the integration as fully regression-verified until that run succeeds.
 
-### Sprint 17 — IPM-08 backtesting architecture and acceptance contracts
+### Sprint 17 — IPM-08 backtesting architecture and acceptance contracts (in progress)
 
-Next deliverable: `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` plus typed domain contracts and independent acceptance scenarios.
+**Drafted:** `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` and `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md`. The ADR is explicitly Proposed. Repository contracts were inspected; no engine, provider, schema or strategy API was invented. Next: resolve the listed decisions before freezing typed contracts.
 
 Scope:
 1. Historical market-data evidence contract: instrument/exchange identity, OHLCV, currency, adjustment basis, source/licensing, publication/availability/retrieval/knowledge timestamps, and explicit point-in-time guarantees.
@@ -26,7 +26,7 @@ Scope:
 3. Execution assumptions: capital, trading calendar, order/fill timing, brokerage, taxes, slippage, liquidity, corporate actions, benchmark and currency.
 4. Bias controls: look-ahead, survivorship, publication delay, revised fundamentals, future corporate-action knowledge, missing sessions and out-of-sample discipline.
 5. Acceptance cases with hand-calculated portfolios and deterministic expected fills/returns.
-6. No backtest engine or provider adapter until the contracts and acceptance cases are reviewed against existing market-data and portfolio domains.
+6. No backtest engine or provider adapter until the contracts and acceptance cases are reviewed against existing market-data and portfolio domains. The numeric acceptance fixture is independently hand-calculated in the acceptance document.
 
 Sprint 18 is normalized historical CSV import and validation. Sprint 19 is the deterministic engine. Sprint 20 is analytics. Sprint 21 is walk-forward/out-of-sample. Sprints 22–24 cover the separate paper-portfolio domain, simulated execution and reporting.
 
