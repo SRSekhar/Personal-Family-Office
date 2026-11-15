@@ -92,14 +92,16 @@ function Test-RepositoryStructureConfiguration {
         }
     }
 
-    foreach ($file in $Structure.files) {
-        $segments = $file.Replace('\', '/').Split('/')
+    # Every nested configured path must have a directory parent that is either
+    # explicitly configured or already present as a real directory.
+    foreach ($configuredPath in $configuredPaths) {
+        $segments = $configuredPath.Replace('\', '/').Split('/')
         if ($segments.Count -gt 1) {
             $parent = ($segments[0..($segments.Count - 2)] -join '/')
             if ($directorySet -notcontains $parent) {
                 $parentPath = Join-Path -Path $RepositoryRoot -ChildPath $parent
                 if (-not (Test-Path -LiteralPath $parentPath -PathType Container)) {
-                    throw "Parent directory for configured file '$file' must exist or be listed in directories: $parent"
+                    throw "Parent directory for configured path '$configuredPath' must exist or be listed in directories: $parent"
                 }
             }
         }

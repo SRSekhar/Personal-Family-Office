@@ -16,9 +16,9 @@ function Resolve-RepositoryConfiguredPath {
 
     $normalizedPath = $RelativePath.Replace('\', '/')
     $segments = $normalizedPath.Split('/')
+    $invalidSegments = @($segments | Where-Object { $_ -eq '' -or $_ -eq '.' -or $_ -eq '..' })
     if ($normalizedPath.StartsWith('/') -or $normalizedPath -match '^[A-Za-z]:' -or
-        $normalizedPath.Contains(':') -or
-        ($segments | Where-Object { $_ -eq '' -or $_ -eq '.' -or $_ -eq '..' }).Count -gt 0) {
+        $normalizedPath.Contains(':') -or $invalidSegments.Count -gt 0) {
         throw "Unsafe repository-relative path in configuration: $RelativePath"
     }
 
