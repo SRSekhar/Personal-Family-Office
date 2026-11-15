@@ -24,7 +24,7 @@ No historical data provider, API, exchange entitlement, commercial data license,
 
 Create a separate `@pfo/backtesting` domain package. It will consume normalized historical data and existing deterministic calculators, but it will not be a new financial-ledger implementation.
 
-The first deliverable is a validated, reproducible run contract. A later engine must be deterministic, chronological, explicit about assumptions, and isolated from real household financial records.
+The first deliverable is a validated, reproducible run contract. The initial contract-only package is `@pfo/backtesting`; it does not execute strategies or orders. A later engine must be deterministic, chronological, explicit about assumptions, and isolated from real household financial records.
 
 ### 2.1 Historical dataset and observation contract
 
