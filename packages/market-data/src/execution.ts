@@ -153,22 +153,21 @@ export async function executeMarketDataOperation<T>(
     while (attempts < policy.maxAttempts) {
         attempts += 1;
         const controller = new AbortController();
-        let timedOut = false;
-        let cancelled = false;
         const timeout = setTimeout(() => {
-            timedOut = true;
-            controller.abort();
+            controller.abort(new MarketDataProviderError('timeout'));
         }, policy.timeoutMs);
-        const onAbort = (): void => { cancelled = true; controller.abort(); };
+        const onAbort = (): void => { controller.abort(new MarketDataProviderError('cancelled')); };
         options.signal?.addEventListener('abort', onAbort, { once: true });
         try {
+            const aborted = new Promise<never>((_, reject) => {
+                controller.signal.addEventListener('abort', () => {
+                    const reason: unknown = controller.signal.reason;
+                    reject(reason instanceof MarketDataProviderError ? reason : new MarketDataProviderError('cancelled'));
+                }, { once: true });
+            });
             const value = await Promise.race([
-                options.operation(controller.signal),
-                new Promise<never>((_, reject) => {
-                    controller.signal.addEventListener('abort', () => {
-                        reject(new MarketDataProviderError(timedOut ? 'timeout' : 'cancelled'));
-                    }, { once: true });
-                })
+                aborted,
+                options.operation(controller.signal)
             ]);
             clearTimeout(timeout);
             options.signal?.removeEventListener('abort', onAbort);
@@ -179,16 +178,9 @@ export async function executeMarketDataOperation<T>(
         } catch (error) {
             clearTimeout(timeout);
             options.signal?.removeEventListener('abort', onAbort);
-            let normalized: MarketDataProviderError;
-            if (error instanceof MarketDataProviderError) {
-                normalized = error;
-            } else if (timedOut) {
-                normalized = new MarketDataProviderError('timeout');
-            } else if (cancelled) {
-                normalized = new MarketDataProviderError('cancelled');
-            } else {
-                normalized = new MarketDataProviderError('unknown');
-            }
+            const normalized = error instanceof MarketDataProviderError
+                ? error
+                : new MarketDataProviderError('unknown');
             if (!normalized.retryable || attempts >= policy.maxAttempts) {
                 throw normalized;
             }
