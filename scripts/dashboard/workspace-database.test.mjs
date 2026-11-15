@@ -432,7 +432,7 @@ describe('SQLite workspace persistence schema v13', () => {
         expect(database.getWorkspace().payload).toEqual(payload());
         expect(database.getStatus().updatedAt).toBe(saved.updatedAt);
     });
-    it('migrates a v10 workspace through v11 to v12 with exact recovery artifacts and no fabricated history', async () => {
+    it('migrates a v10 workspace through schema v13 with exact recovery artifacts at every step', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-v10-migration-')); directories.push(directory);
         const path = join(directory, 'workspace.sqlite');
         const legacy = payload({ schemaVersion: 10 });
@@ -452,10 +452,24 @@ describe('SQLite workspace persistence schema v13', () => {
         expect(saved.schemaVersion).toBe(13);
         expect(saved.investmentDrawdownSnapshots).toEqual([]);
         expect(saved.investmentExposurePolicies).toEqual(legacy.investmentExposurePolicies);
-        const backups = readdirSync(directory).filter((name) => name.includes('.pre-v11-') && name.endsWith('.json'));
-        expect(backups).toHaveLength(1);
-        expect(JSON.parse(readFileSync(join(directory, backups[0]), 'utf8'))).toEqual(legacy);
-        if (process.platform !== 'win32') expect(statSync(join(directory, backups[0])).mode & 0o777).toBe(0o600);
+        const preV11 = readdirSync(directory).filter((name) => name.includes('.pre-v11-') && name.endsWith('.json'));
+        const preV12 = readdirSync(directory).filter((name) => name.includes('.pre-v12-') && name.endsWith('.json'));
+        const preV13 = readdirSync(directory).filter((name) => name.includes('.pre-v13-') && name.endsWith('.json'));
+        expect(preV11).toHaveLength(1);
+        expect(preV12).toHaveLength(1);
+        expect(preV13).toHaveLength(1);
+        expect(JSON.parse(readFileSync(join(directory, preV11[0]), 'utf8'))).toEqual(legacy);
+        expect(JSON.parse(readFileSync(join(directory, preV12[0]), 'utf8'))).toMatchObject({
+            schemaVersion: 11, investmentDrawdownSnapshots: []
+        });
+        expect(JSON.parse(readFileSync(join(directory, preV13[0]), 'utf8'))).toMatchObject({
+            schemaVersion: 12, investmentDrawdownSnapshots: [], investmentDrawdownCalendars: []
+        });
+        if (process.platform !== 'win32') {
+            for (const name of [preV11[0], preV12[0], preV13[0]]) {
+                expect(statSync(join(directory, name)).mode & 0o777).toBe(0o600);
+            }
+        }
     });
 
     it('migrates a v11 workspace through v12 to v13 with protected recovery artifacts and empty new collections', async () => {
@@ -474,10 +488,19 @@ describe('SQLite workspace persistence schema v13', () => {
         const migrated = new WorkspaceDatabase(path); databases.push(migrated);
         expect(migrated.getStatus()).toMatchObject({ schemaVersion: 13, updatedAt: '2026-11-14T10:00:00.000Z' });
         expect(migrated.getWorkspace().payload).toMatchObject({ schemaVersion: 13, investmentDrawdownCalendars: [], investmentDrawdownSnapshots: [], investmentStatementEvidence: [] });
-        const backups = readdirSync(directory).filter((name) => name.includes('.pre-v12-') && name.endsWith('.json'));
-        expect(backups).toHaveLength(1);
-        expect(JSON.parse(readFileSync(join(directory, backups[0]), 'utf8'))).toEqual(legacy);
-        if (process.platform !== 'win32') expect(statSync(join(directory, backups[0])).mode & 0o777).toBe(0o600);
+        const preV12 = readdirSync(directory).filter((name) => name.includes('.pre-v12-') && name.endsWith('.json'));
+        const preV13 = readdirSync(directory).filter((name) => name.includes('.pre-v13-') && name.endsWith('.json'));
+        expect(preV12).toHaveLength(1);
+        expect(preV13).toHaveLength(1);
+        expect(JSON.parse(readFileSync(join(directory, preV12[0]), 'utf8'))).toEqual(legacy);
+        expect(JSON.parse(readFileSync(join(directory, preV13[0]), 'utf8'))).toMatchObject({
+            schemaVersion: 12, investmentDrawdownSnapshots: [], investmentDrawdownCalendars: []
+        });
+        if (process.platform !== 'win32') {
+            for (const name of [preV12[0], preV13[0]]) {
+                expect(statSync(join(directory, name)).mode & 0o777).toBe(0o600);
+            }
+        }
     });
     it('migrates a v12 workspace to v13 with a protected recovery artifact and empty statement evidence', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'pfo-v12-migration-')); directories.push(directory);
