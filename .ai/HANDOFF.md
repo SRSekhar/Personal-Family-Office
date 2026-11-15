@@ -1,5 +1,19 @@
 # Session Handoff
 
+## Latest development — Sprint 15 / IPM-07 (2026-11-15)
+
+Branch `feature/ipm-evidence-research` starts from PR #456 head `87029005f3950a3199b65ac3f96239de171ec17a` and adds `@pfo/research`.
+
+Three increments are implemented: (1) specialist ports for fundamentals, technicals, news/macro and portfolio risk with source provenance, SHA-256 content digest, publication/availability/retrieval/knowledge-time metadata, strict factual claim citations, and provider/model/adapter/prompt version metadata; (2) independent bullish and bearish challenges, structured response validation, claim-reference checks, untrusted-evidence prompt envelopes, stale and non-point-in-time warnings; (3) explicit-path local JSON persistence with atomic replacement, restrictive permissions, schema/size checks, idempotency-key conflict protection, incremental specialist saves and retry/resume.
+
+No LLM provider/SDK/API/credentials, outbound calls, scheduled run, dashboard UI, external household-data transmission, prices/targets/recommendations or ledger/valuation/order mutation. A host must explicitly inject model/specialist adapters and invoke the engine. Local JSON is not encrypted; hosts own private path, backup and retention. ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`.
+
+**Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 passed (100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
+
+This is the core orchestration and persistence foundation, not a live AI research feed. Provider-specific specialist/model adapters and dashboard UI remain gated until an LLM vendor, market/news data sources, official API docs, licensing/terms, privacy and authentication decisions are reviewed. Do not merge PRs #453–#457 without explicit owner approval.
+
+
+
 ## Latest development — Sprint 14 / IPM-06 (2026-11-15)
 
 Branch `feature/ipm-market-data-boundary` starts from the verified PR #455 head and adds a provider-neutral market-data package, `@pfo/market-data`.

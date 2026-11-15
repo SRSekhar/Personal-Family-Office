@@ -1,5 +1,21 @@
 # Current Sprint
 
+## Sprint 15 — IPM-07 Evidence-grounded research and AI review
+
+Implementation is complete on `feature/ipm-evidence-research`, stacked on PR #456. Three milestones are delivered:
+
+1. **IPM-07.1 — Research engine foundation:** new `@pfo/research` package with specialist ports for fundamentals, technicals, news/macro and portfolio risk; evidence provenance and content-digest contracts; explicit as-of/recorded-at timestamps; model/provider/adapter/prompt version tracking; strict claim citation validation.
+2. **IPM-07.2 — Bull/bear challenge:** independent bullish and bearish model-port calls over the same findings/evidence; strict structured-output validation; known-claim reference checks; structured prompt envelopes that identify evidence excerpts as untrusted data; stale and non-point-in-time warnings; no unsupported factual claims can complete a run.
+3. **IPM-07.3 — Reproducible persistence:** explicit-path local JSON repository with atomic replacement, restrictive permissions, schema/size validation; idempotency-key protection; incremental specialist result persistence and retry/resume; reports retain source references/digests and provider/model/prompt versions.
+
+No LLM vendor, SDK, endpoint, API key, network request, scheduled invocation, dashboard UI, remote data transmission or ledger/valuation/order mutation. Hosts explicitly inject adapters and invoke the engine. The local repository is not encrypted; private path, backup and retention remain host responsibilities.
+
+ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`. **Validation passed on implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 (100 test files / 922 tests, lint, typecheck, build, repository safety and both Chromium browser smoke workflows) and Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
+
+Provider-specific specialists/model adapters and user-facing research UI are intentionally not enabled: no LLM vendor, data-source licensing or provider API contract has been approved. This is a verified orchestration/persistence foundation, not a live market-research feed.
+
+
+
 ## Sprint 14 — IPM-06 market-data provider boundary
 
 Three increments implemented on `feature/ipm-market-data-boundary`, stacked on PR #455:

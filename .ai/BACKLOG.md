@@ -507,12 +507,16 @@ The following work is approved under Option B. It is a functional product epic, 
 - Acceptance: contract tests, provider mocks, stale/missing data states, point-in-time guarantees and no outbound calls by default.
 
 ### IPM-07 — Evidence-grounded research and AI review
-- Optional specialist research: fundamentals, technicals, news/macro and portfolio risk.
-- Separate bullish and bearish challenge stages; final synthesis must cite evidence, dates, sources, uncertainty and conflicting evidence.
-- Deterministic calculations remain authoritative; AI cannot write ledger entries, prices, targets or orders.
-- Persist reproducible run inputs/configuration/model/provider versions, timestamps, evidence references, report and errors; idempotent retry/resume.
-- Explicit user invocation, data minimization and provider disclosure; no household data transmission by default.
-- Acceptance: synthetic fixtures, structured-output validation, prompt-injection handling, stale evidence warnings, missing-source handling and no unsupported recommendation.
+
+Status: **Core implementation complete and verified on draft PR #457; vendor-specific AI adapters and end-user UI remain gated.**
+
+- Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15): CI #2011 passed — 100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows; Secret Scan #1805 passed.
+
+- [x] **Milestone 1 — Research engine foundation:** provider-neutral specialist ports for fundamentals, technicals, news/macro and portfolio risk; strict evidence, claim, timestamp, source-digest and model/provider/prompt-version contracts; bounded untrusted evidence excerpts; explicit as-of and recorded-at cutoffs.
+- [x] **Milestone 2 — Bull/bear challenge:** independent bullish and bearish model-review calls over the same evidence and findings; structured-output validation; claim/evidence reference checks; prompt-injection-resistant structured prompt envelopes; explicit stale, unknown point-in-time and missing-evidence warnings. No prices, targets, buy/sell recommendations or order fields exist in the output contract.
+- [x] **Milestone 3 — Reproducibility and persistence:** versioned local JSON repository with explicit caller-supplied path, atomic replacement, restrictive file permissions, schema and 10 MiB bounds; run idempotency, incremental saves and retry/resume of completed specialist findings; report provenance, source digests, model/adapter/prompt versions and timestamps.
+- No LLM provider, API/SDK, credentials, network call, scheduled invocation, dashboard UI, remote transmission, household data upload or ledger/valuation/order write is enabled. Hosts must explicitly inject specialist/model adapters and explicitly invoke the engine. Local JSON persistence is not encrypted; host owns private path, backup and retention.
+- ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`. Synthetic tests only. Final CI and Secret Scan status must be recorded before declaring validated.
 
 ### IPM-08 — Point-in-time backtesting and paper portfolio
 - Reproducible historical evaluation with as-of data constraints, corporate-action handling, transaction costs, slippage, liquidity and benchmark assumptions.
