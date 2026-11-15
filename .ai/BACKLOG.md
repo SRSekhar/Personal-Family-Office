@@ -8,7 +8,8 @@
 - [ ] Resolve exchange/instrument/interval scope, trading-calendar source, corporate-action semantics, fill/partial-fill policy, cost model, tick/lot-size and short/fractional-position policy.
 - [x] Add initial `@pfo/backtesting` contract package and strict validators for datasets, bitemporal universe membership, explicit calendars, strategy/cost descriptors and run assumptions. This package does not contain an engine.
 - [ ] Resolve remaining execution, corporate-action and instrument-market conventions before implementing simulation behavior.
-- [ ] Implement deterministic contract tests; no engine until the acceptance suite is agreed.
+- [x] Implement deterministic contract validation tests; CI #2045 passed with the full 934-test suite and browser smoke checks.
+- [ ] Resolve remaining market, calendar, corporate-action, execution, cost and instrument-quantity policies before engine implementation.
 
 ## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio
 
