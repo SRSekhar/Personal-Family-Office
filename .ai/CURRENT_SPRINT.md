@@ -14,7 +14,7 @@
 
 PR #457's final migration-chain test improvement verifies every protected recovery artifact across v10→v11→v12→v13. CI #2013 and Secret Scan #1807 passed on its final head `ed0b6a6fbce2ee4acaae123968f769586d509858`.
 
-**Integrated main state:** schema v13, 20 persisted workspace collections, and all five investment-management increments are now in main. The post-merge main CI #2018 is being run against merge commit `7db56531b353baa45983e88ed0ef54517740c414`; do not treat the integration as fully regression-verified until that run succeeds.
+**Integrated main state:** schema v13, 20 persisted workspace collections, and all five investment-management increments are now in main. The post-merge main CI #2025 and Secret Scan #1819 passed on main closeout head `db739ff0d38fb0da965fd063de4560c54a85a9f6`, which includes the integrated code and Sprint 16 documentation closeout.
 
 ### Sprint 17 — IPM-08 backtesting architecture and acceptance contracts (in progress)
 
