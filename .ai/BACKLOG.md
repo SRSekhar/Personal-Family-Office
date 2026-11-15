@@ -6,7 +6,8 @@
 - [x] Draft `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` (Proposed; engine/provider not authorized).
 - [x] Draft `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md`, including an independently hand-calculated synthetic execution fixture.
 - [ ] Resolve exchange/instrument/interval scope, trading-calendar source, corporate-action semantics, fill/partial-fill policy, cost model, tick/lot-size and short/fractional-position policy.
-- [ ] Freeze typed contracts and validators only after the relevant decisions are accepted.
+- [x] Add initial `@pfo/backtesting` contract package and strict validators for datasets, bitemporal universe membership, explicit calendars, strategy/cost descriptors and run assumptions. This package does not contain an engine.
+- [ ] Resolve remaining execution, corporate-action and instrument-market conventions before implementing simulation behavior.
 - [ ] Implement deterministic contract tests; no engine until the acceptance suite is agreed.
 
 ## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio
