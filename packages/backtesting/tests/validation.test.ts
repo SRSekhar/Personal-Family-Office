@@ -35,7 +35,7 @@ const dataset: BacktestDataset = {
     marketTimeZone: 'Asia/Kolkata',
     source,
     contentDigest: digest,
-    recordedAt: '2026-01-01T00:00:00.000Z',
+    recordedAt: '2026-01-02T12:00:00.000Z',
     coverage: {
         startAt: '2025-12-31T00:00:00.000Z',
         endAt: '2026-01-02T23:59:59.000Z',
@@ -79,6 +79,11 @@ describe('backtesting contracts', () => {
         expect(() => validateBacktestDataset(dataset)).not.toThrow();
     });
 
+    it('rejects unknown adjustment basis and bars that are not chronologically ordered', () => {
+        expect(() => validateBacktestDataset({ ...dataset, adjustmentBasis: 'unknown' })).toThrow(/adjustment basis/i);
+        expect(() => validateBacktestDataset({ ...dataset, bars: [...dataset.bars].reverse() })).toThrow(/strictly ordered/i);
+    });
+
     it('rejects impossible OHLC relationships and duplicate bars', () => {
         expect(() => validateBacktestDataset({ ...dataset, bars: [{ ...dataset.bars[0]!, high: 90 }] })).toThrow(/OHLC/i);
         expect(() => validateBacktestDataset({ ...dataset, bars: [dataset.bars[0]!, dataset.bars[0]!] })).toThrow(/duplicate/i);
@@ -113,6 +118,11 @@ describe('backtesting contracts', () => {
         expect(() => validateBacktestTradingCalendar(calendar)).not.toThrow();
         expect(() => validateBacktestTradingCalendar({ ...calendar, coverage: { ...calendar.coverage, expectedBarEndAt: [] } })).toThrow(/explicitly list/i);
         expect(() => validateBacktestTradingCalendar({ ...calendar, coverage: { ...calendar.coverage, expectedBarEndAt: [...calendar.coverage.expectedBarEndAt].reverse() } })).toThrow(/strictly increasing/i);
+    });
+
+    it('requires full calendar and dataset coverage for the requested run window', () => {
+        expect(() => validateBacktestRunConfiguration({ ...configuration, endAt: '2026-01-03T00:00:00.000Z' },
+            { datasets: [dataset], universe, calendar })).toThrow(/cover the complete requested/i);
     });
 
     it('requires the selected calendar interval and timezone to match every dataset', () => {
