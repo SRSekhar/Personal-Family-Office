@@ -20,7 +20,7 @@
 - [x] Add standalone script-free HTML and spreadsheet-safe CSV with period return, drawdown, peak/trough/recovery timestamps, coverage, snapshot completeness evidence, limitations, provenance, overlap flags and unavailable reasons.
 - [x] Invalidate reports on workspace changes and block exports when the underlying validated source signature has changed.
 - [x] Add unit tests, static UI wiring checks and Chromium smoke for private/demo isolation, downloads and stale-source invalidation.
-- No schema migration, persistence collection, FX, external market data or tax/accounting assumptions were introduced. CI #1969, Secret Scan #1763 and dashboard packaging #1205 passed on code head dd5ba0298a7f34a0b694150b108a9a5de4d99358.
+- No schema migration, persistence collection, FX, external market data or tax/accounting assumptions were introduced. Final PR #454 head `01131e7c3f36901aeabd5ffe8f0673cec08c3d05` passed CI #1980, Secret Scan #1774 and dashboard packaging #1216 on 2026-11-15.
 - PR #454 remains draft/open/unmerged and stacked on PR #453. No merge is authorized by this work.
 
 ## Gated follow-up — transaction statement reconciliation and accounting events
