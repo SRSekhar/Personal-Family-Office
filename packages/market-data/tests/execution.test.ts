@@ -19,11 +19,11 @@ const policy: MarketDataExecutionPolicy = {
 
 describe('market-data execution boundary', () => {
     it('rejects unbounded timeout, retry, delay and cache policies', () => {
-        expect(() => validateMarketDataExecutionPolicy({ ...policy, timeoutMs: 60_001 })).toThrow(/timeout/i);
-        expect(() => validateMarketDataExecutionPolicy({ ...policy, maxAttempts: 4 })).toThrow(/attempts/i);
-        expect(() => validateMarketDataExecutionPolicy({ ...policy, retryDelayMs: 5_001 })).toThrow(/retry delay/i);
-        expect(() => validateMarketDataExecutionPolicy({ ...policy, cacheTtlMs: 3_600_001 })).toThrow(/cache TTL/i);
-        expect(() => validateMarketDataExecutionPolicy({ ...policy, maxCacheEntries: 1_001 })).toThrow(/cache entry/i);
+        expect(() => { validateMarketDataExecutionPolicy({ ...policy, timeoutMs: 60_001 }); }).toThrow(/timeout/i);
+        expect(() => { validateMarketDataExecutionPolicy({ ...policy, maxAttempts: 4 }); }).toThrow(/attempts/i);
+        expect(() => { validateMarketDataExecutionPolicy({ ...policy, retryDelayMs: 5_001 }); }).toThrow(/retry delay/i);
+        expect(() => { validateMarketDataExecutionPolicy({ ...policy, cacheTtlMs: 3_600_001 }); }).toThrow(/cache TTL/i);
+        expect(() => { validateMarketDataExecutionPolicy({ ...policy, maxCacheEntries: 1_001 }); }).toThrow(/cache entry/i);
     });
 
     it('retries only classified transient provider errors and caches successful results', async () => {
@@ -31,22 +31,21 @@ describe('market-data execution boundary', () => {
         let calls = 0;
         const first = await executeMarketDataOperation({
             cacheKey: 'provider|quote|instrument-1|2026-01-01T00:00:00.000Z',
-            cache, policy, sleep: async () => undefined,
-            operation: async () => {
+            cache, policy, sleep: () => Promise.resolve(),
+            operation: () => {
                 calls += 1;
-                if (calls === 1) {
-                    throw new MarketDataProviderError('unavailable');
-                }
-                return { price: 123 };
+                return calls === 1
+                    ? Promise.reject(new MarketDataProviderError('unavailable'))
+                    : Promise.resolve({ price: 123 });
             }
         });
         expect(first).toMatchObject({ value: { price: 123 }, cache: 'miss', attempts: 2 });
         const second = await executeMarketDataOperation({
             cacheKey: 'provider|quote|instrument-1|2026-01-01T00:00:00.000Z',
             cache, policy,
-            operation: async () => {
+            operation: () => {
                 calls += 1;
-                return { price: 999 };
+                return Promise.resolve({ price: 999 });
             }
         });
         expect(second).toMatchObject({ value: { price: 123 }, cache: 'hit', attempts: 0 });
@@ -56,9 +55,9 @@ describe('market-data execution boundary', () => {
     it('does not retry authorization and validation errors', async () => {
         let calls = 0;
         await expect(executeMarketDataOperation({
-            policy, operation: async () => {
+            policy, operation: () => {
                 calls += 1;
-                throw new MarketDataProviderError('unauthorized');
+                return Promise.reject(new MarketDataProviderError('unauthorized'));
             }
         })).rejects.toMatchObject({ code: 'unauthorized', retryable: false });
         expect(calls).toBe(1);
@@ -68,7 +67,7 @@ describe('market-data execution boundary', () => {
         let calls = 0;
         await expect(executeMarketDataOperation({
             policy: { ...policy, timeoutMs: 100, maxAttempts: 1 },
-            operation: async (signal) => new Promise<number>((_resolve, reject) => {
+            operation: (signal) => new Promise<number>((_resolve, reject) => {
                 calls += 1;
                 signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
             })
@@ -83,9 +82,9 @@ describe('market-data execution boundary', () => {
         let calls = 0;
         await expect(executeMarketDataOperation({
             cacheKey: 'cancelled', cache, policy, signal: controller.signal,
-            operation: async () => {
+            operation: () => {
                 calls += 1;
-                return 1;
+                return Promise.resolve(1);
             }
         })).rejects.toMatchObject({ code: 'cancelled' });
         expect(calls).toBe(0);

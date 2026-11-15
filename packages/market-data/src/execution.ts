@@ -77,7 +77,7 @@ export class MarketDataMemoryCache {
         }
     }
 
-    public get<T>(key: string, now = Date.now()): T | undefined {
+    public get(key: string, now = Date.now()): unknown {
         const entry = this.entries.get(key);
         if (!entry) {
             return undefined;
@@ -88,10 +88,10 @@ export class MarketDataMemoryCache {
         }
         this.entries.delete(key);
         this.entries.set(key, entry);
-        return entry.value as T;
+        return entry.value;
     }
 
-    public set<T>(key: string, value: T, expiresAt: number, now = Date.now()): void {
+    public set(key: string, value: unknown, expiresAt: number, now = Date.now()): void {
         if (this.maxEntries === 0 || expiresAt <= now) {
             return;
         }
@@ -137,14 +137,14 @@ export async function executeMarketDataOperation<T>(
     const policy = options.policy;
     validateMarketDataExecutionPolicy(policy);
     const now = options.now ?? Date.now;
-    const cacheEnabled = policy.cacheTtlMs > 0 && policy.maxCacheEntries > 0 && Boolean(options.cacheKey && options.cache);
-    if (cacheEnabled) {
-        const cached = options.cache?.get<T>(options.cacheKey as string, now());
+    const cacheEnabled = policy.cacheTtlMs > 0 && policy.maxCacheEntries > 0;
+    if (cacheEnabled && options.cacheKey !== undefined && options.cache !== undefined) {
+        const cached = options.cache.get(options.cacheKey, now());
         if (cached !== undefined) {
-            return { value: cached, cache: 'hit', attempts: 0 };
+            return { value: cached as T, cache: 'hit', attempts: 0 };
         }
     }
-    if (options.signal?.aborted) {
+    if (options.signal && options.signal.aborted) {
         throw new MarketDataProviderError('cancelled');
     }
 
@@ -158,7 +158,7 @@ export async function executeMarketDataOperation<T>(
             timedOut = true;
             controller.abort();
         }, policy.timeoutMs);
-        const onAbort = (): void => controller.abort();
+        const onAbort = (): void => { controller.abort(); };
         options.signal?.addEventListener('abort', onAbort, { once: true });
         try {
             const value = await Promise.race([
@@ -171,16 +171,23 @@ export async function executeMarketDataOperation<T>(
             ]);
             clearTimeout(timeout);
             options.signal?.removeEventListener('abort', onAbort);
-            if (cacheEnabled) {
-                options.cache?.set(options.cacheKey as string, value, now() + policy.cacheTtlMs, now());
+            if (cacheEnabled && options.cacheKey !== undefined && options.cache !== undefined) {
+                options.cache.set(options.cacheKey, value, now() + policy.cacheTtlMs, now());
             }
-            return { value, cache: cacheEnabled ? 'miss' : 'disabled', attempts };
+            return { value, cache: cacheEnabled && options.cacheKey !== undefined && options.cache !== undefined ? 'miss' : 'disabled', attempts };
         } catch (error) {
             clearTimeout(timeout);
             options.signal?.removeEventListener('abort', onAbort);
-            const normalized = error instanceof MarketDataProviderError
-                ? error
-                : new MarketDataProviderError(timedOut ? 'timeout' : options.signal?.aborted ? 'cancelled' : 'unknown');
+            let normalized: MarketDataProviderError;
+            if (error instanceof MarketDataProviderError) {
+                normalized = error;
+            } else if (timedOut) {
+                normalized = new MarketDataProviderError('timeout');
+            } else if (options.signal && options.signal.aborted) {
+                normalized = new MarketDataProviderError('cancelled');
+            } else {
+                normalized = new MarketDataProviderError('unknown');
+            }
             if (!normalized.retryable || attempts >= policy.maxAttempts) {
                 throw normalized;
             }

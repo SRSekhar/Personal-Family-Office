@@ -43,13 +43,13 @@ export interface MarketDataProvider {
     readonly corporateActions?: CorporateActionsCapability;
 }
 
-const capabilityMethods: Readonly<Record<MarketDataCapabilityName, keyof Omit<MarketDataProvider, 'descriptor'>>> = {
-    'instrument-identity': 'instrumentIdentity',
-    quotes: 'quotes',
-    'historical-bars': 'historicalBars',
-    fundamentals: 'fundamentals',
-    'corporate-actions': 'corporateActions'
-};
+const capabilityMethods: readonly { readonly name: MarketDataCapabilityName; readonly property: keyof Omit<MarketDataProvider, 'descriptor'> }[] = [
+    { name: 'instrument-identity', property: 'instrumentIdentity' },
+    { name: 'quotes', property: 'quotes' },
+    { name: 'historical-bars', property: 'historicalBars' },
+    { name: 'fundamentals', property: 'fundamentals' },
+    { name: 'corporate-actions', property: 'corporateActions' }
+];
 
 function requireText(value: unknown, label: string): asserts value is string {
     if (typeof value !== 'string' || value.trim().length === 0) {
@@ -71,9 +71,6 @@ function requireHttpsUrl(value: string, label: string): void {
 
 /** Validate provider disclosure and ensure each declared capability has exactly one implementation port. */
 export function validateMarketDataProvider(provider: MarketDataProvider): void {
-    if (!provider || typeof provider !== 'object' || !provider.descriptor) {
-        throw new TypeError('A market-data provider descriptor is required.');
-    }
     const descriptor = provider.descriptor;
     requireText(descriptor.id, 'Provider ID');
     requireText(descriptor.name, 'Provider name');
@@ -85,21 +82,21 @@ export function validateMarketDataProvider(provider: MarketDataProvider): void {
     requireHttpsUrl(descriptor.documentationUrl, 'Provider documentation URL');
     requireHttpsUrl(descriptor.termsUrl, 'Provider terms URL');
 
-    if (!Array.isArray(descriptor.capabilities) || new Set(descriptor.capabilities).size !== descriptor.capabilities.length) {
+    if (new Set(descriptor.capabilities).size !== descriptor.capabilities.length) {
         throw new RangeError('Provider capabilities must be a unique array.');
     }
     for (const capability of descriptor.capabilities) {
-        const method = capabilityMethods[capability];
-        if (!method) {
+        const mapping = capabilityMethods.find((item) => item.name === capability);
+        if (!mapping) {
             throw new RangeError('Provider declares an unsupported capability.');
         }
-        if (!provider[method] || typeof provider[method] !== 'object') {
+        if (!provider[mapping.property]) {
             throw new RangeError('Provider declares ' + capability + ' without implementing its capability port.');
         }
     }
-    for (const [capability, method] of Object.entries(capabilityMethods)) {
-        if (provider[method] && !descriptor.capabilities.includes(capability as MarketDataCapabilityName)) {
-            throw new RangeError('Provider implements an undeclared capability: ' + capability + '.');
+    for (const mapping of capabilityMethods) {
+        if (provider[mapping.property] && !descriptor.capabilities.includes(mapping.name)) {
+            throw new RangeError('Provider implements an undeclared capability: ' + mapping.name + '.');
         }
     }
 }
