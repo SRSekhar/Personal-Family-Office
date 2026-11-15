@@ -10,6 +10,14 @@
 
 ---
 
+## Sprint 17 / IPM-08.1 — Architecture proposal in progress
+
+- Draft ADR and acceptance contract are available under `docs/architecture/`.
+- Next: resolve data/calendar/corporate-action/execution/cost/lot-size assumptions and then implement typed contracts and validators.
+- The deterministic engine, provider adapters and paper-portfolio persistence remain gated.
+
+---
+
 ## Vision
 
 Build a privacy-conscious, explainable, AI-assisted Personal Family Office platform with deterministic financial calculations and repeatable reporting.
