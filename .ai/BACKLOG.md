@@ -1,5 +1,55 @@
 # Product Backlog
 
+## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio
+
+### IPM-08.1 — Architecture and domain contracts
+- [ ] Inspect and reuse the existing `@pfo/market-data`, portfolio ledger, cash ledger, XIRR, drawdown and reporting contracts.
+- [ ] Define immutable historical observations with instrument/exchange identity, OHLCV, currency, adjustment basis, source/licensing, publication/availability/retrieval/knowledge timestamps and explicit point-in-time guarantees.
+- [ ] Define strategy identity/version, entry/exit rules, universe membership as-of date, position sizing, rebalance, cash handling, parameters and effective dates.
+- [ ] Define explicit simulation assumptions: initial capital, execution timing, order types, fills, trading calendar, brokerage, taxes, slippage, liquidity, corporate actions, benchmark and currency.
+- [ ] Define look-ahead, survivorship, publication-delay, revised-fundamental, future-corporate-action, missing-session and overfitting controls.
+- [ ] Add `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` and hand-calculated acceptance scenarios before implementing an engine.
+
+### IPM-08.2 — Historical data import and validation
+- [ ] Start with normalized CSV import, preview and strict validation; preserve source evidence and timestamps.
+- [ ] Reject duplicate/missing sessions, invalid OHLC relationships, instrument/currency mismatch, future-dated data, adjustment ambiguity and incomplete coverage.
+- [ ] Never synthesize missing prices or market sessions.
+- [ ] Evaluate a provider adapter only after official API documentation, authentication, licensing, redistribution, rate limits and point-in-time guarantees are reviewed.
+
+### IPM-08.3 — Deterministic backtesting engine
+- [ ] Process observations chronologically with explicit as-of universe selection and reproducible strategy versions.
+- [ ] Apply declared execution, cost, slippage, liquidity and corporate-action assumptions.
+- [ ] Maintain isolated simulated cash/positions and immutable event journal.
+- [ ] Validate against independently hand-calculated cases; no look-ahead or survivorship leakage.
+
+### IPM-08.4 — Analytics and validation
+- [ ] Reuse existing CAGR, XIRR, drawdown and risk calculations where their definitions fit.
+- [ ] Report returns, drawdown, volatility, Sharpe/Sortino with explicit assumptions, turnover, transaction costs and benchmark comparisons.
+- [ ] Add in-sample/out-of-sample and walk-forward evaluation with parameter stability checks.
+- [ ] Persist dataset, strategy, engine and assumption versions for reproducibility.
+
+### IPM-08.5 — Separate paper portfolio
+- [ ] Create an isolated paper account, virtual cash, positions, simulated orders/fills, costs, taxes and event history.
+- [ ] Model partial fills, rejected/expired orders, insufficient virtual cash/holdings and trading-session constraints.
+- [ ] Keep paper positions and events separate from real investment accounts, transactions, FIFO lots, cash and valuations.
+- [ ] No broker connection or live order routing.
+
+### IPM-08.6 — Paper reporting
+- [ ] Report virtual cash, positions, value, realized/unrealized P&L, fees/taxes, order/fill history, drawdown and benchmark comparison.
+
+## 2026-11-15 — Sprint 16 integration closeout
+
+- [x] Merge PR #453 — flow-adjusted drawdown — merge commit `676de0e57d02c4e69053fc2c156482c2c7cb254f`.
+- [x] Merge PR #454 — performance review and historical comparison — merge commit `3657e018f1734550a8256852319275efb37d9ac8`.
+- [x] Merge PR #455 — transaction/holdings statement reconciliation — merge commit `26e2f3f7d611e4f4079748a93cea19c9e38aae5c`.
+- [x] Merge PR #456 — provider-neutral market-data boundary — merge commit `78783e948926791d8d4280ebaf080e00739ad61e`.
+- [x] Merge PR #457 — evidence-grounded research and AI review — merge commit `7db56531b353baa45983e88ed0ef54517740c414`.
+- [x] Extend migration-chain tests to verify protected recovery artifacts for every v10→v11→v12→v13 step.
+- [x] PR-head CI and Secret Scan passed before each merge. PR #455 dashboard packaging passed.
+- [ ] Confirm final post-merge main CI #2018 succeeds on `7db56531b353baa45983e88ed0ef54517740c414`.
+
+---
+
 ## 2026-11-15 — IPM-06 provider-neutral market-data boundary
 
 - [x] **Milestone 1 — Normalized contracts:** define separate identity, quote, historical-bar, fundamentals and corporate-action observations with currency, market timezone, source/licensing, delay, freshness, coverage, adjustment and point-in-time metadata.
