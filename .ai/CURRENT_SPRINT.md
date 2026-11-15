@@ -8,7 +8,7 @@ Implementation is on `feature/ipm-statement-reconciliation`, stacked on PR #454.
 2. **IPM-05.2 — Reconciliation engine:** exact external-reference matching; conservative exact-date fallback; explicit matched, mismatch, ambiguous, duplicate and unmatched outcomes; holdings quantities compared with the existing FIFO projection. No ledger mutation or invented values.
 3. **IPM-05.3 — Private workflow and persistence:** normalized JSON evidence import, private reconciliation table and formula-safe CSV export; JSON backup schema v13; SQLite schema v13 / 20 collections; transactional v12→v13 migration with protected pre-v13 recovery artifact.
 
-Implementation and focused tests have been added. **Completion remains validation-gated** until CI, full test suite, Chromium smoke, Secret Scan and dashboard packaging pass on the final PR head. The PR is intended to remain draft and stacked on PR #454; no merge is authorized.
+**Verified on final code head dc9a66c30296a9e0e001f5b295f95482fa163d17 (2026-11-15):** CI #2000 passed (95 test files / 900 tests, lint, typecheck, build, repository safety and both Chromium browser smoke workflows); Secret Scan #1794 passed; dashboard packaging #1236 passed. All three Sprint 13 milestones are complete. PR #455 remains draft and stacked on PR #454; no merge is authorized.
 
 
 ## Current status — 2026-11-15

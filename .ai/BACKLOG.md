@@ -5,7 +5,7 @@
 - [x] **Milestone 1 — Evidence contract:** add immutable transaction and holdings statement evidence, stable statement/source-row identities, account/currency references, explicit period/as-of/recorded-at timestamps, provenance and strict arithmetic/reference validation.
 - [x] **Milestone 2 — Reconciliation engine:** reconcile transaction rows by exact external reference or conservative exact account/instrument/type/timestamp fallback; report mismatches, ambiguous/duplicate/unmatched rows; compare holdings quantities against the existing FIFO projection at the recorded-at cutoff.
 - [x] **Milestone 3 — Private workflow and persistence:** normalized JSON evidence import, private result table, formula-safe CSV export, local storage, JSON backup schema v13, SQLite schema v13 / 20 collections, transactional v12→v13 migration and protected recovery artifact.
-- ADR: `docs/architecture/IPM-05-STATEMENT-RECONCILIATION.md`. Focused tests are added; final CI/full-suite/Chromium/Secret Scan/dashboard packaging validation remains pending. Do not mark the deliverable production-verified until all gates pass.
+- ADR: `docs/architecture/IPM-05-STATEMENT-RECONCILIATION.md`. Focused tests and Chromium browser smoke are included. Final code head dc9a66c30296a9e0e001f5b295f95482fa163d17 passed CI #2000 (95 files / 900 tests), Secret Scan #1794 and dashboard packaging #1236 on 2026-11-15. The three implementation milestones are complete on draft PR #455; merge remains a separate owner decision.
 - Explicit exclusions: broker APIs, automatic broker-format guessing, PDF extraction, cash settlement matching, cost-basis/tax-lot reconciliation, corporate actions, in-kind events, FX, price ingestion and automatic ledger correction.
 
 
