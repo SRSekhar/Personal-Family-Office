@@ -230,7 +230,7 @@ export function validateBacktestUniverse(universe: BacktestUniverse): void {
     if (!Array.isArray(rawMemberships)) {
         throw new RangeError('Universe memberships must be an array.');
     }
-    const memberships = rawMemberships as BacktestUniverse['memberships'][number][];
+    const memberships = rawMemberships as Array<BacktestUniverse['memberships'][number]>;
     const ids = new Set<string>();
     for (const membership of memberships) {
         requireText(membership.id, 'Universe membership ID');
