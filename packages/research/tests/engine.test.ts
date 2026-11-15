@@ -90,6 +90,35 @@ describe('evidence-grounded research engine', () => {
         await expect(runInvestmentResearch(future, { specialists: [specialist], model, repository: repo })).rejects.toThrow(/not available/);
     });
 
+
+    it('does not allow a specialist to cite evidence excluded from its domain input', async () => {
+        const repo = await repository();
+        const marketEvidence = { ...evidence, sourceKind: 'market-data' as const };
+        const newsRequest = { ...request, idempotencyKey: 'news-filter', domains: ['news-macro' as const], evidence: [marketEvidence] };
+        const newsSpecialist: ResearchSpecialistPort = {
+            domain: 'news-macro',
+            async analyze(input) {
+                await Promise.resolve();
+                expect(input.evidence).toHaveLength(0);
+                return {
+                    domain: 'news-macro',
+                    summary: 'Unsupported source was not supplied.',
+                    claims: [{
+                        id: 'news-claim',
+                        domain: 'news-macro',
+                        statement: 'Claim from excluded market data.',
+                        assessment: 'mixed',
+                        confidence: 0.4,
+                        evidenceIds: ['ev-1'],
+                        limitations: []
+                    }]
+                };
+            }
+        };
+        await expect(runInvestmentResearch(newsRequest, { specialists: [newsSpecialist], model, repository: repo }))
+            .rejects.toThrow(/cite supplied evidence/);
+    });
+
     it('does not accept model-invented claim identifiers in a challenge', async () => {
         const repo = await repository();
         const invalid: ResearchModelPort = { async challenge(input) {

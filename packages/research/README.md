@@ -17,4 +17,4 @@ No LLM provider, SDK, endpoint, API key, remote call, market-data provider, brok
 
 Research output is advisory and evidence-limited. It cannot create or modify ledger entries, valuations, price targets, cash movements, tax lots or orders. This package does not calculate financial ratios or technical indicators; specialists must use authoritative deterministic calculators and cite their source observations. No portfolio holdings or household financial records are transmitted by this package.
 
-The local JSON repository is not encrypted. Use only a private local directory; do not commit run files. The engine intentionally has no default storage path.
+The local JSON repository is not encrypted and is intended for a single host process at a time; concurrent independent processes must not share one file. Use only a private local directory, provide host-managed backup/retention and do not commit run files. The engine intentionally has no default storage path.

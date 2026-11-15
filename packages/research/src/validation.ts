@@ -11,6 +11,8 @@ const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
 const DIGEST = /^[a-f0-9]{64}$/i;
 const MAX_EVIDENCE = 500;
 const MAX_EXCERPT = 2_000;
+const EVIDENCE_KINDS = ['filing', 'exchange', 'company', 'news', 'market-data', 'user-provided', 'other'] as const;
+const ASSESSMENTS = ['supports-positive-case', 'supports-negative-case', 'mixed', 'insufficient-evidence'] as const;
 
 export function isIsoTimestamp(value: string): boolean {
     return ISO.test(value) && Number.isFinite(Date.parse(value));
@@ -45,6 +47,9 @@ export function validateEvidence(evidence: readonly ResearchEvidence[], asOf: st
             throw new RangeError('Evidence IDs must be non-empty and unique.');
         }
         ids.add(item.id);
+        if (!EVIDENCE_KINDS.includes(item.sourceKind)) {
+            throw new RangeError('Evidence source kind is unsupported.');
+        }
         if (!item.sourceName.trim() || !item.excerpt.trim()) {
             throw new RangeError('Evidence source and excerpt are required.');
         }
@@ -134,6 +139,9 @@ export function validateFinding(
 }
 
 function validateClaim(claim: ResearchClaim, evidenceIds: ReadonlySet<string>): void {
+    if (!ASSESSMENTS.includes(claim.assessment)) {
+        throw new RangeError('Research claim assessment is unsupported.');
+    }
     if (!claim.statement.trim() || !Number.isFinite(claim.confidence)
         || claim.confidence < 0 || claim.confidence > 1) {
         throw new RangeError('Research claim text and confidence are invalid.');
