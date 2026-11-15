@@ -7,7 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { validateBackupPayload } from '../../apps/dashboard/backup.js';
 
-const SCHEMA_VERSION = 12;
+const SCHEMA_VERSION = 13;
 const CURRENCY = 'INR';
 export class WorkspaceValidationError extends Error { constructor(message) { super(message); this.name = 'WorkspaceValidationError'; } }
 export class WorkspaceConflictError extends Error {
@@ -27,9 +27,9 @@ function validateWorkspacePayload(payload) {
     try {
         const required = ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts',
             'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts',
-            'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots', 'investmentDrawdownCalendars'];
+            'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots', 'investmentDrawdownCalendars', 'investmentStatementEvidence'];
         if (!payload || payload.schemaVersion !== SCHEMA_VERSION || required.some((key) => !Array.isArray(payload[key]))) {
-            throw new Error('SQLite workspace persistence requires a complete schema-v12 workspace backup.');
+            throw new Error('SQLite workspace persistence requires a complete schema-v13 workspace backup.');
         }
         if (payload.currency !== CURRENCY) throw new Error(`Workspace currency must be ${CURRENCY}; this snapshot uses ${String(payload.currency ?? 'no currency')}.`);
         const ids = new Set();
@@ -54,6 +54,7 @@ function validateWorkspacePayload(payload) {
             investmentExposurePolicies: validated.investmentExposurePolicies,
             investmentDrawdownSnapshots: validated.investmentDrawdownSnapshots,
             investmentDrawdownCalendars: validated.investmentDrawdownCalendars,
+            investmentStatementEvidence: validated.investmentStatementEvidence,
             ...(payload.allocationPoliciesMigratedFromV6 === true ? { allocationPoliciesMigratedFromV6: true } : {}),
             ...(payload.concentrationPoliciesMigratedFromV7 === true ? { concentrationPoliciesMigratedFromV7: true } : {}),
             ...(payload.exposureClassificationsMigratedFromV8 === true ? { exposureClassificationsMigratedFromV8: true } : {}),
@@ -557,6 +558,53 @@ function migrateSchemaV11(database, databasePath) {
         database.exec('COMMIT');
     } catch (error) { database.exec('ROLLBACK'); throw error; }
 }
+
+/** Persist an exact schema-v12 recovery artifact before adding investment statement evidence. */
+function writePreV13MigrationBackup(databasePath, payload) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const basePath = databasePath + '.pre-v13-' + stamp;
+    let backupPath; let descriptor;
+    for (let suffix = 0; ; suffix += 1) {
+        backupPath = basePath + (suffix ? '-' + suffix : '') + '.json';
+        try { descriptor = openSync(backupPath, 'wx', 0o600); break; }
+        catch (error) { if (error?.code !== 'EEXIST') throw error; }
+    }
+    try { writeFileSync(descriptor, JSON.stringify(payload, null, 2) + '\n', 'utf8'); fsyncSync(descriptor); }
+    catch (error) {
+        try { closeSync(descriptor); } catch { /* preserve original error */ }
+        try { unlinkSync(backupPath); } catch { /* incomplete recovery artifact remains visible */ }
+        throw new Error('The required pre-migration v12 backup could not be completed; the database migration was cancelled.', { cause: error });
+    }
+    closeSync(descriptor);
+    if (process.platform !== 'win32') chmodSync(backupPath, 0o600);
+    return backupPath;
+}
+
+/** Transactional v12 -> v13 migration. Statement evidence starts empty; no broker history is inferred. */
+function migrateSchemaV12(database, databasePath) {
+    const table = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshot'").get();
+    if (!table || !/schema_version\s*=\s*12/i.test(table.sql ?? '')) return;
+    database.exec('BEGIN IMMEDIATE');
+    try {
+        const row = database.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
+        let migrated = null;
+        if (row) {
+            if (row.schema_version !== 12 || row.currency !== CURRENCY) throw new Error('The existing SQLite workspace has an unsupported schema or currency; migration was not applied.');
+            const oldPayload = JSON.parse(row.payload_json);
+            if (oldPayload.schemaVersion !== 12) throw new Error('The saved SQLite payload does not match its v12 database schema; migration was not applied.');
+            validateBackupPayload(oldPayload, CURRENCY);
+            writePreV13MigrationBackup(databasePath, oldPayload);
+            migrated = { ...oldPayload, schemaVersion: 13, investmentStatementEvidence: [] };
+        }
+        database.exec('ALTER TABLE workspace_snapshot RENAME TO workspace_snapshot_v12_migration');
+        createSnapshotTable(database, 13);
+        if (migrated) database.prepare('INSERT INTO workspace_snapshot (singleton, schema_version, currency, payload_json, updated_at) VALUES (1, 13, ?, ?, ?)')
+            .run(CURRENCY, JSON.stringify(migrated), row.updated_at);
+        database.exec('DROP TABLE workspace_snapshot_v12_migration');
+        database.exec('COMMIT');
+    } catch (error) { database.exec('ROLLBACK'); throw error; }
+}
+
 /** SQLite persistence stores a complete validated workspace snapshot atomically. */
 export class WorkspaceDatabase {
     #database; #databasePath;
@@ -576,6 +624,7 @@ export class WorkspaceDatabase {
             migrateSchemaV9(this.#database, this.#databasePath);
             migrateSchemaV10(this.#database, this.#databasePath);
             migrateSchemaV11(this.#database, this.#databasePath);
+            migrateSchemaV12(this.#database, this.#databasePath);
             this.#secureFilePermissions();
         } catch (error) { this.#database.close(); throw error; }
     }
@@ -629,7 +678,8 @@ export class WorkspaceDatabase {
             investmentExposureClassificationCount: validated.investmentExposureClassifications.length,
             investmentExposurePolicyCount: validated.investmentExposurePolicies.length,
             investmentDrawdownSnapshotCount: validated.investmentDrawdownSnapshots.length,
-            investmentDrawdownCalendarCount: validated.investmentDrawdownCalendars.length };
+            investmentDrawdownCalendarCount: validated.investmentDrawdownCalendars.length,
+            investmentStatementEvidenceCount: validated.investmentStatementEvidence.length };
     }
     async createOnlineBackup() {
         if (!this.getWorkspace()) throw new Error('No committed SQLite workspace exists to back up.');
@@ -647,7 +697,7 @@ export class WorkspaceDatabase {
             const messages = verificationDatabase.prepare('PRAGMA quick_check').all().map((row) => String(row.quick_check));
             if (messages.length !== 1 || messages[0] !== 'ok') throw new Error('SQLite backup integrity verification failed.');
             const row = verificationDatabase.prepare('SELECT schema_version, currency, payload_json, updated_at FROM workspace_snapshot WHERE singleton = 1').get();
-            if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v12 workspace.');
+            if (!row || row.schema_version !== SCHEMA_VERSION || row.currency !== CURRENCY) throw new Error('SQLite backup does not contain a schema-v13 workspace.');
             const payload = validateWorkspacePayload(JSON.parse(row.payload_json));
             verificationDatabase.close(); verificationDatabase = undefined;
             const descriptor = openSync(temporaryPath, 'r+');
@@ -674,7 +724,8 @@ export class WorkspaceDatabase {
                     investmentExposureClassifications: payload.investmentExposureClassifications.length,
                     investmentExposurePolicies: payload.investmentExposurePolicies.length,
                     investmentDrawdownSnapshots: payload.investmentDrawdownSnapshots.length,
-                    investmentDrawdownCalendars: payload.investmentDrawdownCalendars.length
+                    investmentDrawdownCalendars: payload.investmentDrawdownCalendars.length,
+                    investmentStatementEvidence: payload.investmentStatementEvidence.length
                 }
             };
         } catch (error) {

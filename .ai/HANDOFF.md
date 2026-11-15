@@ -1,5 +1,16 @@
 # Session Handoff
 
+## Latest development — Sprint 13 / IPM-05 (2026-11-15)
+
+A new branch `feature/ipm-statement-reconciliation` is based on `feature/ipm-performance-review` (PR #454) and implements Option B: both broker transaction statements and holdings/position statements. See `docs/architecture/IPM-05-STATEMENT-RECONCILIATION.md`.
+
+Three increments: (1) immutable normalized evidence contract and validation; (2) deterministic transaction matching and FIFO holdings quantity reconciliation; (3) private-only JSON evidence import, CSV reconciliation export, browser-local storage, JSON backup schema v13, and SQLite schema v13 with transactional v12→v13 migration and protected recovery artifact. The new collection is `investmentStatementEvidence` (20th collection). Legacy schema v1–v12 JSON backups remain supported; older imports preserve existing evidence only when account/instrument references validate.
+
+No broker connection, broker-specific CSV guessing, PDF extraction, ledger auto-correction, settlement/cash matching, cost-basis/tax-lot reconciliation, corporate actions, in-kind flows, FX, prices or recommendations are included. The normalized evidence importer requires explicit source mapping and does not modify ledger transactions.
+
+Focused tests and implementation files are committed to the feature branch; **CI/full-suite/browser/secret-scan/packaging validation is pending**. Keep this PR draft and stacked on #454. Do not merge #453/#454/#455 without explicit owner approval.
+
+
 ## Repository
 
 PFO OS — Personal Family Office Operating System

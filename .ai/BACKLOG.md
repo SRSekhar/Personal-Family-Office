@@ -1,5 +1,14 @@
 # Product Backlog
 
+## 2026-11-15 — IPM-05 Option B statement reconciliation implementation
+
+- [x] **Milestone 1 — Evidence contract:** add immutable transaction and holdings statement evidence, stable statement/source-row identities, account/currency references, explicit period/as-of/recorded-at timestamps, provenance and strict arithmetic/reference validation.
+- [x] **Milestone 2 — Reconciliation engine:** reconcile transaction rows by exact external reference or conservative exact account/instrument/type/timestamp fallback; report mismatches, ambiguous/duplicate/unmatched rows; compare holdings quantities against the existing FIFO projection at the recorded-at cutoff.
+- [x] **Milestone 3 — Private workflow and persistence:** normalized JSON evidence import, private result table, formula-safe CSV export, local storage, JSON backup schema v13, SQLite schema v13 / 20 collections, transactional v12→v13 migration and protected recovery artifact.
+- ADR: `docs/architecture/IPM-05-STATEMENT-RECONCILIATION.md`. Focused tests are added; final CI/full-suite/Chromium/Secret Scan/dashboard packaging validation remains pending. Do not mark the deliverable production-verified until all gates pass.
+- Explicit exclusions: broker APIs, automatic broker-format guessing, PDF extraction, cash settlement matching, cost-basis/tax-lot reconciliation, corporate actions, in-kind events, FX, price ingestion and automatic ledger correction.
+
+
 ## 2026-11-14 — IPM performance review export delivered (PR #454)
 
 - [x] Add private standalone HTML and spreadsheet-safe CSV exports for the existing ledger-backed portfolio review.

@@ -1,5 +1,16 @@
 # Current Sprint
 
+## Sprint 13 — Broker statement reconciliation (Option B)
+
+Implementation is on `feature/ipm-statement-reconciliation`, stacked on PR #454. Three increments are included:
+
+1. **IPM-05.1 — Evidence contract:** immutable, account/currency-scoped transaction and holdings statement documents with source provenance, canonical UTC effective/recorded timestamps, stable source-row IDs and strict row validation. ADR: `docs/architecture/IPM-05-STATEMENT-RECONCILIATION.md`.
+2. **IPM-05.2 — Reconciliation engine:** exact external-reference matching; conservative exact-date fallback; explicit matched, mismatch, ambiguous, duplicate and unmatched outcomes; holdings quantities compared with the existing FIFO projection. No ledger mutation or invented values.
+3. **IPM-05.3 — Private workflow and persistence:** normalized JSON evidence import, private reconciliation table and formula-safe CSV export; JSON backup schema v13; SQLite schema v13 / 20 collections; transactional v12→v13 migration with protected pre-v13 recovery artifact.
+
+Implementation and focused tests have been added. **Completion remains validation-gated** until CI, full test suite, Chromium smoke, Secret Scan and dashboard packaging pass on the final PR head. The PR is intended to remain draft and stacked on PR #454; no merge is authorized.
+
+
 ## Current status — 2026-11-15
 
 ### Sprint 11 — Flow-adjusted portfolio drawdown: implementation complete on PR #453

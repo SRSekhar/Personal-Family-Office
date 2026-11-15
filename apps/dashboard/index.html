@@ -13,6 +13,7 @@
     <script type="module" src="./investment-concentration-workspace.js"></script>
     <script type="module" src="./investment-exposure-workspace.js"></script>
     <script type="module" src="./investment-exposure-policy-workspace.js"></script>
+    <script type="module" src="./investment-statement-reconciliation-workspace.js"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -37,6 +38,7 @@
                 <a class="nav-item" href="#investment-exposure-policy-workspace"><span class="nav-icon">⚑</span> Exposure limits</a>
                 <a class="nav-item" href="#investment-drawdown-calendar"><span class="nav-icon">↘</span> Portfolio drawdown</a>
                 <a class="nav-item" href="#investment-period-comparison"><span class="nav-icon">⇄</span> Historical comparison</a>
+                <a class="nav-item" href="#investment-statement-reconciliation"><span class="nav-icon">▤</span> Statement reconciliation</a>
                 <a class="nav-item" href="#return-risk-analysis"><span class="nav-icon">△</span> Return risk analysis</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
                 <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
@@ -1166,6 +1168,35 @@
                     <iframe id="investment-period-comparison-preview" title="Historical investment period comparison preview" sandbox="" hidden
                         style="width:100%;min-height:560px;border:1px solid var(--border-color, #d6e0da);border-radius:10px;background:#fff"></iframe>
                     <p class="form-note">Unavailable periods remain visible with their reasons and no numeric return or drawdown. Reports are invalidated when the workspace changes; export also rechecks the exact source-data signature.</p>
+                </section>
+                <section class="investment-statement-reconciliation" id="investment-statement-reconciliation" aria-labelledby="investment-statement-heading">
+                    <div class="section-heading"><div><p class="eyebrow">INVESTMENT LEDGER · INDEPENDENT EVIDENCE</p><h3 id="investment-statement-heading">Broker statement reconciliation</h3>
+                        <p class="form-note">Import normalized transaction and holdings statement evidence for one investment account. Reconciliation compares source rows with the immutable transaction ledger and FIFO-projected positions. It never creates, edits or deletes ledger transactions.</p></div></div>
+                    <div class="notice" id="investment-statement-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Broker statements contain sensitive holdings and transaction history. Evidence import and reconciliation are disabled in the hosted demo.</p></div></div>
+                    <p class="validation-message" id="investment-statement-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-statement-status" role="status" aria-live="polite"></p>
+                    <form id="investment-statement-evidence-form" class="panel-card">
+                        <h4>Import normalized statement evidence</h4>
+                        <label class="field-label" for="investment-statement-file">Select a normalized statement JSON file<input id="investment-statement-file" type="file" accept=".json,application/json"></label>
+                        <label class="field-label" for="investment-statement-json">Statement evidence JSON<textarea id="investment-statement-json" rows="12" required spellcheck="false" placeholder="Paste one statement evidence object or an array of statement evidence objects."></textarea></label>
+                        <p class="form-note">Each document must include a unique id, kind (transactions or holdings), accountId, currency, periodStart, periodEnd, statementAsOf, recordedAt, sourceName and rows. Transaction rows require sourceRowId, effectiveAt, instrumentId, type and cashAmount; Purchase/Sale rows also require quantity and unitPrice. Holdings rows require sourceRowId, instrumentId and quantity. Use existing PFO account and instrument IDs. Convert broker-specific CSV columns only through an explicit, reviewed mapping; this importer does not guess column meanings or fetch broker data.</p>
+                        <div class="button-row"><button class="button button-primary" type="submit">Validate and save immutable statement evidence</button></div>
+                    </form>
+                    <h4>Saved statement evidence</h4>
+                    <div class="table-wrap"><table><thead><tr><th>Kind</th><th>Source</th><th>Statement reference</th><th>Account ID</th><th>As of</th><th>Rows</th><th>Recorded at</th></tr></thead><tbody id="investment-statement-evidence-rows"></tbody></table></div>
+                    <div class="panel-card">
+                        <h4>Run reconciliation</h4>
+                        <label class="field-label" for="investment-statement-cutoff">Recorded-at knowledge cutoff (canonical UTC)<input id="investment-statement-cutoff" required spellcheck="false"></label>
+                        <p class="form-note">Transaction matching prefers an exact external reference; without one it requires exact account, instrument, type and timestamp. Ambiguous matches remain unresolved. Holdings quantities are compared with the existing FIFO projection at the statement as-of time. Differences are evidence only and never auto-correct the ledger.</p>
+                        <div class="button-row"><button class="button button-primary" id="investment-statement-run" type="button">Run transaction and holdings reconciliation</button>
+                            <button class="button button-secondary button-small" id="investment-statement-export-csv" type="button" disabled>Download reconciliation CSV</button></div>
+                    </div>
+                    <section id="investment-statement-result-panel" hidden aria-labelledby="investment-statement-result-heading">
+                        <h4 id="investment-statement-result-heading">Reconciliation results</h4>
+                        <p id="investment-statement-result-summary" class="form-note" aria-live="polite"></p>
+                        <div class="table-wrap"><table><thead><tr><th>Kind</th><th>Statement</th><th>Source row / transaction</th><th>Instrument</th><th>Statement quantity</th><th>Ledger quantity</th><th>Status</th><th>Reason</th></tr></thead><tbody id="investment-statement-result-rows"></tbody></table></div>
+                    </section>
+                    <p class="form-note">The first release supports transaction and holdings evidence in the PFO normalized JSON contract. It does not infer tax lots, cost basis, cash settlement, corporate actions, broker-specific formats, prices, FX, or accounting corrections. Preserve original statements separately as source documents.</p>
                 </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>

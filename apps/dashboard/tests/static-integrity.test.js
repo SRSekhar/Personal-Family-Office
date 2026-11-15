@@ -698,7 +698,7 @@ describe('full workspace backup contract', () => {
             readDashboardFile('investment-drawdown-calendar-workspace.js'),
             readDashboardFile('index.html')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 12 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 13 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
