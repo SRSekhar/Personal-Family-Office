@@ -1,5 +1,15 @@
 # PFO OS Roadmap
 
+## Current Delivery Status — 2026-11-15
+
+- Sprint 16 integration is complete: PRs #453–#457 were sequentially merged into `main`.
+- Integrated main includes SQLite/JSON schema v13 and 20 persisted collections.
+- PR-head CI and Secret Scan passed for all five merged changes. Final post-merge CI #2018 was running on the integration merge commit; the latest documentation commit will receive its own CI validation.
+- Next: Sprint 17 / IPM-08 point-in-time backtesting architecture and acceptance contracts. Historical CSV import/validation follows; the deterministic engine is gated on those contracts.
+- Paper portfolio must remain isolated from real investment holdings, cash and transactions. No live broker routing, fabricated history or unapproved market-data provider.
+
+---
+
 ## Vision
 
 Build a privacy-conscious, explainable, AI-assisted Personal Family Office platform with deterministic financial calculations and repeatable reporting.
