@@ -177,6 +177,24 @@ try {
         'activating the skip link should move focus to the main content landmark'
     );
     process.stdout.write('PASS: keyboard skip link is first in tab order and moves focus to main content.\n');
+
+    const comparisonControls = page.locator('#investment-period-comparison-form').locator('input, select, textarea, button');
+    assert.ok(await page.locator('#investment-period-comparison-demo-note').isVisible(),
+        'historical period comparison must show its private-workspace notice in demo mode');
+    assert.ok((await comparisonControls.count()) > 0, 'historical comparison controls should be present');
+    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => control.disabled)), true,
+        'historical comparison inputs and actions must be disabled in demo mode');
+    assert.equal(await page.locator('#investment-period-comparison-download-html').isDisabled(), true);
+    assert.equal(await page.locator('#investment-period-comparison-download-csv').isDisabled(), true);
+    await page.locator('#switch-private-button').click();
+    assert.equal(await page.locator('#workspace-label').innerText(), 'PRIVATE WORKSPACE');
+    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => !control.disabled)), true,
+        'comparison controls should be enabled only in the validated local private workspace');
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#workspace-label').innerText(), 'SAMPLE WORKSPACE');
+    assert.equal(await comparisonControls.evaluateAll((controls) => controls.every((control) => control.disabled)), true,
+        'switching back to demo must disable historical comparison controls');
+    process.stdout.write('PASS: historical comparison is isolated to the local private workspace.\\n');
     const [historyHtmlDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-historical-snapshots-html').click()
@@ -1280,16 +1298,30 @@ try {
         'portfolio totals should be grouped and displayed in their ledger currency');
     assert.match(await page.locator('#investment-portfolio-performance').innerText(), /Portfolio XIRR · INR[\s\S]*annualized money-weighted return[\s\S]*Terminal value[\s\S]*1,605/,
         'portfolio XIRR should include explicit external flows and a complete terminal value of cash plus valued holdings');
+    const [portfolioHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-portfolio-export-html').click()
+    ]);
+    assert.match(portfolioHtmlDownload.suggestedFilename(), /\.html$/u);
+    const [portfolioCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-portfolio-export-csv').click()
+    ]);
+    assert.match(portfolioCsvDownload.suggestedFilename(), /\.csv$/u);
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-cash-account-count').innerText(), '0', 'demo workspace must not expose private cash account counts');
     assert.equal(await page.locator('#investment-cash-account-rows').innerText(), '', 'demo workspace must not expose private cash account rows');
     assert.equal(await page.locator('#investment-cash-unlinked-transaction-rows').innerText(), '', 'demo workspace must not expose private transaction-link details');
     assert.equal(await page.locator('#investment-portfolio-performance').innerText(), '', 'demo workspace must not expose private portfolio XIRR');
+    assert.equal(await page.locator('#investment-portfolio-export-html').isDisabled(), true, 'demo workspace must disable private portfolio HTML export');
+    assert.equal(await page.locator('#investment-portfolio-export-csv').isDisabled(), true, 'demo workspace must disable private portfolio CSV export');
     assert.equal(await page.locator('#investment-cash-owner option').count(), 0, 'demo workspace must clear private account names from selectors');
     assert.equal(await page.locator('#investment-account-count').innerText(), '0', 'demo workspace must not expose private investment counts');
     assert.equal(await page.locator('#investment-transaction-rows').innerText(), '', 'demo workspace must not expose private investment transactions');
     assert.equal(await page.locator('#investment-transaction-cash-account option').count(), 0, 'demo workspace must clear private settlement account names');
     await page.locator('#switch-private-button').click();
+    assert.equal(await page.locator('#investment-portfolio-export-html').isDisabled(), false, 'private workspace should restore the validated portfolio HTML export');
+    assert.equal(await page.locator('#investment-portfolio-export-csv').isDisabled(), false, 'private workspace should restore the validated portfolio CSV export');
     assert.match(await page.locator('#investment-cash-account-rows').innerText(), /Browser test broker cash/, 'switching back to private must restore local cash ledger records');
     assert.match(await page.locator('#investment-transaction-rows').innerText(), /Browser test equity[\s\S]*Dividend/, 'switching back to private must restore local investment history');
     assert.match(await page.locator('#investment-reconciliation-warnings').innerText(), /No missing-valuation or FIFO quantity exceptions/,
@@ -1560,6 +1592,74 @@ try {
     ]);
     assert.match(drawdownCsvDownload.suggestedFilename(), /\.csv$/u);
     process.stdout.write('PASS: private flow-adjusted drawdown analysis generates a descriptive HTML report and spreadsheet-safe CSV export.\\n');
+
+    await page.locator('#investment-period-comparison-form').scrollIntoViewIfNeeded();
+    await page.locator('#investment-period-comparison-form [name="scope"]').selectOption('portfolio');
+    await page.locator('#investment-period-comparison-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-period-comparison-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-period-comparison-form [name="periods"]').fill(
+        'Window A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\n' +
+        'Window B | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt
+    );
+    await page.locator('#investment-period-comparison-form button[type="submit"]').click();
+    await page.waitForFunction(() => {
+        const preview = globalThis.document.querySelector('#investment-period-comparison-preview')?.getAttribute('srcdoc') ?? '';
+        const error = globalThis.document.querySelector('#investment-period-comparison-error')?.textContent?.trim() ?? '';
+        return preview.length > 0 || error.length > 0;
+    });
+    const comparisonState = await page.evaluate(() => ({
+        html: globalThis.document.querySelector('#investment-period-comparison-preview')?.getAttribute('srcdoc') ?? '',
+        error: globalThis.document.querySelector('#investment-period-comparison-error')?.textContent?.trim() ?? '',
+        status: globalThis.document.querySelector('#investment-period-comparison-status')?.textContent?.trim() ?? ''
+    }));
+    if (!comparisonState.html.includes('Historical investment performance comparison')) {
+        throw new Error('Historical period comparison did not become available: ' + comparisonState.error + ' ' + comparisonState.status);
+    }
+    assert.match(comparisonState.html, /Period return/u);
+    assert.match(comparisonState.html, /Overlaps an earlier period/u);
+    const [comparisonHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-period-comparison-download-html').click()
+    ]);
+    assert.match(comparisonHtmlDownload.suggestedFilename(), /\.html$/u);
+    const [comparisonCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-period-comparison-download-csv').click()
+    ]);
+    assert.match(comparisonCsvDownload.suggestedFilename(), /\.csv$/u);
+    await page.evaluate(() => {
+        const key = 'pfo-os.investment-drawdown-snapshots.v1';
+        const snapshots = JSON.parse(globalThis.localStorage.getItem(key) || '[]');
+        snapshots[0].sourceName = 'Changed after comparison';
+        globalThis.localStorage.setItem(key, JSON.stringify(snapshots));
+    });
+    await page.locator('#investment-period-comparison-download-html').click();
+    await page.waitForFunction(() =>
+        globalThis.document.querySelector('#investment-period-comparison-download-html')?.disabled === true
+        && globalThis.document.querySelector('#investment-period-comparison-preview')?.hidden === true
+    );
+    assert.match(await page.locator('#investment-period-comparison-status').innerText(), /Source data changed/u);
+    await page.locator('#investment-period-comparison-form button[type="submit"]').click();
+    await page.waitForFunction(() =>
+        (globalThis.document.querySelector('#investment-period-comparison-preview')?.getAttribute('srcdoc') ?? '').length > 0
+    );
+    await page.locator('#investment-period-comparison-form [name="periods"]').fill(
+        'Renamed A | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt + '\n' +
+        'Renamed B | ' + drawdownEffectiveAt + ' | ' + drawdownFinalCloseAt
+    );
+    assert.equal(await page.locator('#investment-period-comparison-preview').isHidden(), true,
+        'editing comparison parameters must clear the previously generated report');
+    assert.equal(await page.locator('#investment-period-comparison-download-html').isDisabled(), true,
+        'editing comparison parameters must disable stale HTML export');
+    assert.match(await page.locator('#investment-period-comparison-status').innerText(), /parameters changed/u);
+    await page.evaluate(() => {
+        const key = 'pfo-os.investment-drawdown-snapshots.v1';
+        const snapshots = JSON.parse(globalThis.localStorage.getItem(key) || '[]');
+        snapshots[0].sourceName = 'Browser test broker valuation and cash statement';
+        globalThis.localStorage.setItem(key, JSON.stringify(snapshots));
+    });
+    process.stdout.write('PASS: historical comparison produces HTML/CSV and blocks stale exports after source data changes.\\n');
+
 
     await page.locator('#switch-demo-button').click();
     assert.equal(await page.locator('#investment-drawdown-report-preview').isHidden(), true,

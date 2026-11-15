@@ -12,7 +12,11 @@ PR #453 (`feature/ipm-drawdown-contract-discovery`) contains the approved Option
 
 PR #453 is open, draft and unmerged. Code head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1889, Secret Scan #1683 and dashboard packaging #1125. Documentation-only follow-up head `53f7979bbcd3b2ec0f8480c61ee0a352a7190250` had CI #1893 queued at last check; Secret Scan #1687 and dashboard packaging #1129 passed. Do not merge without explicit owner approval. Main remains schema v10 until the PR is reviewed and merged.
 
-Next: inspect IPM-04 performance outputs and current ledger contracts before defining the next analytics increment. Reuse the existing XIRR and drawdown foundations. Do not infer prices, tax treatment, corporate actions, FX or missing terminal values. The repository is public: synthetic fixtures only. SQLite and JSON exports are not encrypted; backups remain manual; remote backup/cloud sync/hosted multi-user access are not shipped.
+PR #454 (feature/ipm-performance-review) is stacked on PR #453. It contains the private standalone HTML/CSV portfolio performance report (reusing FIFO and per-currency XIRR) plus the IPM-04 historical period comparison. The comparison UI accepts explicit label/start/end period rows, runs each through the existing drawdown-series orchestration using its persisted calendar, enforces one scope/account/currency/methodology/recorded-at cutoff, and reports endpoint wealth-index return, maximum drawdown, peak/trough/recovery, coverage, calendar provenance, snapshot-level completeness evidence, limitations, overlap and unavailable reasons. HTML is script-free; CSV is formula-safe; export is blocked when the validated source signature changes. Chromium smoke covers demo/private isolation, report downloads and stale-source invalidation. No schema migration or new financial formula was introduced.
+
+Final verified PR #454 head (2026-11-15): `01131e7c3f36901aeabd5ffe8f0673cec08c3d05`. CI #1980, Secret Scan #1774 and dashboard packaging #1216 all passed on this exact head. CI includes bootstrap/doctor/safety checks, lint, typecheck, package build, full tests and Chromium browser smoke. Sprint 12 performance review and IPM-04 historical comparison deliverables are complete. PR #454 remains draft/open/unmerged; PR #453 remains draft/open/unmerged. Do not merge either without explicit owner approval.
+
+Remaining gated work: transaction-to-position statement reconciliation needs an approved statement evidence/matching contract (source, period, account/currency, references, duplicate/unmatched/ambiguous rows, opening baseline, closing quantity comparison, corrections and recorded-at cutoff). Cost-basis adjustments, corporate actions and in-kind events need separate accounting/domain decisions. Do not invent broker formats, tax treatment, prices, FX or event semantics. Repository is public: synthetic fixtures only. SQLite and JSON exports are not encrypted; backups remain manual; remote backup/cloud sync/hosted multi-user access are not shipped.
 
 ## Latest Follow-up (2026-10-14)
 
@@ -631,3 +635,24 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Browser smoke verifies report generation/downloads and clearing private report state on demo switch, in addition to capture, JSON backup/restore and SQLite round-trip.
 - Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
 - Future scope only: in-kind flows and corporate actions require a separate ledger-model ADR. Do not infer them or add thresholds/alerts/recommendations/trading behavior. Synthetic data only.
+
+## Latest Handoff — 2026-11-14 (IPM-04 performance analytics discovery)
+
+- Working branch: `feature/ipm-performance-review`, stacked on PR #453. PR #454 remains open, draft and unmerged. Do not merge without explicit owner approval.
+- Added `docs/architecture/IPM-04-PERFORMANCE-ANALYTICS-DISCOVERY.md` (commit `76d99cda7926ed6108f370f30662c81e45e8eead`).
+- The discovery inventories existing FIFO P&L/cost basis, valuation provenance, cash reconciliation, per-currency XIRR, historical flow-adjusted drawdown and the two private report surfaces.
+- Proposed period-comparison return is strictly the ratio of the last and first wealth-index points from each independently available drawdown analysis, minus one. Comparison requires the same scope, currency, methodology and recorded-at cutoff; every period uses its own persisted explicit calendar. No partial results or auto-generated periods.
+- Statement-to-position reconciliation, cost-basis adjustment events, corporate actions and in-kind flows remain unimplemented pending explicit data/event contracts.
+- No application code, calculation formula, schema, migration or financial data was changed in this discovery commit.
+- Next: implement the pure adapter and hand-calculated tests only; then validate before introducing a private report/UI.
+
+
+## Latest Handoff — 2026-11-14 (period comparison adapter)
+
+- Branch: `feature/ipm-performance-review`, stacked on PR #453; PR #454 remains draft/open/unmerged. Do not merge without explicit owner approval.
+- Added `apps/dashboard/investment-period-comparison.js` and `apps/dashboard/investment-period-comparison.test.js`.
+- Adapter accepts explicit period labels plus existing drawdown-series analysis results. It validates matching scope/account/currency/methodology/recorded-at cutoff and persisted calendar provenance.
+- Return is derived only from last/first existing positive wealth-index points. Drawdown/recovery are reused. Unavailable periods retain reasons and null metrics; overlapping windows are explicitly flagged.
+- Hand-calculated tests cover +25% and -10%, unavailable periods, overlap, metadata mismatches, invalid endpoints, timestamp order, calendar provenance and duplicate labels.
+- Commits: `cd736e007e831df49109f7123f1451e8f21c003d` (adapter), `fa1c052565d5b6155a4d2e35bb35b818e9602506` (tests).
+- No UI, exports, schema changes or financial data added. Check CI before proceeding to report/workspace integration.

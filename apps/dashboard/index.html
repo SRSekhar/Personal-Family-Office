@@ -36,6 +36,7 @@
                 <a class="nav-item" href="#investment-exposure-workspace"><span class="nav-icon">◉</span> Look-through exposure</a>
                 <a class="nav-item" href="#investment-exposure-policy-workspace"><span class="nav-icon">⚑</span> Exposure limits</a>
                 <a class="nav-item" href="#investment-drawdown-calendar"><span class="nav-icon">↘</span> Portfolio drawdown</a>
+                <a class="nav-item" href="#investment-period-comparison"><span class="nav-icon">⇄</span> Historical comparison</a>
                 <a class="nav-item" href="#return-risk-analysis"><span class="nav-icon">△</span> Return risk analysis</a>
                 <a class="nav-item" href="#growth-projection"><span class="nav-icon">∿</span> Growth projection</a>
                 <a class="nav-item" href="#cagr-calculator"><span class="nav-icon">↻</span> CAGR calculator</a>
@@ -821,7 +822,11 @@
                 </div>
                 <section class="investment-portfolio-analysis" id="investment-portfolio-analysis" aria-labelledby="investment-portfolio-heading">
                     <div class="investment-portfolio-heading"><div><h3 id="investment-portfolio-heading">Portfolio positions &amp; reconciliation</h3><p class="form-note">FIFO cost basis and performance use recorded ledger events. Valuations are selected only when both effective and recorded dates are on or before the selected date.</p></div>
-                        <label class="field-label" for="investment-portfolio-as-of">As-of date<input id="investment-portfolio-as-of" type="date"></label></div>
+                        <label class="field-label" for="investment-portfolio-as-of">As-of date<input id="investment-portfolio-as-of" type="date"></label>
+                        <div class="panel-header-actions" aria-label="Portfolio performance exports">
+                            <button class="button button-secondary button-small" id="investment-portfolio-export-html" type="button" disabled>Download performance report</button>
+                            <button class="button button-secondary button-small" id="investment-portfolio-export-csv" type="button" disabled>Export performance CSV</button>
+                        </div></div>
                     <div class="notice" id="investment-portfolio-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Portfolio calculations use only your saved private investment ledger.</p></div></div>
                     <div id="investment-portfolio-summaries" class="investment-portfolio-summaries"></div>
                     <h4>Money-weighted portfolio performance</h4><div id="investment-portfolio-performance" class="investment-portfolio-summaries" aria-live="polite"></div>
@@ -1133,6 +1138,34 @@
                     <iframe id="investment-drawdown-report-preview" title="Investment drawdown report preview" sandbox="" hidden
                         style="width:100%;min-height:720px;border:1px solid var(--border-color, #d6e0da);border-radius:10px;background:#fff"></iframe>
                     <p class="form-note">Unavailable analyses can still be exported with their reasons and completeness evidence. Partial drawdown statistics are never displayed or exported.</p>
+                </section>
+                <section class="investment-drawdown-calendar-workspace" id="investment-period-comparison" aria-labelledby="investment-period-comparison-heading">
+                    <div class="section-heading"><div><p class="eyebrow">HISTORICAL PERFORMANCE · PERIOD COMPARISON</p><h3 id="investment-period-comparison-heading">Compare explicit historical periods</h3>
+                        <p class="form-note">Each period is independently analyzed using its own saved daily-close calendar and validated ledger observations. All periods use one scope, currency and recorded-at cutoff. No calendar, price or missing observation is inferred.</p></div></div>
+                    <div class="notice" id="investment-period-comparison-demo-note"><span class="notice-icon">✳</span><div><strong>Private workspace only</strong><p>Historical comparison reports may reveal sensitive holdings and valuations. Analysis and exports are disabled in the hosted demo.</p></div></div>
+                    <p class="validation-message" id="investment-period-comparison-error" role="alert" hidden></p>
+                    <p class="form-note" id="investment-period-comparison-status" role="status" aria-live="polite" hidden></p>
+                    <form id="investment-period-comparison-form" class="panel-card">
+                        <h4>Comparison parameters</h4>
+                        <div class="field-grid">
+                            <label class="field-label">Scope<select name="scope" required><option value="portfolio">Whole portfolio</option><option value="account">One investment account</option></select></label>
+                            <label class="field-label" id="investment-period-comparison-account-row" hidden>Investment account<select name="accountId"><option value="">Select investment account</option></select></label>
+                            <label class="field-label">Currency<select name="currency" required><option value="INR">INR</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="AED">AED</option><option value="SGD">SGD</option><option value="JPY">JPY</option><option value="AUD">AUD</option><option value="CAD">CAD</option><option value="CHF">CHF</option></select></label>
+                            <label class="field-label">Recorded-at knowledge cutoff (canonical UTC)<input name="recordedAtCutoff" required spellcheck="false"></label>
+                        </div>
+                        <label class="field-label">Periods — one per line: label | startAt | endAt
+                            <textarea name="periods" rows="6" required spellcheck="false" placeholder="FY 2025 Q1 | 2025-04-01T00:00:00.000Z | 2025-07-01T00:00:00.000Z&#10;FY 2025 Q2 | 2025-07-01T00:00:00.000Z | 2025-10-01T00:00:00.000Z"></textarea>
+                        </label>
+                        <p class="form-note">Enter at least two periods. Each exact window must have one unambiguous persisted calendar revision for the selected scope, currency and cutoff. Periods may overlap; overlapping windows are flagged and must not be added together.</p>
+                        <div class="button-row"><button class="button button-primary" type="submit">Compare historical periods</button></div>
+                    </form>
+                    <div class="button-row">
+                        <button class="button button-secondary button-small" id="investment-period-comparison-download-html" type="button" disabled>Download standalone HTML report</button>
+                        <button class="button button-secondary button-small" id="investment-period-comparison-download-csv" type="button" disabled>Download CSV comparison</button>
+                    </div>
+                    <iframe id="investment-period-comparison-preview" title="Historical investment period comparison preview" sandbox="" hidden
+                        style="width:100%;min-height:560px;border:1px solid var(--border-color, #d6e0da);border-radius:10px;background:#fff"></iframe>
+                    <p class="form-note">Unavailable periods remain visible with their reasons and no numeric return or drawdown. Reports are invalidated when the workspace changes; export also rechecks the exact source-data signature.</p>
                 </section>
                 <section class="investment-csv-interchange" id="investment-csv-interchange" aria-labelledby="investment-csv-heading">
                     <div class="section-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3 id="investment-csv-heading">Investment CSV import &amp; export</h3>

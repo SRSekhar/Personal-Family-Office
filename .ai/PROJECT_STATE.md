@@ -15,10 +15,11 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Completed on main:** investment ledger/FIFO positions, investment cash ledger and statement reconciliation, XIRR, allocation policies/drift, concentration policies, weighted multi-group exposure classification and user-configured exposure limits. Main workspace schema is v10 with 17 collections.
-- **Current feature PR:** PR #453 (`feature/ipm-drawdown-contract-discovery`) delivers the approved Option B flow-adjusted drawdown end-to-end, including ledger-derived snapshot completeness, authoritative flow taxonomy, explicit bitemporal daily-close calendars, private manual snapshot and paired flow-boundary capture, independent financial acceptance, private HTML/CSV reporting, schema-v12 persistence (19 collections), transactional migrations and backup/restore. PR remains open, draft and unmerged; main is not yet schema v12.
-- **Validation:** code head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1889, Secret Scan #1683 and dashboard packaging #1125. Latest documentation head is `53f7979bbcd3b2ec0f8480c61ee0a352a7190250`; its CI #1893 was queued at last check, Secret Scan #1687 and dashboard packaging #1129 passed.
-- **Next work:** inspect the existing IPM-04 performance outputs and ledger contracts, then define a bounded performance analytics increment. Do not duplicate XIRR/drawdown or invent accounting/tax/FX/corporate-action semantics.
-- **Deferred:** in-kind contributions/withdrawals, corporate actions, liquidity analytics, encryption, automated backup rotation/retention, remote backup/cloud sync and hosted multi-user access require separate approved contracts and acceptance.
+- **Current feature PR:** PR #453 (feature/ipm-drawdown-contract-discovery) delivers the approved Option B flow-adjusted drawdown end-to-end, including ledger-derived snapshot completeness, authoritative flow taxonomy, explicit bitemporal daily-close calendars, private manual capture, independent financial acceptance, private HTML/CSV reporting, schema-v12 persistence (19 collections), migrations and backup/restore. PR remains open, draft and unmerged; main remains schema v10.
+- **Follow-on feature PR:** PR #454 (feature/ipm-performance-review), stacked on PR #453, includes the private FIFO/XIRR portfolio performance report and the IPM-04 historical period comparison workspace. The comparison reuses independently analyzed drawdown periods, derives only endpoint wealth-index return, enforces common scope/account/currency/methodology/cutoff, displays peak/trough/recovery and coverage, flags overlaps, preserves snapshot-level completeness evidence and unavailable reasons, and exports standalone HTML/safe CSV. It has no schema changes and no inferred observations or FX.
+- **Final verified PR #454 head (2026-11-15):** `01131e7c3f36901aeabd5ffe8f0673cec08c3d05`. CI #1980, Secret Scan #1774 and dashboard packaging #1216 all passed on this exact head. CI covers bootstrap/doctor/safety checks, lint, typecheck, package build, full tests and Chromium browser smoke. PR #454 remains open/draft/unmerged.
+- **Remaining gated work:** transaction-to-position statement reconciliation awaits a defined statement-evidence and matching contract. Cost-basis adjustments, corporate actions and in-kind events await separate accounting/domain decisions. No tax, FX, external-price or corporate-action semantics may be inferred.
+- **Deferred:** liquidity analytics, encryption, automated backup rotation/retention, remote backup/cloud sync and hosted multi-user access require separate approved contracts and acceptance.
 - **Privacy:** repository is public; synthetic fixtures only. Never commit real household financial data, statements, credentials or private reports. Local SQLite and exports are not encrypted; backups remain manual. The private dashboard is loopback-only.
 
 
@@ -441,3 +442,23 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Snapshot contract rejects `recordedAt` earlier than `effectiveAt`.
 - CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
 - Future scope only: decide and model in-kind contributions/withdrawals and corporate actions. No thresholds, alerts, risk scores, recommendations, rebalancing or trading actions are introduced. Synthetic data only.
+
+## IPM-04 Performance Analytics Discovery — 2026-11-14
+
+- Inspected the existing ledger, FIFO projection, cash reconciliation, XIRR, drawdown series and private reporting contracts on `feature/ipm-performance-review`.
+- Discovery record: `docs/architecture/IPM-04-PERFORMANCE-ANALYTICS-DISCOVERY.md`.
+- Existing outputs include FIFO open cost basis and realized/unrealized P&L, recorded income/fees/taxes, explicit valuation provenance, cash reconciliation, per-currency XIRR, and a separate historical flow-adjusted wealth/drawdown series.
+- Historical period comparison is not yet a delivered user workflow. Its safe candidate contract derives period return only from endpoints of independently available wealth-index series and requires matching scope, currency, methodology and recorded-at cutoff, with explicit persisted calendars per period.
+- Transaction-to-position statement reconciliation and cost-basis adjustment/corporate-action event models remain gaps. No new formulas, assumptions or schema changes were made.
+- Next engineering increment: pure period-comparison adapter and independent tests; no report/UI until the adapter is validated.
+
+
+## Historical Period Comparison Adapter — 2026-11-14
+
+- Added a pure adapter in `apps/dashboard/investment-period-comparison.js` that consumes existing available/unavailable drawdown analyses.
+- Period return uses only the first/last wealth-index endpoints; drawdown and recovery metrics are reused unchanged.
+- Enforces common scope/account/currency/methodology/recorded-at cutoff, explicit calendar provenance, canonical time windows, positive strictly ordered wealth-index points, unique labels and fail-closed unavailable rows.
+- Overlapping windows are retained and explicitly flagged.
+- Added independent hand-calculated and contract tests in `apps/dashboard/investment-period-comparison.test.js`.
+- No UI, report, schema migration, provider, new market data or private financial data added. CI validation is pending.
+- Next: validate CI, then implement private-only comparison workspace and exports.

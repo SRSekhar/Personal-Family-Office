@@ -1,6 +1,6 @@
 # Current Sprint
 
-## Current status — 2026-11-14
+## Current status — 2026-11-15
 
 ### Sprint 11 — Flow-adjusted portfolio drawdown: implementation complete on PR #453
 
@@ -13,12 +13,34 @@
 - PR #453 remains open, draft and unmerged. Do not merge without explicit owner approval. Main remains schema v10; PR branch is schema v12.
 - In-kind contributions/withdrawals and corporate actions remain unsupported pending a separate ledger-model decision. Liquidity remains separately gated.
 
-### Next sprint — IPM performance analytics discovery
 
-- Review the existing ledger, cash reconciliation, XIRR, drawdown, allocation, concentration and exposure contracts before changing code.
-- Identify which IPM-04 outputs are already supported and which are missing: realised/unrealised P&L, open cost basis, dividends, interest, fees/taxes, transaction/position reconciliation and historical performance reporting.
-- Define the exact inputs, formulas, currency/scope rules, effective/recorded-at semantics and incomplete-data behavior for each proposed output. Reuse existing calculations rather than duplicate XIRR or drawdown.
-- Do not infer prices, tax treatment, corporate actions, FX or terminal values. No metric is added until it can be derived from existing authoritative data and independently hand-calculated.
+### Sprint 12 increment — Private portfolio performance review: complete on PR #454
+
+- Added standalone HTML and spreadsheet-safe CSV exports to the private portfolio positions/reconciliation view.
+- Report reuses the existing FIFO projection and ledger-backed per-currency XIRR; no new performance formula or schema collection was introduced.
+- Currency-separated report summaries include open cost basis, market value, realized/unrealized P&L, dividends, interest, recorded fees/taxes and net gain/loss, plus per-position valuation provenance and XIRR terminal-value details.
+- Exports carry the exact selected as-of timestamp and recorded-at cutoff. Missing open-position valuations suppress market value, unrealized P&L and net-gain totals for the affected currency; closed positions show unrealized P&L as not applicable.
+- HTML is standalone and script-free. CSV text fields are escaped and formula-injection protected. No cross-currency aggregation or FX conversion.
+- Export controls are disabled in demo mode and cleared on workspace/data changes. Chromium smoke verifies HTML/CSV downloads and private/demo isolation.
+- CI #1900 passed (lint, typecheck, package build, unit tests and Chromium browser smoke); Secret Scan #1694 passed; dashboard packaging #1136 passed on code head ec32db25dd22c822965727e8648b7092f87b7c5c.
+- PR #454 is open, draft and stacked on PR #453. Neither PR is merged. Do not merge without explicit owner approval.
+
+### Sprint 12 — IPM-04 historical performance comparison: complete
+
+- Completed the discovery inventory across the investment ledger, FIFO projection, cash reconciliation, XIRR, drawdown series and private reports. Existing supported metrics are reused; no duplicate XIRR or drawdown formula was added.
+- Added a pure comparison adapter that accepts independently available drawdown-series analyses, enforces identical scope/account/currency/methodology/recorded-at cutoff, validates persisted calendar provenance and observation ordering, preserves unavailable periods without partial metrics, sorts periods and flags overlaps.
+- Added a private-only historical comparison workspace. Users enter explicit period labels and exact UTC start/end timestamps; each period independently selects its matching persisted calendar and runs the existing drawdown-series orchestrator.
+- Added standalone script-free HTML and spreadsheet-safe CSV reports with period return, maximum drawdown, peak/trough/recovery timestamps, actual coverage, observation and flow-boundary counts, calendar provenance, snapshot-level completeness evidence, limitations, overlap flags and unavailable reasons.
+- Added source-data signature verification before export, workspace-change invalidation, demo-mode disablement, report unit tests and Chromium smoke for private/demo isolation, exports and stale-source export blocking.
+- No schema migration, persistence collection, price provider, generated calendar, missing observation, FX conversion, tax treatment or financial-data fixture was introduced.
+- Final verified PR #454 head: `01131e7c3f36901aeabd5ffe8f0673cec08c3d05`; CI #1980, Secret Scan #1774 and dashboard packaging #1216 all passed on this exact head (2026-11-15). CI includes frozen dependency install, repository bootstrap/doctor/safety checks, lint, typecheck, package build, full tests and Chromium browser smoke.
+- PR #454 remains open/draft/unmerged and stacked on PR #453. Neither PR may be merged without explicit owner approval.
+
+### Remaining gated work — not safe to implement in this sprint without a domain decision
+
+- Transaction-to-position statement reconciliation requires an approved statement-evidence contract (source identity, period, account/currency, reference matching, duplicate/unmatched/ambiguous rows, opening baseline, closing quantity comparison, corrections and recorded-at cutoff). Do not auto-create or mutate ledger transactions.
+- Cost-basis adjustments, corporate actions and in-kind contributions/withdrawals require explicit event types, quantity/cost allocation, effective/recorded-at behavior, reversal/restatement and migration/backup decisions.
+- No assumptions about broker statement formats, tax treatment, external prices, FX or corporate-action semantics are permitted. These are tracked as separate gated backlog work, not silently marked complete.
 
 
 ## Historical planning snapshot — Sprint 11: Flow-adjusted portfolio drawdown (superseded by completion record below)
@@ -607,3 +629,23 @@ Remaining future scope: in-kind contributions/withdrawals and corporate actions 
 - Browser smoke verifies manual capture, paired flow boundaries, report generation and HTML/CSV downloads, demo/private isolation, JSON backup/restore and SQLite persistence.
 - Verified head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`: CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed.
 - PR #453 remains open, draft and unmerged. No merge is authorized.
+
+## 2026-11-14 — IPM-04 performance analytics discovery
+
+- Reviewed the existing investment transaction validator, FIFO position projection, cash-ledger reconciliation, per-currency XIRR, drawdown series orchestration, calculator and private reports.
+- Recorded the supported-versus-missing capability matrix and the proposed historical period-comparison input/validation contract in `docs/architecture/IPM-04-PERFORMANCE-ANALYTICS-DISCOVERY.md`.
+- Existing single-date portfolio review and historical flow-adjusted drawdown are supported; no second XIRR/drawdown formula is needed.
+- A historical period return may be derived only from the first/last wealth-index points of a separately available drawdown analysis, with identical scope, currency, methodology and recorded-at cutoff. Each period must use its persisted explicit calendar; no automatic windows or missing observations.
+- Transaction-to-position statement reconciliation, cost-basis adjustment events, corporate actions and in-kind flows remain separate gaps requiring explicit source/event contracts. No new metric, schema or accounting assumption was introduced in this discovery increment.
+- Next: implement the pure comparison adapter against already validated drawdown analyses, with hand-calculated endpoint-return tests and fail-closed mismatch/unavailable handling. Keep the UI/report integration separate until the adapter contract is proven.
+
+
+## 2026-11-14 — Historical period comparison adapter
+
+- Added `apps/dashboard/investment-period-comparison.js`, a pure adapter over separately validated drawdown-series results. It does not acquire observations or recalculate daily returns.
+- Period return is derived only from the existing first/last positive wealth-index values. Existing maximum drawdown and peak/trough/recovery fields are passed through unchanged.
+- Enforces canonical timestamps, persisted calendar provenance, supported methodology, positive ordered endpoint values, matching scope/account/currency/recorded-at cutoff, unique labels and explicit unavailable reasons.
+- Unavailable periods remain visible with null numeric statistics. Overlapping windows are allowed only with an explicit overlap flag; they are not described as disjoint/additive.
+- Added independent tests for hand-calculated +25% and -10% endpoint returns, chronology/overlap, unavailable periods, mismatched provenance, malformed wealth-index values, calendar metadata and duplicate labels.
+- This is the pure calculation/contract layer only. No UI, exports, schema, migration or actual financial data was added. CI is required to validate the pushed code.
+- Next: inspect CI results, correct any issues, then add private-only period comparison workflow and safe HTML/CSV exports using the existing drawdown workspace patterns.

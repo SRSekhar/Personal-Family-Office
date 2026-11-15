@@ -832,3 +832,29 @@ describe('user-defined investment exposure policy workspace integrity', () => {
         expect(workspace).toContain("localStorage.setItem(POLICY_KEY, JSON.stringify(validated.investmentExposurePolicies))");
     });
 });
+
+
+describe('historical investment period comparison workspace', () => {
+    it('wires a private-only comparison form, report exports, and controller modules', async () => {
+        const [html, app, workspace, report] = await Promise.all([
+            readDashboardFile('index.html'),
+            readDashboardFile('app.js'),
+            readDashboardFile('investment-period-comparison-workspace.js'),
+            readDashboardFile('investment-period-comparison-report.js')
+        ]);
+        expect(html).toContain('id="investment-period-comparison-form"');
+        expect(html).toContain('id="investment-period-comparison-download-html"');
+        expect(html).toContain('id="investment-period-comparison-download-csv"');
+        expect(html).toContain('label | startAt | endAt');
+        expect(app).toContain("import { initializeInvestmentPeriodComparisonWorkspace } from './investment-period-comparison-workspace.js'");
+        expect(app).toContain('periodComparisonWorkspace = initializeInvestmentPeriodComparisonWorkspace({');
+        expect(app).toContain('periodComparisonWorkspace?.invalidate()');
+        expect(workspace).toContain('compareInvestmentPerformancePeriods({ periods: analyses })');
+        expect(workspace).toContain('latestReport.signature !== fingerprint(dependencies, form)');
+        expect(workspace).toContain("form.addEventListener('input', invalidateChangedParameters)");
+        expect(workspace).toContain('dependencies.isPrivateWorkspace()');
+        expect(report).toContain('renderInvestmentPeriodComparisonHtml');
+        expect(report).toContain('investmentPeriodComparisonToCsv');
+        expect(report).not.toMatch(/<script\b/i);
+    });
+});
