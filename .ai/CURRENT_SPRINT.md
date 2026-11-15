@@ -1,5 +1,18 @@
 # Current Sprint
 
+## Sprint 14 — IPM-06 market-data provider boundary
+
+Three increments implemented on `feature/ipm-market-data-boundary`, stacked on PR #455:
+
+1. **IPM-06.1 — Normalized contracts:** independent identity, quote, historical-bar, fundamentals and corporate-action data contracts; source/license/attribution, market timezone, delay, freshness, coverage, adjustment basis and explicit point-in-time metadata.
+2. **IPM-06.2 — Capability ports:** typed optional provider ports and conformance validation. Synthetic test fixtures only; no provider selected, no SDK or endpoint.
+3. **IPM-06.3 — Safe execution:** explicit bounded timeout/retry/cache policy, transient-only retries, cancellation, bounded in-memory TTL cache and sanitized errors. No default provider and no startup/network calls.
+
+ADR: `docs/architecture/ADR-INVESTMENT-MARKET-DATA-BOUNDARY.md`. Existing manual valuation entry and ledger/FIFO calculations are unchanged. Provider-specific implementation remains gated on exact official API docs, authentication, terms, license and point-in-time guarantees.
+
+**Verified on final code head 6b136b4e4e27f92209a2005df6c143ae29e6048d (2026-11-15):** CI #2006 passed (98 test files / 912 tests, lint, typecheck, build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1800 passed. All three IPM-06 boundary milestones are complete. PR #456 remains draft and stacked on PR #455; no merge is authorized. No schema migration or persisted market-data collection is included.
+
+
 ## Sprint 13 — Broker statement reconciliation (Option B)
 
 Implementation is on `feature/ipm-statement-reconciliation`, stacked on PR #454. Three increments are included:

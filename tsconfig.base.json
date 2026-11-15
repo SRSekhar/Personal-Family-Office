@@ -5,44 +5,31 @@
     "target": "ES2023",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-
     "lib": [
       "ES2023"
     ],
-
     "strict": true,
     "allowJs": false,
     "checkJs": false,
-
     "declaration": true,
     "declarationMap": true,
-
     "sourceMap": true,
-
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-
     "resolveJsonModule": true,
-
     "isolatedModules": true,
-
     "forceConsistentCasingInFileNames": true,
-
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-
     "skipLibCheck": true,
-
     "types": [
       "node"
     ],
-
     "baseUrl": ".",
-
     "paths": {
       "@pfo/core": [
         "packages/core/src/index.ts"
@@ -50,58 +37,56 @@
       "@pfo/core/*": [
         "packages/core/src/*"
       ],
-
       "@pfo/shared": [
         "packages/shared/src/index.ts"
       ],
       "@pfo/shared/*": [
         "packages/shared/src/*"
       ],
-
       "@pfo/models": [
         "packages/models/src/index.ts"
       ],
       "@pfo/models/*": [
         "packages/models/src/*"
       ],
-
       "@pfo/calculators": [
         "packages/calculators/src/index.ts"
       ],
       "@pfo/calculators/*": [
         "packages/calculators/src/*"
       ],
-
       "@pfo/analytics": [
         "packages/analytics/src/index.ts"
       ],
       "@pfo/analytics/*": [
         "packages/analytics/src/*"
       ],
-
       "@pfo/reports": [
         "packages/reports/src/index.ts"
       ],
       "@pfo/reports/*": [
         "packages/reports/src/*"
       ],
-
       "@pfo/charts": [
         "packages/charts/src/index.ts"
       ],
       "@pfo/charts/*": [
         "packages/charts/src/*"
       ],
-
       "@pfo/prompts": [
         "packages/prompts/src/index.ts"
       ],
       "@pfo/prompts/*": [
         "packages/prompts/src/*"
+      ],
+      "@pfo/market-data": [
+        "packages/market-data/src/index.ts"
+      ],
+      "@pfo/market-data/*": [
+        "packages/market-data/src/*"
       ]
     }
   },
-
   "exclude": [
     "node_modules",
     "dist",
