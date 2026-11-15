@@ -2,7 +2,7 @@
 
 Point-in-time backtesting domain contracts and validation for PFO OS.
 
-This package currently defines validated historical datasets, bitemporal universe membership, explicit trading calendars, strategy/version descriptors, execution and cost assumptions, and run-configuration checks. It does not contain a simulation engine.
+This package defines validated historical datasets, bitemporal universe membership, explicit trading calendars, strategy/version descriptors, execution and cost assumptions, and run-configuration checks. It does not contain a simulation engine.
 
 Historical observations must retain source provenance, licensing status, content digests, availability timestamps and local recorded-at timestamps. Point-in-time eligibility is never inferred from a bar's market timestamp or retrieval time.
 
