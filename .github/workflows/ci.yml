@@ -104,3 +104,6 @@ jobs:
 
       - name: Verify FIRE planner in a real browser
         run: NODE_PATH=/tmp/pfo-playwright/node_modules PLAYWRIGHT_BROWSERS_PATH=/tmp/pfo-playwright-browsers node scripts/dashboard/fire-planner-browser-smoke.mjs
+
+      - name: Verify investment statement reconciliation in a real browser
+        run: NODE_PATH=/tmp/pfo-playwright/node_modules PLAYWRIGHT_BROWSERS_PATH=/tmp/pfo-playwright-browsers node scripts/dashboard/statement-reconciliation-browser-smoke.mjs
