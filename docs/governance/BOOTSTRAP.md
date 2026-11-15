@@ -1,5 +1,10 @@
 # Repository Bootstrap Framework
 
+## Hardened behavior — 2026-11-15
+
+The initializer now validates the complete path plan before mutation, checks expected file/directory types, rejects symbolic links and reparse points in configured paths, and creates files atomically without truncating a concurrently-created file. The bootstrap safety test runs against an isolated temporary repository so it does not delete or rewrite paths in the developer checkout.
+
+
 ## Purpose
 
 The repository bootstrap framework creates missing configured paths without overwriting existing files, validates repository structure, and reports basic repository health.
