@@ -190,15 +190,15 @@ export function validateBacktestDataset(dataset: BacktestDataset): void {
         if (bar.availableAt !== undefined && bar.availableAt > bar.recordedAt) {
             throw new RangeError('A bar cannot be imported before its evidenced availability timestamp.');
         }
-        if (previousStartAt !== undefined && bar.startAt <= previousStartAt) {
-            throw new RangeError('Dataset bars must be strictly ordered by startAt.');
-        }
-        previousStartAt = bar.startAt;
         const key = JSON.stringify([bar.instrumentId, bar.interval, bar.startAt]);
         if (barIds.has(key)) {
             throw new RangeError('Dataset contains duplicate instrument/interval/bar-start observations.');
         }
         barIds.add(key);
+        if (previousStartAt !== undefined && bar.startAt <= previousStartAt) {
+            throw new RangeError('Dataset bars must be strictly ordered by startAt.');
+        }
+        previousStartAt = bar.startAt;
         if (dataset.coverage.status === 'complete' && !expected.has(bar.endAt)) {
             throw new RangeError('A complete dataset contains a bar outside its expected calendar.');
         }
