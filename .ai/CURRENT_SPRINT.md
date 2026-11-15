@@ -18,7 +18,7 @@ PR #457's final migration-chain test improvement verifies every protected recove
 
 ### Sprint 17 — IPM-08 backtesting architecture and acceptance contracts (in progress)
 
-**Drafted:** `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` and `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md`. The ADR is explicitly Proposed. Repository contracts were inspected and the new `@pfo/backtesting` package now contains contract types and strict validators only; no engine, provider, schema or strategy execution API was invented. Next: resolve the listed decisions before implementing simulation behavior.
+**Drafted:** `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` and `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md`. The ADR is explicitly Proposed. Repository contracts were inspected and the new `@pfo/backtesting` package now contains contract types and strict validators only; no engine, provider, schema or strategy execution API was invented. CI #2045 passed on head `8a8e7c481459860715c253f68f213e9dabef7015` (101 test files / 934 tests, lint, typecheck, build and both Chromium browser smoke workflows); Secret Scan #1839 passed. Next: resolve the listed decisions before implementing simulation behavior.
 
 Scope:
 1. Historical market-data evidence contract: instrument/exchange identity, OHLCV, currency, adjustment basis, source/licensing, publication/availability/retrieval/knowledge timestamps, and explicit point-in-time guarantees.
