@@ -508,7 +508,9 @@ The following work is approved under Option B. It is a functional product epic, 
 
 ### IPM-07 — Evidence-grounded research and AI review
 
-Status: **Implementation complete on `feature/ipm-evidence-research`; final CI and secret-scan validation pending.**
+Status: **Core implementation complete and verified on draft PR #457; vendor-specific AI adapters and end-user UI remain gated.**
+
+- Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15): CI #2011 passed — 100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows; Secret Scan #1805 passed.
 
 - [x] **Milestone 1 — Research engine foundation:** provider-neutral specialist ports for fundamentals, technicals, news/macro and portfolio risk; strict evidence, claim, timestamp, source-digest and model/provider/prompt-version contracts; bounded untrusted evidence excerpts; explicit as-of and recorded-at cutoffs.
 - [x] **Milestone 2 — Bull/bear challenge:** independent bullish and bearish model-review calls over the same evidence and findings; structured-output validation; claim/evidence reference checks; prompt-injection-resistant structured prompt envelopes; explicit stale, unknown point-in-time and missing-evidence warnings. No prices, targets, buy/sell recommendations or order fields exist in the output contract.

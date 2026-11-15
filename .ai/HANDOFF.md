@@ -8,7 +8,9 @@ Three increments are implemented: (1) specialist ports for fundamentals, technic
 
 No LLM provider/SDK/API/credentials, outbound calls, scheduled run, dashboard UI, external household-data transmission, prices/targets/recommendations or ledger/valuation/order mutation. A host must explicitly inject model/specialist adapters and invoke the engine. Local JSON is not encrypted; hosts own private path, backup and retention. ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`.
 
-Final CI and Secret Scan are pending; do not claim verified until completed. PR is intended to remain draft and stacked on PR #456. Do not merge PRs #453–#457 without explicit owner approval.
+**Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 passed (100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
+
+This is the core orchestration and persistence foundation, not a live AI research feed. Provider-specific specialist/model adapters and dashboard UI remain gated until an LLM vendor, market/news data sources, official API docs, licensing/terms, privacy and authentication decisions are reviewed. Do not merge PRs #453–#457 without explicit owner approval.
 
 
 

@@ -10,7 +10,9 @@ Implementation is complete on `feature/ipm-evidence-research`, stacked on PR #45
 
 No LLM vendor, SDK, endpoint, API key, network request, scheduled invocation, dashboard UI, remote data transmission or ledger/valuation/order mutation. Hosts explicitly inject adapters and invoke the engine. The local repository is not encrypted; private path, backup and retention remain host responsibilities.
 
-ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`. CI and Secret Scan validation pending on final head; do not describe as verified until both pass. PR remains draft/unmerged and stacked on PR #456.
+ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`. **Validation passed on implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 (100 test files / 922 tests, lint, typecheck, build, repository safety and both Chromium browser smoke workflows) and Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
+
+Provider-specific specialists/model adapters and user-facing research UI are intentionally not enabled: no LLM vendor, data-source licensing or provider API contract has been approved. This is a verified orchestration/persistence foundation, not a live market-research feed.
 
 
 

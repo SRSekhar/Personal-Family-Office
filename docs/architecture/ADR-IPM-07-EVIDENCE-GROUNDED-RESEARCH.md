@@ -1,6 +1,6 @@
 # ADR — IPM-07 Evidence-grounded research and AI review
 
-- Status: Implemented; final CI and Secret Scan validation pending
+- Status: Implemented and verified; provider-specific adapters and end-user UI deferred
 - Date: 2026-11-15
 - Scope: provider-neutral investment research orchestration, evidence validation, adversarial review and local run persistence
 - Related: `.ai/BACKLOG.md` — IPM-07; `@pfo/market-data`
@@ -38,3 +38,10 @@ No vendor adapter, news crawler, web scraper, broker connection, market-data acq
 1. IPM-07.1 — specialist ports and provenance-rich research contracts.
 2. IPM-07.2 — independent bull/bear challenge and evidence-grounded validation.
 3. IPM-07.3 — reproducible local persistence, idempotency and resume.
+
+
+## Verification
+
+Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15): CI #2011 passed — 100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows; Secret Scan #1805 passed.
+
+PR #457 remains draft, open and unmerged, stacked on PR #456. This ADR authorizes the core provider-neutral foundation only; it does not approve any LLM vendor, market/news source, credential flow or production research UI.
