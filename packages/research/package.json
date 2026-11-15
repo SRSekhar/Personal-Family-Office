@@ -1,0 +1,22 @@
+{
+  "name": "@pfo/research",
+  "version": "0.1.0",
+  "description": "Evidence-grounded, provider-neutral investment research and adversarial AI review.",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsc -b",
+    "watch": "tsc -b --watch",
+    "lint": "eslint src",
+    "format": "prettier src --write",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": { "typescript": "^6.0.3" }
+}

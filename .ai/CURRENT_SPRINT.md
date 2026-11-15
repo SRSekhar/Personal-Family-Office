@@ -1,5 +1,19 @@
 # Current Sprint
 
+## Sprint 15 — IPM-07 Evidence-grounded research and AI review
+
+Implementation is complete on `feature/ipm-evidence-research`, stacked on PR #456. Three milestones are delivered:
+
+1. **IPM-07.1 — Research engine foundation:** new `@pfo/research` package with specialist ports for fundamentals, technicals, news/macro and portfolio risk; evidence provenance and content-digest contracts; explicit as-of/recorded-at timestamps; model/provider/adapter/prompt version tracking; strict claim citation validation.
+2. **IPM-07.2 — Bull/bear challenge:** independent bullish and bearish model-port calls over the same findings/evidence; strict structured-output validation; known-claim reference checks; structured prompt envelopes that identify evidence excerpts as untrusted data; stale and non-point-in-time warnings; no unsupported factual claims can complete a run.
+3. **IPM-07.3 — Reproducible persistence:** explicit-path local JSON repository with atomic replacement, restrictive permissions, schema/size validation; idempotency-key protection; incremental specialist result persistence and retry/resume; reports retain source references/digests and provider/model/prompt versions.
+
+No LLM vendor, SDK, endpoint, API key, network request, scheduled invocation, dashboard UI, remote data transmission or ledger/valuation/order mutation. Hosts explicitly inject adapters and invoke the engine. The local repository is not encrypted; private path, backup and retention remain host responsibilities.
+
+ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`. CI and Secret Scan validation pending on final head; do not describe as verified until both pass. PR remains draft/unmerged and stacked on PR #456.
+
+
+
 ## Sprint 14 — IPM-06 market-data provider boundary
 
 Three increments implemented on `feature/ipm-market-data-boundary`, stacked on PR #455:

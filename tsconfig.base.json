@@ -84,6 +84,12 @@
       ],
       "@pfo/market-data/*": [
         "packages/market-data/src/*"
+      ],
+      "@pfo/research": [
+        "packages/research/src/index.ts"
+      ],
+      "@pfo/research/*": [
+        "packages/research/src/*"
       ]
     }
   },
