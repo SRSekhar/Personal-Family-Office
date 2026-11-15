@@ -1,5 +1,34 @@
 # Session Handoff
 
+## Latest integrated state — Sprint 16 complete (2026-11-15)
+
+PRs #453–#457 have all been merged into `main` in dependency order. Main HEAD: `7db56531b353baa45983e88ed0ef54517740c414`. The five merge commits are recorded in `.ai/CURRENT_SPRINT.md`.
+
+- PR #453: flow-adjusted drawdown, SQLite schema v12.
+- PR #454: portfolio performance review and historical period comparison.
+- PR #455: transaction and holdings statement reconciliation, schema v13 / 20 collections.
+- PR #456: provider-neutral market-data boundary.
+- PR #457: evidence-grounded research and AI review.
+- PR #457 final migration test commit: `ed0b6a6fbce2ee4acaae123968f769586d509858`; CI #2013 and Secret Scan #1807 passed.
+- Final main merge commit: Secret Scan #1812 passed; post-merge CI #2018 is the remaining integration gate at handoff time.
+
+All PRs were retargeted to `main` after their predecessors merged, converted from draft, and merged with merge commits only after the respective head checks passed. No PRs remain open in this five-PR chain.
+
+### Next task — Sprint 17 / IPM-08
+
+Create `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` and define:
+1. Point-in-time historical data evidence and adjustment contracts.
+2. Strategy, universe, sizing and rebalance contracts.
+3. Execution timing, fill, brokerage, tax, slippage, liquidity and corporate-action assumptions.
+4. Look-ahead, survivorship, publication-time, revision and missing-session bias controls.
+5. Hand-calculated acceptance portfolios and deterministic expected results.
+
+Start with existing repository contracts and tests. Do not invent provider APIs, historical prices, trading calendars or financial semantics. No backtesting engine or provider integration until architecture and acceptance cases are established. Paper portfolio remains a separate domain from real ledger records.
+
+---
+
+
+
 ## Latest development — Sprint 15 / IPM-07 (2026-11-15)
 
 Branch `feature/ipm-evidence-research` starts from PR #456 head `87029005f3950a3199b65ac3f96239de171ec17a` and adds `@pfo/research`.
@@ -10,7 +39,7 @@ No LLM provider/SDK/API/credentials, outbound calls, scheduled run, dashboard UI
 
 **Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 passed (100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
 
-This is the core orchestration and persistence foundation, not a live AI research feed. Provider-specific specialist/model adapters and dashboard UI remain gated until an LLM vendor, market/news data sources, official API docs, licensing/terms, privacy and authentication decisions are reviewed. Do not merge PRs #453–#457 without explicit owner approval.
+This is the core orchestration and persistence foundation, not a live AI research feed. Provider-specific specialist/model adapters and dashboard UI remain gated until an LLM vendor, market/news data sources, official API docs, licensing/terms, privacy and authentication decisions are reviewed. PRs #453–#457 were merged into main on 2026-11-15 after owner approval and successful PR-head checks.
 
 
 
@@ -22,7 +51,7 @@ Three slices are implemented: (1) normalized contracts for identity, quotes, his
 
 No provider SDK/API, endpoint, credentials, database persistence, schema migration, automatic valuation import or corporate-action ledger posting. No provider is registered and no outbound request occurs by default. Manual valuation remains unchanged. Before selecting an adapter, review official API docs, authentication, commercial/data terms, licensing/redistribution, exchange coverage, point-in-time guarantees and retention/rate limits.
 
-**Final verification passed on code head 6b136b4e4e27f92209a2005df6c143ae29e6048d (2026-11-15):** CI #2006 passed (98 test files / 912 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1800 passed. PR #456 remains draft/open/unmerged and stacked on PR #455. Keep PRs #453–#456 unmerged until owner review and explicit approval.
+**Final verification passed on code head 6b136b4e4e27f92209a2005df6c143ae29e6048d (2026-11-15):** CI #2006 passed (98 test files / 912 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1800 passed. PR #456 was merged into main on 2026-11-15. Keep PRs #453–#456 unmerged until owner review and explicit approval.
 
 
 ## Latest development — Sprint 13 / IPM-05 (2026-11-15)
@@ -33,7 +62,7 @@ Three increments: (1) immutable normalized evidence contract and validation; (2)
 
 No broker connection, broker-specific CSV guessing, PDF extraction, ledger auto-correction, settlement/cash matching, cost-basis/tax-lot reconciliation, corporate actions, in-kind flows, FX, prices or recommendations are included. The normalized evidence importer requires explicit source mapping and does not modify ledger transactions.
 
-**Final verification passed on code head dc9a66c30296a9e0e001f5b295f95482fa163d17 (2026-11-15):** CI #2000 (95 files / 900 tests, lint, typecheck, build, FIRE browser smoke and statement reconciliation browser smoke), Secret Scan #1794, and dashboard packaging #1236 all passed. PR #455 remains draft and stacked on #454. Do not merge #453/#454/#455 without explicit owner approval.
+**Final verification passed on code head dc9a66c30296a9e0e001f5b295f95482fa163d17 (2026-11-15):** CI #2000 (95 files / 900 tests, lint, typecheck, build, FIRE browser smoke and statement reconciliation browser smoke), Secret Scan #1794, and dashboard packaging #1236 all passed. PR #455 was merged into main on 2026-11-15. Do not merge #453/#454/#455 without explicit owner approval.
 
 
 ## Repository
@@ -42,11 +71,11 @@ PFO OS — Personal Family Office Operating System
 
 ## Current State
 
-Main contains the investment ledger/FIFO positions, investment cash ledger and statement reconciliation, XIRR, allocation policies/drift, concentration policies, weighted exposure classifications and user-configured exposure limits. Main is schema v10 with 17 collections.
+Main contains the investment ledger/FIFO positions, investment cash ledger and statement reconciliation, XIRR, allocation policies/drift, concentration policies, weighted exposure classifications and user-configured exposure limits. Main is schema v13 with 20 collections following the sequential merge of PRs #453–#457.
 
 PR #453 (`feature/ipm-drawdown-contract-discovery`) contains the approved Option B flow-adjusted drawdown implementation end-to-end: pure calculator; bitemporal snapshots; ledger-derived completeness; authoritative flow classification; explicit persisted daily-close calendar; private manual daily-close and paired pre/post-flow capture; independent hand-calculated acceptance; private HTML/CSV reporting; schema v12 with 19 collections; transactional v10→v11→v12 migrations; and JSON/SQLite backup/restore. Browser smoke verifies capture, paired boundaries, report downloads, demo/private isolation and persistence. In-kind flows and corporate actions remain unsupported pending a separate ledger-model decision.
 
-PR #453 is open, draft and unmerged. Code head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1889, Secret Scan #1683 and dashboard packaging #1125. Documentation-only follow-up head `53f7979bbcd3b2ec0f8480c61ee0a352a7190250` had CI #1893 queued at last check; Secret Scan #1687 and dashboard packaging #1129 passed. Do not merge without explicit owner approval. Main remains schema v10 until the PR is reviewed and merged.
+PR #453 was merged into main on 2026-11-15. Code head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1889, Secret Scan #1683 and dashboard packaging #1125. Documentation-only follow-up head `53f7979bbcd3b2ec0f8480c61ee0a352a7190250` had CI #1893 queued at last check; Secret Scan #1687 and dashboard packaging #1129 passed. Do not merge without explicit owner approval. Main remains schema v10 until the PR is reviewed and merged.
 
 PR #454 (feature/ipm-performance-review) is stacked on PR #453. It contains the private standalone HTML/CSV portfolio performance report (reusing FIFO and per-currency XIRR) plus the IPM-04 historical period comparison. The comparison UI accepts explicit label/start/end period rows, runs each through the existing drawdown-series orchestration using its persisted calendar, enforces one scope/account/currency/methodology/recorded-at cutoff, and reports endpoint wealth-index return, maximum drawdown, peak/trough/recovery, coverage, calendar provenance, snapshot-level completeness evidence, limitations, overlap and unavailable reasons. HTML is script-free; CSV is formula-safe; export is blocked when the validated source signature changes. Chromium smoke covers demo/private isolation, report downloads and stale-source invalidation. No schema migration or new financial formula was introduced.
 
