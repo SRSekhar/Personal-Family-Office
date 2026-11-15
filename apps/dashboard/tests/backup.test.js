@@ -587,3 +587,61 @@ describe('version 10 investment exposure policy backup validation', () => {
         expect(() => validateBackupPayload(inconsistent, 'INR')).toThrow(/Unsupported backup format/);
     });
 });
+
+
+describe('version 11 investment drawdown snapshot backup validation', () => {
+    const version11 = {
+        schemaVersion: 11, currency: 'INR', records: validRecords, goals: [validGoal],
+        cashFlowEntries: [validCashFlowEntry], budgets: [validBudget], historicalSnapshots: [validHistoricalSnapshot],
+        investmentAccounts: [{ id: 'account-1', name: 'Brokerage', institution: 'Example', type: 'Brokerage', currency: 'INR' }],
+        investmentInstruments: [{ id: 'instrument-1', name: 'Example Fund', type: 'MutualFund', currency: 'INR' }],
+        investmentTransactions: [], investmentValuations: [], investmentCashAccounts: [],
+        investmentCashMovements: [], investmentCashTransfers: [], investmentCashStatements: [],
+        investmentAllocationPolicies: [], investmentConcentrationPolicies: [],
+        investmentExposureClassifications: [], investmentExposurePolicies: [],
+        investmentDrawdownSnapshots: [{
+            id: 'drawdown-snapshot-1', scope: 'portfolio', currency: 'INR', kind: 'DailyClose',
+            effectiveAt: '2026-01-01T16:00:00.000Z', recordedAt: '2026-01-01T17:00:00.000Z',
+            sourceType: 'manual', sourceName: 'Manual capture', complete: true,
+            components: [{
+                id: 'position-component-1', type: 'position', accountId: 'account-1', instrumentId: 'instrument-1',
+                quantity: 2, unitPrice: { amount: 100, currency: 'INR' }, value: { amount: 200, currency: 'INR' },
+                valuedAt: '2026-01-01T16:00:00.000Z', sourceType: 'manual', sourceName: 'Broker statement'
+            }],
+            totalValue: { amount: 200, currency: 'INR' }
+        }]
+    };
+
+    it('validates and previews component-level drawdown observations in schema v11', () => {
+        const validated = validateBackupPayload(version11, 'INR');
+        expect(validated.includesInvestmentDrawdownSnapshots).toBe(true);
+        expect(validated.includesInvestmentExposurePolicies).toBe(true);
+        expect(validated.investmentExposurePolicies).toEqual(version11.investmentExposurePolicies);
+        expect(validated.investmentDrawdownSnapshots).toEqual(version11.investmentDrawdownSnapshots);
+        expect(summarizeValidatedBackup(validated)).toMatchObject({
+            includesInvestmentExposurePolicies: true, investmentExposurePolicyCount: 0,
+            includesInvestmentDrawdownSnapshots: true, investmentDrawdownSnapshotCount: 1
+        });
+    });
+
+    it('requires the snapshot collection and rejects invalid component or total values', () => {
+        const missing = { ...version11 };
+        delete missing.investmentDrawdownSnapshots;
+        expect(() => validateBackupPayload(missing, 'INR')).toThrow(/drawdown snapshots must be an array/i);
+        const invalidComponent = structuredClone(version11);
+        invalidComponent.investmentDrawdownSnapshots[0].components[0].instrumentId = 'missing';
+        expect(() => validateBackupPayload(invalidComponent, 'INR')).toThrow(/unknown investment account or instrument/i);
+        const invalidTotal = structuredClone(version11);
+        invalidTotal.investmentDrawdownSnapshots[0].totalValue.amount = 201;
+        expect(() => validateBackupPayload(invalidTotal, 'INR')).toThrow(/reconcile to its component values/i);
+    });
+
+    it('keeps schema-v10 backups valid without implying drawdown history was included', () => {
+        const legacy = structuredClone(version11);
+        legacy.schemaVersion = 10;
+        delete legacy.investmentDrawdownSnapshots;
+        const validated = validateBackupPayload(legacy, 'INR');
+        expect(validated).not.toHaveProperty('includesInvestmentDrawdownSnapshots');
+        expect(validated).not.toHaveProperty('investmentDrawdownSnapshots');
+    });
+});

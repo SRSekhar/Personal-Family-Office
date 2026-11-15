@@ -1369,7 +1369,9 @@ try {
         cashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
         cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
         exposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
-        exposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]')
+        exposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
+        drawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'),
+        drawdownCalendars: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]')
     }));
     assert.equal(investmentStorage.accounts.length, 1);
     assert.equal(investmentStorage.instruments.length, 1);
@@ -1381,6 +1383,194 @@ try {
     assert.equal(investmentStorage.cashTransfers.length, 0);
     assert.equal(investmentStorage.exposurePolicies.length, 1, 'the saved exposure policy version should persist locally');
     process.stdout.write('PASS: private investment and cash ledgers record funding, withdrawals, trade settlement and statement reconciliation.\n');
+    await page.locator('#investment-drawdown-calendar-form').scrollIntoViewIfNeeded();
+    await page.locator('#investment-drawdown-calendar-form [name="calendarSetId"]').fill('browser-portfolio-inr-2026');
+    await page.locator('#investment-drawdown-calendar-form [name="startAt"]').fill('2026-11-02T00:00:00.000Z');
+    await page.locator('#investment-drawdown-calendar-form [name="endAt"]').fill('2026-11-04T23:59:59.999Z');
+    await page.locator('#investment-drawdown-calendar-form [name="expectedDailyCloseAt"]').fill(
+        '2026-11-02T15:30:00.000Z\n2026-11-03T15:30:00.000Z\n2026-11-04T15:30:00.000Z'
+    );
+    await page.locator('#investment-drawdown-calendar-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-calendar-history')?.innerText.includes('browser-portfolio-inr-2026'));
+    investmentStorage.drawdownCalendars = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]'));
+    assert.equal(investmentStorage.drawdownCalendars.length, 1, 'private calendar UI should persist one explicitly entered schedule');
+    assert.equal(investmentStorage.drawdownCalendars[0].expectedDailyCloseAt.length, 3,
+        'calendar UI should persist only the three explicitly entered close timestamps');
+    process.stdout.write('PASS: private calendar authoring stores an explicit UTC close schedule without generating dates.\\n');
+
+    // Capture a manually valued daily-close observation from the explicitly synthetic
+    // browser-test investment ledger. The UI derives quantities/balances from the ledgers
+    // and accepts only the valuation evidence entered below.
+    const drawdownIds = await page.evaluate(() => ({
+        accountId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-accounts.v1') || '[]')[0]?.id,
+        instrumentId: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-instruments.v1') || '[]')[0]?.id,
+        cashAccount: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-accounts.v1') || '[]')[0]
+    }));
+    assert.ok(drawdownIds.accountId && drawdownIds.instrumentId && drawdownIds.cashAccount?.id,
+        'drawdown capture smoke should use existing ledger identifiers');
+    drawdownIds.cashAccountId = drawdownIds.cashAccount.id;
+    await page.locator('#investment-drawdown-snapshot-form').scrollIntoViewIfNeeded();
+    const drawdownAccountCreatedAt = Date.parse(drawdownIds.cashAccount.createdAt);
+    const waitForPastDrawdownWindow = drawdownAccountCreatedAt + 4000 - Date.now();
+    if (waitForPastDrawdownWindow > 0) await page.waitForTimeout(waitForPastDrawdownWindow);
+    const drawdownEffectiveAt = new Date(drawdownAccountCreatedAt + 1000).toISOString();
+    const drawdownRecordedAtCutoff = new Date(Date.now() + 5000).toISOString();
+    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(drawdownEffectiveAt);
+    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(drawdownRecordedAtCutoff);
+    await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test broker valuation and cash statement');
+    await page.locator('#investment-drawdown-snapshot-form [name="dailyComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 405, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText.includes('DailyClose'));
+    const capturedDrawdownSnapshots = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'));
+    assert.equal(capturedDrawdownSnapshots.length, 1, 'manual drawdown capture should persist one immutable observation');
+    assert.equal(capturedDrawdownSnapshots[0].complete, true,
+        'the manually captured observation should pass its independent FIFO and cash-ledger completeness contract');
+    assert.equal(capturedDrawdownSnapshots[0].totalValue.amount, 1605,
+        'the captured total should reconcile the explicit 1,200 position valuation and 405 cash balance');
+    assert.equal(capturedDrawdownSnapshots[0].components.length, 2,
+        'the captured observation should retain one position and one cash component');
+    assert.equal(page.isClosed(), false, 'the dashboard page should remain open after saving a drawdown observation');
+    const drawdownHistoryText = await page.evaluate(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '');
+    assert.match(drawdownHistoryText, /Complete/u,
+        'the private observation history should visibly mark the reconciled observation complete');
+    const flowEffectiveAt = new Date(Date.parse(drawdownEffectiveAt) + 1000).toISOString();
+    await page.evaluate(({ cashAccountId, effectiveAt }) => {
+        const key = 'pfo-os.investment-cash-movements.v1';
+        const movements = JSON.parse(globalThis.localStorage.getItem(key) || '[]');
+        movements.push({
+            id: globalThis.crypto.randomUUID(),
+            cashAccountId,
+            type: 'ExternalContribution',
+            amount: { amount: 50, currency: 'INR' },
+            effectiveAt,
+            recordedAt: new Date().toISOString()
+        });
+        globalThis.localStorage.setItem(key, JSON.stringify(movements));
+        globalThis.window.dispatchEvent(new globalThis.Event('pfo:workspace-updated'));
+    }, { cashAccountId: drawdownIds.cashAccountId, effectiveAt: flowEffectiveAt });
+    investmentStorage.cashMovements = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-movements.v1') || '[]'));
+    await page.locator('#investment-drawdown-snapshot-form [name="kind"]').selectOption('ExternalFlowPair');
+    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(flowEffectiveAt);
+    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test paired flow-boundary evidence');
+    await page.locator('#investment-drawdown-snapshot-form [name="flowId"]').selectOption({ index: 1 });
+    await page.locator('#investment-drawdown-snapshot-form [name="preComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 405, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form [name="postComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 455, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText.includes('ExternalFlowPre'));
+    const capturedFlowSnapshots = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'));
+    assert.equal(capturedFlowSnapshots.length, 3, 'paired flow capture should append exactly two boundary observations');
+    assert.deepEqual(capturedFlowSnapshots.slice(1).map((item) => item.kind), ['ExternalFlowPre', 'ExternalFlowPost']);
+    assert.ok(capturedFlowSnapshots.slice(1).every((item) => item.complete),
+        'both flow-boundary observations should reconcile independently against their pre/post cash balances');
+    assert.equal(capturedFlowSnapshots[1].flowId, capturedFlowSnapshots[2].flowId,
+        'paired observations must reference the same authoritative cash-ledger flow');
+    assert.equal(capturedFlowSnapshots[1].components.length, capturedFlowSnapshots[2].components.length,
+        'paired observations must retain the same component universe');
+    assert.equal(capturedFlowSnapshots[1].totalValue.amount, 1605);
+    assert.equal(capturedFlowSnapshots[2].totalValue.amount, 1655);
+    investmentStorage.drawdownSnapshots = capturedFlowSnapshots;
+    process.stdout.write('PASS: paired pre-flow/post-flow capture is tied to an authoritative ledger flow and reconciles both cash boundaries.\\n');
+    await page.locator('#switch-demo-button').click();
+    const demoDrawdownHistory = await page.evaluate(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '');
+    assert.match(demoDrawdownHistory, /Switch to the local private workspace/u,
+        'sample mode must not reveal private drawdown observations');
+    assert.equal(await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').isDisabled(), true,
+        'sample mode must disable manual drawdown capture');
+    await page.locator('#switch-private-button').click();
+    const privateDrawdownHistory = await page.evaluate(() => globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '');
+    assert.match(privateDrawdownHistory, /DailyClose/u,
+        'switching back to private mode should restore the locally saved drawdown observation');
+    const drawdownFinalCloseAt = new Date(Date.parse(flowEffectiveAt) + 1000).toISOString();
+    await page.locator('#investment-drawdown-snapshot-form [name="kind"]').selectOption('DailyClose');
+    await page.locator('#investment-drawdown-snapshot-form [name="effectiveAt"]').fill(drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-snapshot-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-drawdown-snapshot-form [name="sourceName"]').fill('Browser test final close valuation and cash statement');
+    await page.locator('#investment-drawdown-snapshot-form [name="dailyComponents"]').fill(JSON.stringify([
+        { type: 'position', accountId: drawdownIds.accountId, instrumentId: drawdownIds.instrumentId, quantity: 10, unitPrice: { amount: 120, currency: 'INR' } },
+        { type: 'cash', cashAccountId: drawdownIds.cashAccountId, value: { amount: 455, currency: 'INR' } }
+    ]));
+    await page.locator('#investment-drawdown-snapshot-form button[type="submit"]').click();
+    await page.waitForFunction(() => {
+        const rows = globalThis.document.querySelector('#investment-drawdown-snapshot-history')?.innerText ?? '';
+        return rows.includes('DailyClose') && rows.includes('ExternalFlowPost');
+    });
+    const capturedFinalSnapshots = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'));
+    assert.equal(capturedFinalSnapshots.length, 4, 'the smoke fixture should contain two daily closes and one paired external flow');
+    assert.equal(capturedFinalSnapshots[3].complete, true);
+    investmentStorage.drawdownSnapshots = capturedFinalSnapshots;
+
+    await page.locator('#investment-drawdown-calendar-form [name="calendarSetId"]').fill('drawdown-report-smoke-window');
+    await page.locator('#investment-drawdown-calendar-form [name="scope"]').selectOption('portfolio');
+    await page.locator('#investment-drawdown-calendar-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-drawdown-calendar-form [name="startAt"]').fill(drawdownEffectiveAt);
+    await page.locator('#investment-drawdown-calendar-form [name="endAt"]').fill(drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-calendar-form [name="expectedDailyCloseAt"]').fill(drawdownEffectiveAt + '\n' + drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-calendar-form button[type="submit"]').click();
+    await page.waitForFunction(() => globalThis.document.querySelector('#investment-drawdown-calendar-history')?.innerText.includes('drawdown-report-smoke-window'));
+    investmentStorage.drawdownCalendars = await page.evaluate(() =>
+        JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]'));
+    assert.equal(investmentStorage.drawdownCalendars.length, 2, 'the report smoke should retain both explicit calendar sets');
+
+    await page.locator('#investment-drawdown-report-form [name="scope"]').selectOption('portfolio');
+    await page.locator('#investment-drawdown-report-form [name="currency"]').selectOption('INR');
+    await page.locator('#investment-drawdown-report-form [name="startAt"]').fill(drawdownEffectiveAt);
+    await page.locator('#investment-drawdown-report-form [name="endAt"]').fill(drawdownFinalCloseAt);
+    await page.locator('#investment-drawdown-report-form [name="recordedAtCutoff"]').fill(new Date(Date.now() + 5000).toISOString());
+    await page.locator('#investment-drawdown-report-form button[type="submit"]').click();
+    await page.waitForFunction(() => {
+        const preview = globalThis.document.querySelector('#investment-drawdown-report-preview')?.getAttribute('srcdoc') ?? '';
+        const error = globalThis.document.querySelector('#investment-drawdown-report-error')?.textContent?.trim() ?? '';
+        return preview.length > 0 || error.length > 0;
+    });
+    const reportState = await page.evaluate(() => ({
+        html: globalThis.document.querySelector('#investment-drawdown-report-preview')?.getAttribute('srcdoc') ?? '',
+        error: globalThis.document.querySelector('#investment-drawdown-report-error')?.textContent?.trim() ?? '',
+        status: globalThis.document.querySelector('#investment-drawdown-report-status')?.textContent?.trim() ?? ''
+    }));
+    if (!reportState.html.includes('Calculation available')) {
+        throw new Error('Drawdown report did not become available: ' + reportState.error + ' ' + reportState.status);
+    }
+    const reportHtml = reportState.html;
+    assert.match(reportHtml, /Investment drawdown/u);
+    assert.match(reportHtml, /Maximum drawdown/u);
+    assert.match(reportHtml, /Paired external flows/u);
+    const [drawdownHtmlDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-drawdown-report-download-html').click()
+    ]);
+    assert.match(drawdownHtmlDownload.suggestedFilename(), /\.html$/u);
+    const [drawdownCsvDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#investment-drawdown-report-download-csv').click()
+    ]);
+    assert.match(drawdownCsvDownload.suggestedFilename(), /\.csv$/u);
+    process.stdout.write('PASS: private flow-adjusted drawdown analysis generates a descriptive HTML report and spreadsheet-safe CSV export.\\n');
+
+    await page.locator('#switch-demo-button').click();
+    assert.equal(await page.locator('#investment-drawdown-report-preview').isHidden(), true,
+        'demo mode must clear the private drawdown report preview');
+    assert.equal(await page.locator('#investment-drawdown-report-download-html').isDisabled(), true,
+        'demo mode must disable private drawdown report exports');
+    await page.locator('#switch-private-button').click();
+    assert.equal(await page.locator('#investment-drawdown-report-preview').isHidden(), true,
+        'switching back to private mode must not restore a stale drawdown report');
+    investmentStorage.drawdownSnapshots = capturedFinalSnapshots;
+    process.stdout.write('PASS: private drawdown reports and exports are cleared when switching to demo mode.\\n');
     const [backupDownload] = await Promise.all([
         page.waitForEvent('download'),
         page.locator('#export-button').click()
@@ -1389,8 +1579,10 @@ try {
     const backupPath = join(temporaryDirectory, 'pfo-os-full-workspace-backup.json');
     await backupDownload.saveAs(backupPath);
     const backup = JSON.parse(await readFile(backupPath, 'utf8'));
-    assert.equal(backup.schemaVersion, 10, 'private JSON backup should use schema version 10 with exposure policy history');
+    assert.equal(backup.schemaVersion, 12, 'private JSON backup should use schema version 12 with exposure policy history');
     assert.equal(backup.investmentExposurePolicies.length, 1, 'private JSON backup should include exposure policy history');
+    assert.deepEqual(backup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots, 'schema-v12 backup should preserve all manually captured drawdown observations');
+    assert.equal(backup.investmentDrawdownCalendars.length, 2, 'schema-v12 backup should include both explicitly authored daily-close calendars');
     assert.equal(backup.currency, 'INR', 'JSON backup should declare the workspace currency');
     assert.ok(Array.isArray(backup.records), 'JSON backup should contain a records array');
     assert.deepEqual(backup.goals, [], 'private JSON backup should include an empty goals array when no goals are saved');
@@ -1399,8 +1591,8 @@ try {
     assert.deepEqual(backup.budgets, [], 'private JSON backup should include category budgets');
     assert.equal(backup.historicalSnapshots.length, 1, 'private JSON backup should include historical snapshots');
     assert.equal(backup.historicalSnapshots[0].date, '2023-12-31');
-    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies']) {
-        assert.ok(Array.isArray(backup[collection]), `schema-v10 backup should include ${collection}`);
+    for (const collection of ['investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots', 'investmentDrawdownCalendars']) {
+        assert.ok(Array.isArray(backup[collection]), `schema-v12 backup should include ${collection}`);
         const expectedCount = {
             investmentAccounts: investmentStorage.accounts.length,
             investmentInstruments: investmentStorage.instruments.length,
@@ -1413,9 +1605,11 @@ try {
             investmentAllocationPolicies: 0,
             investmentConcentrationPolicies: 0,
             investmentExposureClassifications: investmentStorage.exposureClassifications.length,
-            investmentExposurePolicies: investmentStorage.exposurePolicies.length
+            investmentExposurePolicies: investmentStorage.exposurePolicies.length,
+            investmentDrawdownSnapshots: investmentStorage.drawdownSnapshots.length,
+            investmentDrawdownCalendars: investmentStorage.drawdownCalendars.length
         }[collection];
-        assert.equal(backup[collection].length, expectedCount, `schema-v10 backup should preserve the saved ${collection}`);
+        assert.equal(backup[collection].length, expectedCount, `schema-v12 backup should preserve the saved ${collection}`);
     }
     assert.deepEqual(backup.investmentCashAccounts, investmentStorage.cashAccounts);
     assert.deepEqual(backup.investmentCashMovements, investmentStorage.cashMovements);
@@ -1569,7 +1763,7 @@ try {
 
     const investmentRestoreDialogPromise = page.waitForEvent('dialog');
     await page.locator('#import-file').setInputFiles({
-        name: 'investment-ledger-v9-roundtrip.json',
+        name: 'investment-ledger-v12-roundtrip.json',
         mimeType: 'application/json',
         buffer: Buffer.from(JSON.stringify(backup))
     });
@@ -1590,11 +1784,13 @@ try {
         cashTransfers: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-transfers.v1') || '[]'),
         cashStatements: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-cash-statements.v1') || '[]'),
         exposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
-        exposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]')
+        exposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
+        drawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'),
+        drawdownCalendars: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]')
     }));
     assert.deepEqual(restoredInvestmentStorage, investmentStorage,
-        'schema-v10 JSON restore must round-trip investment and exposure collections without changing IDs or values');
-    process.stdout.write('PASS: schema-v10 JSON backup restore round-trips accounts, instruments, transactions, valuations and exposure classifications.\n');
+        'schema-v12 JSON restore must round-trip investment and exposure collections without changing IDs or values');
+    process.stdout.write('PASS: schema-v12 JSON backup restore round-trips accounts, instruments, transactions, valuations and exposure classifications.\n');
 
     const legacyV3Backup = {
         schemaVersion: 3, currency: 'INR', exportedAt: new Date().toISOString(),
@@ -1853,15 +2049,17 @@ try {
     const goalBackupPath = join(temporaryDirectory, 'goal-aware-backup.json');
     await goalBackupDownload.saveAs(goalBackupPath);
     const goalBackup = JSON.parse(await readFile(goalBackupPath, 'utf8'));
-    assert.equal(goalBackup.schemaVersion, 10, 'private backup should use schema v10 and include saved goals, history, and exposure policy collections');
+    assert.equal(goalBackup.schemaVersion, 12, 'private backup should use schema v12 and include saved goals, history, and exposure policy collections');
     assert.equal(goalBackup.investmentExposurePolicies.length, 1, 'full backup should preserve exposure policy history');
+    assert.deepEqual(goalBackup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots, 'goal backup should preserve all captured drawdown observations');
+    assert.equal(goalBackup.investmentDrawdownCalendars.length, 2, 'goal backup should preserve both explicit drawdown calendars');
     assert.equal(goalBackup.goals.length, 1, 'backup should include the saved goal collection');
     assert.equal(goalBackup.goals[0].name, 'Browser test emergency fund');
     assert.equal(goalBackup.goals[0].currentAmount, 125000);
     assert.ok(Array.isArray(goalBackup.cashFlowEntries), 'backup should include validated cash-flow transactions');
     assert.ok(Array.isArray(goalBackup.budgets), 'backup should include validated category budgets');
     assert.equal(goalBackup.historicalSnapshots.length, 1, 'goal backup should also preserve historical snapshots');
-    process.stdout.write('PASS: private schema-v10 backup includes records, goals, cash flow, budgets, history, and complete investment exposure policy history.\\n');
+    process.stdout.write('PASS: private schema-v12 backup includes records, goals, cash flow, budgets, history, and complete investment exposure policy history.\\n');
 
     const restoreFailureCases = [
         { key: 'pfo-os.dashboard.private.v1', message: 'Could not save financial records.' },
@@ -1871,6 +2069,7 @@ try {
         { key: 'pfo-os.historical-snapshots.v1', message: 'Could not save historical snapshots.' },
         { key: 'pfo-os.investment-exposure-classifications.v1', message: 'Could not save investment exposure classifications to browser storage.' },
         { key: 'pfo-os.' + 'investment-exposure-policies.v1', message: 'Could not save investment exposure policies to browser storage.' },
+        { key: 'pfo-os.investment-drawdown-snapshots.v1', message: 'Could not save investment drawdown snapshots to browser storage.' },
         { key: 'pfo-os.investment-cash-accounts.v1', message: 'Could not save investmentCashAccounts to browser storage.' },
         { key: 'pfo-os.investment-cash-movements.v1', message: 'Could not save investmentCashMovements to browser storage.' },
         { key: 'pfo-os.investment-cash-transfers.v1', message: 'Could not save investmentCashTransfers to browser storage.' },
@@ -1896,6 +2095,7 @@ try {
         'pfo-os.historical-snapshots.v1': 'history',
         'pfo-os.investment-exposure-classifications.v1': 'exposureClassifications',
         ['pfo-os.' + 'investment-exposure-policies.v1']: 'exposurePolicies',
+        'pfo-os.investment-drawdown-snapshots.v1': 'drawdownSnapshots',
         'pfo-os.investment-cash-accounts.v1': 'cashAccounts',
         'pfo-os.investment-cash-movements.v1': 'cashMovements',
         'pfo-os.investment-cash-transfers.v1': 'cashTransfers',
@@ -3099,16 +3299,19 @@ try {
     const policyBackupPath = join(temporaryDirectory, policyBackupDownload.suggestedFilename());
     await policyBackupDownload.saveAs(policyBackupPath);
     const policyBackup = JSON.parse(await readFile(policyBackupPath, 'utf8'));
-    assert.equal(policyBackup.schemaVersion, 10);
+    assert.equal(policyBackup.schemaVersion, 12);
     assert.equal(policyBackup.investmentAllocationPolicies.length, 3);
     assert.equal(policyBackup.investmentConcentrationPolicies.length, 2);
     assert.equal(policyBackup.investmentExposurePolicies.length, 1);
+    assert.equal(policyBackup.investmentDrawdownCalendars.length, 2);
     const legacyV6Backup = JSON.parse(JSON.stringify(policyBackup));
     legacyV6Backup.schemaVersion = 6;
     delete legacyV6Backup.investmentAllocationPolicies;
     delete legacyV6Backup.investmentConcentrationPolicies;
     delete legacyV6Backup.investmentExposureClassifications;
     delete legacyV6Backup.investmentExposurePolicies;
+    delete legacyV6Backup.investmentDrawdownSnapshots;
+    delete legacyV6Backup.investmentDrawdownCalendars;
     const legacyV6BackupPath = join(temporaryDirectory, 'pfo-os-legacy-v6-backup.json');
     await writeFile(legacyV6BackupPath, JSON.stringify(legacyV6Backup));
 
@@ -3170,8 +3373,8 @@ try {
     const databaseBackupPath = join(temporaryDirectory, databaseBackupDownload.suggestedFilename());
     await databaseBackupDownload.saveAs(databaseBackupPath);
     const databaseBackup = JSON.parse(await readFile(databaseBackupPath, 'utf8'));
-    assert.equal(databaseBackup.schemaVersion, 10, 'SQLite backup should retain the supported full-workspace schema version');
-    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies']) {
+    assert.equal(databaseBackup.schemaVersion, 12, 'SQLite backup should retain the supported full-workspace schema version');
+    for (const collection of ['records', 'goals', 'cashFlowEntries', 'budgets', 'historicalSnapshots', 'investmentAccounts', 'investmentInstruments', 'investmentTransactions', 'investmentValuations', 'investmentCashAccounts', 'investmentCashMovements', 'investmentCashTransfers', 'investmentCashStatements', 'investmentAllocationPolicies', 'investmentConcentrationPolicies', 'investmentExposureClassifications', 'investmentExposurePolicies', 'investmentDrawdownSnapshots']) {
         assert.ok(Array.isArray(databaseBackup[collection]), `SQLite backup should include the ${collection} collection`);
     }
     const privateRecordCount = await page.evaluate(() => JSON.parse(globalThis.globalThis.localStorage.getItem('pfo-os.dashboard.private.v1') || '[]').length);
@@ -3186,20 +3389,24 @@ try {
         'portable JSON export must exactly match the committed SQLite snapshot across every field and nested collection');
     process.stdout.write('PASS: portable SQLite backup exactly matches the committed full workspace.\\n');
     assert.equal(databaseBackup.investmentAllocationPolicies.length, 3,
-        'schema-v10 backup should include all saved allocation policy versions, including those preserved by legacy restore');
+        'schema-v12 backup should include all saved allocation policy versions, including those preserved by legacy restore');
     assert.equal(databaseBackup.investmentConcentrationPolicies.length, 2,
-        'schema-v10 backup should include all user-defined concentration policy versions');
+        'schema-v12 backup should include all user-defined concentration policy versions');
     assert.equal(databaseBackup.investmentExposureClassifications.length, 1,
-        'schema-v10 backup should include the weighted exposure classification history');
+        'schema-v12 backup should include the weighted exposure classification history');
+    assert.equal(databaseBackup.investmentDrawdownCalendars.length, 2,
+        'schema-v12 backup should include the explicitly authored daily-close calendar');
+    assert.deepEqual(databaseBackup.investmentDrawdownSnapshots, investmentStorage.drawdownSnapshots,
+        'schema-v12 SQLite backup should preserve the manually captured drawdown observations');
     assert.equal(databaseBackup.investmentExposurePolicies.length, 1,
-        'schema-v10 backup should include user-defined exposure policy history');
+        'schema-v12 backup should include user-defined exposure policy history');
     await page.locator('#database-online-backup-button').click();
     await page.waitForFunction(() => globalThis.document.querySelector('#database-integrity-result')?.textContent.includes('Verified SQLite backup created'));
     const onlineBackupStatus = await page.locator('#database-integrity-result').innerText();
     assert.match(onlineBackupStatus, /pfo-os-sqlite-.*\.sqlite/i,
         'the dashboard should report the verified online SQLite backup filename');
-    assert.match(onlineBackupStatus, /17 collections/i,
-        'the online backup UI should report validation across all 17 workspace collections');
+    assert.match(onlineBackupStatus, /19 collections/i,
+        'the online backup UI should report validation across all 19 workspace collections');
     assert.match(onlineBackupStatus, /\.backups/i,
         'the online backup UI should report the private backup directory');
     process.stdout.write('PASS: dashboard creates and verifies a native online SQLite backup file.\\n');
@@ -3222,7 +3429,9 @@ try {
         investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
         investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
         investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
-        investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]')
+        investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
+        investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'),
+        investmentDrawdownCalendars: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]')
     }));
     assert.equal(await page.locator('#database-restore-button').isDisabled(), false,
         'a successful SQLite save should enable database restore');
@@ -3250,11 +3459,13 @@ try {
         investmentAllocationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-allocation-policies.v1') || '[]'),
         investmentConcentrationPolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-concentration-policies.v1') || '[]'),
         investmentExposureClassifications: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-exposure-classifications.v1') || '[]'),
-        investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]')
+        investmentExposurePolicies: JSON.parse(globalThis.localStorage.getItem('pfo-os.' + 'investment-exposure-policies.v1') || '[]'),
+        investmentDrawdownSnapshots: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-snapshots.v1') || '[]'),
+        investmentDrawdownCalendars: JSON.parse(globalThis.localStorage.getItem('pfo-os.investment-drawdown-calendars.v1') || '[]')
     }));
     assert.deepEqual(restoredDatabaseState, savedDatabaseState,
-        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all seventeen collections');
-    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all seventeen workspace collections.\\n');
+        'SQLite restore must exactly preserve all values, stable IDs, and nested historical records across all nineteen collections');
+    process.stdout.write('PASS: explicit SQLite save/restore exactly round-trips all nineteen workspace collections.\\n');
 
     // Open an isolated second browser tab with the same persisted browser baseline.
     // Its localStorage copy is deliberately isolated so it cannot see the first tab's later edit.
@@ -3266,6 +3477,7 @@ try {
     ));
     const secondTabContext = await browser.newContext();
     await secondTabContext.addInitScript((entries) => {
+        if (globalThis.window !== globalThis.window.top) return;
         for (const [key, value] of Object.entries(entries)) globalThis.localStorage.setItem(key, value);
     }, secondTabStorage);
     const secondTab = await secondTabContext.newPage();
@@ -3433,7 +3645,7 @@ try {
 
     // Simulate browser workspace data being cleared while the durable SQLite snapshot remains.
     await page.evaluate(() => {
-        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1', 'pfo-os.' + 'investment-exposure-policies.v1']) {
+        for (const key of ['pfo-os.dashboard.private.v1', 'pfo-os.dashboard.goals.v1', 'pfo-os.cash-flow.v1', 'pfo-os.cash-flow-budgets.v1', 'pfo-os.historical-snapshots.v1', 'pfo-os.investment-accounts.v1', 'pfo-os.investment-instruments.v1', 'pfo-os.investment-transactions.v1', 'pfo-os.investment-valuations.v1', 'pfo-os.investment-cash-accounts.v1', 'pfo-os.investment-cash-movements.v1', 'pfo-os.investment-cash-transfers.v1', 'pfo-os.investment-cash-statements.v1', 'pfo-os.investment-exposure-classifications.v1', 'pfo-os.investment-allocation-policies.v1', 'pfo-os.investment-concentration-policies.v1', 'pfo-os.' + 'investment-exposure-policies.v1', 'pfo-os.investment-drawdown-snapshots.v1', 'pfo-os.investment-drawdown-calendars.v1']) {
             globalThis.localStorage.removeItem(key);
         }
     });

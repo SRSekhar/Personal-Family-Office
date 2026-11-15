@@ -691,12 +691,14 @@ describe('monthly financial review report contract', () => {
 
 describe('full workspace backup contract', () => {
     it('exports and restores validated records, goals, cash-flow transactions, and budgets as one local backup', async () => {
-        const [app, backup, cashflow] = await Promise.all([
+        const [app, backup, cashflow, calendarWorkspace, html] = await Promise.all([
             readDashboardFile('app.js'),
             readDashboardFile('backup.js'),
-            readDashboardFile('cashflow.js')
+            readDashboardFile('cashflow.js'),
+            readDashboardFile('investment-drawdown-calendar-workspace.js'),
+            readDashboardFile('index.html')
         ]);
-        expect(app).toContain('schemaVersion: isPrivateExport ? 10 : 1');
+        expect(app).toContain('schemaVersion: isPrivateExport ? 12 : 1');
         expect(app).toContain('payload.cashFlowEntries = entriesRaw === null ? [] : validateCashFlowEntries(JSON.parse(entriesRaw))');
         expect(app).toContain('payload.budgets = validateCashFlowBudgets(budgetsRaw === null ? [] : JSON.parse(budgetsRaw))');
         expect(app).toContain('payload.historicalSnapshots = historicalSnapshots');
@@ -706,6 +708,17 @@ describe('full workspace backup contract', () => {
         expect(app).toContain('Object.assign(payload, readInvestmentAllocationPolicies())');
         expect(app).toContain('Object.assign(payload, readInvestmentConcentrationPolicies())');
         expect(app).toContain('Object.assign(payload, readInvestmentExposurePolicies())');
+        expect(app).toContain('Object.assign(payload, readInvestmentDrawdownSnapshots())');
+        expect(app).toContain('persistInvestmentDrawdownSnapshots(backup.investmentDrawdownSnapshots, backup)');
+        expect(app).toContain('persistInvestmentDrawdownCalendars(backup.investmentDrawdownCalendars, backup)');
+        expect(app).toContain('initializeInvestmentDrawdownCalendarWorkspace');
+        expect(app).toContain('investmentDrawdownCalendars');
+        expect(calendarWorkspace).toContain('expectedDailyCloseAt');
+        expect(calendarWorkspace).toContain('supersedesCalendarId');
+        expect(calendarWorkspace).toContain('dependencies.isPrivateWorkspace()');
+        expect(html).toContain('id="investment-drawdown-calendar"');
+        expect(html).toContain('id="investment-drawdown-calendar-history"');
+        expect(app).toContain('INVESTMENT_DRAWDOWN_SNAPSHOT_STORAGE_KEY');
         expect(app).toContain('persistInvestmentExposurePolicies(backup.investmentExposurePolicies)');
         expect(app).toContain('INVESTMENT_EXPOSURE_POLICY_STORAGE_KEY');
         expect(app).toContain('INVESTMENT_CONCENTRATION_STORAGE_KEY');
@@ -718,6 +731,7 @@ describe('full workspace backup contract', () => {
         expect(backup).toContain('includesCashFlow');
         expect(backup).toContain('includesHistoricalSnapshots');
         expect(backup).toContain('includesInvestmentLedger');
+        expect(backup).toContain('includesInvestmentDrawdownSnapshots');
         expect(backup).toContain('includesInvestmentAllocationPolicies');
         expect(backup).toContain('includesInvestmentConcentrationPolicies');
         expect(backup).toContain('includesInvestmentExposurePolicies');
