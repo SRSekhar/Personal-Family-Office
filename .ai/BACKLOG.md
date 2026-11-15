@@ -1,5 +1,14 @@
 # Product Backlog
 
+## 2026-11-15 — Sprint 17 / IPM-08.1 architecture proposal in progress
+
+- [x] Inspect existing market-data, instrument/transaction, cash-ledger, FIFO, XIRR, drawdown and research contracts.
+- [x] Draft `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` (Proposed; engine/provider not authorized).
+- [x] Draft `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md`, including an independently hand-calculated synthetic execution fixture.
+- [ ] Resolve exchange/instrument/interval scope, trading-calendar source, corporate-action semantics, fill/partial-fill policy, cost model, tick/lot-size and short/fractional-position policy.
+- [ ] Freeze typed contracts and validators only after the relevant decisions are accepted.
+- [ ] Implement deterministic contract tests; no engine until the acceptance suite is agreed.
+
 ## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio
 
 ### IPM-08.1 — Architecture and domain contracts
