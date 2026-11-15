@@ -10,7 +10,7 @@ The project follows Semantic Versioning.
 
 - IPM-08.1 architecture proposal: added a proposed point-in-time backtesting ADR and acceptance contract covering immutable historical data provenance, bitemporal universe membership, explicit trading calendars, strategy information boundaries, execution/cost assumptions, corporate-action gates, simulated-ledger isolation and reproducibility. No engine, provider adapter, schema migration or live trading is included; unresolved execution/data/accounting decisions remain gates.
 
-- 2026-11-15: Sequentially merged PRs #453–#457 into main. Integrated workspace schema v13 / 20 collections, flow-adjusted drawdown, performance review and period comparison, statement reconciliation, provider-neutral market-data contracts, evidence-grounded research, and complete intermediate SQLite migration-recovery artifact coverage. PR-head CI and Secret Scan passed for each; final post-merge main CI #2018 is being verified.
+- 2026-11-15: Sequentially merged PRs #453–#457 into main. Integrated workspace schema v13 / 20 collections, flow-adjusted drawdown, performance review and period comparison, statement reconciliation, provider-neutral market-data contracts, evidence-grounded research, and complete intermediate SQLite migration-recovery artifact coverage. PR-head CI and Secret Scan passed for each; final main CI #2025 and Secret Scan #1819 passed on closeout head `db739ff0d38fb0da965fd063de4560c54a85a9f6`.
 
 ## Added
 
