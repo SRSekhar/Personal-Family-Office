@@ -1,5 +1,41 @@
 # Current Sprint
 
+## Sprint 16 — Integration and consolidation (2026-11-15)
+
+**Completed:** PRs #453–#457 have all been sequentially merged into `main` using merge commits, preserving the dependency history. Each PR was retargeted to `main` only after its predecessor merged, made ready for review, and merged only after its own CI and Secret Scan passed.
+
+| PR | Delivered scope | Merge commit |
+|---|---|---|
+| #453 | Flow-adjusted drawdown | `676de0e57d02c4e69053fc2c156482c2c7cb254f` |
+| #454 | Performance review and historical period comparison | `3657e018f1734550a8256852319275efb37d9ac8` |
+| #455 | Transaction and holdings statement reconciliation | `26e2f3f7d611e4f4079748a93cea19c9e38aae5c` |
+| #456 | Provider-neutral market-data boundary | `78783e948926791d8d4280ebaf080e00739ad61e` |
+| #457 | Evidence-grounded research and AI review | `7db56531b353baa45983e88ed0ef54517740c414` |
+
+PR #457's final migration-chain test improvement verifies every protected recovery artifact across v10→v11→v12→v13. CI #2013 and Secret Scan #1807 passed on its final head `ed0b6a6fbce2ee4acaae123968f769586d509858`.
+
+**Integrated main state:** schema v13, 20 persisted workspace collections, and all five investment-management increments are now in main. The post-merge main CI #2018 is being run against merge commit `7db56531b353baa45983e88ed0ef54517740c414`; do not treat the integration as fully regression-verified until that run succeeds.
+
+### Sprint 17 — IPM-08 backtesting architecture and acceptance contracts
+
+Next deliverable: `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` plus typed domain contracts and independent acceptance scenarios.
+
+Scope:
+1. Historical market-data evidence contract: instrument/exchange identity, OHLCV, currency, adjustment basis, source/licensing, publication/availability/retrieval/knowledge timestamps, and explicit point-in-time guarantees.
+2. Strategy contract: entry/exit rules, sizing, rebalance, universe membership, cash handling, parameters and effective dates.
+3. Execution assumptions: capital, trading calendar, order/fill timing, brokerage, taxes, slippage, liquidity, corporate actions, benchmark and currency.
+4. Bias controls: look-ahead, survivorship, publication delay, revised fundamentals, future corporate-action knowledge, missing sessions and out-of-sample discipline.
+5. Acceptance cases with hand-calculated portfolios and deterministic expected fills/returns.
+6. No backtest engine or provider adapter until the contracts and acceptance cases are reviewed against existing market-data and portfolio domains.
+
+Sprint 18 is normalized historical CSV import and validation. Sprint 19 is the deterministic engine. Sprint 20 is analytics. Sprint 21 is walk-forward/out-of-sample. Sprints 22–24 cover the separate paper-portfolio domain, simulated execution and reporting.
+
+**Guardrails:** no fabricated history, no default data provider, no live broker orders, no mixing paper positions with real ledger holdings, and no AI-generated financial calculation. Existing deterministic calculators remain authoritative.
+
+---
+
+
+
 ## Sprint 15 — IPM-07 Evidence-grounded research and AI review
 
 Implementation is complete on `feature/ipm-evidence-research`, stacked on PR #456. Three milestones are delivered:
@@ -10,7 +46,7 @@ Implementation is complete on `feature/ipm-evidence-research`, stacked on PR #45
 
 No LLM vendor, SDK, endpoint, API key, network request, scheduled invocation, dashboard UI, remote data transmission or ledger/valuation/order mutation. Hosts explicitly inject adapters and invoke the engine. The local repository is not encrypted; private path, backup and retention remain host responsibilities.
 
-ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`. **Validation passed on implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 (100 test files / 922 tests, lint, typecheck, build, repository safety and both Chromium browser smoke workflows) and Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
+ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`. **Validation passed on implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 (100 test files / 922 tests, lint, typecheck, build, repository safety and both Chromium browser smoke workflows) and Secret Scan #1805 passed. PR #457 was merged into main in merge commit `7db56531b353baa45983e88ed0ef54517740c414` after CI #2013 and Secret Scan #1807 passed.
 
 Provider-specific specialists/model adapters and user-facing research UI are intentionally not enabled: no LLM vendor, data-source licensing or provider API contract has been approved. This is a verified orchestration/persistence foundation, not a live market-research feed.
 
@@ -26,7 +62,7 @@ Three increments implemented on `feature/ipm-market-data-boundary`, stacked on P
 
 ADR: `docs/architecture/ADR-INVESTMENT-MARKET-DATA-BOUNDARY.md`. Existing manual valuation entry and ledger/FIFO calculations are unchanged. Provider-specific implementation remains gated on exact official API docs, authentication, terms, license and point-in-time guarantees.
 
-**Verified on final code head 6b136b4e4e27f92209a2005df6c143ae29e6048d (2026-11-15):** CI #2006 passed (98 test files / 912 tests, lint, typecheck, build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1800 passed. All three IPM-06 boundary milestones are complete. PR #456 remains draft and stacked on PR #455; no merge is authorized. No schema migration or persisted market-data collection is included.
+**Verified on final code head 6b136b4e4e27f92209a2005df6c143ae29e6048d (2026-11-15):** CI #2006 passed (98 test files / 912 tests, lint, typecheck, build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1800 passed. All three IPM-06 boundary milestones are complete. PR #456 was merged into main in merge commit `78783e948926791d8d4280ebaf080e00739ad61e` after CI and Secret Scan passed. No schema migration or persisted market-data collection is included.
 
 
 ## Sprint 13 — Broker statement reconciliation (Option B)
@@ -37,7 +73,7 @@ Implementation is on `feature/ipm-statement-reconciliation`, stacked on PR #454.
 2. **IPM-05.2 — Reconciliation engine:** exact external-reference matching; conservative exact-date fallback; explicit matched, mismatch, ambiguous, duplicate and unmatched outcomes; holdings quantities compared with the existing FIFO projection. No ledger mutation or invented values.
 3. **IPM-05.3 — Private workflow and persistence:** normalized JSON evidence import, private reconciliation table and formula-safe CSV export; JSON backup schema v13; SQLite schema v13 / 20 collections; transactional v12→v13 migration with protected pre-v13 recovery artifact.
 
-**Verified on final code head dc9a66c30296a9e0e001f5b295f95482fa163d17 (2026-11-15):** CI #2000 passed (95 test files / 900 tests, lint, typecheck, build, repository safety and both Chromium browser smoke workflows); Secret Scan #1794 passed; dashboard packaging #1236 passed. All three Sprint 13 milestones are complete. PR #455 remains draft and stacked on PR #454; no merge is authorized.
+**Verified on final code head dc9a66c30296a9e0e001f5b295f95482fa163d17 (2026-11-15):** CI #2000 passed (95 test files / 900 tests, lint, typecheck, build, repository safety and both Chromium browser smoke workflows); Secret Scan #1794 passed; dashboard packaging #1236 passed. All three Sprint 13 milestones are complete. PR #455 was merged into main in merge commit `26e2f3f7d611e4f4079748a93cea19c9e38aae5c` after CI, Secret Scan and dashboard packaging passed.
 
 
 ## Current status — 2026-11-15
@@ -50,7 +86,7 @@ Implementation is on `feature/ipm-statement-reconciliation`, stacked on PR #454.
 - Private HTML and spreadsheet-safe CSV reports include scope, currency, methodology, analysis window, observed coverage, recorded-at cutoff, peak/trough/recovery, completeness evidence and unavailable reasons. Unavailable analyses emit no partial statistics.
 - Browser smoke covers manual capture, paired flow boundaries, report downloads, demo/private isolation, JSON backup/restore and SQLite persistence.
 - Code head `06b0c14bdef50f8550a92e67167a0e00bdd68b2c` passed CI #1889, Secret Scan #1683 and dashboard packaging #1125. Documentation-only follow-ups bring the PR head to `53f7979bbcd3b2ec0f8480c61ee0a352a7190250`; CI #1893 was queued at the last check, while Secret Scan #1687 and dashboard packaging #1129 passed.
-- PR #453 remains open, draft and unmerged. Do not merge without explicit owner approval. Main remains schema v10; PR branch is schema v12.
+- PR #453 was merged into main in merge commit `676de0e57d02c4e69053fc2c156482c2c7cb254f`; main subsequently advanced through schema v13.
 - In-kind contributions/withdrawals and corporate actions remain unsupported pending a separate ledger-model decision. Liquidity remains separately gated.
 
 
