@@ -154,11 +154,12 @@ export async function executeMarketDataOperation<T>(
         attempts += 1;
         const controller = new AbortController();
         let timedOut = false;
+        let cancelled = false;
         const timeout = setTimeout(() => {
             timedOut = true;
             controller.abort();
         }, policy.timeoutMs);
-        const onAbort = (): void => { controller.abort(); };
+        const onAbort = (): void => { cancelled = true; controller.abort(); };
         options.signal?.addEventListener('abort', onAbort, { once: true });
         try {
             const value = await Promise.race([
@@ -183,7 +184,7 @@ export async function executeMarketDataOperation<T>(
                 normalized = error;
             } else if (timedOut) {
                 normalized = new MarketDataProviderError('timeout');
-            } else if (options.signal && options.signal.aborted) {
+            } else if (cancelled) {
                 normalized = new MarketDataProviderError('cancelled');
             } else {
                 normalized = new MarketDataProviderError('unknown');

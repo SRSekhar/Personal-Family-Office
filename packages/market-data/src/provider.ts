@@ -43,7 +43,7 @@ export interface MarketDataProvider {
     readonly corporateActions?: CorporateActionsCapability;
 }
 
-const capabilityMethods: readonly { readonly name: MarketDataCapabilityName; readonly property: keyof Omit<MarketDataProvider, 'descriptor'> }[] = [
+const capabilityMethods: ReadonlyArray<{ readonly name: MarketDataCapabilityName; readonly property: keyof Omit<MarketDataProvider, 'descriptor'> }> = [
     { name: 'instrument-identity', property: 'instrumentIdentity' },
     { name: 'quotes', property: 'quotes' },
     { name: 'historical-bars', property: 'historicalBars' },

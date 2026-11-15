@@ -69,7 +69,7 @@ describe('market-data execution boundary', () => {
             policy: { ...policy, timeoutMs: 100, maxAttempts: 1 },
             operation: (signal) => new Promise<number>((_resolve, reject) => {
                 calls += 1;
-                signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+                signal.addEventListener('abort', () => { reject(new Error('aborted')); }, { once: true });
             })
         })).rejects.toMatchObject({ code: 'timeout', retryable: true });
         expect(calls).toBe(1);
