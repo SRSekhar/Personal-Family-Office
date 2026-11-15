@@ -174,7 +174,7 @@ describe('backtesting contracts', () => {
     it('requires reviewed source licensing and explicit content digests before execution', () => {
         const unreviewedDataset: BacktestDataset = {
             ...dataset,
-            source: { ...source, licenseStatus: 'unreviewed', licenseReviewedAt: undefined }
+            source: { ...source, licenseStatus: 'unreviewed' }
         };
         expect(() => {
             validateBacktestDataset(unreviewedDataset);
