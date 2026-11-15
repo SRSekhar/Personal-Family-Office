@@ -89,6 +89,7 @@ export function validateBacktestDataset(dataset: BacktestDataset): void {
     requireText(dataset.instrument.instrumentId, 'Dataset instrument ID');
     requireText(dataset.instrument.name, 'Dataset instrument name');
     if (!currencies.has(dataset.instrument.currency)) throw new RangeError('Dataset instrument currency is unsupported.');
+    if (dataset.adjustmentBasis === 'unknown') throw new RangeError('Dataset price-adjustment basis must be explicit.');
     requireText(dataset.marketTimeZone, 'Dataset market timezone');
     requireTimestamp(dataset.recordedAt, 'Dataset recordedAt');
     requireDigest(dataset.contentDigest, 'Dataset normalized content digest');
@@ -110,11 +111,14 @@ export function validateBacktestDataset(dataset: BacktestDataset): void {
     }
     if (!['complete', 'partial', 'unknown'].includes(dataset.coverage.status)) throw new RangeError('Dataset coverage status is unsupported.');
     const barIds = new Set<string>();
+    let previousStartAt: string | undefined;
     for (const bar of dataset.bars) {
         validateBar(bar, dataset);
         if (bar.endAt < dataset.coverage.startAt || bar.endAt > dataset.coverage.endAt) throw new RangeError('Bar endAt is outside dataset coverage.');
         if (bar.recordedAt > dataset.recordedAt) throw new RangeError('A bar cannot be recorded after its containing dataset snapshot.');
         if (bar.availableAt !== undefined && bar.availableAt > bar.recordedAt) throw new RangeError('A bar cannot be imported before its evidenced availability timestamp.');
+        if (previousStartAt !== undefined && bar.startAt <= previousStartAt) throw new RangeError('Dataset bars must be strictly ordered by startAt.');
+        previousStartAt = bar.startAt;
         const key = bar.instrumentId + ':' + bar.interval + ':' + bar.startAt;
         if (barIds.has(key)) throw new RangeError('Dataset contains duplicate instrument/interval/bar-start observations.');
         barIds.add(key);
@@ -220,11 +224,17 @@ export function validateBacktestRunConfiguration(
     if (context.universe.recordedAt > configuration.recordedAtCutoff || context.calendar.recordedAt > configuration.recordedAtCutoff) {
         throw new RangeError('Universe and trading calendar must be recorded by the selected PFO knowledge-state cutoff.');
     }
+    if (context.calendar.coverage.startAt > configuration.startAt || context.calendar.coverage.endAt < configuration.endAt) {
+        throw new RangeError('Trading calendar must cover the complete requested backtest window.');
+    }
     const selected = context.datasets;
     const first = selected[0]!;
     for (const dataset of selected) {
         validateBacktestDataset(dataset);
         if (dataset.recordedAt > configuration.recordedAtCutoff) throw new RangeError('Selected dataset must be recorded by the selected PFO knowledge-state cutoff.');
+        if (dataset.coverage.startAt > configuration.startAt || dataset.coverage.endAt < configuration.endAt) {
+            throw new RangeError('Every selected dataset must cover the complete requested backtest window.');
+        }
         if (dataset.instrument.currency !== configuration.currency) throw new RangeError('All backtest instruments must use the run currency; FX is not supported.');
         if (dataset.interval !== first.interval || dataset.marketTimeZone !== first.marketTimeZone
             || dataset.adjustmentBasis !== first.adjustmentBasis || context.calendar.interval !== dataset.interval
@@ -236,6 +246,7 @@ export function validateBacktestRunConfiguration(
         const expected = new Set(context.calendar.coverage.expectedBarEndAt);
         if (dataset.bars.some((bar) => !expected.has(bar.endAt))) throw new RangeError('Every selected bar must belong to the selected explicit trading calendar.');
         if (configuration.pointInTimeRequired) {
+            if (dataset.coverage.status !== 'complete') throw new RangeError('Point-in-time runs require complete expected-session coverage.');
             if (dataset.source.pointInTimeStatus !== 'per-observation' || dataset.bars.some((bar) => !bar.availableAt)) {
                 throw new RangeError('Point-in-time runs require per-observation availability evidence for every bar.');
             }
@@ -263,7 +274,11 @@ export function validateBacktestRunConfiguration(
     requireText(strategy.version, 'Strategy version');
     requireDigest(strategy.implementationDigest, 'Strategy implementation digest');
     requireDigest(strategy.parametersDigest, 'Strategy parameters digest');
-    if (!strategy.supportedIntervals.includes(first.interval)) throw new RangeError('Strategy does not declare support for the selected dataset interval.');
+    if (!Array.isArray(strategy.supportedIntervals) || strategy.supportedIntervals.length === 0
+        || new Set(strategy.supportedIntervals).size !== strategy.supportedIntervals.length
+        || !strategy.supportedIntervals.includes(first.interval)) {
+        throw new RangeError('Strategy must declare unique supported intervals including the selected dataset interval.');
+    }
     const execution = configuration.execution;
     if (execution.signalTiming !== 'bar-close' || execution.fillTiming !== 'next-bar-open' || execution.orderType !== 'market') {
         throw new RangeError('The initial backtesting contract supports only bar-close signals and next-bar-open market fills.');
