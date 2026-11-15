@@ -10,7 +10,7 @@ Three increments implemented on `feature/ipm-market-data-boundary`, stacked on P
 
 ADR: `docs/architecture/ADR-INVESTMENT-MARKET-DATA-BOUNDARY.md`. Existing manual valuation entry and ledger/FIFO calculations are unchanged. Provider-specific implementation remains gated on exact official API docs, authentication, terms, license and point-in-time guarantees.
 
-**Validation pending** on the final branch head. No schema migration or persisted market-data collection is included.
+**Verified on final code head 6b136b4e4e27f92209a2005df6c143ae29e6048d (2026-11-15):** CI #2006 passed (98 test files / 912 tests, lint, typecheck, build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1800 passed. All three IPM-06 boundary milestones are complete. PR #456 remains draft and stacked on PR #455; no merge is authorized. No schema migration or persisted market-data collection is included.
 
 
 ## Sprint 13 — Broker statement reconciliation (Option B)

@@ -1,6 +1,6 @@
 # ADR — Investment market-data provider boundary
 
-- Status: Accepted — provider-neutral ports only; provider selection and integration are deferred
+- Status: Accepted and verified — provider-neutral ports only; provider selection and integration are deferred
 - Date: 2026-11-15
 - Scope: typed identity, quote, historical-bar, fundamentals and corporate-action capabilities
 - Related: `.ai/BACKLOG.md` — IPM-06

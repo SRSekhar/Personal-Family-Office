@@ -6,7 +6,7 @@
 - [x] **Milestone 2 — Capability ports:** add optional independent provider capability interfaces, declared-capability conformance validation and synthetic fixtures. No provider is selected or connected.
 - [x] **Milestone 3 — Safe execution boundary:** add explicit bounded timeout/retry/cache policy, transient-only retries, cancellation, bounded in-memory TTL cache and sanitized provider errors. No default provider, startup call, credential persistence or outbound network.
 - ADR: `docs/architecture/ADR-INVESTMENT-MARKET-DATA-BOUNDARY.md`. Manual valuation entry remains unchanged. Provider-specific adapter work is blocked until official API docs, authentication, terms, license and point-in-time guarantees are reviewed.
-- Validation is pending on the final feature head. No schema migration or new workspace persistence is introduced.
+- Verified on final code head `6b136b4e4e27f92209a2005df6c143ae29e6048d`: CI #2006 passed (98 test files / 912 tests, lint, typecheck, build and Chromium browser smoke); Secret Scan #1800 passed on 2026-11-15. All three IPM-06 boundary milestones are complete on draft PR #456, stacked on PR #455. No schema migration or new workspace persistence is introduced.
 
 
 ## 2026-11-15 — IPM-05 Option B statement reconciliation implementation

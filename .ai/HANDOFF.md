@@ -8,7 +8,7 @@ Three slices are implemented: (1) normalized contracts for identity, quotes, his
 
 No provider SDK/API, endpoint, credentials, database persistence, schema migration, automatic valuation import or corporate-action ledger posting. No provider is registered and no outbound request occurs by default. Manual valuation remains unchanged. Before selecting an adapter, review official API docs, authentication, commercial/data terms, licensing/redistribution, exchange coverage, point-in-time guarantees and retention/rate limits.
 
-Validation is pending on the final branch head. Keep PR #455 draft/unmerged; new IPM-06 work should be a separate stacked draft PR. Do not merge without owner approval.
+**Final verification passed on code head 6b136b4e4e27f92209a2005df6c143ae29e6048d (2026-11-15):** CI #2006 passed (98 test files / 912 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1800 passed. PR #456 remains draft/open/unmerged and stacked on PR #455. Keep PRs #453–#456 unmerged until owner review and explicit approval.
 
 
 ## Latest development — Sprint 13 / IPM-05 (2026-11-15)
