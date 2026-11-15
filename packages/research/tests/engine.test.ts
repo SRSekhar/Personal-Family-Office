@@ -25,6 +25,7 @@ const request: ResearchRunRequest = {
 const specialist: ResearchSpecialistPort = {
     domain: 'fundamentals',
     async analyze(input) {
+        await Promise.resolve();
         expect(input.instruction).toContain('untrusted data');
         return { domain: 'fundamentals', summary: 'One supplied filing was reviewed.', claims: [{
             id: 'claim-1', domain: 'fundamentals', statement: 'The filing reports revenue growth.',
@@ -34,6 +35,7 @@ const specialist: ResearchSpecialistPort = {
 };
 const model: ResearchModelPort = {
     async challenge(input) {
+        await Promise.resolve();
         return { stance: input.stance, summary: input.stance + ' challenge complete.', challengedClaimIds: [], supportedClaimIds: ['claim-1'], missingEvidence: [], confidence: 0.6 };
     }
 };
@@ -62,7 +64,7 @@ describe('evidence-grounded research engine', () => {
         const repo = await repository();
         await runInvestmentResearch(request, { specialists: [specialist], model, repository: repo, createId: () => 'run-2' });
         let calls = 0;
-        const never: ResearchModelPort = { async challenge() { calls += 1; throw new Error('must not execute'); } };
+        const never: ResearchModelPort = { async challenge() { await Promise.resolve(); calls += 1; throw new Error('must not execute'); } };
         const result = await runInvestmentResearch(request, { specialists: [specialist], model: never, repository: repo });
         expect(result.id).toBe('run-2');
         expect(calls).toBe(0);
@@ -78,7 +80,7 @@ describe('evidence-grounded research engine', () => {
         const repo = await repository();
         const bad: ResearchSpecialistPort = {
             domain: 'fundamentals',
-            async analyze() { return { domain: 'fundamentals', summary: 'Unsupported', claims: [{
+            async analyze() { await Promise.resolve(); return { domain: 'fundamentals', summary: 'Unsupported', claims: [{
                 id: 'bad-claim', domain: 'fundamentals', statement: 'Invented assertion',
                 assessment: 'supports-positive-case', confidence: 0.9, evidenceIds: [], limitations: []
             }] }; }
@@ -91,6 +93,7 @@ describe('evidence-grounded research engine', () => {
     it('does not accept model-invented claim identifiers in a challenge', async () => {
         const repo = await repository();
         const invalid: ResearchModelPort = { async challenge(input) {
+            await Promise.resolve();
             return { stance: input.stance, summary: 'challenge', challengedClaimIds: ['not-real'], supportedClaimIds: [], missingEvidence: [], confidence: 0.5 };
         } };
         await expect(runInvestmentResearch(request, { specialists: [specialist], model: invalid, repository: repo })).rejects.toThrow(/unknown or duplicate/);
