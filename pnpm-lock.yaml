@@ -277,6 +277,19 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/backtesting:
+    dependencies:
+      '@pfo/market-data':
+        specifier: workspace:*
+        version: link:../market-data
+      '@pfo/models':
+        specifier: workspace:*
+        version: link:../models
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/calculators:
     dependencies:
       '@pfo/models':
