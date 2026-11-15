@@ -1,6 +1,6 @@
 # Current Sprint
 
-## Current status — 2026-11-14
+## Current status — 2026-11-15
 
 ### Sprint 11 — Flow-adjusted portfolio drawdown: implementation complete on PR #453
 
@@ -33,7 +33,7 @@
 - Added standalone script-free HTML and spreadsheet-safe CSV reports with period return, maximum drawdown, peak/trough/recovery timestamps, actual coverage, observation and flow-boundary counts, calendar provenance, snapshot-level completeness evidence, limitations, overlap flags and unavailable reasons.
 - Added source-data signature verification before export, workspace-change invalidation, demo-mode disablement, report unit tests and Chromium smoke for private/demo isolation, exports and stale-source export blocking.
 - No schema migration, persistence collection, price provider, generated calendar, missing observation, FX conversion, tax treatment or financial-data fixture was introduced.
-- Current code head: dd5ba0298a7f34a0b694150b108a9a5de4d99358; CI #1969, Secret Scan #1763 and dashboard packaging #1205 all passed on this code head.
+- Final verified PR #454 head: `01131e7c3f36901aeabd5ffe8f0673cec08c3d05`; CI #1980, Secret Scan #1774 and dashboard packaging #1216 all passed on this exact head (2026-11-15). CI includes frozen dependency install, repository bootstrap/doctor/safety checks, lint, typecheck, package build, full tests and Chromium browser smoke.
 - PR #454 remains open/draft/unmerged and stacked on PR #453. Neither PR may be merged without explicit owner approval.
 
 ### Remaining gated work — not safe to implement in this sprint without a domain decision
