@@ -13,10 +13,10 @@ Drafted:
 - `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` — proposed package boundary, point-in-time dataset, bitemporal universe, explicit calendar, strategy information boundary, execution/cost proposal, corporate-action gates, simulated-ledger isolation and reproducibility.
 - `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md` — dataset/time/universe/execution/corporate-action/accounting/isolation scenarios, including an independently calculated synthetic INR execution fixture.
 
-**Important:** ADR status is Proposed. No typed implementation package, simulation engine, market-data provider, database migration, broker integration or real-ledger mutation has been introduced. Decisions still required include exchange/instrument scope, trading-calendar source, corporate-action semantics, fill/partial-fill policy, cost model, lot-size/tick-size and short/fractional-position policies. Do not guess these in code.
+**Important:** ADR status is Proposed. The initial `@pfo/backtesting` package now contains contract types and strict validators only. No simulation engine, market-data provider, database migration, broker integration or real-ledger mutation has been introduced. Decisions still required include exchange/instrument scope, trading-calendar source, corporate-action semantics, fill/partial-fill policy, cost model, lot-size/tick-size and short/fractional-position policies. Do not guess these in code.
 
 ### Next task
-Review the unresolved decision list in the ADR. Once the required decisions are accepted, implement the `@pfo/backtesting` typed contracts/validators and acceptance tests. Only then proceed to normalized historical CSV import.
+Review the unresolved decision list in the ADR. Next, validate the contract package and close its acceptance tests. Resolve remaining execution/corporate-action/market conventions before implementing simulation behavior or normalized historical CSV import.
 
 ---
 
@@ -24,7 +24,7 @@ Review the unresolved decision list in the ADR. Once the required decisions are 
 
 ## Latest integrated state — Sprint 16 complete (2026-11-15)
 
-PRs #453–#457 have all been merged into `main` in dependency order. Main HEAD: `7db56531b353baa45983e88ed0ef54517740c414`. The five merge commits are recorded in `.ai/CURRENT_SPRINT.md`.
+PRs #453–#457 have all been merged into `main` in dependency order. Main integration merge commit: `7db56531b353baa45983e88ed0ef54517740c414`; main closeout HEAD: `db739ff0d38fb0da965fd063de4560c54a85a9f6`. The five merge commits are recorded in `.ai/CURRENT_SPRINT.md`.
 
 - PR #453: flow-adjusted drawdown, SQLite schema v12.
 - PR #454: portfolio performance review and historical period comparison.
@@ -32,7 +32,7 @@ PRs #453–#457 have all been merged into `main` in dependency order. Main HEAD:
 - PR #456: provider-neutral market-data boundary.
 - PR #457: evidence-grounded research and AI review.
 - PR #457 final migration test commit: `ed0b6a6fbce2ee4acaae123968f769586d509858`; CI #2013 and Secret Scan #1807 passed.
-- Final main merge commit: Secret Scan #1812 passed; post-merge CI #2018 is the remaining integration gate at handoff time.
+- Main closeout HEAD `db739ff0d38fb0da965fd063de4560c54a85a9f6`: CI #2025 and Secret Scan #1819 passed.
 
 All PRs were retargeted to `main` after their predecessors merged, converted from draft, and merged with merge commits only after the respective head checks passed. No PRs remain open in this five-PR chain.
 
@@ -59,7 +59,7 @@ Three increments are implemented: (1) specialist ports for fundamentals, technic
 
 No LLM provider/SDK/API/credentials, outbound calls, scheduled run, dashboard UI, external household-data transmission, prices/targets/recommendations or ledger/valuation/order mutation. A host must explicitly inject model/specialist adapters and invoke the engine. Local JSON is not encrypted; hosts own private path, backup and retention. ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`.
 
-**Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 passed (100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
+**Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 passed (100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1805 passed. PR #457 was merged into main on 2026-11-15.
 
 This is the core orchestration and persistence foundation, not a live AI research feed. Provider-specific specialist/model adapters and dashboard UI remain gated until an LLM vendor, market/news data sources, official API docs, licensing/terms, privacy and authentication decisions are reviewed. PRs #453–#457 were merged into main on 2026-11-15 after owner approval and successful PR-head checks.
 
