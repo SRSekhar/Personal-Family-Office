@@ -4,6 +4,8 @@ import { copyFile, mkdir, open, link, unlink, readdir, readFile, rename, rm, sta
 import { backup, DatabaseSync } from 'node:sqlite';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
+import { Currency } from '@pfo/models';
+
 import type { BacktestBarObservation, BacktestDataset } from './contracts.js';
 import { importBacktestDatasetCsv } from './csv-import.js';
 import { validateBacktestDataset } from './validation.js';
@@ -91,7 +93,8 @@ function sha256(bytes: Uint8Array): string {
 async function hashFile(path: string): Promise<{ digest: string; byteLength: number }> {
     const hash = createHash('sha256');
     let byteLength = 0;
-    for await (const chunk of createReadStream(path)) {
+    const stream = createReadStream(path);
+    for await (const chunk of stream as AsyncIterable<Buffer>) {
         byteLength += chunk.length;
         hash.update(chunk);
     }
@@ -140,7 +143,7 @@ function mapBar(row: StoredBarRecord): BacktestBarObservation {
         high: row.high_price,
         low: row.low_price,
         close: row.close_price,
-        currency: row.currency as BacktestBarObservation['currency'],
+        currency: row.currency as Currency,
         ...(row.volume === null ? {} : { volume: row.volume }),
         adjustmentBasis: row.adjustment_basis as BacktestBarObservation['adjustmentBasis'],
         marketTimeZone: row.market_time_zone,
@@ -413,7 +416,7 @@ export class BacktestDatasetStore {
         } catch (error) {
             if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') { throw error; }
             if (!await this.verifyArtifact(destination, digest, byteLength)) {
-                throw new Error('A concurrent content-addressed artifact failed integrity verification.');
+                throw new Error('A concurrent content-addressed artifact failed integrity verification.', { cause: error });
             }
         } finally {
             await unlink(stagingPath).catch(() => undefined);
@@ -612,7 +615,7 @@ export class BacktestDatasetStore {
             catalogErrors.push('SQLite integrity_check failed.');
         }
         const foreignKeyErrors = this.database.prepare('PRAGMA foreign_key_check').all();
-        if (foreignKeyErrors.length > 0) catalogErrors.push('SQLite foreign-key check failed.');
+        if (foreignKeyErrors.length > 0) { catalogErrors.push('SQLite foreign-key check failed.'); }
         const datasetVersions = this.database.prepare(
             'SELECT dataset_id, version FROM dataset_versions ORDER BY dataset_id, version'
         ).all() as unknown as Array<{ dataset_id: string; version: number }>;
@@ -621,7 +624,7 @@ export class BacktestDatasetStore {
                 await this.loadDataset(version.dataset_id, version.version);
             } catch (error) {
                 const detail = error instanceof Error ? error.message : 'Unknown catalog validation error.';
-                catalogErrors.push(version.dataset_id + '@' + version.version + ': ' + detail);
+                catalogErrors.push(`${version.dataset_id}@${version.version}: ${detail}`);
             }
         }
 
@@ -632,7 +635,7 @@ export class BacktestDatasetStore {
                 for (const file of await readdir(join(digestRoot, first, second), { withFileTypes: true })) {
                     if (!file.isFile() || !file.name.endsWith('.csv')) { continue; }
                     const digest = file.name.slice(0, -4);
-                    if (DIGEST_PATTERN.test(digest) && !referenced.has(digest)) orphanArtifacts.push(digest);
+                    if (DIGEST_PATTERN.test(digest) && !referenced.has(digest)) { orphanArtifacts.push(digest); }
                 }
             }
         }
