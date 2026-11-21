@@ -638,7 +638,8 @@ export class BacktestDatasetStore {
         }
         const stagingFiles = (await readdir(join(this.artifactDirectory, '.staging'))).sort();
         return {
-            ok: missingArtifacts.length === 0 && corruptArtifacts.length === 0\n                && catalogErrors.length === 0 && stagingFiles.length === 0,
+            ok: missingArtifacts.length === 0 && corruptArtifacts.length === 0
+                && catalogErrors.length === 0 && stagingFiles.length === 0,
             referencedArtifacts: artifactRows.length,
             verifiedArtifacts,
             missingArtifacts,
