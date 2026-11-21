@@ -120,7 +120,7 @@ function validatePaths(options: BacktestDatasetStorageOptions): { catalogPath: s
 }
 
 function artifactRelativePath(digest: string): string {
-    if (!DIGEST_PATTERN.test(digest)) throw new RangeError('Invalid SHA-256 artifact digest.');
+    if (!DIGEST_PATTERN.test(digest)) { throw new RangeError('Invalid SHA-256 artifact digest.'); }
     return join('sha256', digest.slice(0, 2), digest.slice(2, 4), digest + '.csv');
 }
 
@@ -164,7 +164,7 @@ export class BacktestDatasetStore {
         backupDirectory: string,
         options: BacktestDatasetStorageOptions
     ): Promise<BacktestDatasetStore> {
-        if (!isAbsolute(backupDirectory)) throw new RangeError('Backtest restore source must be an absolute path.');
+        if (!isAbsolute(backupDirectory)) { throw new RangeError('Backtest restore source must be an absolute path.'); }
         const bundlePath = resolve(backupDirectory);
         const repositoryRoot = resolve(process.cwd());
         if (isWithin(repositoryRoot, bundlePath)) {
@@ -175,13 +175,13 @@ export class BacktestDatasetStore {
             await stat(paths.catalogPath);
             throw new Error('Restore catalog destination already exists; restore never overwrites existing data.');
         } catch (error) {
-            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') { throw error; }
         }
         try {
             await stat(paths.artifactDirectory);
             throw new Error('Restore artifact destination already exists; restore never overwrites existing data.');
         } catch (error) {
-            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') { throw error; }
         }
 
         const manifest = JSON.parse(await readFile(join(bundlePath, 'manifest.json'), 'utf8')) as {
@@ -368,7 +368,7 @@ export class BacktestDatasetStore {
     }
 
     private assertOpen(): void {
-        if (this.closed) throw new Error('Backtest dataset store is closed.');
+        if (this.closed) { throw new Error('Backtest dataset store is closed.'); }
     }
 
     private artifactPath(digest: string): string {
@@ -378,7 +378,7 @@ export class BacktestDatasetStore {
     private async verifyArtifact(path: string, expectedDigest: string, expectedLength: number): Promise<boolean> {
         try {
             const details = await stat(path);
-            if (!details.isFile() || details.size !== expectedLength) return false;
+            if (!details.isFile() || details.size !== expectedLength) { return false; }
             const actual = await hashFile(path);
             return actual.byteLength === expectedLength && actual.digest === expectedDigest;
         } catch {
@@ -391,12 +391,12 @@ export class BacktestDatasetStore {
         const relativePath = artifactRelativePath(digest);
         const destination = this.artifactPath(digest);
         await mkdir(dirname(destination), { recursive: true, mode: 0o700 });
-        if (await this.verifyArtifact(destination, digest, byteLength)) return { path: relativePath, byteLength };
+        if (await this.verifyArtifact(destination, digest, byteLength)) { return { path: relativePath, byteLength }; }
         try {
             await stat(destination);
             throw new Error('An existing content-addressed artifact failed integrity verification; refusing to overwrite it.');
         } catch (error) {
-            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') { throw error; }
         }
 
         const stagingPath = join(this.artifactDirectory, '.staging', randomUUID() + '.part');
@@ -411,7 +411,7 @@ export class BacktestDatasetStore {
             // A hard link publishes the fully flushed file atomically and never replaces an existing digest.
             await link(stagingPath, destination);
         } catch (error) {
-            if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') throw error;
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') { throw error; }
             if (!await this.verifyArtifact(destination, digest, byteLength)) {
                 throw new Error('A concurrent content-addressed artifact failed integrity verification.');
             }
@@ -546,7 +546,7 @@ export class BacktestDatasetStore {
                    byte_length, observation_count, imported_at
             FROM dataset_versions WHERE dataset_id = ? AND version = ?
         `).get(id, version) as StoredVersionRecord | undefined;
-        if (!row) throw new RangeError('Backtest dataset version was not found.');
+        if (!row) { throw new RangeError('Backtest dataset version was not found.'); }
         const artifactRow = this.database.prepare(
             'SELECT raw_digest, byte_length, relative_path FROM dataset_artifacts WHERE raw_digest = ?'
         ).get(row.raw_digest) as ArtifactRecord | undefined;
@@ -630,7 +630,7 @@ export class BacktestDatasetStore {
         for (const first of await safeDirectories(digestRoot)) {
             for (const second of await safeDirectories(join(digestRoot, first))) {
                 for (const file of await readdir(join(digestRoot, first, second), { withFileTypes: true })) {
-                    if (!file.isFile() || !file.name.endsWith('.csv')) continue;
+                    if (!file.isFile() || !file.name.endsWith('.csv')) { continue; }
                     const digest = file.name.slice(0, -4);
                     if (DIGEST_PATTERN.test(digest) && !referenced.has(digest)) orphanArtifacts.push(digest);
                 }
@@ -659,7 +659,7 @@ export class BacktestDatasetStore {
     async createBackup(destinationDirectory: string): Promise<BacktestDatasetBackupResult> {
         this.assertOpen();
         const integrity = await this.checkIntegrity();
-        if (!integrity.ok) throw new Error('Backtest storage integrity check failed; refusing to create a backup.');
+        if (!integrity.ok) { throw new Error('Backtest storage integrity check failed; refusing to create a backup.'); }
         if (!isAbsolute(destinationDirectory)) {
             throw new RangeError('Backtest backup destination must be an absolute path.');
         }
@@ -674,7 +674,7 @@ export class BacktestDatasetStore {
             await stat(destination);
             throw new Error('Backtest backup destination already exists; backups are never overwritten.');
         } catch (error) {
-            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') { throw error; }
         }
 
         const stagingDirectory = destination + '.staging-' + randomUUID();
@@ -762,7 +762,7 @@ export class BacktestDatasetStore {
     }
 
     close(): void {
-        if (this.closed) return;
+        if (this.closed) { return; }
         this.database.close();
         this.closed = true;
     }
