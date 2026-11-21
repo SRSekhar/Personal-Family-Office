@@ -15,6 +15,7 @@ The CSV importer uses this exact file structure:
 - Explicit import metadata: dataset ID/version, local instrument reference, interval, adjustment basis, market timezone, source/license metadata, dataset recorded-at timestamp, coverage window/status and expected bar-end schedule.
 
 The CSV importer:
+- Enforces the approved first-release scope: instrument exchange must be exactly `NSE` and interval must be `1d`; BSE and intraday imports are rejected rather than silently accepted.
 - Requires the #PFO-BACKTEST-DATASET,1,OHLCV manifest and canonical column order.
 - Preserves source row order and rejects malformed rows, duplicate observations and invalid OHLC values.
 - Computes SHA-256 digests for both the original CSV artifact and normalized dataset content. The normalized digest is stable across equivalent line-ending conventions.
