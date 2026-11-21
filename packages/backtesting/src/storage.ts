@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { constants, createReadStream, mkdirSync } from 'node:fs';
-import { copyFile, mkdir, open, link, unlink, readdir, rename, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, open, link, unlink, readdir, readFile, rename, rm, stat } from 'node:fs/promises';
 import { backup, DatabaseSync } from 'node:sqlite';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 import type { BacktestBarObservation, BacktestDataset } from './contracts.js';
 import { importBacktestDatasetCsv } from './csv-import.js';
@@ -149,6 +149,142 @@ export class BacktestDatasetStore {
     private readonly catalogPath: string;
     private readonly artifactDirectory: string;
     private closed = false;
+
+    /** Restore a verified backup bundle into previously unused catalog and artifact paths. */
+    static async restoreBackup(
+        backupDirectory: string,
+        options: BacktestDatasetStorageOptions
+    ): Promise<BacktestDatasetStore> {
+        if (!isAbsolute(backupDirectory)) throw new RangeError('Backtest restore source must be an absolute path.');
+        const bundlePath = resolve(backupDirectory);
+        const repositoryRoot = resolve(process.cwd());
+        if (isWithin(repositoryRoot, bundlePath)) {
+            throw new RangeError('Backtest restore source must be outside the repository.');
+        }
+        const paths = validatePaths(options);
+        try {
+            await stat(paths.catalogPath);
+            throw new Error('Restore catalog destination already exists; restore never overwrites existing data.');
+        } catch (error) {
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+        }
+        try {
+            await stat(paths.artifactDirectory);
+            throw new Error('Restore artifact destination already exists; restore never overwrites existing data.');
+        } catch (error) {
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+        }
+
+        const manifest = JSON.parse(await readFile(join(bundlePath, 'manifest.json'), 'utf8')) as {
+            format: string;
+            formatVersion: number;
+            catalogSchemaVersion: number;
+            catalogFile: string;
+            catalogSha256: string;
+            datasetVersions: Array<{
+                dataset_id: string; version: number; raw_digest: string; normalized_digest: string;
+                byte_length: number; observation_count: number; imported_at: string;
+            }>;
+            artifacts: Array<{ digest: string; byteLength: number; relativePath: string }>;
+        };
+        if (manifest.format !== 'PFO-BACKTEST-BACKUP' || manifest.formatVersion !== 1
+            || manifest.catalogSchemaVersion !== SCHEMA_VERSION || manifest.catalogFile !== 'catalog.sqlite'
+            || !DIGEST_PATTERN.test(manifest.catalogSha256) || !Array.isArray(manifest.artifacts)
+            || !Array.isArray(manifest.datasetVersions)) {
+            throw new RangeError('Backtest backup manifest is invalid or unsupported.');
+        }
+        const backupCatalogPath = join(bundlePath, 'catalog.sqlite');
+        if ((await hashFile(backupCatalogPath)).digest !== manifest.catalogSha256) {
+            throw new Error('Backtest backup catalog digest verification failed.');
+        }
+
+        const backupDatabase = new DatabaseSync(backupCatalogPath);
+        try {
+            const integrity = backupDatabase.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>;
+            const foreignKeyErrors = backupDatabase.prepare('PRAGMA foreign_key_check').all();
+            const schema = backupDatabase.prepare(
+                "SELECT value FROM backtest_storage_meta WHERE key = 'schema_version'"
+            ).get() as { value?: string } | undefined;
+            const databaseArtifacts = backupDatabase.prepare(
+                'SELECT raw_digest, byte_length, relative_path FROM dataset_artifacts ORDER BY raw_digest'
+            ).all() as unknown as ArtifactRecord[];
+            const databaseVersions = backupDatabase.prepare(`
+                SELECT dataset_id, version, raw_digest, normalized_digest, byte_length,
+                       observation_count, imported_at
+                FROM dataset_versions ORDER BY dataset_id, version
+            `).all() as unknown as typeof manifest.datasetVersions;
+            if (integrity.length !== 1 || integrity[0]?.integrity_check !== 'ok'
+                || foreignKeyErrors.length > 0 || Number(schema?.value) !== SCHEMA_VERSION
+                || JSON.stringify(databaseArtifacts.map((item) => ({
+                    digest: item.raw_digest, byteLength: item.byte_length, relativePath: item.relative_path
+                }))) !== JSON.stringify(manifest.artifacts)
+                || JSON.stringify(databaseVersions) !== JSON.stringify(manifest.datasetVersions)) {
+                throw new Error('Backtest backup catalog does not match its manifest or failed SQLite integrity checks.');
+            }
+        } finally {
+            backupDatabase.close();
+        }
+
+        const restoreId = randomUUID();
+        const stagedCatalogPath = join(dirname(paths.catalogPath), '.' + basename(paths.catalogPath) + '.restore-' + restoreId);
+        const stagedArtifactDirectory = join(dirname(paths.artifactDirectory), '.' + basename(paths.artifactDirectory) + '.restore-' + restoreId);
+        await mkdir(dirname(paths.catalogPath), { recursive: true, mode: 0o700 });
+        await mkdir(dirname(paths.artifactDirectory), { recursive: true, mode: 0o700 });
+        await mkdir(stagedArtifactDirectory, { recursive: false, mode: 0o700 });
+        let artifactsPublished = false;
+        let catalogPublished = false;
+        try {
+            await copyFile(backupCatalogPath, stagedCatalogPath, constants.COPYFILE_EXCL);
+            for (const artifact of manifest.artifacts) {
+                const expectedRelativePath = artifactRelativePath(artifact.digest);
+                if (artifact.relativePath !== expectedRelativePath || !Number.isSafeInteger(artifact.byteLength)
+                    || artifact.byteLength < 0) {
+                    throw new RangeError('Backtest backup contains an invalid artifact reference.');
+                }
+                const source = join(bundlePath, 'artifacts', expectedRelativePath);
+                const target = join(stagedArtifactDirectory, expectedRelativePath);
+                await mkdir(dirname(target), { recursive: true, mode: 0o700 });
+                await copyFile(source, target, constants.COPYFILE_EXCL);
+                const details = await stat(target);
+                if (!details.isFile() || details.size !== artifact.byteLength
+                    || (await hashFile(target)).digest !== artifact.digest) {
+                    throw new Error('Restored source artifact failed digest or byte-length verification.');
+                }
+            }
+
+            const stagedDatabase = new DatabaseSync(stagedCatalogPath);
+            try {
+                const integrity = stagedDatabase.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>;
+                const foreignKeyErrors = stagedDatabase.prepare('PRAGMA foreign_key_check').all();
+                if (integrity.length !== 1 || integrity[0]?.integrity_check !== 'ok' || foreignKeyErrors.length > 0) {
+                    throw new Error('Staged restored catalog failed SQLite integrity verification.');
+                }
+            } finally {
+                stagedDatabase.close();
+            }
+
+            // Publish the complete artifact tree first; the catalog becomes visible only afterwards.
+            await rename(stagedArtifactDirectory, paths.artifactDirectory);
+            artifactsPublished = true;
+            await link(stagedCatalogPath, paths.catalogPath);
+            catalogPublished = true;
+            await unlink(stagedCatalogPath);
+            const restored = new BacktestDatasetStore(options);
+            const report = await restored.checkIntegrity();
+            if (!report.ok || report.referencedArtifacts !== report.verifiedArtifacts) {
+                restored.close();
+                throw new Error('Restored backtest storage failed its final integrity check.');
+            }
+            return restored;
+        } catch (error) {
+            await unlink(stagedCatalogPath).catch(() => undefined);
+            await rm(stagedArtifactDirectory, { recursive: true, force: true }).catch(() => undefined);
+            if (artifactsPublished && !catalogPublished) {
+                await rm(paths.artifactDirectory, { recursive: true, force: true }).catch(() => undefined);
+            }
+            throw error;
+        }
+    }
 
     constructor(options: BacktestDatasetStorageOptions) {
         const paths = validatePaths(options);
