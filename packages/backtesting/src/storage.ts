@@ -25,7 +25,15 @@ export interface StoredBacktestDataset {
     readonly importedAt: string;
 }
 
-export interface BacktestDatasetBackupResult {\n    readonly path: string;\n    readonly datasetVersions: number;\n    readonly artifacts: number;\n    readonly artifactBytes: number;\n    readonly catalogSha256: string;\n}\n\nexport interface BacktestStorageIntegrityReport {
+export interface BacktestDatasetBackupResult {
+    readonly path: string;
+    readonly datasetVersions: number;
+    readonly artifacts: number;
+    readonly artifactBytes: number;
+    readonly catalogSha256: string;
+}
+
+export interface BacktestStorageIntegrityReport {
     readonly ok: boolean;
     readonly referencedArtifacts: number;
     readonly verifiedArtifacts: number;
