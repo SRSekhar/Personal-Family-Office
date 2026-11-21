@@ -1,6 +1,6 @@
 # ADR — Historical backtesting dataset storage
 
-- **Status:** Proposed — storage design only; no persistence implementation or workspace schema migration is authorized by this proposal.
+- **Status:** Approved for local persistence implementation — 2026-11-21. The separate catalog/artifact architecture and normalized SQLite observation rows are approved; this does not authorize a provider, simulator, workspace migration or live-ledger integration.
 - **Date:** 2026-11-21
 - **Workstream:** IPM-08.2
 - **Scope:** Immutable historical OHLCV source artifacts and their dataset catalog.
@@ -26,7 +26,7 @@ Keep historical market-data storage separate from the household financial worksp
 1. **Dataset catalog:** a dedicated SQLite database, using the repository-supported built-in `node:sqlite` runtime, for dataset identities, immutable versions, instrument/exchange/interval bindings, provenance, licensing evidence, coverage, validation state, content digests and artifact references.
 2. **Immutable source-artifact store:** a filesystem directory outside the repository for original imported CSV bytes, stored by their SHA-256 content digest. The catalog references the artifact by digest and byte length; it does not copy the raw file into the household workspace JSON payload.
 
-This is a proposal for review, not an implementation authorization. It deliberately does not choose a provider, download data, define a cloud object store, or change the existing financial workspace schema.
+The user approved this architecture on 2026-11-21. The first implementation stores normalized OHLCV observations as indexed SQLite rows in the dedicated catalog and preserves exact source bytes in the separate immutable artifact store. This decision deliberately does not choose a provider, download data, define a cloud object store, or change the existing financial workspace schema.
 
 ### 2.1 First-release boundary
 
@@ -77,7 +77,7 @@ The catalog should store metadata and references, not duplicate all source bytes
 - Point-in-time availability guarantee and exact cutoff where evidenced.
 - Created-at/recorded-at timestamps and immutable version relationships.
 
-Normalized OHLCV rows may be loaded into a future query/processing representation for efficient chronological simulation, but the first storage implementation must not assume that the raw CSV itself is an efficient query engine. The storage format and indexing strategy for normalized observations require measured volume/performance tests before selection.
+Normalized OHLCV observations are stored as SQLite rows in the separate catalog, indexed by instrument and bar-end timestamp for chronological range access. Original CSV remains the immutable source of truth. Performance benchmarks at representative instrument/observation counts remain a release gate; if measured latency or storage exceeds the documented budget, reconsider a columnar query representation without changing artifact identity or provenance.
 
 No live investment transaction, valuation, cash movement, FIFO lot, statement evidence or real account data is copied into this catalog.
 
@@ -114,7 +114,20 @@ Automated cloud backup, encryption, scheduling, retention rotation and remote sy
 - Never log raw CSV contents, credentials or full sensitive local paths in user-facing errors.
 - The catalog and artifact store remain local-only in this increment.
 
-## 5. Required validation before implementation
+## 5. Implementation status and validation
+
+Implemented in `packages/backtesting/src/storage.ts`:
+
+- A dedicated SQLite catalog with schema versioning, strict tables, foreign keys, WAL and full synchronous durability.
+- Indexed normalized daily OHLCV rows, separate from the household workspace database.
+- Exact-byte SHA-256 content-addressed CSV artifacts, flushed staging files and no-overwrite hard-link publication.
+- Append-only dataset ID/version records, raw-artifact deduplication and preserved per-import provenance.
+- Digest/byte-length verification before dataset load, and non-destructive missing/corrupt/orphan/staging integrity reporting.
+- Regression tests cover persistence/reload, provenance-preserving deduplication, immutable version rejection, source-byte mismatch, missing-artifact blocking, orphan detection and repository-path isolation.
+
+Backup/restore bundle, crash-injection coverage at every filesystem/SQLite boundary, resource limits and measured performance baselines remain outstanding. The storage module does not alter workspace schema or real investment collections.
+
+## 6. Required validation before release
 
 The implementation increment must test at least:
 
@@ -131,7 +144,7 @@ The implementation increment must test at least:
 11. Workspace backup/restore remains independent and all existing financial-workspace tests remain unchanged.
 12. Dataset metadata cannot mutate real investment ledger collections.
 
-## 6. Open decisions before implementation
+## 7. Remaining decisions and release gates
 
 - Exact local catalog and artifact directory configuration and migration/versioning policy.
 - Whether normalized OHLCV observations are stored as SQLite rows, a columnar file, or rebuilt from immutable CSV artifacts; select only after representative NSE daily dataset size/performance tests.
@@ -141,4 +154,4 @@ The implementation increment must test at least:
 - Corporate-action and adjustment-basis eligibility.
 - Whether point-in-time availability evidence is required for all first-release backtests or whether explicitly labeled non-point-in-time exploratory runs are permitted.
 
-No schema migration, artifact persistence code, provider integration or simulator implementation should begin until the storage slice's required decisions and acceptance tests are approved.
+The catalog schema is independently versioned and currently at version 1. A future migration policy must preserve append-only dataset provenance and artifact integrity. The storage increment remains local-only and does not imply provider access, simulation, broker integration or workspace schema migration.
