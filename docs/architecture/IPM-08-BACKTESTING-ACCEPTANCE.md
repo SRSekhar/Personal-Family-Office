@@ -24,6 +24,7 @@ The first implementation slice accepts NSE daily OHLCV datasets only. A dataset 
 | DATA-009 | Source claims point-in-time guarantee for a different knowledge-time cutoff | Reject point-in-time eligibility. |
 | DATA-010 | Source license status is unreviewed/restricted | Block execution until rights and permitted use are reviewed. |
 | DATA-011 | Expected calendar contains a session with no eligible bar | Mark run incomplete/unavailable; do not synthesize or carry forward a bar. |
+| DATA-012 | CSV import identifies an exchange other than NSE or an interval other than `1d` | Reject as outside the approved first-release scope; do not coerce or relabel. |
 
 ## B. Bitemporal and look-ahead controls
 
@@ -78,6 +79,7 @@ The following numeric example is an acceptance fixture, not a market-data claim 
 | EXEC-006 | Cost model returns a different currency | Reject fill; no FX conversion. |
 | EXEC-007 | Cost model returns negative or non-finite cost | Reject the cost result and fail the affected run. |
 | EXEC-008 | Same run is repeated with identical dataset, strategy, engine and assumption versions | Produce identical orders, fills, cash, positions and metrics. |
+| EXEC-009 | Run configuration selects a non-NSE dataset/calendar or non-daily interval | Reject; first-release execution accepts NSE daily data only. |
 
 ## E. Corporate actions and adjustment basis
 
@@ -135,5 +137,6 @@ The following numeric example is an acceptance fixture, not a market-data claim 
 | CSV-008 | Caller declares complete coverage but one expected bar is absent | Reject; never synthesize a missing bar. |
 | CSV-009 | Source license is unreviewed/restricted | Allow evidence import for inspection only; validated run configuration remains blocked. |
 | CSV-010 | Same semantic dataset is imported from byte-different but equivalent CSV formatting | Preserve distinct raw source digests and identical normalized content digest. |
+| CSV-011 | CSV metadata identifies BSE or an intraday/weekly/monthly interval | Reject; first-release CSV import accepts NSE and daily (`1d`) only. |
 
 The CSV importer is offline and non-persistent. Storage, backup/restore, import UI and simulator execution require separate approved contracts.
