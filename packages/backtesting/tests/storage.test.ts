@@ -58,8 +58,12 @@ async function createStore(): Promise<{ store: BacktestDatasetStore; root: strin
 }
 
 afterEach(async () => {
-    for (const store of stores.splice(0)) {\n        store.close();\n    }
-    for (const directory of directories.splice(0)) {\n        await rm(directory, { recursive: true, force: true });\n    }
+    for (const store of stores.splice(0)) {
+        store.close();
+    }
+    for (const directory of directories.splice(0)) {
+        await rm(directory, { recursive: true, force: true });
+    }
 });
 
 describe('BacktestDatasetStore', () => {
@@ -119,7 +123,9 @@ describe('BacktestDatasetStore', () => {
         const connection = new DatabaseSync(join(root, 'catalog', 'datasets.sqlite'));
         try {
             const firstBar = dataset.bars[0];
-            if (!firstBar) {\n                throw new Error('Synthetic dataset fixture is missing its first observation.');\n            }
+            if (!firstBar) {
+                throw new Error('Synthetic dataset fixture is missing its first observation.');
+            }
             connection.prepare(`
                 UPDATE dataset_bars SET close_price = ?
                 WHERE dataset_id = ? AND dataset_version = ? AND end_at = ?
@@ -179,7 +185,9 @@ describe('BacktestDatasetStore', () => {
         }]);
         const backedUpArtifact = manifest.artifacts[0];
         expect(backedUpArtifact).toBeDefined();
-        if (!backedUpArtifact) {\n            throw new Error('Backup manifest did not contain its source artifact.');\n        }
+        if (!backedUpArtifact) {
+            throw new Error('Backup manifest did not contain its source artifact.');
+        }
         expect(await readFile(join(backupPath, 'artifacts', backedUpArtifact.relativePath), 'utf8')).toBe(csv);
         await expect(store.createBackup(backupPath)).rejects.toThrow(/already exists/i);
     });
