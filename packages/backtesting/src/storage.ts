@@ -1,9 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { createReadStream } from 'node:fs';
-import { mkdir, open, link, unlink, readFile, readdir, stat } from 'node:fs/promises';
+import { createReadStream, mkdirSync } from 'node:fs';
+import { mkdir, open, link, unlink, readdir, stat } from 'node:fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { pipeline } from 'node:stream/promises';
 
 import type { BacktestBarObservation, BacktestDataset } from './contracts.js';
 import { validateBacktestDataset } from './validation.js';
@@ -82,14 +81,10 @@ function sha256(bytes: Uint8Array): string {
 async function hashFile(path: string): Promise<{ digest: string; byteLength: number }> {
     const hash = createHash('sha256');
     let byteLength = 0;
-    const stream = createReadStream(path);
-    stream.on('data', (chunk: Buffer) => {
+    for await (const chunk of createReadStream(path)) {
         byteLength += chunk.length;
         hash.update(chunk);
-    });
-    await pipeline(stream, async function* (source) {
-        for await (const chunk of source) yield chunk;
-    });
+    }
     return { digest: hash.digest('hex'), byteLength };
 }
 
@@ -460,17 +455,8 @@ export class BacktestDatasetStore {
 }
 
 function mkdirSyncPrivate(path: string): void {
-    // Synchronous directory creation keeps constructor initialization deterministic.
-    const fs = requireFs();
-    fs.mkdirSync(path, { recursive: true, mode: 0o700 });
+    mkdirSync(path, { recursive: true, mode: 0o700 });
 }
-
-function requireFs(): typeof import('node:fs') {
-    // Static require is avoided in ESM; this helper is replaced by the imported sync API below.
-    return fsSync;
-}
-
-import * as fsSync from 'node:fs';
 
 async function safeDirectories(path: string): Promise<string[]> {
     try {
