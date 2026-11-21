@@ -1,3 +1,9 @@
+## 2026-11-21 — IPM-08.1 historical OHLCV CSV ingestion
+
+- Added strict offline PFO-native OHLCV dataset CSV import to @pfo/backtesting, with explicit instrument/provenance/coverage metadata, source-artifact and normalized SHA-256 digests, preserved unknown availability, and fail-closed row/calendar validation.
+- CI #2056 passed (102 test files / 945 tests, lint, typecheck, build and Chromium smoke); Secret Scan #1851 passed on head 05731ffa7f758195aa96da679d05a307d3982180.
+- No provider, persistence, schema migration, UI, simulator, broker or real-ledger behavior was added. IPM-08 ADR remains Proposed.
+
 # Changelog
 
 All notable changes to PFO OS will be documented in this file.

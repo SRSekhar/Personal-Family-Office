@@ -1,6 +1,6 @@
 # IPM-08 — Backtesting Contract and Acceptance Scenarios
 
-- **Status:** Proposed acceptance contract; no engine is implemented.
+- **Status:** Proposed acceptance contract; dataset contracts/validation and offline CSV ingestion are implemented, but no simulation engine is implemented.
 - **Date:** 2026-11-15
 - **Related ADR:** `ADR-IPM-08-BACKTESTING-ARCHITECTURE.md`
 - **Test data policy:** all fixtures must be synthetic and clearly labeled. Never use fabricated fixtures as evidence of live-market behavior.
@@ -115,3 +115,21 @@ The following numeric example is an acceptance fixture, not a market-data claim 
 - Each scenario above is represented by a deterministic test or explicitly marked blocked pending an approved contract.
 - The numeric execution fixture matches independent hand calculation.
 - No provider SDK/API, live data, database migration, broker integration or real-ledger mutation is introduced.
+
+ 
+## H. Offline OHLCV CSV ingestion
+
+| ID | Scenario | Required outcome |
+|---|---|---|
+| CSV-001 | Canonical version-1 manifest and exact header sequence | Import rows and bind only caller-supplied instrument/source/coverage metadata. |
+| CSV-002 | UTF-8 BOM, LF or CRLF line endings | Parse valid rows; raw artifact digest differs when source bytes differ. |
+| CSV-003 | Equivalent rows with different line endings | Normalized dataset digest remains identical. |
+| CSV-004 | Missing volume, provider ID or availability | Preserve each as absent; never substitute a value. |
+| CSV-005 | Source claims per-observation point-in-time evidence but a bar lacks availability | Reject the dataset. |
+| CSV-006 | Malformed quoting, wrong manifest/version/header, duplicate headers or wrong row width | Reject the file before returning a dataset. |
+| CSV-007 | Invalid decimal, non-canonical timestamp, non-positive/impossible OHLC, duplicate or unsorted bars | Reject; do not coerce, sort, interpolate or deduplicate. |
+| CSV-008 | Caller declares complete coverage but one expected bar is absent | Reject; never synthesize a missing bar. |
+| CSV-009 | Source license is unreviewed/restricted | Allow evidence import for inspection only; validated run configuration remains blocked. |
+| CSV-010 | Same semantic dataset is imported from byte-different but equivalent CSV formatting | Preserve distinct raw source digests and identical normalized content digest. |
+
+The CSV importer is offline and non-persistent. Storage, backup/restore, import UI and simulator execution require separate approved contracts.

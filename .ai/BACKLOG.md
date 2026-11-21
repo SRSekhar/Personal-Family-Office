@@ -888,3 +888,19 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - Browser smoke verifies report downloads and private/demo isolation in addition to JSON/SQLite persistence.
 - CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
 - Only future scope: in-kind flows and corporate actions, pending a separate ledger-model decision.
+ 
+## IPM-08 — Historical dataset ingestion and backtesting
+
+### Delivered in PR #458
+- Point-in-time dataset, universe, calendar, strategy, execution, cost and run contracts with strict validation.
+- Offline PFO-native OHLCV CSV importer with explicit metadata binding, raw/normalized SHA-256 digests and fail-closed validation.
+- CI #2056 and Secret Scan #1851 passed on head 05731ffa7f758195aa96da679d05a307d3982180.
+
+### Next, in dependency order
+1. Review and approve the IPM-08 ADR and decide dataset persistence ownership, backup/restore compatibility and retention semantics.
+2. Only after approval, implement private dataset import preview/confirmation and persistence without touching real investment-ledger collections.
+3. Resolve exchange scope, reviewed trading-calendar source, corporate-action treatment, fill/partial-fill semantics, cost model, tick/lot rules and position constraints.
+4. Implement the deterministic engine only after those contracts are approved and acceptance fixtures are executable.
+5. Add run persistence and reporting only after engine accounting and reproducibility acceptance passes.
+
+No live provider, broker, live order routing, real-ledger mutation or unapproved default assumptions.

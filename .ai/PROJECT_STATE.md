@@ -461,3 +461,15 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Added independent hand-calculated and contract tests in `apps/dashboard/investment-period-comparison.test.js`.
 - No UI, report, schema migration, provider, new market data or private financial data added. CI validation is pending.
 - Next: validate CI, then implement private-only comparison workspace and exports.
+ 
+## 2026-11-21 — IPM-08.1 historical OHLCV CSV ingestion
+
+- Implemented importBacktestDatasetCsv in packages/backtesting/src/csv-import.ts and exported it from @pfo/backtesting.
+- The importer requires the versioned #PFO-BACKTEST-DATASET,1,OHLCV manifest and exact column sequence: startAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId.
+- Instrument identity, interval, currency, adjustment basis, timezone, source/license metadata, dataset recorded-at timestamp, coverage window/status and complete expected-bar schedule are explicit caller inputs. The importer does not infer them from CSV symbols or dates.
+- Computes separate SHA-256 digests for the original source artifact and canonical normalized dataset content. Raw artifact digest preserves line-ending/BOM differences; normalized digest is stable across equivalent line-ending conventions.
+- Missing availability, volume and provider IDs remain absent. A source claiming per-observation point-in-time evidence is rejected if any bar lacks availability evidence.
+- Malformed CSV, unsupported manifest/header, invalid numeric/timestamp fields, duplicate or unsorted bars, impossible OHLC, mixed metadata and incomplete declared coverage fail closed. Input rows are never silently sorted, filled or interpolated.
+- CI #2056 passed on head 05731ffa7f758195aa96da679d05a307d3982180: lint, typecheck, package build, 102 test files / 945 tests, repository bootstrap safety, FIRE planner Chromium smoke and investment statement reconciliation Chromium smoke. Secret Scan #1851 passed on the same head.
+- PR #458 remains draft/open/unmerged. ADR remains Proposed. No engine, provider integration, dataset persistence, schema migration, UI workflow, broker connection or real-ledger mutation has been introduced.
+- Next gate: decide dataset persistence and workspace/backup boundary before adding an import UI or simulation engine. Engine-specific choices (exchange scope, calendar source, corporate actions, execution, costs, tick/lot rules and short/fractional positions) remain unresolved and must not be guessed.
