@@ -352,13 +352,16 @@ export function validateBacktestRunConfiguration(
         throw new RangeError('At least one backtest dataset must be selected.');
     }
 
-    if (first.instrument.exchange !== 'NSE') {
-        throw new RangeError('The first backtesting release accepts NSE instruments only.');
-    }
-    if (first.interval !== '1d' || context.calendar.exchange !== 'NSE' || context.calendar.interval !== '1d') {
+    if (context.calendar.exchange !== 'NSE' || context.calendar.interval !== '1d') {
         throw new RangeError('The first backtesting release accepts NSE daily (1d) datasets and calendars only.');
     }
     for (const dataset of selected) {
+        if (dataset.instrument.exchange !== 'NSE') {
+            throw new RangeError('The first backtesting release accepts NSE instruments only.');
+        }
+        if (dataset.interval !== '1d') {
+            throw new RangeError('The first backtesting release accepts daily (1d) OHLCV only.');
+        }
         validateBacktestDataset(dataset);
         if (!configuration.datasetIds.includes(dataset.id)) {
             throw new RangeError('Resolved dataset is not included in the run configuration.');
