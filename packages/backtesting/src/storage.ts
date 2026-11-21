@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 import type { BacktestBarObservation, BacktestDataset } from './contracts.js';
+import { importBacktestDatasetCsv } from './csv-import.js';
 import { validateBacktestDataset } from './validation.js';
 
 export interface BacktestDatasetStorageOptions {
@@ -292,6 +293,27 @@ export class BacktestDatasetStore {
         if (!DIGEST_PATTERN.test(dataset.contentDigest)) {
             throw new RangeError('Dataset normalized content digest must be a SHA-256 value.');
         }
+        let decodedCsv: string;
+        try {
+            decodedCsv = new TextDecoder('utf-8', { fatal: true }).decode(rawCsvBytes);
+        } catch {
+            throw new RangeError('Original CSV artifact must contain valid UTF-8.');
+        }
+        const { contentDigest: _rawDigest, ...sourceMetadata } = dataset.source;
+        const reparsed = importBacktestDatasetCsv(decodedCsv, {
+            id: dataset.id,
+            version: dataset.version,
+            instrument: dataset.instrument,
+            interval: dataset.interval,
+            adjustmentBasis: dataset.adjustmentBasis as Exclude<typeof dataset.adjustmentBasis, 'unknown'>,
+            marketTimeZone: dataset.marketTimeZone,
+            source: sourceMetadata,
+            recordedAt: dataset.recordedAt,
+            coverage: dataset.coverage
+        });
+        if (reparsed.contentDigest !== dataset.contentDigest) {
+            throw new RangeError('Original CSV bytes do not reproduce the supplied normalized dataset digest.');
+        }
 
         const artifact = await this.publishArtifact(rawCsvBytes, rawDigest);
         const importedAt = new Date().toISOString();
@@ -380,6 +402,7 @@ export class BacktestDatasetStore {
             'SELECT raw_digest, byte_length, relative_path FROM dataset_artifacts WHERE raw_digest = ?'
         ).get(row.raw_digest) as ArtifactRecord | undefined;
         if (!artifactRow || artifactRow.byte_length !== row.byte_length
+            || artifactRow.relative_path !== artifactRelativePath(row.raw_digest)
             || !await this.verifyArtifact(this.artifactPath(row.raw_digest), row.raw_digest, row.byte_length)) {
             throw new Error('Backtest dataset source artifact is missing or corrupt; dataset is unavailable.');
         }
@@ -417,7 +440,8 @@ export class BacktestDatasetStore {
                 missingArtifacts.push(row.raw_digest);
                 continue;
             }
-            if (!await this.verifyArtifact(path, row.raw_digest, row.byte_length)) {
+            if (row.relative_path !== artifactRelativePath(row.raw_digest)
+                || !await this.verifyArtifact(path, row.raw_digest, row.byte_length)) {
                 corruptArtifacts.push(row.raw_digest);
             } else {
                 verifiedArtifacts += 1;
@@ -437,7 +461,7 @@ export class BacktestDatasetStore {
         }
         const stagingFiles = (await readdir(join(this.artifactDirectory, '.staging'))).sort();
         return {
-            ok: missingArtifacts.length === 0 && corruptArtifacts.length === 0,
+            ok: missingArtifacts.length === 0 && corruptArtifacts.length === 0 && stagingFiles.length === 0,
             referencedArtifacts: artifactRows.length,
             verifiedArtifacts,
             missingArtifacts,
