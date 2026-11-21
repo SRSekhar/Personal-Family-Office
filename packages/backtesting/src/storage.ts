@@ -592,7 +592,9 @@ export class BacktestDatasetStore {
             throw new Error('Stored dataset has an unknown adjustment basis and is unavailable.');
         }
         const sourceCsv = await readFile(this.artifactPath(row.raw_digest), 'utf8');
-        const reparsed = importBacktestDatasetCsv(sourceCsv, {\n            ...importMetadata, adjustmentBasis: metadata.adjustmentBasis, source: sourceMetadata\n        });
+        const reparsed = importBacktestDatasetCsv(sourceCsv, {
+            ...importMetadata, adjustmentBasis: metadata.adjustmentBasis, source: sourceMetadata
+        });
         if (reparsed.contentDigest !== row.normalized_digest
             || JSON.stringify(reparsed.bars) !== JSON.stringify(loadedBars)) {
             throw new Error('Stored observations do not match the immutable source artifact and normalized content digest.');
