@@ -1,3 +1,14 @@
+## Latest update — 2026-11-21 — IPM-08 UNI-007
+
+Current branch: `feature/ipm-08-backtesting-contracts`; PR #458 remains draft/open/unmerged. Latest head: `aeafb9469747a5903608ec8c620368dfd946f0c3`.
+
+- CI #2080 and Secret Scan #1875 passed on the immediately preceding head `372914443ff841cc382be4cd22df05b8088d2907`.
+- Added acceptance scenario UNI-007: a future engine must resolve universe membership at every strategy decision timestamp using effective-time and decision-time knowledge; later-recorded corrections cannot rewrite earlier decisions. Run-level overlap validation does not meet this requirement.
+- The UNI-007 commit is documentation-only and has not yet reported a CI run. Do not claim it passed checks until GitHub reports that result.
+- No simulation engine, point-in-time projection, dataset persistence, provider adapter or schema migration has been implemented. Storage proposal remains unapproved.
+
+---
+
 # Session Handoff
 
 ## Latest development — Sprint 17 / IPM-08.1 design (in progress)
