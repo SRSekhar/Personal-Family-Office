@@ -1,0 +1,150 @@
+import { createHash } from 'node:crypto';
+import { mkdtemp, mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+
+import { afterEach, describe, expect, it } from 'vitest';
+import { Currency } from '@pfo/models';
+
+import type { BacktestDatasetCsvImportMetadata } from '../src/csv-import.js';
+import { importBacktestDatasetCsv } from '../src/csv-import.js';
+import { BacktestDatasetStore } from '../src/storage.js';
+
+const manifest = '#PFO-BACKTEST-DATASET,1,OHLCV';
+const headers = 'startAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId';
+const first = '2026-01-01T00:00:00.000Z,2026-01-01T10:00:00.000Z,100,110,95,105,1000,2026-01-01T10:05:00.000Z,2026-01-01T11:00:00.000Z,SYN-1';
+const second = '2026-01-02T00:00:00.000Z,2026-01-02T10:00:00.000Z,110,120,108,115,1200,2026-01-02T10:05:00.000Z,2026-01-02T11:00:00.000Z,SYN-1';
+const csv = [manifest, headers, first, second].join('\r\n') + '\r\n';
+const metadata: BacktestDatasetCsvImportMetadata = {
+    id: 'storage-fixture-1',
+    version: 1,
+    instrument: {
+        instrumentId: 'instrument-1', name: 'Synthetic Instrument', currency: Currency.INR,
+        symbol: 'SYN', exchange: 'NSE'
+    },
+    interval: '1d',
+    adjustmentBasis: 'unadjusted',
+    marketTimeZone: 'Asia/Kolkata',
+    source: {
+        kind: 'user-supplied', name: 'Synthetic fixture', licenseName: 'Synthetic fixture terms',
+        licenseStatus: 'reviewed', attributionText: 'Synthetic test data; not live market data.',
+        retrievedAt: '2026-01-01T00:00:00.000Z', licenseReviewedAt: '2026-01-01T00:00:00.000Z',
+        pointInTimeStatus: 'per-observation'
+    },
+    recordedAt: '2026-01-03T12:00:00.000Z',
+    coverage: {
+        startAt: '2025-12-31T00:00:00.000Z', endAt: '2026-01-02T23:59:59.000Z',
+        status: 'complete',
+        expectedBarEndAt: ['2026-01-01T10:00:00.000Z', '2026-01-02T10:00:00.000Z']
+    }
+};
+
+const directories: string[] = [];
+const stores: BacktestDatasetStore[] = [];
+
+async function createStore() {
+    const root = await mkdtemp(join(tmpdir(), 'pfo-backtest-store-'));
+    directories.push(root);
+    const catalogDirectory = join(root, 'catalog');
+    const artifactDirectory = join(root, 'artifacts');
+    await mkdir(catalogDirectory, { recursive: true });
+    const store = new BacktestDatasetStore({
+        catalogPath: join(catalogDirectory, 'datasets.sqlite'),
+        artifactDirectory
+    });
+    stores.push(store);
+    return { store, root, artifactDirectory };
+}
+
+afterEach(async () => {
+    for (const store of stores.splice(0)) store.close();
+    for (const directory of directories.splice(0)) await rm(directory, { recursive: true, force: true });
+});
+
+describe('BacktestDatasetStore', () => {
+    it('persists a validated dataset separately from the household workspace and reloads exact observations', async () => {
+        const { store, root } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        const saved = await store.importDataset(dataset, Buffer.from(csv, 'utf8'));
+
+        expect(saved).toMatchObject({
+            id: dataset.id, version: 1, rawArtifactDigest: createHash('sha256').update(csv).digest('hex'),
+            normalizedContentDigest: dataset.contentDigest, byteLength: Buffer.byteLength(csv), observationCount: 2
+        });
+        expect(await store.loadDataset(dataset.id, 1)).toEqual(dataset);
+        expect(store.listDatasets()).toHaveLength(1);
+        expect(root).not.toBe(process.cwd());
+        expect(await readFile(join(root, 'catalog', 'datasets.sqlite'))).toBeInstanceOf(Buffer);
+        expect(await store.checkIntegrity()).toMatchObject({
+            ok: true, referencedArtifacts: 1, verifiedArtifacts: 1,
+            missingArtifacts: [], corruptArtifacts: [], orphanArtifacts: []
+        });
+    });
+
+    it('deduplicates exact source bytes while preserving separate dataset-version provenance', async () => {
+        const { store } = await createStore();
+        const firstDataset = importBacktestDatasetCsv(csv, metadata);
+        const secondDataset = importBacktestDatasetCsv(csv, {
+            ...metadata, id: 'storage-fixture-2', source: { ...metadata.source, name: 'Second explicit import' }
+        });
+        const firstSaved = await store.importDataset(firstDataset, Buffer.from(csv));
+        const secondSaved = await store.importDataset(secondDataset, Buffer.from(csv));
+
+        expect(secondSaved.rawArtifactDigest).toBe(firstSaved.rawArtifactDigest);
+        expect(store.listDatasets()).toHaveLength(2);
+        expect((await store.checkIntegrity()).referencedArtifacts).toBe(1);
+        expect((await store.loadDataset('storage-fixture-2', 1)).source.name).toBe('Second explicit import');
+    });
+
+    it('refuses to overwrite an existing immutable dataset version', async () => {
+        const { store } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        await store.importDataset(dataset, Buffer.from(csv));
+        await expect(store.importDataset(dataset, Buffer.from(csv))).rejects.toThrow(/unique constraint/i);
+        expect(store.listDatasets()).toHaveLength(1);
+    });
+
+    it('rejects source bytes whose exact digest differs before catalog publication', async () => {
+        const { store } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        await expect(store.importDataset(dataset, Buffer.from(csv + '#tampered'))).rejects.toThrow(/do not match/i);
+        expect(store.listDatasets()).toHaveLength(0);
+    });
+
+    it('reports a missing referenced artifact and blocks loading it', async () => {
+        const { store, artifactDirectory } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        const saved = await store.importDataset(dataset, Buffer.from(csv));
+        const path = join(artifactDirectory, 'sha256', saved.rawArtifactDigest.slice(0, 2),
+            saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv');
+        await unlink(path);
+
+        await expect(store.loadDataset(dataset.id, dataset.version)).rejects.toThrow(/missing or corrupt/i);
+        expect(await store.checkIntegrity()).toMatchObject({
+            ok: false, missingArtifacts: [saved.rawArtifactDigest], corruptArtifacts: []
+        });
+    });
+
+    it('detects unreferenced immutable objects without deleting them', async () => {
+        const { store, artifactDirectory } = await createStore();
+        const orphanBytes = Buffer.from('orphan fixture');
+        const digest = createHash('sha256').update(orphanBytes).digest('hex');
+        const path = join(artifactDirectory, 'sha256', digest.slice(0, 2), digest.slice(2, 4), digest + '.csv');
+        await mkdir(dirname(path), { recursive: true });
+        await writeFile(path, orphanBytes, { flag: 'wx', mode: 0o600 });
+
+        const report = await store.checkIntegrity();
+        expect(report.orphanArtifacts).toEqual([digest]);
+        expect(await readFile(path)).toEqual(orphanBytes);
+    });
+
+    it('rejects relative paths and paths inside the repository', async () => {
+        expect(() => new BacktestDatasetStore({
+            catalogPath: './catalog.sqlite', artifactDirectory: '/tmp/pfo-artifacts'
+        })).toThrow(/absolute/i);
+        expect(() => new BacktestDatasetStore({
+            catalogPath: join(process.cwd(), 'catalog', 'datasets.sqlite'),
+            artifactDirectory: '/tmp/pfo-artifacts'
+        })).toThrow(/outside the repository/i);
+    });
+});
