@@ -917,11 +917,11 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - CI #2056 and Secret Scan #1851 passed on head 05731ffa7f758195aa96da679d05a307d3982180.
 
 ### Next, in dependency order
-1. Review and approve the IPM-08 ADR and decide dataset persistence ownership, backup/restore compatibility and retention semantics.
-2. Only after approval, implement private dataset import preview/confirmation and persistence without touching real investment-ledger collections.
-3. Resolve exchange scope, reviewed trading-calendar source, corporate-action treatment, fill/partial-fill semantics, cost model, tick/lot rules and position constraints.
+1. Harden the approved storage slice: database-level append-only enforcement, crash-injection at file/SQLite boundaries, resource limits, measured performance baselines, retention/licensing policy and application path/configuration.
+2. After those gates, implement private dataset import preview/confirmation and backup/restore UX without touching real investment-ledger collections.
+3. Resolve reviewed trading-calendar source, corporate-action treatment, fill/partial-fill semantics, cost model, tick/lot rules and position constraints. NSE daily OHLCV scope is already approved.
 4. Implement the deterministic engine only after those contracts are approved and acceptance fixtures are executable.
-5. Add run persistence and reporting only after engine accounting and reproducibility acceptance passes.
+5. Add simulated-run persistence and reporting only after engine accounting and reproducibility acceptance passes.
 
 No live provider, broker, live order routing, real-ledger mutation or unapproved default assumptions.
 
