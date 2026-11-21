@@ -5,7 +5,10 @@ import type { BacktestDataset, BacktestDatasetSource, IsoTimestamp } from './con
 import { validateBacktestDataset } from './validation.js';
 
 const MANIFEST = ['#PFO-BACKTEST-DATASET', '1', 'OHLCV'] as const;
-const HEADERS = ['startAt', 'endAt', 'open', 'high', 'low', 'close', 'volume', 'availableAt', 'recordedAt', 'providerInstrumentId'] as const;
+const HEADERS = [
+    'startAt', 'endAt', 'open', 'high', 'low', 'close', 'volume',
+    'availableAt', 'recordedAt', 'providerInstrumentId'
+] as const;
 type CsvBarField = typeof HEADERS[number];
 
 export interface BacktestDatasetCsvImportMetadata {
@@ -41,10 +44,10 @@ function parseCsvRows(source: string): string[][] {
     let closedQuote = false;
 
     for (let index = 0; index < source.length; index += 1) {
-        const character = source[index];
+        const character = source.charAt(index);
         if (quoted) {
             if (character === '"') {
-                if (source[index + 1] === '"') {
+                if (source.charAt(index + 1) === '"') {
                     field += '"';
                     index += 1;
                 } else {
@@ -56,6 +59,7 @@ function parseCsvRows(source: string): string[][] {
             }
             continue;
         }
+
         if (closedQuote) {
             if (character === ',') {
                 row.push(field);
@@ -67,14 +71,19 @@ function parseCsvRows(source: string): string[][] {
                 row = [];
                 field = '';
                 closedQuote = false;
-                if (character === '\r' && source[index + 1] === '\n') index += 1;
+                if (character === '\r' && source.charAt(index + 1) === '\n') {
+                    index += 1;
+                }
             } else {
                 throw new RangeError('CSV contains characters after a closing quote.');
             }
             continue;
         }
+
         if (character === '"') {
-            if (field.length > 0) throw new RangeError('CSV contains a quote inside an unquoted field.');
+            if (field.length > 0) {
+                throw new RangeError('CSV contains a quote inside an unquoted field.');
+            }
             quoted = true;
         } else if (character === ',') {
             row.push(field);
@@ -84,12 +93,17 @@ function parseCsvRows(source: string): string[][] {
             rows.push(row);
             row = [];
             field = '';
-            if (character === '\r' && source[index + 1] === '\n') index += 1;
+            if (character === '\r' && source.charAt(index + 1) === '\n') {
+                index += 1;
+            }
         } else {
             field += character;
         }
     }
-    if (quoted) throw new RangeError('CSV contains an unterminated quoted field.');
+
+    if (quoted) {
+        throw new RangeError('CSV contains an unterminated quoted field.');
+    }
     if (field.length > 0 || row.length > 0 || closedQuote) {
         row.push(field);
         rows.push(row);
@@ -100,18 +114,22 @@ function parseCsvRows(source: string): string[][] {
 function parseNumber(value: string, field: CsvBarField, rowNumber: number): number {
     const normalized = value.trim();
     if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/u.test(normalized)) {
-        throw new RangeError('CSV row ' + rowNumber + ' ' + field + ' must be a plain finite decimal number.');
+        throw new RangeError(['CSV row ', rowNumber, ' ', field, ' must be a plain finite decimal number.'].join(''));
     }
     const parsed = Number(normalized);
-    if (!Number.isFinite(parsed)) throw new RangeError('CSV row ' + rowNumber + ' ' + field + ' must be finite.');
+    if (!Number.isFinite(parsed)) {
+        throw new RangeError(['CSV row ', rowNumber, ' ', field, ' must be finite.'].join(''));
+    }
     return parsed;
 }
 
 function parseTimestamp(value: string, field: CsvBarField, rowNumber: number): IsoTimestamp {
     const normalized = value.trim();
-    if (!normalized) throw new RangeError('CSV row ' + rowNumber + ' ' + field + ' is required.');
+    if (!normalized) {
+        throw new RangeError(['CSV row ', rowNumber, ' ', field, ' is required.'].join(''));
+    }
     if (!Number.isFinite(Date.parse(normalized)) || new Date(normalized).toISOString() !== normalized) {
-        throw new RangeError('CSV row ' + rowNumber + ' ' + field + ' must be a canonical UTC ISO-8601 timestamp.');
+        throw new RangeError(['CSV row ', rowNumber, ' ', field, ' must be a canonical UTC ISO-8601 timestamp.'].join(''));
     }
     return normalized;
 }
@@ -121,11 +139,15 @@ function sha256(value: string): string {
 }
 
 function canonicalize(value: unknown): unknown {
-    if (Array.isArray(value)) return value.map(canonicalize);
+    if (Array.isArray(value)) {
+        return value.map(canonicalize);
+    }
     if (value !== null && typeof value === 'object') {
         const record = value as Record<string, unknown>;
         return Object.fromEntries(
-            Object.keys(record).sort().filter((key) => record[key] !== undefined)
+            Object.keys(record)
+                .sort()
+                .filter((key) => record[key] !== undefined)
                 .map((key) => [key, canonicalize(record[key])])
         );
     }
@@ -134,17 +156,30 @@ function canonicalize(value: unknown): unknown {
 
 function parseBar(columns: readonly string[], rowNumber: number): ParsedCsvBar {
     if (columns.length !== HEADERS.length) {
-        throw new RangeError('CSV row ' + rowNumber + ' has ' + columns.length + ' columns; expected ' + HEADERS.length + '.');
+        throw new RangeError([
+            'CSV row ', rowNumber, ' has ', columns.length, ' columns; expected ', HEADERS.length, '.'
+        ].join(''));
     }
-    const [rawStartAt, rawEndAt, rawOpen, rawHigh, rawLow, rawClose, rawVolume, rawAvailableAt, rawRecordedAt, rawProviderInstrumentId] = columns;
+
+    const [
+        rawStartAt, rawEndAt, rawOpen, rawHigh, rawLow, rawClose,
+        rawVolume, rawAvailableAt, rawRecordedAt, rawProviderInstrumentId
+    ] = columns;
+
     if (rawStartAt === undefined || rawEndAt === undefined || rawOpen === undefined || rawHigh === undefined
         || rawLow === undefined || rawClose === undefined || rawVolume === undefined || rawAvailableAt === undefined
         || rawRecordedAt === undefined || rawProviderInstrumentId === undefined) {
-        throw new RangeError('CSV row ' + rowNumber + ' is incomplete.');
+        throw new RangeError(['CSV row ', rowNumber, ' is incomplete.'].join(''));
     }
+
     const volume = rawVolume.trim() === '' ? undefined : parseNumber(rawVolume, 'volume', rowNumber);
-    const availableAt = rawAvailableAt.trim() === '' ? undefined : parseTimestamp(rawAvailableAt, 'availableAt', rowNumber);
-    const providerInstrumentId = rawProviderInstrumentId.trim() === '' ? undefined : rawProviderInstrumentId.trim();
+    const availableAt = rawAvailableAt.trim() === ''
+        ? undefined
+        : parseTimestamp(rawAvailableAt, 'availableAt', rowNumber);
+    const providerInstrumentId = rawProviderInstrumentId.trim() === ''
+        ? undefined
+        : rawProviderInstrumentId.trim();
+
     return {
         startAt: parseTimestamp(rawStartAt, 'startAt', rowNumber),
         endAt: parseTimestamp(rawEndAt, 'endAt', rowNumber),
@@ -187,12 +222,16 @@ export function importBacktestDatasetCsv(
     sourceCsv: string,
     metadata: BacktestDatasetCsvImportMetadata
 ): BacktestDataset {
-    if (typeof sourceCsv !== 'string' || sourceCsv.trim() === '') throw new RangeError('Backtest dataset CSV is empty.');
+    if (typeof sourceCsv !== 'string' || sourceCsv.trim() === '') {
+        throw new RangeError('Backtest dataset CSV is empty.');
+    }
+
     const rows = parseCsvRows(sourceCsv.replace(/^\uFEFF/u, ''));
     if (rows.length < 3 || rows[0]?.length !== MANIFEST.length
         || !MANIFEST.every((value, index) => rows[0]?.[index] === value)) {
         throw new RangeError('CSV manifest must be #PFO-BACKTEST-DATASET,1,OHLCV.');
     }
+
     const headers = rows[1];
     if (!headers || headers.length !== HEADERS.length
         || headers.some((value, index) => value !== HEADERS[index])
@@ -201,7 +240,9 @@ export function importBacktestDatasetCsv(
     }
 
     const bars = rows.slice(2).map((columns, index) => parseBar(columns, index + 3));
-    if (bars.length === 0) throw new RangeError('Backtest dataset CSV contains no observations.');
+    if (bars.length === 0) {
+        throw new RangeError('Backtest dataset CSV contains no observations.');
+    }
 
     const sourceMetadata: BacktestDatasetSource = {
         ...metadata.source,
@@ -240,15 +281,17 @@ export function importBacktestDatasetCsv(
             recordedAt: bar.recordedAt
         }))
     };
+
     const dataset: BacktestDataset = {
         ...datasetWithoutDigest,
         contentDigest: normalizedDatasetDigest(datasetWithoutDigest)
     };
+
     try {
         validateBacktestDataset(dataset);
     } catch (error) {
         const detail = error instanceof Error ? error.message : 'Unknown dataset validation failure.';
-        throw new RangeError('Imported backtest dataset failed validation: ' + detail);
+        throw new RangeError(['Imported backtest dataset failed validation: ', detail].join(''), { cause: error });
     }
     return dataset;
 }
