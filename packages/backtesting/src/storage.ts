@@ -39,6 +39,7 @@ export interface BacktestStorageIntegrityReport {
     readonly verifiedArtifacts: number;
     readonly missingArtifacts: readonly string[];
     readonly corruptArtifacts: readonly string[];
+    readonly catalogErrors: readonly string[];
     readonly orphanArtifacts: readonly string[];
     readonly stagingFiles: readonly string[];
 }
@@ -584,6 +585,7 @@ export class BacktestDatasetStore {
         const referenced = new Set(artifactRows.map((row) => row.raw_digest));
         const missingArtifacts: string[] = [];
         const corruptArtifacts: string[] = [];
+        const catalogErrors: string[] = [];
         let verifiedArtifacts = 0;
         for (const row of artifactRows) {
             const path = this.artifactPath(row.raw_digest);
@@ -601,6 +603,24 @@ export class BacktestDatasetStore {
             }
         }
 
+        const integrityRows = this.database.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>;
+        if (integrityRows.length !== 1 || integrityRows[0]?.integrity_check !== 'ok') {
+            catalogErrors.push('SQLite integrity_check failed.');
+        }
+        const foreignKeyErrors = this.database.prepare('PRAGMA foreign_key_check').all();
+        if (foreignKeyErrors.length > 0) catalogErrors.push('SQLite foreign-key check failed.');
+        const datasetVersions = this.database.prepare(
+            'SELECT dataset_id, version FROM dataset_versions ORDER BY dataset_id, version'
+        ).all() as unknown as Array<{ dataset_id: string; version: number }>;
+        for (const version of datasetVersions) {
+            try {
+                await this.loadDataset(version.dataset_id, version.version);
+            } catch (error) {
+                const detail = error instanceof Error ? error.message : 'Unknown catalog validation error.';
+                catalogErrors.push(version.dataset_id + '@' + version.version + ': ' + detail);
+            }
+        }
+
         const orphanArtifacts: string[] = [];
         const digestRoot = join(this.artifactDirectory, 'sha256');
         for (const first of await safeDirectories(digestRoot)) {
@@ -614,11 +634,12 @@ export class BacktestDatasetStore {
         }
         const stagingFiles = (await readdir(join(this.artifactDirectory, '.staging'))).sort();
         return {
-            ok: missingArtifacts.length === 0 && corruptArtifacts.length === 0 && stagingFiles.length === 0,
+            ok: missingArtifacts.length === 0 && corruptArtifacts.length === 0\n                && catalogErrors.length === 0 && stagingFiles.length === 0,
             referencedArtifacts: artifactRows.length,
             verifiedArtifacts,
             missingArtifacts,
             corruptArtifacts,
+            catalogErrors,
             orphanArtifacts: orphanArtifacts.sort(),
             stagingFiles
         };
