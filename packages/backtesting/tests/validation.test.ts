@@ -243,7 +243,7 @@ describe('backtesting contracts', () => {
             validateBacktestRunConfiguration(configuration, {
                 datasets: [{ ...dataset, instrument: { ...dataset.instrument, exchange: 'BSE' } }],
                 universe,
-                calendar: { ...calendar, exchange: 'BSE' }
+                calendar
             });
         }).toThrow(/NSE instruments only/i);
 
