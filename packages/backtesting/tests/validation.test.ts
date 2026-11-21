@@ -254,6 +254,38 @@ describe('backtesting contracts', () => {
         })).toThrow(/NSE daily \(1d\)/i);
     });
 
+    it('rejects out-of-scope instruments and intervals in later selected datasets', () => {
+        const secondDataset: BacktestDataset = {
+            ...dataset,
+            id: 'dataset-2',
+            instrument: { ...dataset.instrument, instrumentId: 'instrument-2', exchange: 'BSE' },
+            bars: dataset.bars.map((bar) => ({ ...bar, instrumentId: 'instrument-2' }))
+        };
+        const twoDatasetConfiguration = { ...configuration, datasetIds: ['dataset-1', 'dataset-2'] };
+
+        expect(() => {
+            validateBacktestRunConfiguration(twoDatasetConfiguration, {
+                datasets: [dataset, secondDataset],
+                universe,
+                calendar
+            });
+        }).toThrow(/NSE instruments only/i);
+
+        const intradayDataset: BacktestDataset = {
+            ...secondDataset,
+            instrument: { ...secondDataset.instrument, exchange: 'NSE' },
+            interval: '1h',
+            bars: secondDataset.bars.map((bar) => ({ ...bar, interval: '1h' }))
+        };
+        expect(() => {
+            validateBacktestRunConfiguration(twoDatasetConfiguration, {
+                datasets: [dataset, intradayDataset],
+                universe,
+                calendar
+            });
+        }).toThrow(/daily \(1d\) OHLCV only/i);
+    });
+
     it('requires the selected calendar interval and timezone to match every dataset', () => {
         expect(() => {
             validateBacktestRunConfiguration(configuration, { datasets: [dataset], universe, calendar: { ...calendar, interval: '1w' } });
