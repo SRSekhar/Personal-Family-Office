@@ -216,6 +216,38 @@ describe('backtesting contracts', () => {
         }).toThrow(/bitemporal/i);
     });
 
+    it('rejects point-in-time universe memberships outside the requested window', () => {
+        const futureMembershipUniverse: BacktestUniverse = {
+            ...universe,
+            memberships: [{
+                ...universe.memberships[0]!,
+                effectiveFrom: '2027-01-01T00:00:00.000Z'
+            }]
+        };
+        expect(() => {
+            validateBacktestRunConfiguration(configuration, {
+                datasets: [dataset],
+                universe: futureMembershipUniverse,
+                calendar
+            });
+        }).toThrow(/membership evidence overlapping the requested window/i);
+
+        const expiredMembershipUniverse: BacktestUniverse = {
+            ...universe,
+            memberships: [{
+                ...universe.memberships[0]!,
+                effectiveTo: '2025-12-31T00:00:00.000Z'
+            }]
+        };
+        expect(() => {
+            validateBacktestRunConfiguration(configuration, {
+                datasets: [dataset],
+                universe: expiredMembershipUniverse,
+                calendar
+            });
+        }).toThrow(/membership evidence overlapping the requested window/i);
+    });
+
     it('requires explicit ordered trading calendar sessions', () => {
         expect(() => {
             validateBacktestTradingCalendar(calendar);
