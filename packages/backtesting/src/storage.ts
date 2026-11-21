@@ -705,7 +705,7 @@ export class BacktestDatasetStore {
             };
             const manifestHandle = await open(join(stagingDirectory, 'manifest.json'), 'wx', 0o600);
             try {
-                await manifestHandle.writeFile(JSON.stringify(manifest, null, 2) + '\\n', 'utf8');
+                await manifestHandle.writeFile(JSON.stringify(manifest, null, 2) + '\n', 'utf8');
                 await manifestHandle.sync();
             } finally {
                 await manifestHandle.close();
