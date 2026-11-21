@@ -1,3 +1,13 @@
+## 2026-11-21 — IPM-08 point-in-time acceptance hardening
+
+- [x] Add UNI-007 acceptance for decision-time bitemporal universe projection, including mid-run membership changes and retroactive corrections.
+- [ ] Implement and independently test per-decision universe resolution only after the engine slice is approved; run-level overlap evidence is not sufficient.
+- [ ] Review/approve the proposed separate SQLite dataset catalog and immutable artifact-store design before persistence implementation.
+- [ ] Resolve calendar source, instrument segment/universe, adjustment/corporate-action semantics, fill/liquidity/cost assumptions and quantity rules before engine behavior is implemented.
+- PR #458 remains draft/open. CI #2080 and Secret Scan #1875 passed on prior head `372914443ff841cc382be4cd22df05b8088d2907`; the latest documentation-only head still awaits checks.
+
+---
+
 # Product Backlog
 
 ## 2026-11-15 — Sprint 17 / IPM-08.1 architecture proposal in progress
