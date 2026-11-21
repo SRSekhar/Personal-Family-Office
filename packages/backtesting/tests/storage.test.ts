@@ -128,6 +128,10 @@ describe('BacktestDatasetStore', () => {
             connection.close();
         }
         await expect(store.loadDataset(dataset.id, dataset.version)).rejects.toThrow(/do not match the immutable source/i);
+        expect(await store.checkIntegrity()).toMatchObject({
+            ok: false,
+            catalogErrors: expect.arrayContaining([expect.stringMatching(/do not match the immutable source/i)])
+        });
     });
 
     it('reports a missing referenced artifact and blocks loading it', async () => {
