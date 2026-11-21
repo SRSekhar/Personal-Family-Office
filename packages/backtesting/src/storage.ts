@@ -575,6 +575,9 @@ export class BacktestDatasetStore {
             throw new Error('Backtest dataset source artifact is missing or corrupt; dataset is unavailable.');
         }
         const metadata = JSON.parse(row.metadata_json) as DatasetMetadata;
+        if (metadata.source.contentDigest !== row.raw_digest) {
+            throw new Error('Stored source digest metadata does not match its catalog artifact reference.');
+        }
         const bars = this.database.prepare(`
             SELECT instrument_id, provider_instrument_id, interval, start_at, end_at,
                    open_price, high_price, low_price, close_price, currency, volume,
