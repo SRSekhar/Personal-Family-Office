@@ -288,10 +288,14 @@ describe('backtesting contracts', () => {
         }).toThrow(/daily \(1d\) OHLCV only/i);
     });
 
-    it('requires the selected calendar interval and timezone to match every dataset', () => {
+    it('requires the selected calendar timezone to match every dataset', () => {
         expect(() => {
-            validateBacktestRunConfiguration(configuration, { datasets: [dataset], universe, calendar: { ...calendar, interval: '1w' } });
-        }).toThrow(/same interval/i);
+            validateBacktestRunConfiguration(configuration, {
+                datasets: [dataset],
+                universe,
+                calendar: { ...calendar, marketTimeZone: 'UTC' }
+            });
+        }).toThrow(/same interval, timezone and adjustment basis/i);
     });
 
     it('validates all run references and refuses cross-currency or implicit execution assumptions', () => {
