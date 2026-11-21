@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { cp, mkdtemp, mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
