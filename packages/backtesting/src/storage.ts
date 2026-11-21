@@ -132,6 +132,22 @@ function toMetadata(dataset: BacktestDataset): DatasetMetadata {
     return metadata;
 }
 
+function parseCurrency(value: string): Currency {
+    switch (value) {
+        case Currency.INR: return Currency.INR;
+        case Currency.USD: return Currency.USD;
+        case Currency.EUR: return Currency.EUR;
+        case Currency.GBP: return Currency.GBP;
+        case Currency.AED: return Currency.AED;
+        case Currency.SGD: return Currency.SGD;
+        case Currency.JPY: return Currency.JPY;
+        case Currency.AUD: return Currency.AUD;
+        case Currency.CAD: return Currency.CAD;
+        case Currency.CHF: return Currency.CHF;
+        default: throw new RangeError('Stored dataset contains an unsupported currency.');
+    }
+}
+
 function mapBar(row: StoredBarRecord): BacktestBarObservation {
     return {
         instrumentId: row.instrument_id,
@@ -143,7 +159,7 @@ function mapBar(row: StoredBarRecord): BacktestBarObservation {
         high: row.high_price,
         low: row.low_price,
         close: row.close_price,
-        currency: row.currency as Currency,
+        currency: parseCurrency(row.currency),
         ...(row.volume === null ? {} : { volume: row.volume }),
         adjustmentBasis: row.adjustment_basis as BacktestBarObservation['adjustmentBasis'],
         marketTimeZone: row.market_time_zone,
@@ -624,7 +640,7 @@ export class BacktestDatasetStore {
                 await this.loadDataset(version.dataset_id, version.version);
             } catch (error) {
                 const detail = error instanceof Error ? error.message : 'Unknown catalog validation error.';
-                catalogErrors.push(`${version.dataset_id}@${version.version}: ${detail}`);
+                catalogErrors.push(`${version.dataset_id}@${String(version.version)}: ${detail}`);
             }
         }
 
