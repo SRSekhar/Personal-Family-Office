@@ -1,3 +1,12 @@
+## 2026-11-21 — IPM-08 decision-time data visibility
+
+- Added TIME-007 to the acceptance contract: a historical bar recorded before the run-wide recorded-at cutoff is still invisible to a strategy decision when its evidenced `availableAt` is later than that decision timestamp.
+- This separates reproducibility against PFO's recorded knowledge state from prevention of market-information look-ahead at each strategy decision.
+- Added after UNI-007; PR #458 remains draft/open. This is an acceptance-only change, not an engine implementation.
+- The prior head `9fee14a412e6b03b532b1a253ee692b49e420ea2` had successful CI #2080 and Secret Scan #1875. The current acceptance/documentation head requires its own checks.
+
+---
+
 ## 2026-11-21 — IPM-08 decision-time universe acceptance follow-up
 
 - PR #458 head `aeafb9469747a5903608ec8c620368dfd946f0c3` passes the latest observed CI #2080 and Secret Scan #1875 (both completed successfully on the prior code head `372914443ff841cc382be4cd22df05b8088d2907`). The acceptance-only follow-up has triggered no workflow run yet; verify its checks before claiming it is validated.
