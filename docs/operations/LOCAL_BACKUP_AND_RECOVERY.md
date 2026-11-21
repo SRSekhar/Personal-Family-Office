@@ -66,7 +66,7 @@ If automatic SQLite save is paused after retry exhaustion, do not assume the lat
 6. Save the restored workspace to SQLite and wait for a successful save.
 7. Export a fresh backup from the destination device and retain it as the new recovery point.
 
-Schema-v10 backups preserve all 20 collections. Legacy JSON schemas v1–v9 remain importable. When a legacy backup omits newer investment policy/classification collections, PFO OS preserves existing history only if its references remain valid against the resulting investment ledger and classifications. If references would become invalid, the import is rejected before any workspace write; the application does not silently discard or carry invalid policy history.
+Schema-v13 backups preserve all 20 collections. Legacy JSON schemas v1–v9 remain importable. When a legacy backup omits newer investment policy, classification, drawdown, calendar or statement-evidence collections, PFO OS applies the documented compatibility rules and does not fabricate missing history. If references would become invalid, the import is rejected before any workspace write; the application does not silently discard or carry invalid policy history.
 
 If import is rejected, preserve the rejected file for diagnosis. Do not repeatedly overwrite the current workspace or manually edit the JSON to bypass validation. Use another known-good export if available.
 
@@ -79,10 +79,10 @@ The SQLite workspace migrations are transactional and preserve existing collecti
 - v6→v7: allocation policy history; starts empty and writes a pre-v7 recovery artifact.
 - v7→v8: concentration policy history; starts empty and writes a pre-v8 recovery artifact.
 - v8→v9: weighted exposure classifications; starts empty and writes a pre-v9 recovery artifact. No instrument classifications are inferred.
-- v9→v10: user-defined exposure policy history; starts empty and writes a pre-v10 recovery artifact.
+- v9→v10: user-defined exposure policy history; starts empty and writes a pre-v10 recovery artifact. No thresholds, comparators or policy sets are inferred.
 - v10→v11: flow-adjusted drawdown snapshots; starts empty and writes a pre-v11 recovery artifact.
-- v11→v12: explicit drawdown calendars; starts empty and writes a pre-v12 recovery artifact.
-- v12→v13: broker transaction/holdings statement evidence; starts empty and writes a pre-v13 recovery artifact. No thresholds, comparators or policy sets are inferred.
+- v11→v12: explicit drawdown calendars; starts empty and writes a pre-v12 recovery artifact. No market sessions are inferred.
+- v12→v13: transaction and holdings statement evidence; starts empty and writes a pre-v13 recovery artifact. No broker history is inferred.
 
 Each pre-migration JSON artifact is created before the schema transaction changes the live snapshot. On failure, the migration transaction rolls back. Keep recovery artifacts until the migrated workspace and a fresh portable backup have been verified.
 
