@@ -36,6 +36,7 @@ The first implementation slice accepts NSE daily OHLCV datasets only. A dataset 
 | TIME-004 | A later revision to an earlier fundamental is recorded after the cutoff | Preserve revision history; earlier run cannot see it. |
 | TIME-005 | Strategy callback attempts to inspect future observations | Strategy context must not contain future bars; test harness proves only the eligible prefix is supplied. |
 | TIME-006 | Signal is produced at a bar close | Earliest proposed fill is the next eligible bar open; same-bar close fill is prohibited. |
+| TIME-007 | A bar is already recorded before the run's global cutoff but its evidenced `availableAt` is later than a particular strategy decision timestamp | The bar remains unavailable to that decision until its availability timestamp; a global recorded-at cutoff must not leak future market information into an earlier decision. |
 
 ## C. Universe and survivorship
 
