@@ -561,7 +561,16 @@ export class BacktestDatasetStore {
         if (bars.length !== row.observation_count) {
             throw new Error('Backtest dataset observation count does not match its immutable catalog manifest.');
         }
-        const dataset: BacktestDataset = { ...metadata, contentDigest: row.normalized_digest, bars: bars.map(mapBar) };
+        const loadedBars = bars.map(mapBar);
+        const { contentDigest: _normalizedDigest, source, ...importMetadata } = metadata;
+        const { contentDigest: _rawDigest, ...sourceMetadata } = source;
+        const sourceCsv = await readFile(this.artifactPath(row.raw_digest), 'utf8');
+        const reparsed = importBacktestDatasetCsv(sourceCsv, { ...importMetadata, source: sourceMetadata });
+        if (reparsed.contentDigest !== row.normalized_digest
+            || JSON.stringify(reparsed.bars) !== JSON.stringify(loadedBars)) {
+            throw new Error('Stored observations do not match the immutable source artifact and normalized content digest.');
+        }
+        const dataset: BacktestDataset = { ...metadata, contentDigest: row.normalized_digest, bars: loadedBars };
         validateBacktestDataset(dataset);
         return dataset;
     }
