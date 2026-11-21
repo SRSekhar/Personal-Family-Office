@@ -239,7 +239,7 @@ describe('backtesting contracts', () => {
         const expiredMembershipUniverse: BacktestUniverse = {
             ...universe,
             memberships: [{
-                ...universe.memberships[0]!,
+                ...universeMembership,
                 effectiveTo: '2025-12-31T00:00:00.000Z'
             }]
         };
