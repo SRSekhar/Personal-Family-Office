@@ -1,11 +1,15 @@
 # IPM-08 — Backtesting Contract and Acceptance Scenarios
 
 - **Status:** Proposed acceptance contract; dataset contracts/validation and offline CSV ingestion are implemented, but no simulation engine is implemented.
-- **Date:** 2026-11-15
+- **Date:** 2026-11-21
+- **Approved first-release scope:** NSE-focused daily OHLCV. BSE and intraday intervals are deferred. Provider, instrument segment/universe, adjustment basis, calendar source and execution/cost assumptions remain unapproved until separately reviewed.
 - **Related ADR:** `ADR-IPM-08-BACKTESTING-ARCHITECTURE.md`
 - **Test data policy:** all fixtures must be synthetic and clearly labeled. Never use fabricated fixtures as evidence of live-market behavior.
 
-## A. Historical dataset validation
+## A. Initial release scope and historical dataset validation
+
+The first implementation slice accepts NSE daily OHLCV datasets only. A dataset must identify its exchange and interval explicitly; an NSE dataset with a non-daily interval, or a non-NSE dataset in the first-release workflow, must be rejected as out of scope rather than silently coerced. The underlying contracts remain exchange- and interval-aware so BSE and intraday can be added through later, separately accepted increments. This scope decision does not authorize any particular provider or instrument universe.
+
 
 | ID | Scenario | Required outcome |
 |---|---|---|
