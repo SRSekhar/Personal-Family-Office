@@ -2,6 +2,8 @@
 
 Point-in-time backtesting domain contracts and validation for PFO OS.
 
+The approved first-release market-data scope is NSE-focused daily OHLCV. BSE and intraday intervals are deferred to later increments. This does not select a market-data provider or authorize an instrument universe.
+
 This package defines validated historical datasets, bitemporal universe membership, explicit trading calendars, strategy/version descriptors, execution and cost assumptions, and run-configuration checks. It also provides a strict PFO-native OHLCV CSV importer that binds source rows to explicitly supplied instrument, provenance, coverage and knowledge-time metadata.
 
 The CSV importer uses this exact file structure:
