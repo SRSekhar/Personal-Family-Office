@@ -376,15 +376,12 @@ export function validateBacktestRunConfiguration(
             throw new RangeError('All backtest instruments must use the run currency; FX is not supported.');
         }
         if (dataset.interval !== first.interval || dataset.marketTimeZone !== first.marketTimeZone
-            || dataset.adjustmentBasis !== first.adjustmentBasis || context.calendar.interval !== dataset.interval
+            || dataset.adjustmentBasis !== first.adjustmentBasis
             || context.calendar.marketTimeZone !== dataset.marketTimeZone) {
             throw new RangeError('All selected datasets must use the same interval, timezone and adjustment basis.');
         }
         if (dataset.source.licenseStatus !== 'reviewed') {
             throw new RangeError('Dataset license must be reviewed before backtest execution.');
-        }
-        if (dataset.instrument.exchange !== context.calendar.exchange) {
-            throw new RangeError('Dataset exchange must match the selected trading calendar.');
         }
         const expected = new Set(context.calendar.coverage.expectedBarEndAt);
         if (dataset.bars.some((bar) => !expected.has(bar.endAt))) {
