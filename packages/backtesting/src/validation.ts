@@ -402,9 +402,16 @@ export function validateBacktestRunConfiguration(
         if (!context.universe.pointInTimeComplete) {
             throw new RangeError('Point-in-time universe selection requires complete bitemporal membership evidence.');
         }
-        const memberInstrumentIds = new Set(context.universe.memberships.filter((item) => item.status === 'included').map((item) => item.instrumentId));
+        const memberInstrumentIds = new Set(context.universe.memberships
+            .filter((item) => item.status === 'included'
+                && item.effectiveFrom <= configuration.endAt
+                && (item.effectiveTo === undefined || item.effectiveTo > configuration.startAt)
+                && item.recordedAt <= configuration.recordedAtCutoff
+                && item.availableAt !== undefined
+                && item.availableAt <= configuration.recordedAtCutoff)
+            .map((item) => item.instrumentId));
         if (selected.some((dataset) => !memberInstrumentIds.has(dataset.instrument.instrumentId))) {
-            throw new RangeError('Every selected dataset instrument must have explicit included universe membership evidence.');
+            throw new RangeError('Every selected dataset instrument must have point-in-time included membership evidence overlapping the requested window.');
         }
     } else if (universeSelection === 'static-exploratory') {
         if (!configuration.survivorshipBiasAcknowledged) {
