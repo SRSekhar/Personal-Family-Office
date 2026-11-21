@@ -351,6 +351,13 @@ export function validateBacktestRunConfiguration(
     if (!first) {
         throw new RangeError('At least one backtest dataset must be selected.');
     }
+
+    if (first.instrument.exchange !== 'NSE') {
+        throw new RangeError('The first backtesting release accepts NSE instruments only.');
+    }
+    if (first.interval !== '1d' || context.calendar.exchange !== 'NSE' || context.calendar.interval !== '1d') {
+        throw new RangeError('The first backtesting release accepts NSE daily (1d) datasets and calendars only.');
+    }
     for (const dataset of selected) {
         validateBacktestDataset(dataset);
         if (!configuration.datasetIds.includes(dataset.id)) {
