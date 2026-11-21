@@ -1,6 +1,7 @@
 # ADR — Point-in-Time Backtesting Architecture
 
 - **Status:** Proposed — architecture and acceptance-contract phase only; no simulation engine or provider integration is authorized by this ADR.
+- **Approved first-release data scope (2026-11-21):** NSE-focused daily OHLCV. BSE support and intraday intervals are later extensions, not part of the first release. This decision does not select a provider, instrument segment/universe, adjustment basis, calendar source or execution/cost policy.
 - **Date:** 2026-11-15
 - **Workstream:** IPM-08
 - **Depends on:** `@pfo/market-data`, investment ledger/FIFO projection, investment cash ledger/reconciliation, XIRR, flow-adjusted drawdown and statement evidence.
@@ -21,6 +22,8 @@ The following existing contracts are authoritative and must be reused rather tha
 No historical data provider, API, exchange entitlement, commercial data license, authentication method or point-in-time vendor guarantee has been approved.
 
 ## 2. Decision proposal
+
+**Initial market-data scope:** NSE-focused daily OHLCV only. The first release is designed around daily bars for NSE instruments. BSE coverage and intraday intervals are explicitly deferred to later increments; the contracts should retain exchange/interval identity so those extensions do not require weakening dataset validation. The user's scope approval does not imply approval of a particular data provider, instrument segment, constituent universe, adjustment basis, calendar source, corporate-action policy or fill/cost assumptions.
 
 Create a separate `@pfo/backtesting` domain package. It will consume normalized historical data and existing deterministic calculators, but it will not be a new financial-ledger implementation.
 
@@ -149,8 +152,8 @@ Backtest results are research/simulation evidence, not a forecast or a guarantee
 
 The following must be resolved by contract review and acceptance evidence, not guessed in code:
 
-1. Initial instrument and exchange scope; whether the first release is NSE-only or supports other exchanges.
-2. Supported intervals and whether daily bars are the only initial execution interval.
+1. **Resolved:** first release is NSE-focused and daily OHLCV only. BSE and intraday intervals are deferred.
+2. Instrument segment, initial universe and instrument eligibility rules.
 3. Eligible adjustment basis and corporate-action event coverage/semantics.
 4. Trading-calendar source and how calendar revisions are captured.
 5. Market-order fill timing, volume participation, partial-fill and unfilled-order behavior.
@@ -158,5 +161,6 @@ The following must be resolved by contract review and acceptance evidence, not g
 7. Instrument lot-size, tick-size, fractional-quantity and short-position policies.
 8. Benchmark selection and risk-free-rate assumptions for any risk-adjusted metric.
 9. Historical dataset retention, licensing evidence and privacy/storage requirements.
+10. Historical data provider and permitted source/licensing terms.
 
 No engine, provider or persistent schema change should be implemented until the required decisions for its slice are accepted.
