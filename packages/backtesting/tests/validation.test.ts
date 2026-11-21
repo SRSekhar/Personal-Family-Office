@@ -247,11 +247,13 @@ describe('backtesting contracts', () => {
             });
         }).toThrow(/NSE instruments only/i);
 
-        expect(() => validateBacktestRunConfiguration(configuration, {
-            datasets: [{ ...dataset, interval: '1h' }],
-            universe,
-            calendar: { ...calendar, interval: '1h' }
-        })).toThrow(/NSE daily \(1d\)/i);
+        expect(() => {
+            validateBacktestRunConfiguration(configuration, {
+                datasets: [{ ...dataset, interval: '1h' }],
+                universe,
+                calendar
+            });
+        }).toThrow(/daily \(1d\) OHLCV only/i);
     });
 
     it('rejects out-of-scope instruments and intervals in later selected datasets', () => {
