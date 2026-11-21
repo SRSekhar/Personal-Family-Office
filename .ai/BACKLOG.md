@@ -1,3 +1,13 @@
+## 2026-11-21 — IPM-08 decision-time visibility hardening
+
+- [x] Add TIME-007 for observation availability later than a strategy decision despite earlier PFO recording.
+- [x] Add UNI-007 for bitemporal universe changes and corrections during a run.
+- [ ] Future engine must apply decision-time eligibility to each bar and membership fact; run-level cutoff/overlap checks are only preconditions.
+- [ ] Approve the separate SQLite catalog/artifact-store proposal and close storage-format, scale, licensing and backup/restore decisions before persistence implementation.
+- PR #458 remains draft/open; prior head `9fee14a412e6b03b532b1a253ee692b49e420ea2` passed CI #2080 and Secret Scan #1875. Latest acceptance head awaits checks.
+
+---
+
 ## 2026-11-21 — IPM-08 point-in-time acceptance hardening
 
 - [x] Add UNI-007 acceptance for decision-time bitemporal universe projection, including mid-run membership changes and retroactive corrections.
