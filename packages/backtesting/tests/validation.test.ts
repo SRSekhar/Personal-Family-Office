@@ -76,6 +76,10 @@ const universe: BacktestUniverse = {
         sourceEvidenceId: 'synthetic-evidence-1'
     }]
 };
+const universeMembership = universe.memberships[0];
+if (!universeMembership) {
+    throw new Error('Synthetic backtesting fixture requires a universe membership.');
+}
 const calendar: BacktestTradingCalendar = {
     id: 'calendar-1',
     version: 1,
@@ -220,7 +224,7 @@ describe('backtesting contracts', () => {
         const futureMembershipUniverse: BacktestUniverse = {
             ...universe,
             memberships: [{
-                ...universe.memberships[0]!,
+                ...universeMembership,
                 effectiveFrom: '2027-01-01T00:00:00.000Z'
             }]
         };
