@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { DatabaseSync } from 'node:sqlite';
 import { dirname, join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
@@ -109,6 +110,22 @@ describe('BacktestDatasetStore', () => {
         const dataset = importBacktestDatasetCsv(csv, metadata);
         await expect(store.importDataset(dataset, Buffer.from(csv + '#tampered'))).rejects.toThrow(/do not match/i);
         expect(store.listDatasets()).toHaveLength(0);
+    });
+
+    it('rejects catalog observations that no longer match the immutable CSV source', async () => {
+        const { store, root } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        await store.importDataset(dataset, Buffer.from(csv));
+        const connection = new DatabaseSync(join(root, 'catalog', 'datasets.sqlite'));
+        try {
+            connection.prepare(`
+                UPDATE dataset_bars SET close_price = ?
+                WHERE dataset_id = ? AND dataset_version = ? AND end_at = ?
+            `).run(106, dataset.id, dataset.version, dataset.bars[0]?.endAt);
+        } finally {
+            connection.close();
+        }
+        await expect(store.loadDataset(dataset.id, dataset.version)).rejects.toThrow(/do not match the immutable source/i);
     });
 
     it('reports a missing referenced artifact and blocks loading it', async () => {
