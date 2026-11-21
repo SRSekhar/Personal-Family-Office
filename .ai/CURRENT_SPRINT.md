@@ -1,3 +1,11 @@
+## 2026-11-21 — IPM-08 decision-time universe acceptance follow-up
+
+- PR #458 head `aeafb9469747a5903608ec8c620368dfd946f0c3` passes the latest observed CI #2080 and Secret Scan #1875 (both completed successfully on the prior code head `372914443ff841cc382be4cd22df05b8088d2907`). The acceptance-only follow-up has triggered no workflow run yet; verify its checks before claiming it is validated.
+- Added acceptance scenario UNI-007: future engine must resolve inclusion, exclusion, delisting and retroactive corrections at every strategy decision using effective time and information available by that decision cutoff. Run-level membership overlap is insufficient.
+- PR #458 remains draft/open. No engine, per-decision projection, persistence, provider or schema migration is authorized by this documentation change.
+
+---
+
 # Current Sprint
 
 ## Sprint 16 — Integration and consolidation (2026-11-15)
