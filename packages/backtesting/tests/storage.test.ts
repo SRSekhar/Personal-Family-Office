@@ -43,7 +43,7 @@ const metadata: BacktestDatasetCsvImportMetadata = {
 const directories: string[] = [];
 const stores: BacktestDatasetStore[] = [];
 
-async function createStore() {
+async function createStore(): Promise<{ store: BacktestDatasetStore; root: string; artifactDirectory: string }> {
     const root = await mkdtemp(join(tmpdir(), 'pfo-backtest-store-'));
     directories.push(root);
     const catalogDirectory = join(root, 'catalog');
@@ -58,8 +58,8 @@ async function createStore() {
 }
 
 afterEach(async () => {
-    for (const store of stores.splice(0)) store.close();
-    for (const directory of directories.splice(0)) await rm(directory, { recursive: true, force: true });
+    for (const store of stores.splice(0)) {\n        store.close();\n    }
+    for (const directory of directories.splice(0)) {\n        await rm(directory, { recursive: true, force: true });\n    }
 });
 
 describe('BacktestDatasetStore', () => {
@@ -119,7 +119,7 @@ describe('BacktestDatasetStore', () => {
         const connection = new DatabaseSync(join(root, 'catalog', 'datasets.sqlite'));
         try {
             const firstBar = dataset.bars[0];
-            if (!firstBar) throw new Error('Synthetic dataset fixture is missing its first observation.');
+            if (!firstBar) {\n                throw new Error('Synthetic dataset fixture is missing its first observation.');\n            }
             connection.prepare(`
                 UPDATE dataset_bars SET close_price = ?
                 WHERE dataset_id = ? AND dataset_version = ? AND end_at = ?
@@ -169,7 +169,7 @@ describe('BacktestDatasetStore', () => {
 
         const result = await store.createBackup(backupPath);
         expect(result).toMatchObject({ path: backupPath, datasetVersions: 1, artifacts: 1, artifactBytes: Buffer.byteLength(csv) });
-        const manifest = JSON.parse(await readFile(join(backupPath, 'manifest.json'), 'utf8')) as {
+        const manifest = JSON.parse(await readFile(join(backupPath, 'manifest.json'), 'utf8')) as unknown as {
             format: string; formatVersion: number; catalogSha256: string; artifacts: Array<{ digest: string; byteLength: number; relativePath: string }>;
         };
         expect(manifest).toMatchObject({ format: 'PFO-BACKTEST-BACKUP', formatVersion: 1, catalogSha256: result.catalogSha256 });
@@ -179,7 +179,7 @@ describe('BacktestDatasetStore', () => {
         }]);
         const backedUpArtifact = manifest.artifacts[0];
         expect(backedUpArtifact).toBeDefined();
-        if (!backedUpArtifact) throw new Error('Backup manifest did not contain its source artifact.');
+        if (!backedUpArtifact) {\n            throw new Error('Backup manifest did not contain its source artifact.');\n        }
         expect(await readFile(join(backupPath, 'artifacts', backedUpArtifact.relativePath), 'utf8')).toBe(csv);
         await expect(store.createBackup(backupPath)).rejects.toThrow(/already exists/i);
     });
@@ -231,7 +231,7 @@ describe('BacktestDatasetStore', () => {
         await expect(readFile(join(backupPath, 'manifest.json'))).rejects.toThrow();
     });
 
-    it('rejects relative paths and paths inside the repository', async () => {
+    it('rejects relative paths and paths inside the repository', () => {
         expect(() => new BacktestDatasetStore({
             catalogPath: './catalog.sqlite', artifactDirectory: '/tmp/pfo-artifacts'
         })).toThrow(/absolute/i);
