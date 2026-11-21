@@ -1,3 +1,14 @@
+## Latest update — 2026-11-21 — IPM-08 TIME-007
+
+Current branch: `feature/ipm-08-backtesting-contracts`; PR #458 remains draft/open/unmerged. Latest acceptance commit: `413fd9bc4858f3665c4cf4b137f7cdedbcfa1d33`.
+
+- Added TIME-007: run-wide `recordedAtCutoff` does not make a bar visible to an earlier strategy decision when `availableAt` is later than that decision timestamp.
+- Together with UNI-007, the acceptance contract now explicitly requires per-decision temporal filtering of both observations and universe membership; run-level validation alone is not sufficient.
+- Acceptance/documentation only. No engine, data persistence, provider or schema migration has been implemented.
+- Checks passed on prior head `9fee14a412e6b03b532b1a253ee692b49e420ea2`; current head still needs fresh CI and Secret Scan confirmation.
+
+---
+
 ## Latest update — 2026-11-21 — IPM-08 UNI-007
 
 Current branch: `feature/ipm-08-backtesting-contracts`; PR #458 remains draft/open/unmerged. Latest head: `aeafb9469747a5903608ec8c620368dfd946f0c3`.
