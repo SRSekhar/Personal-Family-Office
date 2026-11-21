@@ -46,6 +46,7 @@ The first implementation slice accepts NSE daily OHLCV datasets only. A dataset 
 | UNI-003 | Instrument later delists and historical membership records preserve the delisting | Retain its historical membership/position history through the correct effective boundary. |
 | UNI-004 | Only today's surviving universe is supplied | Permit only an explicitly disclosed exploratory run; never label it survivorship-bias-free. |
 | UNI-005 | Membership revisions are bitemporal and a later correction arrives after the cutoff | Earlier run must retain the originally knowable membership. |
+| UNI-006 | Included membership is effective only after the requested run window or expired before it | Reject the selected instrument; membership evidence must overlap the requested window. |
 
 ## D. Execution, liquidity and costs
 
