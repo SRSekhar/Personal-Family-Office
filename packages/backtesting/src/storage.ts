@@ -588,6 +588,9 @@ export class BacktestDatasetStore {
         const loadedBars = bars.map(mapBar);
         const { contentDigest: _normalizedDigest, source, ...importMetadata } = metadata;
         const { contentDigest: _rawDigest, ...sourceMetadata } = source;
+        if (metadata.adjustmentBasis === 'unknown') {
+            throw new Error('Stored dataset has an unknown adjustment basis and is unavailable.');
+        }
         const sourceCsv = await readFile(this.artifactPath(row.raw_digest), 'utf8');
         const reparsed = importBacktestDatasetCsv(sourceCsv, { ...importMetadata, source: sourceMetadata });
         if (reparsed.contentDigest !== row.normalized_digest
