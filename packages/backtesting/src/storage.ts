@@ -503,9 +503,30 @@ export class BacktestDatasetStore {
             const catalogBackupPath = join(stagingDirectory, 'catalog.sqlite');
             await backup(this.database, catalogBackupPath);
             const catalogDigest = (await hashFile(catalogBackupPath)).digest;
-            const artifactRows = this.database.prepare(
-                'SELECT raw_digest, byte_length, relative_path FROM dataset_artifacts ORDER BY raw_digest'
-            ).all() as unknown as ArtifactRecord[];
+            const backupDatabase = new DatabaseSync(catalogBackupPath);
+            let artifactRows: ArtifactRecord[];
+            let datasetRows: Array<{
+                dataset_id: string; version: number; raw_digest: string; normalized_digest: string;
+                byte_length: number; observation_count: number; imported_at: string;
+            }>;
+            try {
+                const integrity = backupDatabase.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>;
+                const foreignKeyErrors = backupDatabase.prepare('PRAGMA foreign_key_check').all();
+                if (integrity.length !== 1 || integrity[0]?.integrity_check !== 'ok' || foreignKeyErrors.length > 0) {
+                    throw new Error('Backtest catalog snapshot failed SQLite integrity verification.');
+                }
+                artifactRows = backupDatabase.prepare(
+                    'SELECT raw_digest, byte_length, relative_path FROM dataset_artifacts ORDER BY raw_digest'
+                ).all() as unknown as ArtifactRecord[];
+                datasetRows = backupDatabase.prepare(`
+                    SELECT dataset_id, version, raw_digest, normalized_digest, byte_length,
+                           observation_count, imported_at
+                    FROM dataset_versions ORDER BY dataset_id, version
+                `).all() as unknown as typeof datasetRows;
+            } finally {
+                backupDatabase.close();
+            }
+
             const artifactBackupRoot = join(stagingDirectory, 'artifacts');
             await mkdir(artifactBackupRoot, { recursive: true, mode: 0o700 });
             let artifactBytes = 0;
@@ -526,27 +547,6 @@ export class BacktestDatasetStore {
                 manifestArtifacts.push({
                     digest: artifact.raw_digest, byteLength: artifact.byte_length, relativePath
                 });
-            }
-
-            const datasetRows = this.database.prepare(`
-                SELECT dataset_id, version, raw_digest, normalized_digest, byte_length,
-                       observation_count, imported_at
-                FROM dataset_versions ORDER BY dataset_id, version
-            `).all() as unknown as Array<{
-                dataset_id: string; version: number; raw_digest: string; normalized_digest: string;
-                byte_length: number; observation_count: number; imported_at: string;
-            }>;
-            const backupDatabase = new DatabaseSync(catalogBackupPath);
-            try {
-                const integrity = backupDatabase.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>;
-                const foreignKeyErrors = backupDatabase.prepare('PRAGMA foreign_key_check').all();
-                const backupVersionCount = backupDatabase.prepare('SELECT count(*) AS count FROM dataset_versions').get() as { count: number };
-                if (integrity.length !== 1 || integrity[0]?.integrity_check !== 'ok'
-                    || foreignKeyErrors.length > 0 || backupVersionCount.count !== datasetRows.length) {
-                    throw new Error('Backtest catalog snapshot failed SQLite integrity verification.');
-                }
-            } finally {
-                backupDatabase.close();
             }
 
             const manifest = {
