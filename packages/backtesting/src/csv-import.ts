@@ -226,6 +226,13 @@ export function importBacktestDatasetCsv(
         throw new RangeError('Backtest dataset CSV is empty.');
     }
 
+    if (metadata.instrument.exchange !== 'NSE') {
+        throw new RangeError('The first backtesting release accepts NSE instruments only.');
+    }
+    if (metadata.interval !== '1d') {
+        throw new RangeError('The first backtesting release accepts daily (1d) OHLCV only.');
+    }
+
     const rows = parseCsvRows(sourceCsv.replace(/^\uFEFF/u, ''));
     if (rows.length < 3 || rows[0]?.length !== MANIFEST.length
         || !MANIFEST.every((value, index) => rows[0]?.[index] === value)) {
