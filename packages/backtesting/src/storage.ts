@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { createReadStream, mkdirSync } from 'node:fs';
-import { mkdir, open, link, unlink, readdir, stat } from 'node:fs/promises';
-import { DatabaseSync } from 'node:sqlite';
+import { constants, createReadStream, mkdirSync } from 'node:fs';
+import { copyFile, mkdir, open, link, unlink, readdir, rename, rm, stat } from 'node:fs/promises';
+import { backup, DatabaseSync } from 'node:sqlite';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 import type { BacktestBarObservation, BacktestDataset } from './contracts.js';
@@ -25,7 +25,7 @@ export interface StoredBacktestDataset {
     readonly importedAt: string;
 }
 
-export interface BacktestStorageIntegrityReport {
+export interface BacktestDatasetBackupResult {\n    readonly path: string;\n    readonly datasetVersions: number;\n    readonly artifacts: number;\n    readonly artifactBytes: number;\n    readonly catalogSha256: string;\n}\n\nexport interface BacktestStorageIntegrityReport {
     readonly ok: boolean;
     readonly referencedArtifacts: number;
     readonly verifiedArtifacts: number;
@@ -469,6 +469,115 @@ export class BacktestDatasetStore {
             orphanArtifacts: orphanArtifacts.sort(),
             stagingFiles
         };
+    }
+
+
+    /**
+     * Create a standalone backup bundle containing a consistent SQLite catalog snapshot,
+     * all referenced immutable CSV artifacts, and a digest manifest. The bundle is published
+     * only after every copied artifact and the backup database have passed verification.
+     */
+    async createBackup(destinationDirectory: string): Promise<BacktestDatasetBackupResult> {
+        this.assertOpen();
+        if (!isAbsolute(destinationDirectory)) {
+            throw new RangeError('Backtest backup destination must be an absolute path.');
+        }
+        const destination = resolve(destinationDirectory);
+        const repositoryRoot = resolve(process.cwd());
+        if (isWithin(repositoryRoot, destination)
+            || isWithin(this.artifactDirectory, destination)
+            || isWithin(dirname(this.catalogPath), destination)) {
+            throw new RangeError('Backtest backup destination must be outside the repository and active storage directories.');
+        }
+        try {
+            await stat(destination);
+            throw new Error('Backtest backup destination already exists; backups are never overwritten.');
+        } catch (error) {
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+        }
+
+        const stagingDirectory = destination + '.staging-' + randomUUID();
+        await mkdir(dirname(destination), { recursive: true, mode: 0o700 });
+        await mkdir(stagingDirectory, { recursive: false, mode: 0o700 });
+        try {
+            const catalogBackupPath = join(stagingDirectory, 'catalog.sqlite');
+            await backup(this.database, catalogBackupPath);
+            const catalogDigest = (await hashFile(catalogBackupPath)).digest;
+            const artifactRows = this.database.prepare(
+                'SELECT raw_digest, byte_length, relative_path FROM dataset_artifacts ORDER BY raw_digest'
+            ).all() as unknown as ArtifactRecord[];
+            const artifactBackupRoot = join(stagingDirectory, 'artifacts');
+            await mkdir(artifactBackupRoot, { recursive: true, mode: 0o700 });
+            let artifactBytes = 0;
+            const manifestArtifacts: Array<{ digest: string; byteLength: number; relativePath: string }> = [];
+            for (const artifact of artifactRows) {
+                const relativePath = artifactRelativePath(artifact.raw_digest);
+                if (artifact.relative_path !== relativePath
+                    || !await this.verifyArtifact(this.artifactPath(artifact.raw_digest), artifact.raw_digest, artifact.byte_length)) {
+                    throw new Error('Cannot back up a missing or corrupt referenced source artifact.');
+                }
+                const target = join(artifactBackupRoot, relativePath);
+                await mkdir(dirname(target), { recursive: true, mode: 0o700 });
+                await copyFile(this.artifactPath(artifact.raw_digest), target, constants.COPYFILE_EXCL);
+                if (!await this.verifyArtifact(target, artifact.raw_digest, artifact.byte_length)) {
+                    throw new Error('Copied source artifact failed backup verification.');
+                }
+                artifactBytes += artifact.byte_length;
+                manifestArtifacts.push({
+                    digest: artifact.raw_digest, byteLength: artifact.byte_length, relativePath
+                });
+            }
+
+            const datasetRows = this.database.prepare(`
+                SELECT dataset_id, version, raw_digest, normalized_digest, byte_length,
+                       observation_count, imported_at
+                FROM dataset_versions ORDER BY dataset_id, version
+            `).all() as unknown as Array<{
+                dataset_id: string; version: number; raw_digest: string; normalized_digest: string;
+                byte_length: number; observation_count: number; imported_at: string;
+            }>;
+            const backupDatabase = new DatabaseSync(catalogBackupPath);
+            try {
+                const integrity = backupDatabase.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>;
+                const foreignKeyErrors = backupDatabase.prepare('PRAGMA foreign_key_check').all();
+                const backupVersionCount = backupDatabase.prepare('SELECT count(*) AS count FROM dataset_versions').get() as { count: number };
+                if (integrity.length !== 1 || integrity[0]?.integrity_check !== 'ok'
+                    || foreignKeyErrors.length > 0 || backupVersionCount.count !== datasetRows.length) {
+                    throw new Error('Backtest catalog snapshot failed SQLite integrity verification.');
+                }
+            } finally {
+                backupDatabase.close();
+            }
+
+            const manifest = {
+                format: 'PFO-BACKTEST-BACKUP',
+                formatVersion: 1,
+                catalogSchemaVersion: SCHEMA_VERSION,
+                createdAt: new Date().toISOString(),
+                catalogFile: 'catalog.sqlite',
+                catalogSha256: catalogDigest,
+                datasetVersions: datasetRows,
+                artifacts: manifestArtifacts
+            };
+            const manifestHandle = await open(join(stagingDirectory, 'manifest.json'), 'wx', 0o600);
+            try {
+                await manifestHandle.writeFile(JSON.stringify(manifest, null, 2) + '\\n', 'utf8');
+                await manifestHandle.sync();
+            } finally {
+                await manifestHandle.close();
+            }
+            await rename(stagingDirectory, destination);
+            return {
+                path: destination,
+                datasetVersions: datasetRows.length,
+                artifacts: artifactRows.length,
+                artifactBytes,
+                catalogSha256: catalogDigest
+            };
+        } catch (error) {
+            await rm(stagingDirectory, { recursive: true, force: true }).catch(() => undefined);
+            throw error;
+        }
     }
 
     close(): void {
