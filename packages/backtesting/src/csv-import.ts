@@ -160,7 +160,9 @@ function parseBar(columns: readonly string[], rowNumber: number): ParsedCsvBar {
 }
 
 function normalizedDatasetDigest(dataset: Omit<BacktestDataset, 'contentDigest'>): string {
-    const { contentDigest: _sourceArtifactDigest, ...sourceWithoutArtifactDigest } = dataset.source;
+    const sourceWithoutArtifactDigest = Object.fromEntries(
+        Object.entries(dataset.source).filter(([key]) => key !== 'contentDigest')
+    );
     const digestInput = {
         id: dataset.id,
         version: dataset.version,
