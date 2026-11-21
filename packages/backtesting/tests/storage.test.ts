@@ -223,7 +223,7 @@ describe('BacktestDatasetStore', () => {
         await unlink(join(artifactDirectory, 'sha256', saved.rawArtifactDigest.slice(0, 2),
             saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv'));
         const backupPath = join(root, 'must-not-publish');
-        await expect(store.createBackup(backupPath)).rejects.toThrow(/missing or corrupt/i);
+        await expect(store.createBackup(backupPath)).rejects.toThrow(/integrity check failed/i);
         await expect(readFile(join(backupPath, 'manifest.json'))).rejects.toThrow();
     });
 
