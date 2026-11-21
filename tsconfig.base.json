@@ -90,6 +90,12 @@
       ],
       "@pfo/research/*": [
         "packages/research/src/*"
+      ],
+      "@pfo/backtesting": [
+        "packages/backtesting/src/index.ts"
+      ],
+      "@pfo/backtesting/*": [
+        "packages/backtesting/src/*"
       ]
     }
   },
