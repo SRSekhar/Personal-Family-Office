@@ -653,6 +653,8 @@ export class BacktestDatasetStore {
      */
     async createBackup(destinationDirectory: string): Promise<BacktestDatasetBackupResult> {
         this.assertOpen();
+        const integrity = await this.checkIntegrity();
+        if (!integrity.ok) throw new Error('Backtest storage integrity check failed; refusing to create a backup.');
         if (!isAbsolute(destinationDirectory)) {
             throw new RangeError('Backtest backup destination must be an absolute path.');
         }
