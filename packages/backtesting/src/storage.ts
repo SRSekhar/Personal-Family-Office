@@ -134,16 +134,16 @@ function toMetadata(dataset: BacktestDataset): DatasetMetadata {
 
 function parseCurrency(value: string): Currency {
     switch (value) {
-        case Currency.INR: return Currency.INR;
-        case Currency.USD: return Currency.USD;
-        case Currency.EUR: return Currency.EUR;
-        case Currency.GBP: return Currency.GBP;
-        case Currency.AED: return Currency.AED;
-        case Currency.SGD: return Currency.SGD;
-        case Currency.JPY: return Currency.JPY;
-        case Currency.AUD: return Currency.AUD;
-        case Currency.CAD: return Currency.CAD;
-        case Currency.CHF: return Currency.CHF;
+        case 'INR': return Currency.INR;
+        case 'USD': return Currency.USD;
+        case 'EUR': return Currency.EUR;
+        case 'GBP': return Currency.GBP;
+        case 'AED': return Currency.AED;
+        case 'SGD': return Currency.SGD;
+        case 'JPY': return Currency.JPY;
+        case 'AUD': return Currency.AUD;
+        case 'CAD': return Currency.CAD;
+        case 'CHF': return Currency.CHF;
         default: throw new RangeError('Stored dataset contains an unsupported currency.');
     }
 }
