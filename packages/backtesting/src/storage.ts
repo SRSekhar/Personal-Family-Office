@@ -507,6 +507,10 @@ export class BacktestDatasetStore {
         if (!await this.verifyArtifact(this.artifactPath(rawDigest), rawDigest, artifact.byteLength)) {
             throw new Error('Published source artifact failed post-commit integrity verification.');
         }
+        const persisted = await this.loadDataset(dataset.id, dataset.version);
+        if (persisted.contentDigest !== dataset.contentDigest) {
+            throw new Error('Persisted dataset failed post-commit normalized-content verification.');
+        }
         return {
             id: dataset.id,
             version: dataset.version,
