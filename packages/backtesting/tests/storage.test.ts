@@ -118,10 +118,12 @@ describe('BacktestDatasetStore', () => {
         await store.importDataset(dataset, Buffer.from(csv));
         const connection = new DatabaseSync(join(root, 'catalog', 'datasets.sqlite'));
         try {
+            const firstBar = dataset.bars[0];
+            if (!firstBar) throw new Error('Synthetic dataset fixture is missing its first observation.');
             connection.prepare(`
                 UPDATE dataset_bars SET close_price = ?
                 WHERE dataset_id = ? AND dataset_version = ? AND end_at = ?
-            `).run(106, dataset.id, dataset.version, dataset.bars[0]?.endAt);
+            `).run(106, dataset.id, dataset.version, firstBar.endAt);
         } finally {
             connection.close();
         }
