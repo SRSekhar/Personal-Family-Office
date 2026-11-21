@@ -21,10 +21,12 @@ The CSV importer:
 - Computes SHA-256 digests for both the original CSV artifact and normalized dataset content. The normalized digest is stable across equivalent line-ending conventions.
 - Retains unknown availability as unknown. It never substitutes bar close, retrieval time or import time.
 - Requires the caller to supply explicit expected bar-end timestamps and coverage status. It never infers weekdays, exchange holidays or missing sessions.
-- Does not fetch market data, persist files, create a universe/calendar, or execute a strategy.
+- Does not fetch market data, create a universe/calendar, or execute a strategy.
 
 Every historical observation must retain source provenance, licensing status, content digests, availability timestamps when evidenced and local recorded-at timestamps. A dataset with unreviewed/restricted licensing or insufficient point-in-time evidence may be imported for inspection but remains ineligible for a validated run.
 
-No provider SDK, endpoint, credential, network client, market-data download, broker integration, database persistence or live order routing is included.
+The persistence layer stores normalized OHLCV observations as indexed rows in a dedicated SQLite catalog and retains exact original CSV bytes in an immutable SHA-256-addressed artifact directory. The catalog and artifacts are configured separately from the household workspace database and must both be outside the repository. Imports are append-only by dataset ID/version; identical raw bytes are deduplicated without collapsing distinct dataset provenance. Dataset loads and integrity checks verify artifact digest and byte length before returning observations. Orphan detection is non-destructive. The current storage increment does not yet provide a coordinated backup/restore bundle or provider integration.
+
+No provider SDK, endpoint, credential, network client, market-data download, broker integration or live order routing is included.
 
 Backtesting records and any future paper portfolio must remain separate from real investment transactions, cash, valuations, FIFO lots and statement evidence.
