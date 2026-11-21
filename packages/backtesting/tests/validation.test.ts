@@ -239,11 +239,13 @@ describe('backtesting contracts', () => {
     });
 
     it('rejects BSE and intraday run contexts outside the approved first-release scope', () => {
-        expect(() => validateBacktestRunConfiguration(configuration, {
-            datasets: [{ ...dataset, instrument: { ...dataset.instrument, exchange: 'BSE' } }],
-            universe,
-            calendar: { ...calendar, exchange: 'BSE' }
-        })).toThrow(/NSE instruments only/i);
+        expect(() => {
+            validateBacktestRunConfiguration(configuration, {
+                datasets: [{ ...dataset, instrument: { ...dataset.instrument, exchange: 'BSE' } }],
+                universe,
+                calendar: { ...calendar, exchange: 'BSE' }
+            });
+        }).toThrow(/NSE instruments only/i);
 
         expect(() => validateBacktestRunConfiguration(configuration, {
             datasets: [{ ...dataset, interval: '1h' }],
