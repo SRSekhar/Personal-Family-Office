@@ -1,6 +1,6 @@
 # PFO OS Roadmap
 
-## Current Delivery Status — 2026-11-15
+## Current Delivery Status — 2026-11-21
 
 - Sprint 16 integration is complete: PRs #453–#457 were sequentially merged into `main`.
 - Integrated main includes SQLite/JSON schema v13 and 20 persisted collections.
@@ -11,11 +11,13 @@
 
 ---
 
-## Sprint 17 / IPM-08.1 — Architecture proposal in progress
+## Sprint 17 / IPM-08.1 — Contracts and offline dataset ingestion delivered
 
-- Draft ADR and acceptance contract are available under `docs/architecture/`.
-- Next: resolve data/calendar/corporate-action/execution/cost/lot-size assumptions and then implement typed contracts and validators.
-- The deterministic engine, provider adapters and paper-portfolio persistence remain gated.
+- Proposed ADR and acceptance contract are available under `docs/architecture/`; ADR status remains Proposed.
+- Delivered: typed point-in-time dataset/universe/calendar/run contracts, strict validators and offline provenance-aware OHLCV CSV ingestion in `@pfo/backtesting`.
+- CI #2056 (102 test files / 945 tests, lint, typecheck, build and Chromium smoke) and Secret Scan #1851 passed on code head `05731ffa7f758195aa96da679d05a307d3982180`.
+- Next: approve dataset persistence ownership, workspace backup/restore compatibility and retention semantics before adding import UI or storage.
+- The deterministic engine, provider adapters and paper-portfolio persistence remain gated on explicit decisions for exchange scope, calendar source, corporate actions, execution, costs and position rules.
 
 ---
 
