@@ -138,7 +138,77 @@ describe('BacktestDatasetStore', () => {
         expect(await readFile(path)).toEqual(orphanBytes);
     });
 
-    it('creates a verified standalone catalog-and-artifact backup without overwriting an existing bundle', async () => {\n        const { store, root } = await createStore();\n        const dataset = importBacktestDatasetCsv(csv, metadata);\n        const saved = await store.importDataset(dataset, Buffer.from(csv));\n        const backupPath = join(root, 'backup-bundle');\n\n        const result = await store.createBackup(backupPath);\n        expect(result).toMatchObject({ path: backupPath, datasetVersions: 1, artifacts: 1, artifactBytes: Buffer.byteLength(csv) });\n        const manifest = JSON.parse(await readFile(join(backupPath, 'manifest.json'), 'utf8')) as {\n            format: string; formatVersion: number; catalogSha256: string; artifacts: Array<{ digest: string; byteLength: number; relativePath: string }>;\n        };\n        expect(manifest).toMatchObject({ format: 'PFO-BACKTEST-BACKUP', formatVersion: 1, catalogSha256: result.catalogSha256 });\n        expect(manifest.artifacts).toEqual([{\n            digest: saved.rawArtifactDigest, byteLength: Buffer.byteLength(csv),\n            relativePath: join('sha256', saved.rawArtifactDigest.slice(0, 2), saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv')\n        }]);\n        const backedUpArtifact = manifest.artifacts[0];\n        expect(backedUpArtifact).toBeDefined();\n        if (!backedUpArtifact) throw new Error('Backup manifest did not contain its source artifact.');\n        expect(await readFile(join(backupPath, 'artifacts', backedUpArtifact.relativePath), 'utf8')).toBe(csv);\n        await expect(store.createBackup(backupPath)).rejects.toThrow(/already exists/i);\n    });\n\n    it('restores a verified bundle and makes the complete dataset available only after publication', async () => {\n        const { store, root } = await createStore();\n        const dataset = importBacktestDatasetCsv(csv, metadata);\n        await store.importDataset(dataset, Buffer.from(csv));\n        const backupPath = join(root, 'restore-source');\n        await store.createBackup(backupPath);\n\n        const restoreRoot = join(root, 'restored');\n        const restored = await BacktestDatasetStore.restoreBackup(backupPath, {\n            catalogPath: join(restoreRoot, 'catalog', 'datasets.sqlite'),\n            artifactDirectory: join(restoreRoot, 'artifacts')\n        });\n        stores.push(restored);\n        expect(await restored.loadDataset(dataset.id, dataset.version)).toEqual(dataset);\n        expect(await restored.checkIntegrity()).toMatchObject({ ok: true, referencedArtifacts: 1, verifiedArtifacts: 1 });\n    });\n\n    it('rejects an incomplete backup bundle without publishing a catalog', async () => {\n        const { store, root } = await createStore();\n        const dataset = importBacktestDatasetCsv(csv, metadata);\n        const saved = await store.importDataset(dataset, Buffer.from(csv));\n        const backupPath = join(root, 'incomplete-source');\n        await store.createBackup(backupPath);\n        await unlink(join(backupPath, 'artifacts', 'sha256', saved.rawArtifactDigest.slice(0, 2),\n            saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv'));\n\n        const restoreRoot = join(root, 'rejected-restore');\n        await expect(BacktestDatasetStore.restoreBackup(backupPath, {\n            catalogPath: join(restoreRoot, 'catalog', 'datasets.sqlite'),\n            artifactDirectory: join(restoreRoot, 'artifacts')\n        })).rejects.toThrow();\n        await expect(readFile(join(restoreRoot, 'catalog', 'datasets.sqlite'))).rejects.toThrow();\n        await expect(readFile(join(restoreRoot, 'artifacts', 'sha256', saved.rawArtifactDigest.slice(0, 2),\n            saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv'))).rejects.toThrow();\n    });\n\n    it('refuses to back up a missing source artifact and does not publish a partial bundle', async () => {\n        const { store, root, artifactDirectory } = await createStore();\n        const dataset = importBacktestDatasetCsv(csv, metadata);\n        const saved = await store.importDataset(dataset, Buffer.from(csv));\n        await unlink(join(artifactDirectory, 'sha256', saved.rawArtifactDigest.slice(0, 2),\n            saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv'));\n        const backupPath = join(root, 'must-not-publish');\n        await expect(store.createBackup(backupPath)).rejects.toThrow(/missing or corrupt/i);\n        await expect(readFile(join(backupPath, 'manifest.json'))).rejects.toThrow();\n    });\n\n    it('rejects relative paths and paths inside the repository', async () => {
+    it('creates a verified standalone catalog-and-artifact backup without overwriting an existing bundle', async () => {
+        const { store, root } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        const saved = await store.importDataset(dataset, Buffer.from(csv));
+        const backupPath = join(root, 'backup-bundle');
+
+        const result = await store.createBackup(backupPath);
+        expect(result).toMatchObject({ path: backupPath, datasetVersions: 1, artifacts: 1, artifactBytes: Buffer.byteLength(csv) });
+        const manifest = JSON.parse(await readFile(join(backupPath, 'manifest.json'), 'utf8')) as {
+            format: string; formatVersion: number; catalogSha256: string; artifacts: Array<{ digest: string; byteLength: number; relativePath: string }>;
+        };
+        expect(manifest).toMatchObject({ format: 'PFO-BACKTEST-BACKUP', formatVersion: 1, catalogSha256: result.catalogSha256 });
+        expect(manifest.artifacts).toEqual([{
+            digest: saved.rawArtifactDigest, byteLength: Buffer.byteLength(csv),
+            relativePath: join('sha256', saved.rawArtifactDigest.slice(0, 2), saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv')
+        }]);
+        const backedUpArtifact = manifest.artifacts[0];
+        expect(backedUpArtifact).toBeDefined();
+        if (!backedUpArtifact) throw new Error('Backup manifest did not contain its source artifact.');
+        expect(await readFile(join(backupPath, 'artifacts', backedUpArtifact.relativePath), 'utf8')).toBe(csv);
+        await expect(store.createBackup(backupPath)).rejects.toThrow(/already exists/i);
+    });
+
+    it('restores a verified bundle and makes the complete dataset available only after publication', async () => {
+        const { store, root } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        await store.importDataset(dataset, Buffer.from(csv));
+        const backupPath = join(root, 'restore-source');
+        await store.createBackup(backupPath);
+
+        const restoreRoot = join(root, 'restored');
+        const restored = await BacktestDatasetStore.restoreBackup(backupPath, {
+            catalogPath: join(restoreRoot, 'catalog', 'datasets.sqlite'),
+            artifactDirectory: join(restoreRoot, 'artifacts')
+        });
+        stores.push(restored);
+        expect(await restored.loadDataset(dataset.id, dataset.version)).toEqual(dataset);
+        expect(await restored.checkIntegrity()).toMatchObject({ ok: true, referencedArtifacts: 1, verifiedArtifacts: 1 });
+    });
+
+    it('rejects an incomplete backup bundle without publishing a catalog', async () => {
+        const { store, root } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        const saved = await store.importDataset(dataset, Buffer.from(csv));
+        const backupPath = join(root, 'incomplete-source');
+        await store.createBackup(backupPath);
+        await unlink(join(backupPath, 'artifacts', 'sha256', saved.rawArtifactDigest.slice(0, 2),
+            saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv'));
+
+        const restoreRoot = join(root, 'rejected-restore');
+        await expect(BacktestDatasetStore.restoreBackup(backupPath, {
+            catalogPath: join(restoreRoot, 'catalog', 'datasets.sqlite'),
+            artifactDirectory: join(restoreRoot, 'artifacts')
+        })).rejects.toThrow();
+        await expect(readFile(join(restoreRoot, 'catalog', 'datasets.sqlite'))).rejects.toThrow();
+        await expect(readFile(join(restoreRoot, 'artifacts', 'sha256', saved.rawArtifactDigest.slice(0, 2),
+            saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv'))).rejects.toThrow();
+    });
+
+    it('refuses to back up a missing source artifact and does not publish a partial bundle', async () => {
+        const { store, root, artifactDirectory } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        const saved = await store.importDataset(dataset, Buffer.from(csv));
+        await unlink(join(artifactDirectory, 'sha256', saved.rawArtifactDigest.slice(0, 2),
+            saved.rawArtifactDigest.slice(2, 4), saved.rawArtifactDigest + '.csv'));
+        const backupPath = join(root, 'must-not-publish');
+        await expect(store.createBackup(backupPath)).rejects.toThrow(/missing or corrupt/i);
+        await expect(readFile(join(backupPath, 'manifest.json'))).rejects.toThrow();
+    });
+
+    it('rejects relative paths and paths inside the repository', async () => {
         expect(() => new BacktestDatasetStore({
             catalogPath: './catalog.sqlite', artifactDirectory: '/tmp/pfo-artifacts'
         })).toThrow(/absolute/i);
