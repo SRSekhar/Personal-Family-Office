@@ -9,7 +9,7 @@ import { importBacktestDatasetCsv } from '../src/csv-import.js';
 const metadata: BacktestDatasetCsvImportMetadata = {
     id: 'dataset-csv-1',
     version: 1,
-    instrument: { instrumentId: 'instrument-1', name: 'Synthetic Instrument', currency: Currency.INR, symbol: 'SYN', exchange: 'SYNTH' },
+    instrument: { instrumentId: 'instrument-1', name: 'Synthetic Instrument', currency: Currency.INR, symbol: 'SYN', exchange: 'NSE' },
     interval: '1d',
     adjustmentBasis: 'unadjusted',
     marketTimeZone: 'Asia/Kolkata',
@@ -51,6 +51,17 @@ describe('backtest dataset CSV import', () => {
         });
         expect(dataset.source.contentDigest).toBe(createHash('sha256').update(csv, 'utf8').digest('hex'));
         expect(dataset.contentDigest).toMatch(/^[a-f0-9]{64}$/u);
+    });
+
+    it('rejects exchanges and intervals outside the approved first-release scope', () => {
+        expect(() => importBacktestDatasetCsv(csv, {
+            ...metadata,
+            instrument: { ...metadata.instrument, exchange: 'BSE' }
+        })).toThrow(/NSE instruments only/i);
+        expect(() => importBacktestDatasetCsv(csv, {
+            ...metadata,
+            interval: '1h'
+        })).toThrow(/daily \(1d\) OHLCV only/i);
     });
 
     it('supports a UTF-8 BOM, LF endings and blank optional values', () => {
