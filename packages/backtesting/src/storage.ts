@@ -44,7 +44,7 @@ export interface BacktestStorageIntegrityReport {
     readonly stagingFiles: readonly string[];
 }
 
-interface DatasetMetadata extends Omit<BacktestDataset, 'bars'> {}
+type DatasetMetadata = Omit<BacktestDataset, 'bars'>;
 
 interface ArtifactRecord {
     readonly raw_digest: string;
