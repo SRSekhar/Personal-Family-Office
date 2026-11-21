@@ -29,7 +29,7 @@ const source = {
 const dataset: BacktestDataset = {
     id: 'dataset-1',
     version: 1,
-    instrument: { instrumentId: 'instrument-1', name: 'Synthetic Instrument', currency: Currency.INR, symbol: 'SYN', exchange: 'SYNTH' },
+    instrument: { instrumentId: 'instrument-1', name: 'Synthetic Instrument', currency: Currency.INR, symbol: 'SYN', exchange: 'NSE' },
     interval: '1d',
     adjustmentBasis: 'unadjusted',
     marketTimeZone: 'Asia/Kolkata',
@@ -79,7 +79,7 @@ const universe: BacktestUniverse = {
 const calendar: BacktestTradingCalendar = {
     id: 'calendar-1',
     version: 1,
-    exchange: 'SYNTH',
+    exchange: 'NSE',
     interval: '1d',
     marketTimeZone: 'Asia/Kolkata',
     sourceName: 'Synthetic calendar',
@@ -236,6 +236,20 @@ describe('backtesting contracts', () => {
             validateBacktestRunConfiguration({ ...configuration, endAt: '2026-01-03T00:00:00.000Z' },
                 { datasets: [dataset], universe, calendar });
         }).toThrow(/cover the complete requested/i);
+    });
+
+    it('rejects BSE and intraday run contexts outside the approved first-release scope', () => {
+        expect(() => validateBacktestRunConfiguration(configuration, {
+            datasets: [{ ...dataset, instrument: { ...dataset.instrument, exchange: 'BSE' } }],
+            universe,
+            calendar: { ...calendar, exchange: 'BSE' }
+        })).toThrow(/NSE instruments only/i);
+
+        expect(() => validateBacktestRunConfiguration(configuration, {
+            datasets: [{ ...dataset, interval: '1h' }],
+            universe,
+            calendar: { ...calendar, interval: '1h' }
+        })).toThrow(/NSE daily \(1d\)/i);
     });
 
     it('requires the selected calendar interval and timezone to match every dataset', () => {
