@@ -143,3 +143,22 @@ The following numeric example is an acceptance fixture, not a market-data claim 
 | CSV-011 | CSV metadata identifies BSE or an intraday/weekly/monthly interval | Reject; first-release CSV import accepts NSE and daily (`1d`) only. |
 
 The CSV importer is offline and non-persistent. Storage, backup/restore, import UI and simulator execution require separate approved contracts.
+
+ 
+## I. Historical dataset persistence, integrity and recovery
+
+| ID | Scenario | Required outcome |
+|---|---|---|
+| STORE-001 | Import a validated NSE daily dataset with exact original UTF-8 CSV bytes | Persist normalized observations and immutable raw artifact in storage separate from the household workspace. |
+| STORE-002 | Same raw bytes are imported with distinct dataset identity/provenance | Deduplicate the artifact only; retain separate immutable dataset-version records and metadata. |
+| STORE-003 | Existing dataset ID/version is imported again | Reject; never overwrite an immutable version. |
+| STORE-004 | Supplied raw bytes do not reproduce the normalized dataset digest | Reject before catalog publication. |
+| STORE-005 | Referenced source artifact is missing, corrupt or has mismatched byte length/digest | Block dataset load and report the integrity failure. |
+| STORE-006 | Artifact exists without a catalog reference after an interrupted import | Report it as an orphan; never automatically delete it. |
+| STORE-007 | Backup is created | Publish a standalone bundle only after the SQLite snapshot, every referenced artifact and manifest have passed verification. |
+| STORE-008 | Backup restore source is incomplete or corrupt | Reject before publishing a catalog; never overwrite existing catalog or artifact paths. |
+| STORE-009 | Backup restore succeeds | Publish all verified artifacts before the catalog and make the restored dataset available only after final integrity verification. |
+| STORE-010 | Backtest storage is imported, backed up, restored or deleted | Do not change any real investment ledger or household workspace collection. |
+| STORE-011 | Storage paths resolve inside the repository or overlap the household workspace store | Reject configuration. |
+| STORE-012 | Staging files remain after an interrupted artifact publication | Report them; do not silently delete files whose ownership/age is not established. |
+
