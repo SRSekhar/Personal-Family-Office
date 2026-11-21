@@ -29,11 +29,9 @@ try {
 
     foreach ($moduleName in $modulePaths) {
         $modulePath = Join-Path -Path $scriptRepositoryRoot -ChildPath ("scripts/internal/{0}" -f $moduleName)
-
         if (-not (Test-Path -LiteralPath $modulePath -PathType Leaf)) {
             throw "Required bootstrap module was not found: $modulePath"
         }
-
         . $modulePath
     }
 
@@ -47,7 +45,6 @@ try {
     $resolvedRepositoryRoot = Find-RepositoryRoot -StartPath $rootCandidate
     $configuration = Get-PFOConfiguration -RepositoryRoot $resolvedRepositoryRoot
     $structure = Get-RepositoryStructure -RepositoryRoot $resolvedRepositoryRoot
-
     Show-Banner -Configuration $configuration
 
     if ($Validate) {
@@ -55,11 +52,9 @@ try {
         Test-RepositoryRoot -RepositoryRoot $resolvedRepositoryRoot
         $validationResult = Test-RepositoryStructure -RepositoryRoot $resolvedRepositoryRoot -Structure $structure
         Show-ValidationSummary -ValidationResult $validationResult
-
         if (-not $validationResult.IsValid) {
-            throw "Repository validation failed. Review the missing paths listed above."
+            throw "Repository validation failed. Review the missing and invalid paths listed above."
         }
-
         Write-Success "Repository validation passed."
         exit 0
     }
@@ -70,12 +65,10 @@ try {
         $validationResult = Test-RepositoryStructure -RepositoryRoot $resolvedRepositoryRoot -Structure $structure
         Invoke-RepositoryDoctor -ValidationResult $validationResult
         Show-ValidationSummary -ValidationResult $validationResult
-
         if (-not $validationResult.IsValid) {
-            throw "Repository doctor found missing paths. Run the bootstrap operation to create configured paths."
+            throw "Repository doctor found missing or invalid configured paths. Run the bootstrap operation to create missing paths."
         }
-
-        Write-Success "Repository doctor found no missing configured paths."
+        Write-Success "Repository doctor found no missing or invalid configured paths."
         exit 0
     }
 
@@ -91,7 +84,6 @@ try {
     Test-RepositoryRoot -RepositoryRoot $resolvedRepositoryRoot
     $validationResult = Test-RepositoryStructure -RepositoryRoot $resolvedRepositoryRoot -Structure $structure
     Show-ValidationSummary -ValidationResult $validationResult
-
     if (-not $validationResult.IsValid) {
         throw "Bootstrap finished but repository validation failed."
     }
@@ -102,7 +94,12 @@ try {
     exit 0
 }
 catch {
-    Show-FailureBanner
+    if (Get-Command -Name Show-FailureBanner -ErrorAction SilentlyContinue) {
+        Show-FailureBanner
+    }
+    else {
+        Write-Host "Repository Bootstrap Failed" -ForegroundColor Red
+    }
     Write-Host $_.Exception.Message -ForegroundColor Red
     exit 1
 }
