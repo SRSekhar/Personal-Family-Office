@@ -150,22 +150,22 @@ describe('BacktestDatasetStore', () => {
         const saved = await store.importDataset(dataset, Buffer.from(csv));
         const connection = new DatabaseSync(join(root, 'catalog', 'datasets.sqlite'));
         try {
-            const artifactUpdate = () => connection.prepare(
+            const artifactUpdate = (): unknown => connection.prepare(
                 'UPDATE dataset_artifacts SET byte_length = byte_length + 1 WHERE raw_digest = ?'
             ).run(saved.rawArtifactDigest);
-            const artifactDelete = () => connection.prepare(
+            const artifactDelete = (): unknown => connection.prepare(
                 'DELETE FROM dataset_artifacts WHERE raw_digest = ?'
             ).run(saved.rawArtifactDigest);
-            const versionUpdate = () => connection.prepare(
+            const versionUpdate = (): unknown => connection.prepare(
                 'UPDATE dataset_versions SET metadata_json = ? WHERE dataset_id = ? AND version = ?'
             ).run('{}', dataset.id, dataset.version);
-            const versionDelete = () => connection.prepare(
+            const versionDelete = (): unknown => connection.prepare(
                 'DELETE FROM dataset_versions WHERE dataset_id = ? AND version = ?'
             ).run(dataset.id, dataset.version);
-            const observationUpdate = () => connection.prepare(
+            const observationUpdate = (): unknown => connection.prepare(
                 'UPDATE dataset_bars SET close_price = close_price + 1 WHERE dataset_id = ? AND dataset_version = ?'
             ).run(dataset.id, dataset.version);
-            const observationDelete = () => connection.prepare(
+            const observationDelete = (): unknown => connection.prepare(
                 'DELETE FROM dataset_bars WHERE dataset_id = ? AND dataset_version = ?'
             ).run(dataset.id, dataset.version);
 
