@@ -1,13 +1,18 @@
 # Session Handoff
 
-## Current continuation — Sprint 18 / IPM-08.2 storage hardening
+## Current continuation — Sprint 18 / IPM-08.2 storage hardening (verified 2026-11-22)
 
-PR #458, branch `feature/ipm-08-backtesting-contracts`, current head `51c537ecc88dae7365d013b2942efd912a6a891e`. Delivered: SQLite append-only triggers; injected interruption/recovery coverage for import, backup and restore publication; fail-closed import/backup/restore size and count limits; and a synthetic storage benchmark harness wired into CI (10,000 rows by default, configurable up to 100,000).
+PR #458, branch `feature/ipm-08-backtesting-contracts`, verified implementation head before this documentation update: `38f9b6c934ad11a764c810b7671e650b873c03b5`. The latest implementation includes SQLite append-only triggers; deterministic interruption/recovery coverage for import, backup and restore publication; fail-closed import/backup/restore resource ceilings; and a synthetic storage benchmark wired into CI.
 
-Important precision: interruption tests inject deterministic failures at transaction/filesystem publication boundaries and reopen/inspect the store; they do not claim to simulate actual power loss or hardware failure. Benchmark output is synthetic and environment-specific, not a production performance guarantee.
+**Verification:** CI #2134 passed on that exact implementation head. Lint, typecheck, package build, automated tests, the 10,000-row synthetic storage benchmark, Chromium FIRE planner smoke and Chromium investment statement reconciliation smoke all passed. Secret Scan #1929 also passed.
 
-Secret Scan #1924 passed on the prior code head `8f0be41832c7f3663fa2bd7494b4dea3b2acc50a`. CI #2129 was running on that prior head; current head `51c537ecc88dae7365d013b2942efd912a6a891e` includes the explicit return-type lint fix and CI benchmark step. Wait for current-head CI and Secret Scan before marking the milestones verified. Remaining policy decisions: retention/licensing and host application storage path. Keep PR #458 draft/open/unmerged; do not create another PR or expand beyond NSE daily OHLCV.
+**Observed benchmark sample (CI runner, Node v22.23.5, Linux x64; synthetic fixture only):** 10,000 observations, 1,340,007 source bytes; import 739.51 ms / 13,522 observations per second; reload 324.32 ms; integrity check 338.26 ms (ok); backup 383.59 ms / 1,340,007 bytes. Treat these as a single environment-specific CI measurement, not a production SLA or market-data throughput guarantee.
 
+Interruption tests inject deterministic failures at transaction/filesystem publication boundaries and reopen/inspect the store; they do not claim to simulate physical power loss or hardware failure. Resource limits fail closed without truncation. Orphan and staging evidence is not automatically deleted beyond explicitly tested cleanup of incomplete publication.
+
+**Remaining decisions:** retention/licensing policy and host application catalog/artifact path configuration. Do not invent license terms or delete original evidence automatically. Keep the separate SQLite catalog and immutable CSV artifacts outside the repository and separate from the household workspace database/backup.
+
+**Guardrails:** first-release scope remains NSE daily OHLCV. No BSE/intraday, real market data, provider adapter, simulator, broker/live order, or household-ledger integration. PR #458 remains draft/open/unmerged; do not create another PR or merge without explicit approval.
 
 ## Current continuation — Sprint 17 / IPM-08.2
 
