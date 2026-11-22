@@ -1,15 +1,16 @@
 # Product Backlog
 
-## 2026-11-22 — IPM-08.2 storage hardening update
+## 2026-11-22 — IPM-08.2 storage hardening and verification
 
-- [x] Enforce append-only semantics at the SQLite boundary for artifact, dataset-version and normalized-observation rows (UPDATE/DELETE triggers).
-- [x] Add regression assertions for all six forbidden mutation paths and retain a deliberate guard-bypass corruption test for integrity verification.
-- [ ] Add crash-boundary injection/recovery tests for artifact staging/publication and SQLite transaction interruption.
-- [ ] Add explicit import/restore resource limits and verify failure is non-destructive.
-- [ ] Measure representative storage throughput/space use before making performance claims.
-- [ ] Resolve retention/licensing policy and host application path/configuration.
-- Current PR #458 head: `1dec6e58a070a02928fcbf1ec4534568423f700b`. Secret Scan #1920 passed; CI #2125 is in progress. PR remains draft/open/unmerged.
-
+- [x] Enforce database-level append-only semantics for source-artifact, dataset-version and normalized-observation rows with SQLite UPDATE/DELETE triggers; cover all six forbidden mutation paths and retain a deliberate guard-bypass corruption test.
+- [x] Add deterministic interruption/recovery tests for import transaction interruption, orphan-artifact detection after reopen, backup staging cleanup and restore publication rollback. These are injected software fault boundaries, not physical power-loss certification.
+- [x] Enforce fail-closed resource ceilings: 64 MiB source CSV, 1,000,000 observations per dataset, 16 MiB backup manifest, 512 MiB backup catalog, 100,000 artifacts/versions, 64 MiB per source artifact and 2 GiB aggregate backup artifacts.
+- [x] Add a synthetic 10,000-observation storage benchmark and run it in CI; configurable fixture range is 1–100,000 observations.
+- [x] Verify latest implementation head `38f9b6c934ad11a764c810b7671e650b873c03b5`: CI #2134 and Secret Scan #1929 passed. CI passed lint, typecheck, package build, automated tests, synthetic benchmark and both Chromium browser smoke tests.
+- Benchmark sample from CI #2134 (Node v22.23.5, Linux x64; synthetic fixture only): 10,000 observations / 1,340,007 source bytes; import 739.51 ms (13,522 observations/s); reload 324.32 ms; integrity check 338.26 ms (ok); backup 383.59 ms / 1,340,007 bytes. These are one CI-runner measurement, not a production SLA or representative market-data performance claim.
+- [ ] Resolve retention/licensing policy. Do not auto-delete source evidence; define retention only after license/contract obligations are known.
+- [ ] Define host application catalog/artifact path configuration, permissions and coordinated backup/restore integration. Keep the backtesting catalog separate from the household workspace database and backup snapshot.
+- PR #458 remains draft/open/unmerged on `feature/ipm-08-backtesting-contracts`. No provider, real market data, simulator, broker or household-ledger mutation is included.
 
 ## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio
 
