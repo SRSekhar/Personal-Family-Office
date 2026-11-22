@@ -895,5 +895,5 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - [x] Add exported OS-aware resolver for separate backtesting catalog/artifact paths.
 - [x] Support paired explicit absolute environment overrides and reject partial, empty, relative, overlapping or repository-contained paths.
 - [x] Cover Windows, macOS and Linux defaults with cross-platform tests.
-- [ ] Validate final resolver/test changes in PR CI before marking this item complete.
+- [x] Validate final resolver/test changes in PR CI: CI #2145 and Secret Scan #1940 passed on `30f302edcb9db5489657ffcbda776f8d3527d56e`.
 - [ ] Decide retention and license-review lifecycle before implementing any deletion/purge policy.

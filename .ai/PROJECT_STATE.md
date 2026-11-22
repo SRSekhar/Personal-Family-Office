@@ -500,5 +500,5 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Resolver rejects repository-contained paths and overlapping catalog/artifact directory trees, mirroring the store's independent path guard.
 - Added cross-platform resolver tests for Windows, macOS, Linux, overrides, partial/relative/empty configuration, repository containment and nested paths.
 - Resolver only returns configuration. It does not create directories, instantiate SQLite, start storage on dashboard boot, or integrate with household backups.
-- Code commits: `1a08472e1366dca478318466f0167eddb206d21a` and `82079c038317799f86a881a74c69d8254f309d88`; latest follow-up for relative LOCALAPPDATA validation is pending commit below.
+- Code commits: `1a08472e1366dca478318466f0167eddb206d21a` and `82079c038317799f86a881a74c69d8254f309d88`; relative LOCALAPPDATA/XDG_DATA_HOME validation is included in the verified final resolver head.
 - Retention/licensing policy remains deliberately unresolved; no source artifact deletion or invented license terms.
