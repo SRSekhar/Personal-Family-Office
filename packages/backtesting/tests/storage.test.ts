@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Currency } from '@pfo/models';
 
 import type { BacktestDatasetCsvImportMetadata } from '../src/csv-import.js';
+import type { BacktestStorageFaultPoint } from '../src/storage.js';
 import { importBacktestDatasetCsv } from '../src/csv-import.js';
 import { BacktestDatasetStore } from '../src/storage.js';
 
@@ -44,7 +45,7 @@ const directories: string[] = [];
 const stores: BacktestDatasetStore[] = [];
 
 async function createStore(
-    faultInjector?: (point: import('../src/storage.js').BacktestStorageFaultPoint) => void
+    faultInjector?: (point: BacktestStorageFaultPoint) => void
 ): Promise<{ store: BacktestDatasetStore; root: string; artifactDirectory: string }> {
     const root = await mkdtemp(join(tmpdir(), 'pfo-backtest-store-'));
     directories.push(root);
