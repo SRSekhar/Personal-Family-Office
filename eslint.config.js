@@ -25,6 +25,16 @@ export default tseslint.config(
     },
 
     {
+        // Node-based benchmark scripts are executable tooling, not browser code.
+        files: ['packages/**/benchmarks/**/*.{js,mjs}'],
+        languageOptions: {
+            globals: {
+                ...globals.node
+            }
+        }
+    },
+
+    {
         // The static dashboard runs in the browser and has no Node runtime.
         files: ['apps/dashboard/**/*.js'],
         languageOptions: {
