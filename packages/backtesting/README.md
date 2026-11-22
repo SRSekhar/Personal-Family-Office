@@ -51,3 +51,13 @@ It reports import throughput, reload time, integrity-check time and backup time 
 No provider SDK, endpoint, credential, network client, market-data download, broker integration or live order routing is included.
 
 Backtesting records and any future paper portfolio must remain separate from real investment transactions, cash, valuations, FIFO lots and statement evidence.
+
+### Host storage path configuration
+
+The host can resolve OS-appropriate defaults with the exported `resolveBacktestStoragePaths()` helper. It only returns paths; it does not create directories, open SQLite, or initialize a dataset store.
+
+- Windows: `%LOCALAPPDATA%\\PFO-OS\\backtesting-catalog\\catalog.sqlite` and sibling `%LOCALAPPDATA%\\PFO-OS\\backtesting-artifacts`; if `LOCALAPPDATA` is absent, the resolver uses `~/AppData/Local`.
+- macOS/Linux: `$XDG_DATA_HOME/PFO-OS` when `XDG_DATA_HOME` is set to an absolute path, otherwise `~/.local/share/PFO-OS`. The catalog and artifacts remain sibling roots.
+- Explicit configuration uses `PFO_BACKTEST_CATALOG_PATH` and `PFO_BACKTEST_ARTIFACT_DIRECTORY`. Both must be supplied together, non-empty, absolute, outside the repository and in disjoint directory trees. Relative `XDG_DATA_HOME` values are rejected rather than silently ignored.
+
+The resolver is a host configuration boundary only. A host must still deliberately construct `BacktestDatasetStore` with the returned paths. It does not change dashboard startup, household workspace persistence, or household backup/restore. The store's own path validation remains an independent final guard.
