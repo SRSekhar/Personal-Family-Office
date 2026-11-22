@@ -34,8 +34,8 @@ export function resolveBacktestStoragePaths(
     const home = options.homeDirectory ?? homedir();
     const repositoryRootInput = options.repositoryRoot ?? process.cwd();
 
-    const catalogOverride = env.PFO_BACKTEST_CATALOG_PATH;
-    const artifactOverride = env.PFO_BACKTEST_ARTIFACT_DIRECTORY;
+    const catalogOverride = env['PFO_BACKTEST_CATALOG_PATH'];
+    const artifactOverride = env['PFO_BACKTEST_ARTIFACT_DIRECTORY'];
     const hasCatalogOverride = catalogOverride !== undefined;
     const hasArtifactOverride = artifactOverride !== undefined;
 
@@ -53,15 +53,15 @@ export function resolveBacktestStoragePaths(
     } else {
         let dataRoot: string;
         if (platform === 'win32') {
-            if (env.LOCALAPPDATA !== undefined && !pathApi.isAbsolute(env.LOCALAPPDATA)) {
+            if (env['LOCALAPPDATA'] !== undefined && !pathApi.isAbsolute(env['LOCALAPPDATA'])) {
                 throw new RangeError('LOCALAPPDATA must be an absolute path when set.');
             }
-            dataRoot = env.LOCALAPPDATA || pathApi.join(home, 'AppData', 'Local');
-        } else if (env.XDG_DATA_HOME !== undefined) {
-            if (!pathApi.isAbsolute(env.XDG_DATA_HOME)) {
+            dataRoot = env['LOCALAPPDATA'] || pathApi.join(home, 'AppData', 'Local');
+        } else if (env['XDG_DATA_HOME'] !== undefined) {
+            if (!pathApi.isAbsolute(env['XDG_DATA_HOME'])) {
                 throw new RangeError('XDG_DATA_HOME must be an absolute path when set.');
             }
-            dataRoot = env.XDG_DATA_HOME;
+            dataRoot = env['XDG_DATA_HOME'];
         } else if (platform === 'darwin') {
             dataRoot = pathApi.join(home, 'Library', 'Application Support');
         } else {
