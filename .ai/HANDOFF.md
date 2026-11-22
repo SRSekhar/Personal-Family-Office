@@ -1,5 +1,12 @@
 # Session Handoff
 
+## Current continuation — Sprint 17 / IPM-08.2
+
+The active work is PR #458, branch `feature/ipm-08-backtesting-contracts`, currently at `1dec6e58a070a02928fcbf1ec4534568423f700b`. Database-level append-only triggers now protect dataset artifacts, dataset versions and normalized observations against UPDATE/DELETE outside the TypeScript API. Six SQL-level regression assertions were added; the intentional corruption test explicitly removes its guard before simulating tampering.
+
+Secret Scan #1920 passed; CI #2125 is still running on the code head. Remaining work: crash-boundary injection/recovery, resource limits, measured performance, retention/licensing and application path/configuration. Keep the PR draft/open/unmerged. Do not start a second PR or implement a simulator/provider without the required decisions.
+
+
 ## Latest integrated state — Sprint 16 complete (2026-11-15)
 
 PRs #453–#457 have all been merged into `main` in dependency order. Main HEAD: `7db56531b353baa45983e88ed0ef54517740c414`. The five merge commits are recorded in `.ai/CURRENT_SPRINT.md`.

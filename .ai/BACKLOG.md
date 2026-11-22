@@ -1,5 +1,16 @@
 # Product Backlog
 
+## 2026-11-22 — IPM-08.2 storage hardening update
+
+- [x] Enforce append-only semantics at the SQLite boundary for artifact, dataset-version and normalized-observation rows (UPDATE/DELETE triggers).
+- [x] Add regression assertions for all six forbidden mutation paths and retain a deliberate guard-bypass corruption test for integrity verification.
+- [ ] Add crash-boundary injection/recovery tests for artifact staging/publication and SQLite transaction interruption.
+- [ ] Add explicit import/restore resource limits and verify failure is non-destructive.
+- [ ] Measure representative storage throughput/space use before making performance claims.
+- [ ] Resolve retention/licensing policy and host application path/configuration.
+- Current PR #458 head: `1dec6e58a070a02928fcbf1ec4534568423f700b`. Secret Scan #1920 passed; CI #2125 is in progress. PR remains draft/open/unmerged.
+
+
 ## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio
 
 ### IPM-08.1 — Architecture and domain contracts

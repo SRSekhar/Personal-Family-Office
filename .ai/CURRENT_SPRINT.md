@@ -1,5 +1,14 @@
 # Current Sprint
 
+## Sprint 17 — IPM-08.2 historical dataset storage hardening (2026-11-22)
+
+- Added SQLite-level append-only enforcement for source-artifact records, dataset-version records and normalized OHLCV observations. UPDATE and DELETE are rejected by database triggers even when a caller bypasses the TypeScript store API.
+- Added regression coverage for all six mutation paths. The deliberate catalog-tampering test now drops only its observation-update guard to verify that load/integrity checks still detect offline corruption.
+- Commit: `1dec6e58a070a02928fcbf1ec4534568423f700b`.
+- Secret Scan #1920 passed. CI #2125 is still running on this exact code head; do not claim full validation until it completes.
+- Still outstanding: crash-boundary injection/recovery tests, resource limits, measured performance, retention/licensing policy and application path/configuration. No simulator, provider, real market data or household-ledger mutation.
+
+
 ## Sprint 16 — Integration and consolidation (2026-11-15)
 
 **Completed:** PRs #453–#457 have all been sequentially merged into `main` using merge commits, preserving the dependency history. Each PR was retargeted to `main` only after its predecessor merged, made ready for review, and merged only after its own CI and Secret Scan passed.
