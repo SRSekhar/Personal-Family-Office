@@ -1,5 +1,5 @@
 import { homedir } from 'node:os';
-import { isAbsolute, posix, resolve, win32 } from 'node:path';
+import { posix, win32 } from 'node:path';
 
 export interface BacktestStoragePaths {
     readonly catalogPath: string;
