@@ -59,6 +59,8 @@ export function resolveBacktestStoragePaths(
                 throw new RangeError('XDG_DATA_HOME must be an absolute path when set.');
             }
             dataRoot = env.XDG_DATA_HOME;
+        } else if (platform === 'darwin') {
+            dataRoot = pathApi.join(home, 'Library', 'Application Support');
         } else {
             dataRoot = pathApi.join(home, '.local', 'share');
         }

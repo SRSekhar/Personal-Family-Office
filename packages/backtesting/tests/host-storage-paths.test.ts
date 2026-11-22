@@ -27,6 +27,18 @@ describe('resolveBacktestStoragePaths', () => {
         });
     });
 
+    it('uses the macOS Application Support directory when XDG_DATA_HOME is absent', () => {
+        expect(resolveBacktestStoragePaths({
+            platform: 'darwin',
+            homeDirectory: '/Users/sekhar',
+            repositoryRoot: '/work/pfo',
+            env: {}
+        })).toEqual({
+            catalogPath: '/Users/sekhar/Library/Application Support/PFO-OS/backtesting-catalog/catalog.sqlite',
+            artifactDirectory: '/Users/sekhar/Library/Application Support/PFO-OS/backtesting-artifacts'
+        });
+    });
+
     it('falls back to the user data directory when XDG_DATA_HOME is absent', () => {
         expect(resolveBacktestStoragePaths({
             platform: 'linux',
