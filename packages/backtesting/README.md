@@ -62,3 +62,13 @@ The host can resolve OS-appropriate defaults with the exported `resolveBacktestS
 - Explicit configuration uses `PFO_BACKTEST_CATALOG_PATH` and `PFO_BACKTEST_ARTIFACT_DIRECTORY`. Both must be supplied together, non-empty, absolute, outside the repository and in disjoint directory trees. Relative `XDG_DATA_HOME` values are rejected rather than silently ignored.
 
 The resolver is a host configuration boundary only. A host must still deliberately construct `BacktestDatasetStore` with the returned paths. It does not change dashboard startup, household workspace persistence, or household backup/restore. The store's own path validation remains an independent final guard.
+
+### Local validation
+
+Run the package's focused checks from the repository root:
+
+```sh
+pnpm --filter @pfo/backtesting typecheck
+pnpm --filter @pfo/backtesting test
+pnpm --filter @pfo/backtesting lint
+```
