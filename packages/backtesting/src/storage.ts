@@ -374,6 +374,26 @@ export class BacktestDatasetStore {
             ) STRICT;
             CREATE INDEX IF NOT EXISTS idx_backtest_bars_instrument_end
                 ON dataset_bars(instrument_id, end_at);
+
+            -- Dataset records are append-only even when callers bypass the TypeScript API.
+            CREATE TRIGGER IF NOT EXISTS trg_dataset_artifacts_no_update
+                BEFORE UPDATE ON dataset_artifacts
+                BEGIN SELECT RAISE(ABORT, 'dataset artifacts are immutable'); END;
+            CREATE TRIGGER IF NOT EXISTS trg_dataset_artifacts_no_delete
+                BEFORE DELETE ON dataset_artifacts
+                BEGIN SELECT RAISE(ABORT, 'dataset artifacts are immutable'); END;
+            CREATE TRIGGER IF NOT EXISTS trg_dataset_versions_no_update
+                BEFORE UPDATE ON dataset_versions
+                BEGIN SELECT RAISE(ABORT, 'dataset versions are immutable'); END;
+            CREATE TRIGGER IF NOT EXISTS trg_dataset_versions_no_delete
+                BEFORE DELETE ON dataset_versions
+                BEGIN SELECT RAISE(ABORT, 'dataset versions are immutable'); END;
+            CREATE TRIGGER IF NOT EXISTS trg_dataset_bars_no_update
+                BEFORE UPDATE ON dataset_bars
+                BEGIN SELECT RAISE(ABORT, 'dataset observations are immutable'); END;
+            CREATE TRIGGER IF NOT EXISTS trg_dataset_bars_no_delete
+                BEFORE DELETE ON dataset_bars
+                BEGIN SELECT RAISE(ABORT, 'dataset observations are immutable'); END;
         `);
         const existing = this.database.prepare(
             "SELECT value FROM backtest_storage_meta WHERE key = 'schema_version'"

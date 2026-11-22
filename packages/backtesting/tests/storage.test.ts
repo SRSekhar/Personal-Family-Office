@@ -126,6 +126,8 @@ describe('BacktestDatasetStore', () => {
             if (!firstBar) {
                 throw new Error('Synthetic dataset fixture is missing its first observation.');
             }
+            // Simulate offline catalog tampering by deliberately removing the database guard.
+            connection.exec('DROP TRIGGER trg_dataset_bars_no_update;');
             connection.prepare(`
                 UPDATE dataset_bars SET close_price = ?
                 WHERE dataset_id = ? AND dataset_version = ? AND end_at = ?
@@ -137,6 +139,43 @@ describe('BacktestDatasetStore', () => {
         const integrity = await store.checkIntegrity();
         expect(integrity.ok).toBe(false);
         expect(integrity.catalogErrors.some((error) => /do not match the immutable source/i.test(error))).toBe(true);
+    });
+
+    it('enforces append-only artifacts, dataset versions and observations at the SQLite boundary', async () => {
+        const { store, root } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        const saved = await store.importDataset(dataset, Buffer.from(csv));
+        const connection = new DatabaseSync(join(root, 'catalog', 'datasets.sqlite'));
+        try {
+            const artifactUpdate = () => connection.prepare(
+                'UPDATE dataset_artifacts SET byte_length = byte_length + 1 WHERE raw_digest = ?'
+            ).run(saved.rawArtifactDigest);
+            const artifactDelete = () => connection.prepare(
+                'DELETE FROM dataset_artifacts WHERE raw_digest = ?'
+            ).run(saved.rawArtifactDigest);
+            const versionUpdate = () => connection.prepare(
+                'UPDATE dataset_versions SET metadata_json = ? WHERE dataset_id = ? AND version = ?'
+            ).run('{}', dataset.id, dataset.version);
+            const versionDelete = () => connection.prepare(
+                'DELETE FROM dataset_versions WHERE dataset_id = ? AND version = ?'
+            ).run(dataset.id, dataset.version);
+            const observationUpdate = () => connection.prepare(
+                'UPDATE dataset_bars SET close_price = close_price + 1 WHERE dataset_id = ? AND dataset_version = ?'
+            ).run(dataset.id, dataset.version);
+            const observationDelete = () => connection.prepare(
+                'DELETE FROM dataset_bars WHERE dataset_id = ? AND dataset_version = ?'
+            ).run(dataset.id, dataset.version);
+
+            expect(artifactUpdate).toThrow(/dataset artifacts are immutable/i);
+            expect(artifactDelete).toThrow(/dataset artifacts are immutable/i);
+            expect(versionUpdate).toThrow(/dataset versions are immutable/i);
+            expect(versionDelete).toThrow(/dataset versions are immutable/i);
+            expect(observationUpdate).toThrow(/dataset observations are immutable/i);
+            expect(observationDelete).toThrow(/dataset observations are immutable/i);
+        } finally {
+            connection.close();
+        }
+        expect(await store.loadDataset(dataset.id, dataset.version)).toEqual(dataset);
     });
 
     it('reports a missing referenced artifact and blocks loading it', async () => {

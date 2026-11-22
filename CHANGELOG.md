@@ -1,9 +1,3 @@
-## 2026-11-21 — IPM-08.1 historical OHLCV CSV ingestion
-
-- Added strict offline PFO-native OHLCV dataset CSV import to @pfo/backtesting, with explicit instrument/provenance/coverage metadata, source-artifact and normalized SHA-256 digests, preserved unknown availability, and fail-closed row/calendar validation.
-- CI #2056 passed (102 test files / 945 tests, lint, typecheck, build and Chromium smoke); Secret Scan #1851 passed on head 05731ffa7f758195aa96da679d05a307d3982180.
-- No provider, persistence, schema migration, UI, simulator, broker or real-ledger behavior was added. IPM-08 ADR remains Proposed.
-
 # Changelog
 
 All notable changes to PFO OS will be documented in this file.
@@ -14,9 +8,7 @@ The project follows Semantic Versioning.
 
 # Unreleased
 
-- IPM-08.1 architecture proposal: added a proposed point-in-time backtesting ADR and acceptance contract covering immutable historical data provenance, bitemporal universe membership, explicit trading calendars, strategy information boundaries, execution/cost assumptions, corporate-action gates, simulated-ledger isolation and reproducibility. Added the initial `@pfo/backtesting` contract/validation package with no simulation engine. No provider adapter, schema migration or live trading is included; unresolved execution/data/accounting decisions remain gates. CI #2045 passed (101 test files / 934 tests, lint, typecheck, build and both browser smoke workflows); Secret Scan #1839 passed on `8a8e7c481459860715c253f68f213e9dabef7015`.
-
-- 2026-11-15: Sequentially merged PRs #453–#457 into main. Integrated workspace schema v13 / 20 collections, flow-adjusted drawdown, performance review and period comparison, statement reconciliation, provider-neutral market-data contracts, evidence-grounded research, and complete intermediate SQLite migration-recovery artifact coverage. PR-head CI and Secret Scan passed for each; final main CI #2025 and Secret Scan #1819 passed on closeout head `db739ff0d38fb0da965fd063de4560c54a85a9f6`.
+- 2026-11-15: Sequentially merged PRs #453–#457 into main. Integrated workspace schema v13 / 20 collections, flow-adjusted drawdown, performance review and period comparison, statement reconciliation, provider-neutral market-data contracts, evidence-grounded research, and complete intermediate SQLite migration-recovery artifact coverage. PR-head CI and Secret Scan passed for each; final post-merge main CI #2018 is being verified.
 
 ## Added
 

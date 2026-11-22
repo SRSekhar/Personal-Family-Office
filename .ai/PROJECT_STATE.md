@@ -15,10 +15,9 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Sprint 16 / integration complete (2026-11-15):** PRs #453–#457 have been sequentially merged into `main` in dependency order using merge commits. All PR-head CI and Secret Scan checks passed before merge; PR #455 also passed dashboard packaging.
-- **Main integration merge:** `7db56531b353baa45983e88ed0ef54517740c414`; main closeout HEAD after documentation updates: `db739ff0d38fb0da965fd063de4560c54a85a9f6`. Workspace persistence is schema v13 with 20 collections. The integrated capabilities are flow-adjusted drawdown, performance review and historical comparison, transaction/holdings statement reconciliation, provider-neutral market-data contracts, and evidence-grounded research/AI review.
-- **Latest integration verification:** CI #2025 and Secret Scan #1819 passed on main closeout head `db739ff0d38fb0da965fd063de4560c54a85a9f6`.
-- **Sprint 17 / IPM-08 in progress:** proposed architecture ADR and detailed acceptance scenarios are drafted in `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` and `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md`. The ADR is Proposed; exchange scope, calendar source, corporate-action handling, execution/fill policy, costs and lot-size rules remain unresolved. The new `@pfo/backtesting` package currently contains contracts and validation only; no simulation engine, provider integration or persistence schema change has been made.
-- **Next milestone — IPM-08.1 closeout:** resolve the required contract decisions, then implement strict typed contracts and validators with deterministic tests. 
+- **Main HEAD:** `7db56531b353baa45983e88ed0ef54517740c414`. Workspace persistence is schema v13 with 20 collections. The integrated capabilities are flow-adjusted drawdown, performance review and historical comparison, transaction/holdings statement reconciliation, provider-neutral market-data contracts, and evidence-grounded research/AI review.
+- **Latest integration verification:** CI #2018 is running against the final merge commit; Secret Scan #1812 passed. Do not declare the full post-merge regression complete until CI #2018 succeeds.
+- **Next milestone — Sprint 17 / IPM-08:** architecture and acceptance contracts for point-in-time historical backtesting. Define historical evidence, strategy, execution, costs, liquidity, corporate-action and benchmark assumptions, plus look-ahead/survivorship/publication-time bias controls. Start with an ADR and contract tests; do not build the simulation engine until those are agreed.
 - **Gated:** no vendor-specific market-data adapter, credentials, outbound network calls, automatic valuation import, broker integration or live order routing. Paper portfolio must remain a separate domain from real investment holdings and transactions.
 - **Privacy and operational limits:** repository is public; synthetic fixtures only. Local SQLite and JSON research exports are not encrypted. Backups/retention remain host-managed; do not commit private household data, statements, credentials or reports.
 
@@ -461,32 +460,3 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Added independent hand-calculated and contract tests in `apps/dashboard/investment-period-comparison.test.js`.
 - No UI, report, schema migration, provider, new market data or private financial data added. CI validation is pending.
 - Next: validate CI, then implement private-only comparison workspace and exports.
- 
-## 2026-11-21 — IPM-08.1 historical OHLCV CSV ingestion
-
-- Implemented importBacktestDatasetCsv in packages/backtesting/src/csv-import.ts and exported it from @pfo/backtesting.
-- The importer requires the versioned #PFO-BACKTEST-DATASET,1,OHLCV manifest and exact column sequence: startAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId.
-- Instrument identity, interval, currency, adjustment basis, timezone, source/license metadata, dataset recorded-at timestamp, coverage window/status and complete expected-bar schedule are explicit caller inputs. The importer does not infer them from CSV symbols or dates.
-- Computes separate SHA-256 digests for the original source artifact and canonical normalized dataset content. Raw artifact digest preserves line-ending/BOM differences; normalized digest is stable across equivalent line-ending conventions.
-- Missing availability, volume and provider IDs remain absent. A source claiming per-observation point-in-time evidence is rejected if any bar lacks availability evidence.
-- Malformed CSV, unsupported manifest/header, invalid numeric/timestamp fields, duplicate or unsorted bars, impossible OHLC, mixed metadata and incomplete declared coverage fail closed. Input rows are never silently sorted, filled or interpolated.
-- CI #2056 passed on head 05731ffa7f758195aa96da679d05a307d3982180: lint, typecheck, package build, 102 test files / 945 tests, repository bootstrap safety, FIRE planner Chromium smoke and investment statement reconciliation Chromium smoke. Secret Scan #1851 passed on the same head.
-- PR #458 remains draft/open/unmerged. ADR remains Proposed. No engine, provider integration, dataset persistence, schema migration, UI workflow, broker connection or real-ledger mutation has been introduced.
-- Next gate: decide dataset persistence and workspace/backup boundary before adding an import UI or simulation engine. Engine-specific choices (exchange scope, calendar source, corporate actions, execution, costs, tick/lot rules and short/fractional positions) remain unresolved and must not be guessed.
-
- 
-## 2026-11-21 — IPM-08.2 approved local historical dataset persistence
-
-- User approved the separate SQLite catalog + immutable SHA-256-addressed original CSV artifact architecture, with normalized observations stored as indexed rows in the separate SQLite catalog.
-- Implemented and exported `BacktestDatasetStore` in `packages/backtesting/src/storage.ts`.
-- Catalog is separate from the household workspace DB and requires explicit absolute paths outside the repository and outside each other's directory trees. Directory creation uses private permissions; no household ledger or workspace collection is written.
-- Catalog schema v1 uses strict SQLite tables, foreign keys, WAL and FULL synchronous durability. Dataset ID/version records are append-only through the store API; duplicate versions are rejected. Exact raw artifacts are deduplicated by SHA-256 while separate dataset versions retain distinct provenance.
-- Import verifies exact raw-byte SHA-256, valid UTF-8, re-parses the original CSV against supplied metadata, and confirms it reproduces the normalized semantic digest before catalog insertion. The import is confirmed only after a catalog/source round-trip check.
-- Load verifies the raw artifact digest and byte length, source digest metadata, row count, normalized digest and exact observation equality against a fresh parse of the immutable source CSV. Tampered catalog observations fail closed.
-- Integrity check reports missing/corrupt artifacts, catalog/foreign-key/observation mismatches, orphan artifacts and staging residue. It never auto-deletes orphan/staging files.
-- Added verified standalone backup bundles using the Node SQLite online-backup API, with catalog SHA-256, dataset manifest and copies of every referenced artifact. Restore validates manifest/catalog/artifact consistency in staging, publishes artifacts before the catalog, refuses existing destinations, and performs a final integrity check.
-- Added storage tests for round-trip persistence, provenance-preserving artifact deduplication, immutable-version rejection, source mismatch, row tampering, missing/orphan artifacts, backup verification, successful restore and incomplete-bundle rejection.
-- Latest implementation head: `8b824466be22b5155d9c2053083eccdd24d9e6bf`. CI #2121 passed: bootstrap safety, lint, typecheck, package build, unit tests, FIRE planner Chromium smoke and investment statement reconciliation Chromium smoke. Secret Scan #1916 passed.
-- PR #458 remains draft/open/unmerged. No provider, market-data downloads, simulator, strategy runner, broker integration, live orders, workspace schema migration or real investment-ledger mutation.
-- Remaining storage release gates: database-level append-only enforcement, crash-injection at filesystem/SQLite boundaries, resource/size limits, measured performance baselines, explicit retention/license policy and default application path/configuration. No performance claim is made yet.
-- Next dependency order: finish storage hardening/benchmark acceptance, then design a private import/backup UI; separately resolve calendar source, corporate actions, execution/fill assumptions, costs, tick/lot and position constraints before any simulator.

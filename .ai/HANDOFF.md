@@ -1,52 +1,8 @@
-## Latest update — 2026-11-21 — IPM-08 TIME-007
-
-Current branch: `feature/ipm-08-backtesting-contracts`; PR #458 remains draft/open/unmerged. Latest acceptance commit: `413fd9bc4858f3665c4cf4b137f7cdedbcfa1d33`.
-
-- Added TIME-007: run-wide `recordedAtCutoff` does not make a bar visible to an earlier strategy decision when `availableAt` is later than that decision timestamp.
-- Together with UNI-007, the acceptance contract now explicitly requires per-decision temporal filtering of both observations and universe membership; run-level validation alone is not sufficient.
-- Acceptance/documentation only. No engine, data persistence, provider or schema migration has been implemented.
-- Checks passed on prior head `9fee14a412e6b03b532b1a253ee692b49e420ea2`; current head still needs fresh CI and Secret Scan confirmation.
-
----
-
-## Latest update — 2026-11-21 — IPM-08 UNI-007
-
-Current branch: `feature/ipm-08-backtesting-contracts`; PR #458 remains draft/open/unmerged. Latest head: `aeafb9469747a5903608ec8c620368dfd946f0c3`.
-
-- CI #2080 and Secret Scan #1875 passed on the immediately preceding head `372914443ff841cc382be4cd22df05b8088d2907`.
-- Added acceptance scenario UNI-007: a future engine must resolve universe membership at every strategy decision timestamp using effective-time and decision-time knowledge; later-recorded corrections cannot rewrite earlier decisions. Run-level overlap validation does not meet this requirement.
-- The UNI-007 commit is documentation-only and has not yet reported a CI run. Do not claim it passed checks until GitHub reports that result.
-- No simulation engine, point-in-time projection, dataset persistence, provider adapter or schema migration has been implemented. Storage proposal remains unapproved.
-
----
-
 # Session Handoff
-
-## Latest development — Sprint 17 / IPM-08.1 design (in progress)
-
-Branch: `feature/ipm-08-backtesting-contracts`, based on main closeout head `db739ff0d38fb0da965fd063de4560c54a85a9f6`.
-
-Repository inspection completed for:
-- `@pfo/market-data` historical bars, provider/source metadata, point-in-time request and provider capability ports.
-- Investment instrument/transaction contracts, FIFO projection, cash-ledger reconciliation, manual valuation and bitemporal drawdown snapshots/calendars.
-- Existing XIRR, flow-adjusted drawdown, performance reporting and research evidence contracts.
-
-Drafted:
-- `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` — proposed package boundary, point-in-time dataset, bitemporal universe, explicit calendar, strategy information boundary, execution/cost proposal, corporate-action gates, simulated-ledger isolation and reproducibility.
-- `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md` — dataset/time/universe/execution/corporate-action/accounting/isolation scenarios, including an independently calculated synthetic INR execution fixture.
-
-**Important:** ADR status is Proposed. The initial `@pfo/backtesting` package now contains contract types and strict validators only. No simulation engine, market-data provider, database migration, broker integration or real-ledger mutation has been introduced. Decisions still required include exchange/instrument scope, trading-calendar source, corporate-action semantics, fill/partial-fill policy, cost model, lot-size/tick-size and short/fractional-position policies. Do not guess these in code.
-
-### Next task
-Review the unresolved decision list in the ADR. Next, validate the contract package and close its acceptance tests. Resolve remaining execution/corporate-action/market conventions before implementing simulation behavior or normalized historical CSV import.
-
----
-
-
 
 ## Latest integrated state — Sprint 16 complete (2026-11-15)
 
-PRs #453–#457 have all been merged into `main` in dependency order. Main integration merge commit: `7db56531b353baa45983e88ed0ef54517740c414`; main closeout HEAD: `db739ff0d38fb0da965fd063de4560c54a85a9f6`. The five merge commits are recorded in `.ai/CURRENT_SPRINT.md`.
+PRs #453–#457 have all been merged into `main` in dependency order. Main HEAD: `7db56531b353baa45983e88ed0ef54517740c414`. The five merge commits are recorded in `.ai/CURRENT_SPRINT.md`.
 
 - PR #453: flow-adjusted drawdown, SQLite schema v12.
 - PR #454: portfolio performance review and historical period comparison.
@@ -54,7 +10,7 @@ PRs #453–#457 have all been merged into `main` in dependency order. Main integ
 - PR #456: provider-neutral market-data boundary.
 - PR #457: evidence-grounded research and AI review.
 - PR #457 final migration test commit: `ed0b6a6fbce2ee4acaae123968f769586d509858`; CI #2013 and Secret Scan #1807 passed.
-- Main closeout HEAD `db739ff0d38fb0da965fd063de4560c54a85a9f6`: CI #2025 and Secret Scan #1819 passed.
+- Final main merge commit: Secret Scan #1812 passed; post-merge CI #2018 is the remaining integration gate at handoff time.
 
 All PRs were retargeted to `main` after their predecessors merged, converted from draft, and merged with merge commits only after the respective head checks passed. No PRs remain open in this five-PR chain.
 
@@ -81,7 +37,7 @@ Three increments are implemented: (1) specialist ports for fundamentals, technic
 
 No LLM provider/SDK/API/credentials, outbound calls, scheduled run, dashboard UI, external household-data transmission, prices/targets/recommendations or ledger/valuation/order mutation. A host must explicitly inject model/specialist adapters and invoke the engine. Local JSON is not encrypted; hosts own private path, backup and retention. ADR: `docs/architecture/ADR-IPM-07-EVIDENCE-GROUNDED-RESEARCH.md`.
 
-**Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 passed (100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1805 passed. PR #457 was merged into main on 2026-11-15.
+**Verified on final implementation head `88338ede3d0d64b8454c3fe979e76bd584020fa7` (2026-11-15):** CI #2011 passed (100 test files / 922 tests, lint, typecheck, package build, repository safety checks and both Chromium browser smoke workflows); Secret Scan #1805 passed. PR #457 remains draft/open/unmerged and stacked on PR #456.
 
 This is the core orchestration and persistence foundation, not a live AI research feed. Provider-specific specialist/model adapters and dashboard UI remain gated until an LLM vendor, market/news data sources, official API docs, licensing/terms, privacy and authentication decisions are reviewed. PRs #453–#457 were merged into main on 2026-11-15 after owner approval and successful PR-head checks.
 
@@ -765,32 +721,3 @@ The GitHub repository is public: use synthetic fixtures only and never commit re
 - Hand-calculated tests cover +25% and -10%, unavailable periods, overlap, metadata mismatches, invalid endpoints, timestamp order, calendar provenance and duplicate labels.
 - Commits: `cd736e007e831df49109f7123f1451e8f21c003d` (adapter), `fa1c052565d5b6155a4d2e35bb35b818e9602506` (tests).
 - No UI, exports, schema changes or financial data added. Check CI before proceeding to report/workspace integration.
- 
-## 2026-11-21 — IPM-08.1 historical OHLCV CSV ingestion
-
-- Implemented importBacktestDatasetCsv in packages/backtesting/src/csv-import.ts and exported it from @pfo/backtesting.
-- The importer requires the versioned #PFO-BACKTEST-DATASET,1,OHLCV manifest and exact column sequence: startAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId.
-- Instrument identity, interval, currency, adjustment basis, timezone, source/license metadata, dataset recorded-at timestamp, coverage window/status and complete expected-bar schedule are explicit caller inputs. The importer does not infer them from CSV symbols or dates.
-- Computes separate SHA-256 digests for the original source artifact and canonical normalized dataset content. Raw artifact digest preserves line-ending/BOM differences; normalized digest is stable across equivalent line-ending conventions.
-- Missing availability, volume and provider IDs remain absent. A source claiming per-observation point-in-time evidence is rejected if any bar lacks availability evidence.
-- Malformed CSV, unsupported manifest/header, invalid numeric/timestamp fields, duplicate or unsorted bars, impossible OHLC, mixed metadata and incomplete declared coverage fail closed. Input rows are never silently sorted, filled or interpolated.
-- CI #2056 passed on head 05731ffa7f758195aa96da679d05a307d3982180: lint, typecheck, package build, 102 test files / 945 tests, repository bootstrap safety, FIRE planner Chromium smoke and investment statement reconciliation Chromium smoke. Secret Scan #1851 passed on the same head.
-- PR #458 remains draft/open/unmerged. ADR remains Proposed. No engine, provider integration, dataset persistence, schema migration, UI workflow, broker connection or real-ledger mutation has been introduced.
-- Next gate: decide dataset persistence and workspace/backup boundary before adding an import UI or simulation engine. Engine-specific choices (exchange scope, calendar source, corporate actions, execution, costs, tick/lot rules and short/fractional positions) remain unresolved and must not be guessed.
-
- 
-## 2026-11-21 — IPM-08.2 approved local historical dataset persistence
-
-- User approved the separate SQLite catalog + immutable SHA-256-addressed original CSV artifact architecture, with normalized observations stored as indexed rows in the separate SQLite catalog.
-- Implemented and exported `BacktestDatasetStore` in `packages/backtesting/src/storage.ts`.
-- Catalog is separate from the household workspace DB and requires explicit absolute paths outside the repository and outside each other's directory trees. Directory creation uses private permissions; no household ledger or workspace collection is written.
-- Catalog schema v1 uses strict SQLite tables, foreign keys, WAL and FULL synchronous durability. Dataset ID/version records are append-only through the store API; duplicate versions are rejected. Exact raw artifacts are deduplicated by SHA-256 while separate dataset versions retain distinct provenance.
-- Import verifies exact raw-byte SHA-256, valid UTF-8, re-parses the original CSV against supplied metadata, and confirms it reproduces the normalized semantic digest before catalog insertion. The import is confirmed only after a catalog/source round-trip check.
-- Load verifies the raw artifact digest and byte length, source digest metadata, row count, normalized digest and exact observation equality against a fresh parse of the immutable source CSV. Tampered catalog observations fail closed.
-- Integrity check reports missing/corrupt artifacts, catalog/foreign-key/observation mismatches, orphan artifacts and staging residue. It never auto-deletes orphan/staging files.
-- Added verified standalone backup bundles using the Node SQLite online-backup API, with catalog SHA-256, dataset manifest and copies of every referenced artifact. Restore validates manifest/catalog/artifact consistency in staging, publishes artifacts before the catalog, refuses existing destinations, and performs a final integrity check.
-- Added storage tests for round-trip persistence, provenance-preserving artifact deduplication, immutable-version rejection, source mismatch, row tampering, missing/orphan artifacts, backup verification, successful restore and incomplete-bundle rejection.
-- Latest implementation head: `8b824466be22b5155d9c2053083eccdd24d9e6bf`. CI #2121 passed: bootstrap safety, lint, typecheck, package build, unit tests, FIRE planner Chromium smoke and investment statement reconciliation Chromium smoke. Secret Scan #1916 passed.
-- PR #458 remains draft/open/unmerged. No provider, market-data downloads, simulator, strategy runner, broker integration, live orders, workspace schema migration or real investment-ledger mutation.
-- Remaining storage release gates: database-level append-only enforcement, crash-injection at filesystem/SQLite boundaries, resource/size limits, measured performance baselines, explicit retention/license policy and default application path/configuration. No performance claim is made yet.
-- Next dependency order: finish storage hardening/benchmark acceptance, then design a private import/backup UI; separately resolve calendar source, corporate actions, execution/fill assumptions, costs, tick/lot and position constraints before any simulator.
