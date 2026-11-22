@@ -12,7 +12,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc -b",
@@ -21,7 +23,8 @@
     "format": "prettier src --write",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "benchmark:storage": "pnpm build && node benchmarks/storage-benchmark.mjs"
   },
   "dependencies": {
     "@pfo/market-data": "workspace:*",

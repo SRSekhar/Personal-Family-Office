@@ -43,7 +43,9 @@ const metadata: BacktestDatasetCsvImportMetadata = {
 const directories: string[] = [];
 const stores: BacktestDatasetStore[] = [];
 
-async function createStore(): Promise<{ store: BacktestDatasetStore; root: string; artifactDirectory: string }> {
+async function createStore(
+    faultInjector?: (point: import('../src/storage.js').BacktestStorageFaultPoint) => void
+): Promise<{ store: BacktestDatasetStore; root: string; artifactDirectory: string }> {
     const root = await mkdtemp(join(tmpdir(), 'pfo-backtest-store-'));
     directories.push(root);
     const catalogDirectory = join(root, 'catalog');
@@ -51,7 +53,8 @@ async function createStore(): Promise<{ store: BacktestDatasetStore; root: strin
     await mkdir(catalogDirectory, { recursive: true });
     const store = new BacktestDatasetStore({
         catalogPath: join(catalogDirectory, 'datasets.sqlite'),
-        artifactDirectory
+        artifactDirectory,
+        ...(faultInjector ? { faultInjector } : {})
     });
     stores.push(store);
     return { store, root, artifactDirectory };
@@ -176,6 +179,69 @@ describe('BacktestDatasetStore', () => {
             connection.close();
         }
         expect(await store.loadDataset(dataset.id, dataset.version)).toEqual(dataset);
+    });
+
+    it('recovers cleanly from interruptions after artifact publication and before SQLite commit', async () => {
+        const { store, root, artifactDirectory } = await createStore((point) => {
+            if (point === 'before-import-commit') { throw new Error('simulated process interruption'); }
+        });
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        await expect(store.importDataset(dataset, Buffer.from(csv))).rejects.toThrow(/simulated process interruption/i);
+        expect(store.listDatasets()).toHaveLength(0);
+        const digest = createHash('sha256').update(csv).digest('hex');
+        const artifactPath = join(artifactDirectory, 'sha256', digest.slice(0, 2), digest.slice(2, 4), digest + '.csv');
+        expect(await readFile(artifactPath, 'utf8')).toBe(csv);
+
+        store.close();
+        const reopened = new BacktestDatasetStore({
+            catalogPath: join(root, 'catalog', 'datasets.sqlite'), artifactDirectory
+        });
+        stores.push(reopened);
+        const report = await reopened.checkIntegrity();
+        expect(report.ok).toBe(true);
+        expect(report.orphanArtifacts).toEqual([digest]);
+        expect(reopened.listDatasets()).toHaveLength(0);
+    });
+
+    it('rolls back an interrupted backup publication and leaves no visible partial bundle', async () => {
+        const { store, root } = await createStore((point) => {
+            if (point === 'before-backup-publish') { throw new Error('simulated backup interruption'); }
+        });
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        await store.importDataset(dataset, Buffer.from(csv));
+        const destination = join(root, 'interrupted-backup');
+        await expect(store.createBackup(destination)).rejects.toThrow(/simulated backup interruption/i);
+        await expect(readFile(join(destination, 'manifest.json'))).rejects.toThrow();
+        const entries = await (await import('node:fs/promises')).readdir(root);
+        expect(entries.some((entry) => entry.startsWith('interrupted-backup.staging-'))).toBe(false);
+    });
+
+    it('cleans a restore interrupted after artifact publication before catalog publication', async () => {
+        const { store, root } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        await store.importDataset(dataset, Buffer.from(csv));
+        const backupPath = join(root, 'restore-fault-source');
+        await store.createBackup(backupPath);
+        const restoreRoot = join(root, 'restore-fault-target');
+        await expect(BacktestDatasetStore.restoreBackup(backupPath, {
+            catalogPath: join(restoreRoot, 'catalog', 'datasets.sqlite'),
+            artifactDirectory: join(restoreRoot, 'artifacts'),
+            faultInjector: (point) => {
+                if (point === 'restore-artifacts-published') { throw new Error('simulated restore interruption'); }
+            }
+        })).rejects.toThrow(/simulated restore interruption/i);
+        await expect(readFile(join(restoreRoot, 'catalog', 'datasets.sqlite'))).rejects.toThrow();
+        await expect(readFile(join(restoreRoot, 'artifacts'))).rejects.toThrow();
+    });
+
+    it('rejects source files and datasets that exceed explicit resource limits before publication', async () => {
+        const { store } = await createStore();
+        const dataset = importBacktestDatasetCsv(csv, metadata);
+        const oversizedBytes = new Uint8Array(64 * 1024 * 1024 + 1);
+        await expect(store.importDataset(dataset, oversizedBytes)).rejects.toThrow(/64 MiB/i);
+        const oversizedDataset = { ...dataset, bars: Array(1_000_001).fill(dataset.bars[0]) };
+        await expect(store.importDataset(oversizedDataset, Buffer.from(csv))).rejects.toThrow(/one-million/i);
+        expect(store.listDatasets()).toHaveLength(0);
     });
 
     it('reports a missing referenced artifact and blocks loading it', async () => {

@@ -10,12 +10,32 @@ import type { BacktestBarObservation, BacktestDataset } from './contracts.js';
 import { importBacktestDatasetCsv } from './csv-import.js';
 import { validateBacktestDataset } from './validation.js';
 
+export type BacktestStorageFaultPoint =
+    | 'artifact-published'
+    | 'before-import-commit'
+    | 'backup-staged'
+    | 'before-backup-publish'
+    | 'restore-artifacts-published'
+    | 'before-restore-catalog-publish';
+
 export interface BacktestDatasetStorageOptions {
     /** Absolute path to a dedicated catalog SQLite database, never the household workspace database. */
     readonly catalogPath: string;
     /** Absolute path to the immutable source-artifact directory, outside the repository. */
     readonly artifactDirectory: string;
+    /** Optional deterministic interruption hook for host recovery tests; omit in production. */
+    readonly faultInjector?: (point: BacktestStorageFaultPoint) => void;
 }
+
+/** Conservative first-release resource ceilings; deliberately fail closed rather than truncate. */
+export const BACKTEST_STORAGE_LIMITS = Object.freeze({
+    maxSourceCsvBytes: 64 * 1024 * 1024,
+    maxObservationsPerDataset: 1_000_000,
+    maxBackupManifestBytes: 16 * 1024 * 1024,
+    maxBackupCatalogBytes: 512 * 1024 * 1024,
+    maxBackupArtifacts: 100_000,
+    maxBackupArtifactBytes: 2 * 1024 * 1024 * 1024
+});
 
 export interface StoredBacktestDataset {
     readonly id: string;
@@ -85,6 +105,35 @@ interface StoredBarRecord {
 
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/u;
 const SCHEMA_VERSION = 1;
+
+function assertBackupManifestLimits(manifest: {
+    artifacts: Array<{ byteLength: number }>;
+    datasetVersions: Array<{ observation_count: number; byte_length: number }>;
+}): void {
+    if (manifest.artifacts.length > BACKTEST_STORAGE_LIMITS.maxBackupArtifacts
+        || manifest.datasetVersions.length > BACKTEST_STORAGE_LIMITS.maxBackupArtifacts) {
+        throw new RangeError('Backtest backup exceeds the supported artifact or dataset-version count.');
+    }
+    let totalBytes = 0;
+    for (const artifact of manifest.artifacts) {
+        if (!Number.isSafeInteger(artifact.byteLength) || artifact.byteLength < 0
+            || artifact.byteLength > BACKTEST_STORAGE_LIMITS.maxSourceCsvBytes) {
+            throw new RangeError('Backtest backup contains an artifact outside the supported size limit.');
+        }
+        totalBytes += artifact.byteLength;
+        if (!Number.isSafeInteger(totalBytes) || totalBytes > BACKTEST_STORAGE_LIMITS.maxBackupArtifactBytes) {
+            throw new RangeError('Backtest backup exceeds the total artifact-byte limit.');
+        }
+    }
+    for (const version of manifest.datasetVersions) {
+        if (!Number.isSafeInteger(version.observation_count) || version.observation_count < 1
+            || version.observation_count > BACKTEST_STORAGE_LIMITS.maxObservationsPerDataset
+            || !Number.isSafeInteger(version.byte_length) || version.byte_length < 1
+            || version.byte_length > BACKTEST_STORAGE_LIMITS.maxSourceCsvBytes) {
+            throw new RangeError('Backtest backup contains a dataset outside the supported resource limits.');
+        }
+    }
+}
 
 function sha256(bytes: Uint8Array): string {
     return createHash('sha256').update(bytes).digest('hex');
@@ -176,6 +225,7 @@ export class BacktestDatasetStore {
     private readonly database: DatabaseSync;
     private readonly catalogPath: string;
     private readonly artifactDirectory: string;
+    private readonly faultInjector: ((point: BacktestStorageFaultPoint) => void) | undefined;
     private closed = false;
 
     /** Restore a verified backup bundle into previously unused catalog and artifact paths. */
@@ -203,7 +253,12 @@ export class BacktestDatasetStore {
             if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') { throw error; }
         }
 
-        const manifest = JSON.parse(await readFile(join(bundlePath, 'manifest.json'), 'utf8')) as {
+        const manifestPath = join(bundlePath, 'manifest.json');
+        const manifestDetails = await stat(manifestPath);
+        if (!manifestDetails.isFile() || manifestDetails.size > BACKTEST_STORAGE_LIMITS.maxBackupManifestBytes) {
+            throw new RangeError('Backtest backup manifest exceeds the supported size limit.');
+        }
+        const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as {
             format: string;
             formatVersion: number;
             catalogSchemaVersion: number;
@@ -221,7 +276,12 @@ export class BacktestDatasetStore {
             || !Array.isArray(manifest.datasetVersions)) {
             throw new RangeError('Backtest backup manifest is invalid or unsupported.');
         }
+        assertBackupManifestLimits(manifest);
         const backupCatalogPath = join(bundlePath, 'catalog.sqlite');
+        const catalogDetails = await stat(backupCatalogPath);
+        if (!catalogDetails.isFile() || catalogDetails.size > BACKTEST_STORAGE_LIMITS.maxBackupCatalogBytes) {
+            throw new RangeError('Backtest backup catalog exceeds the supported size limit.');
+        }
         if ((await hashFile(backupCatalogPath)).digest !== manifest.catalogSha256) {
             throw new Error('Backtest backup catalog digest verification failed.');
         }
@@ -294,6 +354,8 @@ export class BacktestDatasetStore {
             // Publish the complete artifact tree first; the catalog becomes visible only afterwards.
             await rename(stagedArtifactDirectory, paths.artifactDirectory);
             artifactsPublished = true;
+            options.faultInjector?.('restore-artifacts-published');
+            options.faultInjector?.('before-restore-catalog-publish');
             await link(stagedCatalogPath, paths.catalogPath);
             catalogPublished = true;
             await unlink(stagedCatalogPath);
@@ -318,6 +380,7 @@ export class BacktestDatasetStore {
         const paths = validatePaths(options);
         this.catalogPath = paths.catalogPath;
         this.artifactDirectory = paths.artifactDirectory;
+        this.faultInjector = options.faultInjector;
         mkdirSyncPrivate(dirname(this.catalogPath));
         mkdirSyncPrivate(this.artifactDirectory);
         mkdirSyncPrivate(join(this.artifactDirectory, '.staging'));
@@ -470,6 +533,12 @@ export class BacktestDatasetStore {
         if (!(rawCsvBytes instanceof Uint8Array) || rawCsvBytes.byteLength === 0) {
             throw new RangeError('A non-empty original CSV byte artifact is required.');
         }
+        if (rawCsvBytes.byteLength > BACKTEST_STORAGE_LIMITS.maxSourceCsvBytes) {
+            throw new RangeError('Original CSV exceeds the 64 MiB first-release import limit.');
+        }
+        if (dataset.bars.length > BACKTEST_STORAGE_LIMITS.maxObservationsPerDataset) {
+            throw new RangeError('Dataset exceeds the one-million-observation first-release limit.');
+        }
         const rawDigest = sha256(rawCsvBytes);
         if (dataset.source.contentDigest !== rawDigest) {
             throw new RangeError('Original CSV bytes do not match the dataset source content digest.');
@@ -500,6 +569,7 @@ export class BacktestDatasetStore {
         }
 
         const artifact = await this.publishArtifact(rawCsvBytes, rawDigest);
+        this.faultInjector?.('artifact-published');
         const importedAt = new Date().toISOString();
         const metadataJson = JSON.stringify(toMetadata(dataset));
         this.database.exec('BEGIN IMMEDIATE;');
@@ -537,6 +607,7 @@ export class BacktestDatasetStore {
                     bar.volume ?? null, bar.adjustmentBasis, bar.marketTimeZone, bar.availableAt ?? null, bar.recordedAt
                 );
             }
+            this.faultInjector?.('before-import-commit');
             this.database.exec('COMMIT;');
         } catch (error) {
             this.database.exec('ROLLBACK;');
@@ -755,6 +826,10 @@ export class BacktestDatasetStore {
                 backupDatabase.close();
             }
 
+            assertBackupManifestLimits({
+                artifacts: artifactRows.map((row) => ({ byteLength: row.byte_length })),
+                datasetVersions: datasetRows
+            });
             const artifactBackupRoot = join(stagingDirectory, 'artifacts');
             await mkdir(artifactBackupRoot, { recursive: true, mode: 0o700 });
             let artifactBytes = 0;
@@ -787,13 +862,19 @@ export class BacktestDatasetStore {
                 datasetVersions: datasetRows,
                 artifacts: manifestArtifacts
             };
+            this.faultInjector?.('backup-staged');
+            const manifestText = JSON.stringify(manifest, null, 2) + '\n';
+            if (Buffer.byteLength(manifestText, 'utf8') > BACKTEST_STORAGE_LIMITS.maxBackupManifestBytes) {
+                throw new RangeError('Generated backtest backup manifest exceeds the supported size limit.');
+            }
             const manifestHandle = await open(join(stagingDirectory, 'manifest.json'), 'wx', 0o600);
             try {
-                await manifestHandle.writeFile(JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+                await manifestHandle.writeFile(manifestText, 'utf8');
                 await manifestHandle.sync();
             } finally {
                 await manifestHandle.close();
             }
+            this.faultInjector?.('before-backup-publish');
             await rename(stagingDirectory, destination);
             return {
                 path: destination,
