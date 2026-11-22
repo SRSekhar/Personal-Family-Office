@@ -54,18 +54,18 @@ describe('resolveBacktestStoragePaths', (): void => {
     it('requires both explicit overrides and accepts an absolute disjoint pair', (): void => {
         expect((): ReturnType<typeof resolveBacktestStoragePaths> => resolveBacktestStoragePaths({
             platform: 'linux', repositoryRoot: '/work/pfo',
-            env: { PFO_BACKTEST_CATALOG_PATH: '/var/lib/pfo/catalog.sqlite' }
+            env: { PFO_BACKTEST_CATALOG_PATH: '/var/lib/pfo-catalog/catalog.sqlite' }
         })).toThrow(/set both/i);
 
         expect(resolveBacktestStoragePaths({
             platform: 'linux', repositoryRoot: '/work/pfo',
             env: {
-                PFO_BACKTEST_CATALOG_PATH: '/var/lib/pfo/catalog.sqlite',
-                PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo/artifacts'
+                PFO_BACKTEST_CATALOG_PATH: '/var/lib/pfo-catalog/catalog.sqlite',
+                PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo-artifacts'
             }
         })).toEqual({
-            catalogPath: '/var/lib/pfo/catalog.sqlite',
-            artifactDirectory: '/var/lib/pfo/artifacts'
+            catalogPath: '/var/lib/pfo-catalog/catalog.sqlite',
+            artifactDirectory: '/var/lib/pfo-artifacts'
         });
     });
 
@@ -81,11 +81,11 @@ describe('resolveBacktestStoragePaths', (): void => {
     it('rejects empty and relative overrides and relative XDG data roots', (): void => {
         expect((): ReturnType<typeof resolveBacktestStoragePaths> => resolveBacktestStoragePaths({
             platform: 'linux', repositoryRoot: '/work/pfo',
-            env: { PFO_BACKTEST_CATALOG_PATH: '', PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo/artifacts' }
+            env: { PFO_BACKTEST_CATALOG_PATH: '', PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo-artifacts' }
         })).toThrow(/must not be empty/i);
         expect((): ReturnType<typeof resolveBacktestStoragePaths> => resolveBacktestStoragePaths({
             platform: 'linux', repositoryRoot: '/work/pfo',
-            env: { PFO_BACKTEST_CATALOG_PATH: 'catalog.sqlite', PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo/artifacts' }
+            env: { PFO_BACKTEST_CATALOG_PATH: 'catalog.sqlite', PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo-artifacts' }
         })).toThrow(/absolute/i);
         expect((): ReturnType<typeof resolveBacktestStoragePaths> => resolveBacktestStoragePaths({
             platform: 'linux', repositoryRoot: '/work/pfo', env: { XDG_DATA_HOME: 'relative-data' }
@@ -105,7 +105,7 @@ describe('resolveBacktestStoragePaths', (): void => {
             platform: 'linux', repositoryRoot: '/work/pfo',
             env: {
                 PFO_BACKTEST_CATALOG_PATH: '/work/pfo/data/catalog.sqlite',
-                PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo/artifacts'
+                PFO_BACKTEST_ARTIFACT_DIRECTORY: '/var/lib/pfo-artifacts'
             }
         })).toThrow(/outside the repository/i);
     });
