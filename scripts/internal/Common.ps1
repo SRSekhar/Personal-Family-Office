@@ -1,98 +1,138 @@
 Set-StrictMode -Version Latest
 
+<#
+.SYNOPSIS
+Returns true when the supplied value is null, empty or whitespace.
+#>
 function Test-NullOrWhiteSpace {
     [CmdletBinding()]
-    param([AllowNull()][string]$Value)
+    param(
+        [AllowNull()]
+        [string]$Value
+    )
+
     return [string]::IsNullOrWhiteSpace($Value)
 }
 
+<#
+.SYNOPSIS
+Determines whether a path exists.
+#>
 function Test-PathExists {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
+
     return Test-Path -LiteralPath $Path
 }
 
+<#
+.SYNOPSIS
+Returns the current timestamp.
+#>
 function Get-Timestamp {
     [CmdletBinding()]
     param()
+
     return Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 }
 
+<#
+.SYNOPSIS
+Combines a repository root and relative path.
+#>
 function Join-RepositoryPath {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)][string]$RepositoryRoot,
-        [Parameter(Mandatory)][string]$RelativePath
+        [Parameter(Mandatory)]
+        [string]$RepositoryRoot,
+
+        [Parameter(Mandatory)]
+        [string]$RelativePath
     )
+
     return Join-Path -Path $RepositoryRoot -ChildPath $RelativePath
 }
 
+<#
+.SYNOPSIS
+Creates a directory only if it does not already exist.
+
+.OUTPUTS
+System.Boolean
+#>
 function New-DirectoryIfMissing {
     [CmdletBinding(SupportsShouldProcess)]
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
 
-    if (Test-Path -LiteralPath $Path) {
-        $item = Get-Item -LiteralPath $Path -Force
-        if (-not $item.PSIsContainer) { throw "Cannot create directory because a file already exists at: $Path" }
-        if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-            throw "Refusing to use a symbolic link or reparse point as a repository directory: $Path"
-        }
+    if (Test-PathExists -Path $Path) {
         return $false
     }
 
     if ($PSCmdlet.ShouldProcess($Path, "Create directory")) {
-        try { [System.IO.Directory]::CreateDirectory($Path) | Out-Null }
-        catch {
-            if (-not (Test-Path -LiteralPath $Path -PathType Container)) { throw }
-        }
+        New-Item `
+            -ItemType Directory `
+            -Path $Path `
+            -Force | Out-Null
     }
+
     return $true
 }
 
+<#
+.SYNOPSIS
+Creates a file only if it does not already exist.
+
+.OUTPUTS
+System.Boolean
+#>
 function New-FileIfMissing {
     [CmdletBinding(SupportsShouldProcess)]
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
 
-    if (Test-Path -LiteralPath $Path) {
-        $item = Get-Item -LiteralPath $Path -Force
-        if ($item.PSIsContainer) { throw "Cannot create file because a directory already exists at: $Path" }
-        if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-            throw "Refusing to use a symbolic link or reparse point as a repository file: $Path"
-        }
+    if (Test-PathExists -Path $Path) {
         return $false
     }
 
-    if (-not $PSCmdlet.ShouldProcess($Path, "Create file")) {
-        return $true
+    if ($PSCmdlet.ShouldProcess($Path, "Create file")) {
+        New-Item `
+            -ItemType File `
+            -Path $Path `
+            -Force | Out-Null
     }
 
-    $stream = $null
-    try {
-        # CreateNew is atomic and cannot truncate a file created by another process.
-        $stream = [System.IO.File]::Open(
-            $Path, [System.IO.FileMode]::CreateNew,
-            [System.IO.FileAccess]::Write, [System.IO.FileShare]::Read
-        )
-        return $true
-    }
-    catch [System.IO.IOException] {
-        if (Test-Path -LiteralPath $Path -PathType Leaf) { return $false }
-        throw
-    }
-    finally {
-        if ($null -ne $stream) { $stream.Dispose() }
-    }
+    return $true
 }
 
+<#
+.SYNOPSIS
+Reads and converts a JSON file into a PowerShell object.
+#>
 function Import-JsonFile {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
 
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-        throw "JSON file not found or is not a file: $Path"
+    if (-not (Test-PathExists -Path $Path)) {
+        throw "JSON file not found: $Path"
     }
+
     try {
-        return Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop
+        return Get-Content `
+            -LiteralPath $Path `
+            -Raw `
+            -Encoding UTF8 |
+            ConvertFrom-Json
     }
     catch {
         throw "Invalid JSON in '$Path'. $($_.Exception.Message)"

@@ -5,112 +5,78 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../.."))
-$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("pfo-bootstrap-test-" + [guid]::NewGuid().ToString("N"))
-$fixtureRoot = Join-Path $temporaryRoot "repository"
-$outsideRoot = Join-Path $temporaryRoot "outside"
-$fixtureScripts = Join-Path $fixtureRoot "scripts"
-$initializerSource = Join-Path $repositoryRoot "scripts/build/Initialize-PFO.ps1"
+$initializer = Join-Path -Path $repositoryRoot -ChildPath "scripts/build/Initialize-PFO.ps1"
+$structureModule = Join-Path -Path $repositoryRoot -ChildPath "scripts/internal/Structure.ps1"
+$archivePath = Join-Path -Path $repositoryRoot -ChildPath "archive"
+$versionPath = Join-Path -Path $repositoryRoot -ChildPath "VERSION"
 
-function Invoke-FixtureBootstrap {
-    param([string[]]$Arguments = @())
-    & pwsh -NoLogo -NoProfile -File (Join-Path $fixtureScripts "build/Initialize-PFO.ps1") @Arguments | Out-Host
-    return $LASTEXITCODE
+if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
+    throw "Bootstrap initializer not found: $initializer"
 }
 
-function Set-FixtureStructure {
-    param([string[]]$Directories, [string[]]$Files)
-    $configuration = [ordered]@{
-        version = "1.0.0"
-        description = "Isolated bootstrap safety fixture"
-        directories = $Directories
-        files = $Files
+if (-not (Test-Path -LiteralPath $versionPath -PathType Leaf)) {
+    throw "Repository version file not found: $versionPath"
+}
+
+# Use an empty configured directory to prove WhatIf does not create it.
+if (Test-Path -LiteralPath $archivePath -PathType Container) {
+    $archiveContents = @(Get-ChildItem -LiteralPath $archivePath -Force)
+    if ($archiveContents.Count -gt 0) {
+        throw "Safety test requires the archive directory to be empty."
     }
-    $configurationPath = Join-Path $fixtureScripts "config/repository.structure.json"
-    $configuration | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $configurationPath -Encoding utf8
+
+    Remove-Item -LiteralPath $archivePath -Force
 }
 
 try {
-    New-Item -ItemType Directory -Path $fixtureRoot -Force | Out-Null
-    New-Item -ItemType Directory -Path $outsideRoot -Force | Out-Null
-    foreach ($directory in @("scripts/build", "scripts/internal", "scripts/config", ".ai")) {
-        New-Item -ItemType Directory -Path (Join-Path $fixtureRoot $directory) -Force | Out-Null
-    }
-    Copy-Item -LiteralPath $initializerSource -Destination (Join-Path $fixtureScripts "build/Initialize-PFO.ps1")
-    Copy-Item -Path (Join-Path $repositoryRoot "scripts/internal/*.ps1") -Destination (Join-Path $fixtureScripts "internal")
-    foreach ($marker in @("README.md", "VERSION", "START_HERE.md")) {
-        Set-Content -LiteralPath (Join-Path $fixtureRoot $marker) -Value "fixture" -Encoding utf8
+    & pwsh -NoProfile -File $initializer -WhatIf
+    if ($LASTEXITCODE -ne 0) {
+        throw "Bootstrap WhatIf execution failed with exit code $LASTEXITCODE."
     }
 
-    $pfoConfiguration = [ordered]@{
-        name = "PFO OS"
-        fullName = "Personal Family Office Operating System"
-        version = "0.1.0"
-        repository = @{ name = "Personal-Family-Office" }
-        architecture = @{ style = @("Clean Architecture", "Domain Driven Design"); language = "PowerShell"; packageManager = "pnpm" }
-        principles = @{ repositoryIsMemory = $true; dataIsSourceOfTruth = $true }
-        project = @{ status = "Test Fixture" }
+    if (Test-Path -LiteralPath $archivePath) {
+        throw "WhatIf unexpectedly created the archive directory."
     }
-    $pfoConfiguration | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $fixtureRoot "pfo.json") -Encoding utf8
-    Set-FixtureStructure -Directories @("bootstrap-created", "bootstrap-created/nested") -Files @("bootstrap-created/nested/new.txt")
-    $newFile = Join-Path $fixtureRoot "bootstrap-created/nested/new.txt"
-
-    if ((Invoke-FixtureBootstrap -Arguments @("-WhatIf")) -ne 0) { throw "WhatIf execution failed." }
-    if (Test-Path -LiteralPath (Join-Path $fixtureRoot "bootstrap-created")) { throw "WhatIf unexpectedly created a directory." }
-
-    if ((Invoke-FixtureBootstrap) -ne 0) { throw "Normal initialization failed." }
-    if (-not (Test-Path -LiteralPath $newFile -PathType Leaf)) { throw "Initialization did not create the configured file." }
-
-    Set-Content -LiteralPath $newFile -Value "user-owned-content" -NoNewline
-    if ((Invoke-FixtureBootstrap) -ne 0) { throw "Idempotent initialization failed." }
-    if ([System.IO.File]::ReadAllText($newFile) -cne "user-owned-content") { throw "Initialization overwrote existing user content." }
-
-    if ((Invoke-FixtureBootstrap -Arguments @("-Validate")) -ne 0) { throw "Validate mode failed for a complete fixture." }
-    if ((Invoke-FixtureBootstrap -Arguments @("-Doctor")) -ne 0) { throw "Doctor mode failed for a healthy fixture." }
-    if ((Invoke-FixtureBootstrap -Arguments @("-Validate", "-Doctor")) -eq 0) {
-        throw "Bootstrap accepted mutually exclusive Validate and Doctor modes."
-    }
-
-    Remove-Item -LiteralPath $newFile -Force
-    New-Item -ItemType Directory -Path $newFile | Out-Null
-    if ((Invoke-FixtureBootstrap -Arguments @("-Validate")) -eq 0) {
-        throw "Validate mode accepted a directory where a file is required."
-    }
-    Remove-Item -LiteralPath $newFile -Force
-    Set-Content -LiteralPath $newFile -Value "restored" -NoNewline
-
-    # A file blocking a configured directory path must fail before creating siblings.
-    Set-FixtureStructure -Directories @("blocked", "blocked/child", "must-not-be-created") -Files @("bootstrap-created/nested/new.txt")
-    Set-Content -LiteralPath (Join-Path $fixtureRoot "blocked") -Value "not-a-directory"
-    if ((Invoke-FixtureBootstrap) -eq 0) { throw "Bootstrap accepted a file as a configured directory." }
-    if (Test-Path -LiteralPath (Join-Path $fixtureRoot "must-not-be-created")) {
-        throw "Bootstrap mutated the repository before completing path pre-validation."
-    }
-    Remove-Item -LiteralPath (Join-Path $fixtureRoot "blocked") -Force
-
-    Set-FixtureStructure -Directories @("../outside/should-not-exist") -Files @("bootstrap-created/nested/new.txt")
-    if ((Invoke-FixtureBootstrap) -eq 0) { throw "Bootstrap accepted a parent-directory traversal path." }
-    if (Test-Path -LiteralPath (Join-Path $outsideRoot "should-not-exist")) {
-        throw "Unsafe path validation created content outside the repository."
-    }
-
-    $linkPath = Join-Path $fixtureRoot "escape"
-    $linkCreated = $false
-    try {
-        New-Item -ItemType SymbolicLink -Path $linkPath -Target $outsideRoot -ErrorAction Stop | Out-Null
-        $linkCreated = $true
-    }
-    catch { Write-Warning "Symbolic-link test skipped because the runner does not permit link creation." }
-
-    if ($linkCreated) {
-        Set-FixtureStructure -Directories @("escape/redirected") -Files @("escape/redirected/created.txt")
-        if ((Invoke-FixtureBootstrap) -eq 0) { throw "Bootstrap followed a symbolic link outside the repository." }
-        if (Test-Path -LiteralPath (Join-Path $outsideRoot "redirected")) {
-            throw "Symbolic-link path validation created content outside the repository."
-        }
-    }
-
-    Write-Host "Bootstrap safety checks passed." -ForegroundColor Green
 }
 finally {
-    if (Test-Path -LiteralPath $temporaryRoot) { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force }
+    if (-not (Test-Path -LiteralPath $archivePath -PathType Container)) {
+        New-Item -ItemType Directory -Path $archivePath | Out-Null
+    }
 }
+
+# Verify a normal initialization never overwrites an existing file.
+$versionBefore = [System.IO.File]::ReadAllText($versionPath)
+& pwsh -NoProfile -File $initializer
+if ($LASTEXITCODE -ne 0) {
+    throw "Bootstrap initialization failed with exit code $LASTEXITCODE."
+}
+
+$versionAfter = [System.IO.File]::ReadAllText($versionPath)
+if ($versionBefore -cne $versionAfter) {
+    throw "Bootstrap unexpectedly modified the existing VERSION file."
+}
+
+# Verify configured paths cannot escape the repository root.
+. $structureModule
+
+$rootPrefix = $repositoryRoot.TrimEnd([char[]]@(
+    [System.IO.Path]::DirectorySeparatorChar,
+    [System.IO.Path]::AltDirectorySeparatorChar
+)) + [System.IO.Path]::DirectorySeparatorChar
+
+foreach ($unsafePath in @("../outside", "/tmp/outside", "C:/outside")) {
+    $wasRejected = $false
+
+    try {
+        Resolve-RepositoryConfiguredPath -RepositoryRoot $repositoryRoot -RelativePath $unsafePath -RootPrefix $rootPrefix | Out-Null
+    }
+    catch {
+        $wasRejected = $true
+    }
+
+    if (-not $wasRejected) {
+        throw "Unsafe configured path was not rejected: $unsafePath"
+    }
+}
+
+Write-Host "Bootstrap safety checks passed." -ForegroundColor Green

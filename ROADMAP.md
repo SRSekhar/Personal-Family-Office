@@ -1,12 +1,23 @@
 # PFO OS Roadmap
 
-## Current Delivery Status — 2026-11-15
+## Current Delivery Status — 2026-11-21
 
 - Sprint 16 integration is complete: PRs #453–#457 were sequentially merged into `main`.
 - Integrated main includes SQLite/JSON schema v13 and 20 persisted collections.
 - PR-head CI and Secret Scan passed for all five merged changes. Final post-merge CI #2018 was running on the integration merge commit; the latest documentation commit will receive its own CI validation.
-- Next: Sprint 17 / IPM-08 point-in-time backtesting architecture and acceptance contracts. Historical CSV import/validation follows; the deterministic engine is gated on those contracts.
+- Sprint 17 / IPM-08.1 now includes point-in-time contracts/validators and an offline OHLCV CSV importer with raw and normalized SHA-256 provenance. PR #458 CI #2056 and Secret Scan #1851 passed on 05731ffa7f758195aa96da679d05a307d3982180.
+- Next: decide dataset persistence, workspace backup/restore and retention boundaries before adding import UI or storage. The simulator remains gated on explicit exchange, calendar, corporate-action, execution, cost and position-rule decisions.
 - Paper portfolio must remain isolated from real investment holdings, cash and transactions. No live broker routing, fabricated history or unapproved market-data provider.
+
+---
+
+## Sprint 17 / IPM-08.1 — Contracts and offline dataset ingestion delivered
+
+- Proposed ADR and acceptance contract are available under `docs/architecture/`; ADR status remains Proposed.
+- Delivered: typed point-in-time dataset/universe/calendar/run contracts, strict validators and offline provenance-aware OHLCV CSV ingestion in `@pfo/backtesting`.
+- CI #2056 (102 test files / 945 tests, lint, typecheck, build and Chromium smoke) and Secret Scan #1851 passed on code head `05731ffa7f758195aa96da679d05a307d3982180`.
+- Next: approve dataset persistence ownership, workspace backup/restore compatibility and retention semantics before adding import UI or storage.
+- The deterministic engine, provider adapters and paper-portfolio persistence remain gated on explicit decisions for exchange scope, calendar source, corporate actions, execution, costs and position rules.
 
 ---
 
