@@ -27,6 +27,27 @@ Every historical observation must retain source provenance, licensing status, co
 
 The persistence layer stores normalized OHLCV observations as indexed rows in a dedicated SQLite catalog and retains exact original CSV bytes in an immutable SHA-256-addressed artifact directory. It supports verified standalone backup and restore bundles. The catalog and artifacts are configured separately from the household workspace database and must both be outside the repository. Imports are append-only by dataset ID/version; identical raw bytes are deduplicated without collapsing distinct dataset provenance. Dataset loads and integrity checks verify artifact digest and byte length before returning observations. Orphan detection is non-destructive. The storage layer also creates a standalone verified backup bundle containing a SQLite online snapshot, all referenced CSV artifacts and a digest manifest. Restore verifies the catalog, manifest and every artifact in staging, publishes the artifact tree first, and publishes the catalog last; existing destinations are never overwritten. Backup and restore are separate from household workspace backups.
 
+### Storage safety and benchmark
+
+The storage boundary applies fail-closed first-release ceilings:
+
+- Original CSV: 64 MiB maximum.
+- Normalized observations: 1,000,000 per dataset maximum.
+- Backup manifest: 16 MiB maximum.
+- Backup SQLite catalog: 512 MiB maximum.
+- Artifacts and dataset versions: 100,000 maximum per backup.
+- Individual source artifact: 64 MiB maximum; aggregate backup artifacts: 2 GiB maximum.
+
+Oversized inputs are rejected; the importer never truncates data. Restore validates manifest and catalog sizes before processing artifacts. Deterministic fault-injection hooks are available through the optional `faultInjector` storage option for host recovery tests. Supported interruption points exercise import transaction rollback, backup staging/publication and restore artifact/catalog publication ordering. These tests simulate injected software interruption boundaries; they do not represent physical power-loss or hardware-failure certification. Omit the hook in production.
+
+Run the reproducible synthetic storage benchmark after building the workspace:
+
+```sh
+pnpm --filter @pfo/backtesting benchmark:storage
+```
+
+It reports import throughput, reload time, integrity-check time and backup time for a synthetic 10,000-observation dataset by default. Set `PFO_BACKTEST_BENCHMARK_ROWS` to a value from 1 to 100,000 to change the fixture size. The benchmark does not use real market data and its measurements are environment-specific; it must not be interpreted as a production service-level guarantee. CI runs the default benchmark.
+
 No provider SDK, endpoint, credential, network client, market-data download, broker integration or live order routing is included.
 
 Backtesting records and any future paper portfolio must remain separate from real investment transactions, cash, valuations, FIFO lots and statement evidence.
