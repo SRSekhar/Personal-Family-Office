@@ -1,3 +1,11 @@
+## Sprint 19 — IPM-08.2 host storage path resolution (in progress, 2026-11-22)
+
+- Added `resolveBacktestStoragePaths()` with OS-aware defaults for Windows, macOS and Linux/Unix.
+- Added paired explicit environment overrides; rejects incomplete, empty, relative, repository-contained and overlapping paths.
+- Added cross-platform unit tests and package README guidance. Resolver does not initialize storage or change dashboard startup/household backup.
+- Latest resolver code includes explicit rejection of relative LOCALAPPDATA/XDG_DATA_HOME values. Final PR CI validation is pending; do not mark this increment verified until checks pass.
+- Retention/licensing policy remains open; no purge or auto-delete behavior.
+
 # Current Sprint
 
 ## Sprint 18 — IPM-08.2 storage recovery, resource boundaries and benchmark (verified 2026-11-22)

@@ -889,3 +889,11 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - Browser smoke verifies report downloads and private/demo isolation in addition to JSON/SQLite persistence.
 - CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
 - Only future scope: in-kind flows and corporate actions, pending a separate ledger-model decision.
+
+## IPM-08.2 — Host storage path configuration
+
+- [x] Add exported OS-aware resolver for separate backtesting catalog/artifact paths.
+- [x] Support paired explicit absolute environment overrides and reject partial, empty, relative, overlapping or repository-contained paths.
+- [x] Cover Windows, macOS and Linux defaults with cross-platform tests.
+- [ ] Validate final resolver/test changes in PR CI before marking this item complete.
+- [ ] Decide retention and license-review lifecycle before implementing any deletion/purge policy.

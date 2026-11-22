@@ -69,6 +69,15 @@ describe('resolveBacktestStoragePaths', () => {
         });
     });
 
+    it('rejects relative platform data-root environment values', () => {
+        expect(() => resolveBacktestStoragePaths({
+            platform: 'win32',
+            homeDirectory: 'C:\\Users\\Sekhar',
+            repositoryRoot: 'C:\\work\\pfo',
+            env: { LOCALAPPDATA: 'relative-app-data' }
+        })).toThrow(/LOCALAPPDATA/i);
+    });
+
     it('rejects empty and relative overrides and relative XDG data roots', () => {
         expect(() => resolveBacktestStoragePaths({
             platform: 'linux', repositoryRoot: '/work/pfo',

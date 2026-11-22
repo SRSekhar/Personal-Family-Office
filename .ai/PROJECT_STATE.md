@@ -490,3 +490,15 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - PR #458 remains draft/open/unmerged. No provider, market-data downloads, simulator, strategy runner, broker integration, live orders, workspace schema migration or real investment-ledger mutation.
 - Remaining storage release gates: database-level append-only enforcement, crash-injection at filesystem/SQLite boundaries, resource/size limits, measured performance baselines, explicit retention/license policy and default application path/configuration. No performance claim is made yet.
 - Next dependency order: finish storage hardening/benchmark acceptance, then design a private import/backup UI; separately resolve calendar source, corporate actions, execution/fill assumptions, costs, tick/lot and position constraints before any simulator.
+
+
+## Sprint 19 — Host-side backtesting storage path resolution (2026-11-22)
+
+- Added and exported `resolveBacktestStoragePaths()` from `@pfo/backtesting`.
+- Defaults: Windows uses `LOCALAPPDATA` (or `~/AppData/Local`); macOS uses `~/Library/Application Support`; Linux/other Unix uses absolute `XDG_DATA_HOME` or `~/.local/share`. Catalog and artifact directories are sibling roots.
+- Explicit overrides are `PFO_BACKTEST_CATALOG_PATH` and `PFO_BACKTEST_ARTIFACT_DIRECTORY`; both are mandatory together, non-empty and absolute. Platform data-root environment variables must also be absolute when set.
+- Resolver rejects repository-contained paths and overlapping catalog/artifact directory trees, mirroring the store's independent path guard.
+- Added cross-platform resolver tests for Windows, macOS, Linux, overrides, partial/relative/empty configuration, repository containment and nested paths.
+- Resolver only returns configuration. It does not create directories, instantiate SQLite, start storage on dashboard boot, or integrate with household backups.
+- Code commits: `1a08472e1366dca478318466f0167eddb206d21a` and `82079c038317799f86a881a74c69d8254f309d88`; latest follow-up for relative LOCALAPPDATA validation is pending commit below.
+- Retention/licensing policy remains deliberately unresolved; no source artifact deletion or invented license terms.
