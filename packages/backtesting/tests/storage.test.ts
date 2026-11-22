@@ -239,7 +239,9 @@ describe('BacktestDatasetStore', () => {
         const dataset = importBacktestDatasetCsv(csv, metadata);
         const oversizedBytes = new Uint8Array(64 * 1024 * 1024 + 1);
         await expect(store.importDataset(dataset, oversizedBytes)).rejects.toThrow(/64 MiB/i);
-        const oversizedDataset = { ...dataset, bars: Array(1_000_001).fill(dataset.bars[0]) };
+        const firstBar = dataset.bars[0];
+        if (!firstBar) { throw new Error('Synthetic benchmark fixture is missing its first observation.'); }
+        const oversizedDataset = { ...dataset, bars: Array(1_000_001).fill(firstBar) };
         await expect(store.importDataset(oversizedDataset, Buffer.from(csv))).rejects.toThrow(/one-million/i);
         expect(store.listDatasets()).toHaveLength(0);
     });

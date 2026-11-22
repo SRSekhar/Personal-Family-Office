@@ -526,6 +526,9 @@ export class BacktestDatasetStore {
     /** Persist validated observations and the exact original UTF-8 CSV bytes as one immutable version. */
     async importDataset(dataset: BacktestDataset, rawCsvBytes: Uint8Array): Promise<StoredBacktestDataset> {
         this.assertOpen();
+        if (dataset.bars.length > BACKTEST_STORAGE_LIMITS.maxObservationsPerDataset) {
+            throw new RangeError('Dataset exceeds the one-million-observation first-release limit.');
+        }
         validateBacktestDataset(dataset);
         if (dataset.instrument.exchange !== 'NSE' || dataset.interval !== '1d') {
             throw new RangeError('The first backtesting release accepts NSE daily datasets only.');
