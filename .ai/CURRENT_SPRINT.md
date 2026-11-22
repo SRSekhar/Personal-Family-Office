@@ -1,5 +1,18 @@
 # Current Sprint
 
+## Sprint 18 — IPM-08.2 storage recovery, resource boundaries and benchmark harness (2026-11-22)
+
+**Implemented in commits `50d88bfa8128d84d9050dbd9ce0f662b90a32735` and `51c537ecc88dae7365d013b2942efd912a6a891e`:**
+
+1. **Interruption/recovery:** deterministic fault points cover import after artifact publication and before SQLite commit, backup before publication, and restore after artifact-tree publication but before catalog publication. Tests reopen the catalog after an interrupted import and verify that no dataset rows leak into the catalog, the immutable source remains discoverable as an orphan, backup staging is cleaned, and incomplete restore publication is rolled back. These are injected process-boundary simulations, not a claim of physical power-loss testing.
+2. **Resource limits:** import rejects CSVs over 64 MiB and datasets over 1,000,000 observations before parsing/validation work. Backup/restore enforce 16 MiB manifests, 512 MiB catalogs, 100,000 artifacts/versions, 64 MiB per source artifact and 2 GiB aggregate artifact bytes. Limits fail closed; data is never truncated.
+3. **Benchmark harness:** added a reproducible synthetic 10,000-row default benchmark for import throughput, reload, integrity verification and backup, with row count configurable up to 100,000. Added a CI step so the measurement runs on each PR. Results are environment-specific; no production throughput claim is made.
+
+Secret Scan #1924 passed on commit `8f0be41832c7f3663fa2bd7494b4dea3b2acc50a`. CI #2129 was running on that earlier head; the current head `51c537ecc88dae7365d013b2942efd912a6a891e` includes explicit callback return-type lint fixes and now runs the benchmark in CI. Await current-head CI before treating these milestones as verified.
+
+Still open: retention/licensing policy and host application path/configuration. No real market data, provider, backtesting engine, broker, or household-ledger mutation.
+
+
 ## Sprint 17 — IPM-08.2 historical dataset storage hardening (2026-11-22)
 
 - Added SQLite-level append-only enforcement for source-artifact records, dataset-version records and normalized OHLCV observations. UPDATE and DELETE are rejected by database triggers even when a caller bypasses the TypeScript store API.

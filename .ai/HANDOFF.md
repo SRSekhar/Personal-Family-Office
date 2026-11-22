@@ -1,5 +1,14 @@
 # Session Handoff
 
+## Current continuation — Sprint 18 / IPM-08.2 storage hardening
+
+PR #458, branch `feature/ipm-08-backtesting-contracts`, current head `51c537ecc88dae7365d013b2942efd912a6a891e`. Delivered: SQLite append-only triggers; injected interruption/recovery coverage for import, backup and restore publication; fail-closed import/backup/restore size and count limits; and a synthetic storage benchmark harness wired into CI (10,000 rows by default, configurable up to 100,000).
+
+Important precision: interruption tests inject deterministic failures at transaction/filesystem publication boundaries and reopen/inspect the store; they do not claim to simulate actual power loss or hardware failure. Benchmark output is synthetic and environment-specific, not a production performance guarantee.
+
+Secret Scan #1924 passed on the prior code head `8f0be41832c7f3663fa2bd7494b4dea3b2acc50a`. CI #2129 was running on that prior head; current head `51c537ecc88dae7365d013b2942efd912a6a891e` includes the explicit return-type lint fix and CI benchmark step. Wait for current-head CI and Secret Scan before marking the milestones verified. Remaining policy decisions: retention/licensing and host application storage path. Keep PR #458 draft/open/unmerged; do not create another PR or expand beyond NSE daily OHLCV.
+
+
 ## Current continuation — Sprint 17 / IPM-08.2
 
 The active work is PR #458, branch `feature/ipm-08-backtesting-contracts`, currently at `1dec6e58a070a02928fcbf1ec4534568423f700b`. Database-level append-only triggers now protect dataset artifacts, dataset versions and normalized observations against UPDATE/DELETE outside the TypeScript API. Six SQL-level regression assertions were added; the intentional corruption test explicitly removes its guard before simulating tampering.

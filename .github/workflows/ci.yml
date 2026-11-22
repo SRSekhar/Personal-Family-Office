@@ -96,6 +96,9 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Benchmark historical dataset storage (synthetic fixture)
+        run: pnpm --filter @pfo/backtesting benchmark:storage
+
       - name: Install isolated Playwright browser-test dependency
         run: npm install --prefix /tmp/pfo-playwright --no-save --package-lock=false playwright
 
