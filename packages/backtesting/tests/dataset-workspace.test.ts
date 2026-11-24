@@ -42,10 +42,10 @@ const metadata: BacktestDatasetCsvImportMetadata = {
 const roots: string[] = [];
 const workspaces: BacktestDatasetWorkspace[] = [];
 
-async function makeOptions(root: string, env: NodeJS.ProcessEnv = {}): Promise<{
+function makeOptions(root: string, env: NodeJS.ProcessEnv = {}): {
     env: NodeJS.ProcessEnv;
     repositoryRoot: string;
-}> {
+} {
     const catalogPath = join(root, 'catalog', 'catalog.sqlite');
     const artifactDirectory = join(root, 'artifacts');
     return {
@@ -61,7 +61,7 @@ async function makeOptions(root: string, env: NodeJS.ProcessEnv = {}): Promise<{
 async function createWorkspace(): Promise<{ workspace: BacktestDatasetWorkspace; root: string }> {
     const root = await mkdtemp(join(tmpdir(), 'pfo-backtest-workflow-'));
     roots.push(root);
-    const workspace = BacktestDatasetWorkspace.open(await makeOptions(root));
+    const workspace = BacktestDatasetWorkspace.open(makeOptions(root));
     workspaces.push(workspace);
     return { workspace, root };
 }
@@ -83,9 +83,10 @@ describe('BacktestDatasetWorkspace', () => {
 
         expect(imported).toMatchObject({ id: metadata.id, version: 1, observationCount: 2 });
         expect(workspace.listDatasets()).toEqual([imported]);
-        expect(await workspace.loadDataset(metadata.id, 1)).toMatchObject({
-            id: metadata.id, version: 1, bars: expect.arrayContaining([expect.objectContaining({ close: 105 })])
-        });
+        const loaded = await workspace.loadDataset(metadata.id, 1);
+        expect(loaded).toMatchObject({ id: metadata.id, version: 1 });
+        expect(loaded.bars).toHaveLength(2);
+        expect(loaded.bars[0]?.close).toBe(105);
         expect(await workspace.checkIntegrity()).toMatchObject({ ok: true, referencedArtifacts: 1, verifiedArtifacts: 1 });
     });
 
@@ -113,7 +114,7 @@ describe('BacktestDatasetWorkspace', () => {
 
         const restoreRoot = join(root, 'restored');
         const restored = await BacktestDatasetWorkspace.restoreBackup(
-            backupDirectory, await makeOptions(restoreRoot)
+            backupDirectory, makeOptions(restoreRoot)
         );
         workspaces.push(restored);
         expect(restored.listDatasets()).toHaveLength(1);
