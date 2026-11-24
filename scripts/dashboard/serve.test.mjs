@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 /* global fetch */
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { once } from 'node:events';

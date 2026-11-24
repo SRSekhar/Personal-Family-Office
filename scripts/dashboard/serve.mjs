@@ -100,7 +100,8 @@ function decodeCanonicalBase64(value) {
 }
 export function createDashboardServer(rootDirectory = dashboardRoot, options = {}) {
     const root = realpathSync(resolve(rootDirectory));
-    const database = options.databasePath ? new WorkspaceDatabase(options.databasePath) : null;\n    const backtestWorkspace = options.backtestWorkspace ?? null;
+    const database = options.databasePath ? new WorkspaceDatabase(options.databasePath) : null;
+    const backtestWorkspace = options.backtestWorkspace ?? null;
     const server = createServer(async (request, response) => {
         for (const [name, value] of Object.entries(securityHeaders)) {
             response.setHeader(name, value);
