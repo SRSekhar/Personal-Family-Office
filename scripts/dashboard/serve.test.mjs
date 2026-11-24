@@ -283,3 +283,29 @@ describe('verified online SQLite backup API', () => {
         expect((await response.json()).error).toContain('verified online SQLite backup could not be created');
     });
 });
+
+describe('explicit local backtesting dataset API', () => {
+ it('keeps backtesting disabled unless explicitly injected', async () => {
+  const origin=await startServer(await createRoot());
+  expect((await fetch(`${origin}/api/v1/backtesting/datasets`)).status).toBe(503);
+ });
+ it('lists, checks integrity and imports byte-preserving CSV through the injected workspace', async () => {
+  const calls=[];
+  const workspace={listDatasets:()=>[{id:'fixture',version:1}],checkIntegrity:async()=>({ok:true}),importCsv:async(bytes,metadata)=>{calls.push({csv:Buffer.from(bytes).toString('utf8'),metadata});return {id:metadata.id,version:metadata.version};},close:()=>{}};
+  const origin=await startServer(await createRoot(),{backtestWorkspace:workspace});
+  expect((await (await fetch(`${origin}/api/v1/backtesting/datasets`)).json()).datasets).toHaveLength(1);
+  expect((await fetch(`${origin}/api/v1/backtesting/integrity`)).status).toBe(200);
+  const metadata={id:'fixture',version:1};
+  const response=await fetch(`${origin}/api/v1/backtesting/import`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csvBase64:Buffer.from("#PFO-BACKTEST-DATASET,1,OHLCV\\nstartAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId\\n2026-01-01T00:00:00.000Z,2026-01-01T10:00:00.000Z,100,105,99,103,1000,,2026-01-02T00:00:00.000Z,").toString('base64'),metadata})});
+  expect(response.status).toBe(201);
+  expect(await response.json()).toMatchObject({dataset:{id:'fixture',version:1}});
+  expect(calls).toEqual([{csv:"#PFO-BACKTEST-DATASET,1,OHLCV\\nstartAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId\\n2026-01-01T00:00:00.000Z,2026-01-01T10:00:00.000Z,100,105,99,103,1000,,2026-01-02T00:00:00.000Z,",metadata}]);
+ });
+ it('rejects cross-origin and malformed base64 uploads', async () => {
+  const workspace={listDatasets:()=>[],checkIntegrity:async()=>({ok:true}),importCsv:async()=>{throw new Error('must not run');},close:()=>{}};
+  const origin=await startServer(await createRoot(),{backtestWorkspace:workspace});
+  expect((await fetch(`${origin}/api/v1/backtesting/datasets`,{headers:{Origin:'https://attacker.example'}})).status).toBe(403);
+  const response=await fetch(`${origin}/api/v1/backtesting/import`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csvBase64:'%%%bad%%%',metadata:{}})});
+  expect(response.status).toBe(400);
+ });
+});

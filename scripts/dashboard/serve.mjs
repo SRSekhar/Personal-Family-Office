@@ -90,9 +90,17 @@ async function readJsonRequest(request, limit = 10 * 1024 * 1024) {
     }
 }
 
+const BACKTEST_IMPORT_BODY_LIMIT = Math.ceil((64 * 1024 * 1024) * 4 / 3) + 1024 * 1024;
+function decodeCanonicalBase64(value) {
+    if (typeof value !== 'string' || value.length === 0 || value.length > Math.ceil((64 * 1024 * 1024) * 4 / 3)
+        || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(value)) throw new Error('CSV must be canonical base64 and at most 64 MiB.');
+    const bytes = Buffer.from(value, 'base64');
+    if (!bytes.byteLength || bytes.byteLength > 64 * 1024 * 1024 || bytes.toString('base64') !== value) throw new Error('CSV upload is empty, oversized, or not canonical base64.');
+    return bytes;
+}
 export function createDashboardServer(rootDirectory = dashboardRoot, options = {}) {
     const root = realpathSync(resolve(rootDirectory));
-    const database = options.databasePath ? new WorkspaceDatabase(options.databasePath) : null;
+    const database = options.databasePath ? new WorkspaceDatabase(options.databasePath) : null;\n    const backtestWorkspace = options.backtestWorkspace ?? null;
     const server = createServer(async (request, response) => {
         for (const [name, value] of Object.entries(securityHeaders)) {
             response.setHeader(name, value);
@@ -236,7 +244,7 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
             response.end(request.method === 'HEAD' ? undefined : status === 404 ? 'Not found\n' : 'Internal server error\n');
         }
     });
-    if (database) server.once('close', () => database.close());
+    if (database || backtestWorkspace) server.once('close', () => { database?.close(); backtestWorkspace?.close(); });
     return server;
 }
 
