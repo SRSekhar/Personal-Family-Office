@@ -116,6 +116,36 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
             return;
         }
 
+        if (pathname.startsWith('/api/v1/backtesting/')) {
+            if (!backtestWorkspace) { sendJson(response, 503, { error: 'Backtesting storage is not explicitly enabled.' }); return; }
+            if (!isSafeLocalApiRequest(request)) { sendJson(response, 403, { error: 'Backtesting API accepts requests only from this local dashboard origin.' }); return; }
+            if (pathname === '/api/v1/backtesting/datasets' && request.method === 'GET') {
+                try { sendJson(response, 200, { datasets: backtestWorkspace.listDatasets() }); }
+                catch { sendJson(response, 500, { error: 'Datasets could not be listed.' }); }
+                return;
+            }
+            if (pathname === '/api/v1/backtesting/integrity' && request.method === 'GET') {
+                try { const result = await backtestWorkspace.checkIntegrity(); sendJson(response, result.ok ? 200 : 500, result); }
+                catch { sendJson(response, 500, { error: 'Integrity check could not complete.' }); }
+                return;
+            }
+            if (pathname === '/api/v1/backtesting/import' && request.method === 'POST') {
+                if (!String(request.headers['content-type'] || '').toLowerCase().startsWith('application/json')) { sendJson(response, 415, { error: 'Content-Type must be application/json.' }); return; }
+                try {
+                    const body = await readJsonRequest(request, BACKTEST_IMPORT_BODY_LIMIT);
+                    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).sort().join(',') !== 'csvBase64,metadata'
+                        || !body.metadata || typeof body.metadata !== 'object' || Array.isArray(body.metadata)) {
+                        sendJson(response, 400, { error: 'Request must contain only csvBase64 and explicit metadata fields.' }); return;
+                    }
+                    sendJson(response, 201, { dataset: await backtestWorkspace.importCsv(decodeCanonicalBase64(body.csvBase64), body.metadata) });
+                } catch (error) {
+                    sendJson(response, Number.isInteger(error?.statusCode) ? error.statusCode : 400, { error: error instanceof Error ? error.message : 'CSV import failed validation.' });
+                }
+                return;
+            }
+            sendJson(response, 404, { error: 'Unknown local backtesting endpoint.' }); return;
+        }
+
         if (pathname.startsWith('/api/v1/')) {
             if (!database) {
                 sendJson(response, 503, { error: 'SQLite database support is not configured for this server instance.' });
