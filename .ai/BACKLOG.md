@@ -1,5 +1,15 @@
 # Product Backlog
 
+## 2026-11-24 — IPM-08.3 explicit local dataset-management workflow
+
+- [x] Add explicit `BacktestDatasetWorkspace.open()` initialization using OS-resolved paths; no dashboard-startup auto-initialization.
+- [x] Add a byte-preserving UTF-8 CSV import workflow with explicit metadata, size guard, canonical parser and persisted immutable source evidence.
+- [x] Expose list, verified load, integrity report, standalone backup, and non-overwriting restore through one host-facing library boundary.
+- [x] Add tests for initialization/import/list/load/integrity, malformed UTF-8, NSE-only rejection, backup/restore round-trip, destination non-overwrite and path separation.
+- [ ] Build authenticated private dashboard routes and safe browser upload/file-picker integration; no arbitrary filesystem paths from browser input.
+- [ ] Define retention/licensing policy before implementing any deletion or expiry behavior.
+- PR #458 remains draft/open/unmerged; no household-ledger mutation, provider or simulator integration.
+
 ## 2026-11-22 — IPM-08.2 storage hardening and verification
 
 - [x] Enforce database-level append-only semantics for source-artifact, dataset-version and normalized-observation rows with SQLite UPDATE/DELETE triggers; cover all six forbidden mutation paths and retain a deliberate guard-bypass corruption test.
@@ -9,7 +19,8 @@
 - [x] Verify latest implementation head `38f9b6c934ad11a764c810b7671e650b873c03b5`: CI #2134 and Secret Scan #1929 passed. CI passed lint, typecheck, package build, automated tests, synthetic benchmark and both Chromium browser smoke tests.
 - Benchmark sample from CI #2134 (Node v22.23.5, Linux x64; synthetic fixture only): 10,000 observations / 1,340,007 source bytes; import 739.51 ms (13,522 observations/s); reload 324.32 ms; integrity check 338.26 ms (ok); backup 383.59 ms / 1,340,007 bytes. These are one CI-runner measurement, not a production SLA or representative market-data performance claim.
 - [ ] Resolve retention/licensing policy. Do not auto-delete source evidence; define retention only after license/contract obligations are known.
-- [ ] Define host application catalog/artifact path configuration, permissions and coordinated backup/restore integration. Keep the backtesting catalog separate from the household workspace database and backup snapshot.
+- [x] Define OS-aware host catalog/artifact path configuration. Keep the backtesting catalog separate from the household workspace database and backup snapshot.
+- [ ] Integrate the explicit dataset workflow into authenticated host routes and define coordinated operator backup procedures without coupling the catalog to household snapshots.
 - PR #458 remains draft/open/unmerged on `feature/ipm-08-backtesting-contracts`. No provider, real market data, simulator, broker or household-ledger mutation is included.
 
 ## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio

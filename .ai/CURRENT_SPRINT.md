@@ -1,3 +1,11 @@
+## Sprint 20 — IPM-08.3 explicit local dataset-management workflow (implementation added, CI pending, 2026-11-24)
+
+- Added `BacktestDatasetWorkspace` as a single explicit host-facing library API for opening the dedicated local catalog, importing exact UTF-8 CSV bytes with explicit metadata, listing immutable versions, verified loading, integrity checks, standalone backup and non-overwriting restore.
+- Import snapshots the input bytes and enforces the existing 64 MiB ceiling before decode/parse; malformed UTF-8 and non-NSE data fail closed.
+- Added tests for workflow initialization/import/list/load/integrity, malformed UTF-8, BSE rejection, backup/restore round-trip, no-overwrite and path separation.
+- This does not add dashboard auto-initialization, HTTP routes, browser file-picker, arbitrary filesystem path exposure, providers, real market data or simulator execution.
+- Fresh PR CI and Secret Scan are pending for this increment; prior Sprint 19 verification does not cover these changes.
+
 ## Sprint 19 — IPM-08.2 host storage path resolution (complete and verified, 2026-11-22)
 
 - Added `resolveBacktestStoragePaths()` with OS-aware defaults for Windows, macOS and Linux/Unix.

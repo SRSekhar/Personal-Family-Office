@@ -74,3 +74,16 @@ pnpm --filter @pfo/backtesting lint
 ```
 
 Final host-path resolver verification: CI #2145 and Secret Scan #1940 passed on implementation head `30f302edcb9db5489657ffcbda776f8d3527d56e` (974 tests, lint, typecheck, package build, synthetic benchmark and both Chromium smoke tests). The subsequent commit is documentation-only.
+
+### Explicit host dataset-management workflow
+
+`BacktestDatasetWorkspace` is the explicit host-facing entry point for local historical dataset operations. Call `BacktestDatasetWorkspace.open()` only when the host deliberately initializes the backtesting store; it resolves the configured OS-specific paths and opens the separate SQLite catalog. This is not wired to dashboard startup.
+
+- `importCsv(bytes, metadata)` accepts original UTF-8 bytes plus explicit instrument, NSE identity, daily interval, adjustment, source/license, coverage and knowledge-time metadata. It snapshots the supplied bytes, rejects malformed UTF-8 and oversized files before parsing, validates the canonical PFO CSV contract, and persists the exact source artifact plus normalized observations.
+- `listDatasets()` lists immutable dataset versions; `loadDataset(id, version)` reloads and verifies a specific version.
+- `checkIntegrity()` reports catalog/source integrity and orphan/staging evidence without deleting anything.
+- `createBackup(destination)` creates a standalone, non-overwriting backup bundle outside active storage.
+- `BacktestDatasetWorkspace.restoreBackup(source, options)` restores to newly configured, unused catalog/artifact paths and validates the result. It never overwrites an existing destination.
+- `close()` explicitly closes the SQLite handle.
+
+The workflow is a local library boundary, not an HTTP route or dashboard UI. A future host integration must add authenticated/private routes and a file-picker/upload boundary; do not expose arbitrary filesystem paths or catalog operations to unauthenticated browser clients. No retention purge is provided. Source artifacts remain immutable and are never automatically deleted.

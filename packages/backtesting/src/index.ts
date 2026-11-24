@@ -3,3 +3,4 @@ export * from './validation.js';
 export * from './csv-import.js';
 export * from './storage.js';
 export * from './host-storage-paths.js';
+export * from './dataset-workspace.js';
