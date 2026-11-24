@@ -122,7 +122,7 @@ describe('BacktestDatasetWorkspace', () => {
         expect(await restored.checkIntegrity()).toMatchObject({ ok: true, referencedArtifacts: 1, verifiedArtifacts: 1 });
 
         await expect(BacktestDatasetWorkspace.restoreBackup(
-            backupDirectory, await makeOptions(restoreRoot)
+            backupDirectory, makeOptions(restoreRoot)
         )).rejects.toThrow('already exists');
     });
 
