@@ -6,6 +6,7 @@
 - [x] Add a byte-preserving UTF-8 CSV import workflow with explicit metadata, size guard, canonical parser and persisted immutable source evidence.
 - [x] Expose list, verified load, integrity report, standalone backup, and non-overwriting restore through one host-facing library boundary.
 - [x] Add tests for initialization/import/list/load/integrity, malformed UTF-8, NSE-only rejection, backup/restore round-trip, destination non-overwrite and path separation.
+- [x] Verify implementation head `097d3e7ef43a1ee091011429c43b6adbd2afb56e`: CI #2153 and Secret Scan #1949 passed — lint, typecheck, build, 105 test files / 979 tests, synthetic benchmark and both Chromium browser smoke tests.
 - [ ] Build authenticated private dashboard routes and safe browser upload/file-picker integration; no arbitrary filesystem paths from browser input.
 - [ ] Define retention/licensing policy before implementing any deletion or expiry behavior.
 - PR #458 remains draft/open/unmerged; no household-ledger mutation, provider or simulator integration.

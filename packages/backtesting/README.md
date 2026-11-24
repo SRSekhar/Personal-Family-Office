@@ -73,7 +73,9 @@ pnpm --filter @pfo/backtesting test
 pnpm --filter @pfo/backtesting lint
 ```
 
-Final host-path resolver verification: CI #2145 and Secret Scan #1940 passed on implementation head `30f302edcb9db5489657ffcbda776f8d3527d56e` (974 tests, lint, typecheck, package build, synthetic benchmark and both Chromium smoke tests). The subsequent commit is documentation-only.
+Host-path resolver verification: CI #2145 and Secret Scan #1940 passed on implementation head `30f302edcb9db5489657ffcbda776f8d3527d56e` (974 tests, lint, typecheck, package build, synthetic benchmark and both Chromium smoke tests).
+
+Explicit dataset-workflow verification: CI #2153 and Secret Scan #1949 passed on implementation head `097d3e7ef43a1ee091011429c43b6adbd2afb56e` (105 test files / 979 tests, lint, typecheck, package build, synthetic benchmark and both Chromium browser smoke tests).
 
 ### Explicit host dataset-management workflow
 

@@ -3,10 +3,10 @@
 ## Active branch and PR
 - Repository: `SRSekhar/Personal-Family-Office`
 - Branch: `feature/ipm-08-backtesting-contracts`
-- Parent head before Sprint 20: `7dde01c11e761fe4c0ca09118a6794bc86a117ce`.
+- Latest verified implementation head: `097d3e7ef43a1ee091011429c43b6adbd2afb56e`.
 - PR #458 remains draft/open/unmerged. Do not mark ready or merge without explicit owner approval.
 
-## Sprint 20 — explicit local dataset-management workflow
+## Sprint 20 — explicit local dataset-management workflow (complete and verified)
 - Added `BacktestDatasetWorkspace` as the host-facing library boundary.
 - `open()` explicitly initializes the separate catalog using `resolveBacktestStoragePaths()`; no auto-startup initialization.
 - `importCsv(bytes, metadata)` snapshots exact original bytes, rejects oversized/malformed UTF-8, requires explicit provenance/instrument/coverage/knowledge-time metadata and uses the strict NSE daily importer.
@@ -15,9 +15,10 @@
 - This is a library API only. No HTTP route, dashboard UI, browser file-picker, arbitrary filesystem path exposure, provider or simulation engine is added.
 - No retention purge or source-artifact deletion is implemented.
 
-## Existing verification
-- Prior host-path implementation code head `30f302edcb9db5489657ffcbda776f8d3527d56e`: CI #2145 and Secret Scan #1940 passed.
-- Sprint 20 changes require fresh PR CI and Secret Scan. Do not claim they are verified until exact new head checks pass.
+## Verification on exact implementation head
+- CI #2153: **passed** — lint, typecheck, package build, 105 test files / 979 tests, synthetic storage benchmark, and both Chromium browser smoke tests.
+- Secret Scan #1949: **passed**.
+- Earlier intermediate lint failures were fixed; the final run on `097d3e7ef43a1ee091011429c43b6adbd2afb56e` is green.
 
 ## Remaining gated work
 - Authenticated private dashboard routes and safe upload/file-picker integration.
