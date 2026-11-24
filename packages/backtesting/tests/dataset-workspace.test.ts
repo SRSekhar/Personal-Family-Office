@@ -66,7 +66,7 @@ async function createWorkspace(): Promise<{ workspace: BacktestDatasetWorkspace;
     return { workspace, root };
 }
 
-afterEach(async () => {
+afterEach(async (): Promise<void> => {
     for (const workspace of workspaces.splice(0)) {
         workspace.close();
     }
@@ -76,7 +76,7 @@ afterEach(async () => {
 });
 
 describe('BacktestDatasetWorkspace', () => {
-    it('explicitly initializes storage, imports exact CSV bytes, lists and reloads the dataset', async () => {
+    it('explicitly initializes storage, imports exact CSV bytes, lists and reloads the dataset', async (): Promise<void> => {
         const { workspace } = await createWorkspace();
         const bytes = Buffer.from(csv, 'utf8');
         const imported = await workspace.importCsv(bytes, metadata);
@@ -89,14 +89,14 @@ describe('BacktestDatasetWorkspace', () => {
         expect(await workspace.checkIntegrity()).toMatchObject({ ok: true, referencedArtifacts: 1, verifiedArtifacts: 1 });
     });
 
-    it('rejects malformed UTF-8 before creating a dataset version', async () => {
+    it('rejects malformed UTF-8 before creating a dataset version', async (): Promise<void> => {
         const { workspace } = await createWorkspace();
         await expect(workspace.importCsv(Uint8Array.from([0xc3, 0x28]), metadata))
             .rejects.toThrow('valid UTF-8');
         expect(workspace.listDatasets()).toEqual([]);
     });
 
-    it('enforces NSE daily-only scope through the host import workflow', async () => {
+    it('enforces NSE daily-only scope through the host import workflow', async (): Promise<void> => {
         const { workspace } = await createWorkspace();
         await expect(workspace.importCsv(Buffer.from(csv), {
             ...metadata, instrument: { ...metadata.instrument, exchange: 'BSE' }
@@ -104,7 +104,7 @@ describe('BacktestDatasetWorkspace', () => {
         expect(workspace.listDatasets()).toEqual([]);
     });
 
-    it('creates and restores a standalone backup without overwriting either destination', async () => {
+    it('creates and restores a standalone backup without overwriting either destination', async (): Promise<void> => {
         const { workspace, root } = await createWorkspace();
         await workspace.importCsv(Buffer.from(csv), metadata);
         const backupDirectory = join(root, 'backup-bundle');
@@ -125,7 +125,7 @@ describe('BacktestDatasetWorkspace', () => {
         )).rejects.toThrow('already exists');
     });
 
-    it('keeps catalog and artifact paths isolated from the repository and each other', async () => {
+    it('keeps catalog and artifact paths isolated from the repository and each other', async (): Promise<void> => {
         const root = await mkdtemp(join(tmpdir(), 'pfo-backtest-workflow-paths-'));
         roots.push(root);
         const nestedOptions = {
