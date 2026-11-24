@@ -75,7 +75,7 @@ async function readJsonRequest(request, limit = 10 * 1024 * 1024) {
     for await (const chunk of request) {
         length += chunk.length;
         if (length > limit) {
-            const error = new Error('Request body exceeds the 10 MiB limit.');
+            const error = new Error(`Request body exceeds the ${Math.ceil(limit/(1024*1024))} MiB limit.`);
             error.statusCode = 413;
             throw error;
         }
@@ -279,26 +279,31 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
     return server;
 }
 
-export function startDashboardServer(options = {}) {
+export async function startDashboardServer(options = {}) {
     const port = options.port ?? parsePort();
     const rootDirectory = options.rootDirectory ?? dashboardRoot;
     const databasePath = options.databasePath ?? resolveDatabasePath();
     const output = options.output ?? process.stdout;
-    const server = createDashboardServer(rootDirectory, { databasePath });
+    let backtestWorkspace = options.backtestWorkspace ?? null;
+    if (!backtestWorkspace && process.env['PFO_BACKTESTING_ENABLED'] === 'true') {
+        const { BacktestDatasetWorkspace } = await import('../../packages/backtesting/dist/index.js');
+        backtestWorkspace = BacktestDatasetWorkspace.open();
+    }
+    const server = createDashboardServer(rootDirectory, { databasePath, backtestWorkspace });
 
     server.on('error', (error) => {
         output.write(`PFO dashboard server failed: ${error instanceof Error ? error.message : String(error)}\n`);
         process.exitCode = 1;
     });
     server.listen(port, '127.0.0.1', () => {
-        output.write(`PFO dashboard: http://127.0.0.1:${port}/\nPress Ctrl+C to stop.\n`);
+        output.write(`PFO dashboard: http://127.0.0.1:${port}/\nBacktesting dataset storage: ${backtestWorkspace ? 'enabled' : 'disabled'}\nPress Ctrl+C to stop.\n`);
     });
 
     return server;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const server = startDashboardServer();
+    const server = await startDashboardServer();
     const stop = () => {
         server.close(() => {
             process.exitCode = 0;

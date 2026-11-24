@@ -89,3 +89,10 @@ Explicit dataset-workflow verification: CI #2153 and Secret Scan #1949 passed on
 - `close()` explicitly closes the SQLite handle.
 
 The workflow is a local library boundary, not an HTTP route or dashboard UI. A future host integration must add authenticated/private routes and a file-picker/upload boundary; do not expose arbitrary filesystem paths or catalog operations to unauthenticated browser clients. No retention purge is provided. Source artifacts remain immutable and are never automatically deleted.
+
+
+## Local dashboard dataset workflow
+
+Historical dataset storage remains disabled by default. To opt in, set `PFO_BACKTESTING_ENABLED=true` in the local dashboard server process and run `pnpm dashboard:serve`. The dashboard build command builds `@pfo/backtesting` and its workspace dependencies before startup. The server opens the separate catalog at the OS-specific paths returned by `resolveBacktestStoragePaths()`; paired absolute overrides remain available through `PFO_BACKTEST_CATALOG_PATH` and `PFO_BACKTEST_ARTIFACT_DIRECTORY`.
+
+The Backtesting data section accepts the versioned PFO OHLCV CSV and a complete JSON object matching `BacktestDatasetCsvImportMetadata`. The editable JSON template is structural example data only: replace every identifier, source, license, timestamp, coverage schedule and instrument field with evidence-backed values. The UI supports local file import, listing and integrity checks. It does not download data, run strategies, persist simulated runs, connect to brokers or mutate household financial records.

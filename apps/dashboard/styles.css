@@ -326,3 +326,6 @@
     .investment-allocation-analysis { overflow-x: auto; }
     .investment-allocation-analysis table { min-width: 42rem; }
 }
+
+/* Local historical backtesting dataset workspace */
+.backtesting-workspace{margin-top:1.25rem}.backtesting-controls{display:grid;gap:1rem;margin-top:1rem}.backtesting-controls textarea{width:100%;min-height:15rem;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff;color:#26382e;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}.backtesting-controls input[type=file]{display:block;width:100%;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff}.backtesting-dataset-list{margin-top:1rem}.backtesting-dataset{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin:8px 0;background:#fff}.backtesting-dataset strong{overflow-wrap:anywhere}.backtesting-dataset small{display:block;color:var(--muted);margin-top:4px}.backtesting-dataset code{font-size:10px;overflow-wrap:anywhere}@media(max-width:640px){.backtesting-dataset{grid-template-columns:1fr}}
