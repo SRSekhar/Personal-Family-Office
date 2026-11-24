@@ -503,3 +503,14 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Resolver only returns configuration. It does not create directories, instantiate SQLite, start storage on dashboard boot, or integrate with household backups.
 - Code commits: `1a08472e1366dca478318466f0167eddb206d21a` and `82079c038317799f86a881a74c69d8254f309d88`; relative LOCALAPPDATA/XDG_DATA_HOME validation is included in the verified final resolver head.
 - Retention/licensing policy remains deliberately unresolved; no source artifact deletion or invented license terms.
+
+
+## 2026-11-24 — IPM-08.3 local dashboard dataset workflow
+
+- Added explicit `PFO_BACKTESTING_ENABLED=true` startup opt-in for the separate historical-data SQLite catalog; default dashboard startup remains disabled.
+- `pnpm dashboard:serve` builds `@pfo/backtesting` and its workspace dependencies before server startup.
+- Added local-origin-guarded dataset list, integrity and strict base64 CSV import endpoints. Import request body is bounded for the 64 MiB source limit plus JSON/base64 overhead.
+- Added a dashboard dataset-management panel with local CSV file selection, explicit metadata JSON, import status, persisted dataset listing and integrity check. Metadata template placeholders are labelled as examples and not market evidence.
+- Catalog display uses persisted observation count, source byte length, import timestamp and raw/normalized SHA-256 digests.
+- Verification on final implementation head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159 passed (lint, typecheck, package build, 105 test files / 982 tests, synthetic 10,000-observation storage benchmark and both Chromium smoke tests); Secret Scan #1955 passed; dashboard packaging/deploy workflow #1242 passed.
+- No provider, live/historical network download, simulator, strategy execution, broker, order routing, backtest-run persistence or household-ledger mutation. PR #458 remains draft/open/unmerged.

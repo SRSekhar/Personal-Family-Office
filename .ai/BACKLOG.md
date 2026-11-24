@@ -909,3 +909,16 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - [x] Cover Windows, macOS and Linux defaults with cross-platform tests.
 - [x] Validate final resolver/test changes in PR CI: CI #2145 and Secret Scan #1940 passed on `30f302edcb9db5489657ffcbda776f8d3527d56e`.
 - [ ] Decide retention and license-review lifecycle before implementing any deletion/purge policy.
+
+
+## 2026-11-24 — IPM-08.3 completed
+
+- [x] Wire explicit local dashboard opt-in (`PFO_BACKTESTING_ENABLED=true`) to `BacktestDatasetWorkspace.open()`; leave default startup disabled.
+- [x] Build `@pfo/backtesting` and workspace dependencies before local dashboard startup.
+- [x] Add local-origin-guarded dataset list, integrity and byte-preserving CSV import endpoints with bounded request bodies.
+- [x] Add dataset-management UI: local CSV file picker, explicit metadata JSON, import feedback, dataset catalog listing and integrity check.
+- [x] Correct catalog rendering to display actual stored observation count, source byte size, import time, raw digest and normalized digest.
+- [x] Verify final head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159, Secret Scan #1955 and dashboard packaging/deploy #1242 all passed.
+- [ ] Decide and implement reviewed data-retention/licensing policy before any automated purge; source artifacts remain immutable and are never automatically deleted.
+- [ ] Review host-specific filesystem permission hardening and private local-server threat model before exposing this service beyond loopback.
+- [ ] Future separate scope: market data provider selection, strategy simulator, bitemporal per-decision projection, execution/fill model and run persistence. No authorization is implied by dataset UI completion.

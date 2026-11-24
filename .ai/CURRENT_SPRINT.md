@@ -768,3 +768,13 @@ Remaining future scope: in-kind contributions/withdrawals and corporate actions 
 - Added independent tests for hand-calculated +25% and -10% endpoint returns, chronology/overlap, unavailable periods, mismatched provenance, malformed wealth-index values, calendar metadata and duplicate labels.
 - This is the pure calculation/contract layer only. No UI, exports, schema, migration or actual financial data was added. CI is required to validate the pushed code.
 - Next: inspect CI results, correct any issues, then add private-only period comparison workflow and safe HTML/CSV exports using the existing drawdown workspace patterns.
+
+
+## IPM-08.3 — local dashboard dataset workflow (completed 2026-11-24)
+
+- Explicit `PFO_BACKTESTING_ENABLED=true` opt-in initializes the separate catalog; disabled by default.
+- Local list/integrity/import API plus CSV file-picker UI and explicit metadata JSON delivered.
+- Request-size limit aligned with 64 MiB CSV cap and base64 envelope.
+- Catalog list renders persisted counts and both SHA-256 evidence digests.
+- Final head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159, Secret Scan #1955, dashboard package/deploy #1242 all passed; 105 test files / 982 tests.
+- Follow-up: retention/licensing and filesystem permission/threat-model review; keep provider and simulator work gated on explicit decisions.

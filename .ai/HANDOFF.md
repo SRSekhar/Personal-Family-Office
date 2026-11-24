@@ -25,3 +25,26 @@
 - Retention/licensing lifecycle; no deletion before policy is approved.
 - Simulator-specific calendar source, corporate actions, fill/execution, costs, tick/lot and position constraints.
 - Keep PR #458 draft/open/unmerged. Synthetic fixtures only; no real market data/provider/broker/ledger mutation.
+
+
+## Handoff — 2026-11-24 (IPM-08.3)
+
+Current branch `feature/ipm-08-backtesting-contracts`, PR #458 (draft/open/unmerged), final verified code head `265178639eb4d0d81a753da5ec883a743a273afe`.
+
+### Completed this increment
+- Explicit environment opt-in `PFO_BACKTESTING_ENABLED=true` opens the separate local backtesting dataset workspace at host-resolved paths. Default dashboard startup does not initialize it.
+- Local dashboard endpoints list dataset versions, run integrity checks and import canonical PFO OHLCV CSV bytes with explicit metadata. Local-origin guard and bounded request body are enforced.
+- Dashboard UI provides a local file picker, editable explicit metadata JSON, import status, dataset listing and integrity action. Metadata example fields are placeholders only.
+- Root dashboard serve script builds backtesting package and dependencies.
+
+### Verification
+- CI #2159 passed: lint, typecheck, package build, 105 test files / 982 tests, synthetic 10,000-row storage benchmark and both Chromium smoke tests.
+- Secret Scan #1955 passed.
+- Dashboard packaging/deploy workflow #1242 passed.
+
+### Boundaries and next work
+- No market data provider, download, simulator, strategy execution, backtest-run persistence, broker, orders or household-ledger writes.
+- Dataset catalog/artifacts remain separate from household workspace database and backup.
+- No authentication/session layer was added; server binds to loopback and API checks local host/origin/fetch-site. Do not expose on LAN/public interfaces without a separately reviewed security design.
+- Next gated decisions: retention/licensing, filesystem permissions, instrument universe, calendar evidence, corporate actions, execution/cost assumptions and point-in-time per-decision engine requirements.
+- Do not merge PR #458 or mark ready without user approval; remaining design assumptions are not approved.
