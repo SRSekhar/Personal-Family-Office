@@ -310,3 +310,51 @@ describe('explicit local backtesting dataset API', () => {
   expect(response.status).toBe(400);
  });
 });
+
+describe('managed historical dataset backup and restore API', () => {
+    it('creates managed backups and restores only to a new verified candidate', async () => {
+        const root = await createRoot();
+        const backupDirectory = join(root, '..', 'managed-backups');
+        const workspace = { listDatasets: () => [], checkIntegrity: async () => ({ ok: true }), importCsv: async () => ({}), close: () => {} };
+        const origin = await startServer(root, {
+            backtestWorkspace: workspace,
+            backtestBackupDirectory: backupDirectory,
+            createBacktestBackup: async (destination) => {
+                await mkdir(destination, { recursive: true });
+                await writeFile(join(destination, 'manifest.json'), JSON.stringify({
+                    format: 'PFO-BACKTEST-BACKUP', formatVersion: 1, createdAt: '2026-11-25T00:00:00.000Z',
+                    datasetVersions: [{ dataset_id: 'fixture', version: 1 }], artifacts: [{ digest: 'a'.repeat(64) }]
+                }));
+                return { datasetVersions: 1, artifacts: 1, artifactBytes: 128, catalogSha256: 'b'.repeat(64) };
+            },
+            restoreBacktestBackup: async (backupId) => ({ backupId, verified: true, catalogPath: '/safe/catalog.sqlite', artifactDirectory: '/safe/artifacts' })
+        });
+        const created = await fetch(`${origin}/api/v1/backtesting/backup`, { method: 'POST' });
+        expect(created.status).toBe(201);
+        const backup = (await created.json()).backup;
+        expect(backup.id).toMatch(/^backup-[0-9]{13}-/u);
+        expect(backup).toMatchObject({ datasetVersions: 1, artifacts: 1, catalogSha256: 'b'.repeat(64) });
+        const listed = await (await fetch(`${origin}/api/v1/backtesting/backups`)).json();
+        expect(listed.backups).toHaveLength(1);
+        const restored = await fetch(`${origin}/api/v1/backtesting/restore`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ backupId: backup.id })
+        });
+        expect(restored.status).toBe(201);
+        expect(await restored.json()).toMatchObject({ restore: { backupId: backup.id, verified: true } });
+        const arbitraryPath = await fetch(`${origin}/api/v1/backtesting/restore`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ backupId: '../catalog.sqlite' })
+        });
+        expect(arbitraryPath.status).toBe(400);
+    });
+
+    it('rejects cross-origin backup and restore requests', async () => {
+        const root = await createRoot();
+        const workspace = { listDatasets: () => [], checkIntegrity: async () => ({ ok: true }), importCsv: async () => ({}), close: () => {} };
+        const origin = await startServer(root, {
+            backtestWorkspace: workspace, backtestBackupDirectory: join(root, '..', 'backups'),
+            createBacktestBackup: async () => ({}), restoreBacktestBackup: async () => ({})
+        });
+        const response = await fetch(`${origin}/api/v1/backtesting/backup`, { method: 'POST', headers: { Origin: 'https://attacker.example' } });
+        expect(response.status).toBe(403);
+    });
+});

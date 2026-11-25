@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import { createServer } from 'node:http';
+import { randomUUID } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { realpathSync } from 'node:fs';
-import { readFile, realpath, stat } from 'node:fs/promises';
-import { extname, resolve, sep } from 'node:path';
+import { readFile, readdir, realpath, stat } from 'node:fs/promises';
+import { dirname, extname, isAbsolute, join, resolve, sep } from 'node:path';
 import { pathToFileURL, URL } from 'node:url';
 import process from 'node:process';
 import { WorkspaceConflictError, WorkspaceDatabase, WorkspaceValidationError, resolveDatabasePath } from './workspace-database.mjs';
@@ -98,10 +99,34 @@ function decodeCanonicalBase64(value) {
     if (!bytes.byteLength || bytes.byteLength > 64 * 1024 * 1024 || bytes.toString('base64') !== value) throw new Error('CSV upload is empty, oversized, or not canonical base64.');
     return bytes;
 }
+const BACKTEST_BACKUP_ID = /^backup-[0-9]{13}-[0-9a-f-]{36}$/u;
+async function listManagedBackups(directory) {
+    if (!directory) return [];
+    let entries;
+    try { entries = await readdir(directory, { withFileTypes: true }); }
+    catch (error) { if (error?.code === 'ENOENT') return []; throw error; }
+    const backups = [];
+    for (const entry of entries) {
+        if (!entry.isDirectory() || !BACKTEST_BACKUP_ID.test(entry.name)) continue;
+        try {
+            const manifestPath = join(directory, entry.name, 'manifest.json');
+            const details = await stat(manifestPath);
+            if (!details.isFile() || details.size > 16 * 1024 * 1024) continue;
+            const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+            if (manifest.format !== 'PFO-BACKTEST-BACKUP' || manifest.formatVersion !== 1 || typeof manifest.createdAt !== 'string' || !Array.isArray(manifest.datasetVersions) || !Array.isArray(manifest.artifacts)) continue;
+            backups.push({ id: entry.name, createdAt: manifest.createdAt, datasetVersions: manifest.datasetVersions.length, artifacts: manifest.artifacts.length });
+        } catch { /* Incomplete or malformed bundles are not offered as restore candidates. */ }
+    }
+    return backups.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 export function createDashboardServer(rootDirectory = dashboardRoot, options = {}) {
     const root = realpathSync(resolve(rootDirectory));
     const database = options.databasePath ? new WorkspaceDatabase(options.databasePath) : null;
-    const backtestWorkspace = options.backtestWorkspace ?? null;
+    let backtestWorkspace = options.backtestWorkspace ?? null;
+    const backtestBackupDirectory = options.backtestBackupDirectory ?? null;
+    const createBacktestBackup = options.createBacktestBackup ?? ((destination) => backtestWorkspace.createBackup(destination));
+    const restoreBacktestBackup = options.restoreBacktestBackup ?? null;
     const server = createServer(async (request, response) => {
         for (const [name, value] of Object.entries(securityHeaders)) {
             response.setHeader(name, value);
@@ -141,6 +166,35 @@ export function createDashboardServer(rootDirectory = dashboardRoot, options = {
                 } catch (error) {
                     sendJson(response, Number.isInteger(error?.statusCode) ? error.statusCode : 400, { error: error instanceof Error ? error.message : 'CSV import failed validation.' });
                 }
+                return;
+            }
+            if (pathname === '/api/v1/backtesting/backups' && request.method === 'GET') {
+                try { sendJson(response, 200, { backups: await listManagedBackups(backtestBackupDirectory) }); }
+                catch { sendJson(response, 500, { error: 'Managed backup catalog could not be read.' }); }
+                return;
+            }
+            if (pathname === '/api/v1/backtesting/backup' && request.method === 'POST') {
+                if (!backtestBackupDirectory) { sendJson(response, 503, { error: 'Managed backup storage is not configured.' }); return; }
+                if (!isAbsolute(backtestBackupDirectory)) { sendJson(response, 500, { error: 'Managed backup directory must be absolute.' }); return; }
+                try {
+                    const id = 'backup-' + Date.now() + '-' + randomUUID();
+                    const result = await createBacktestBackup(join(backtestBackupDirectory, id));
+                    sendJson(response, 201, { backup: { id, createdAt: new Date().toISOString(), datasetVersions: result.datasetVersions, artifacts: result.artifacts, artifactBytes: result.artifactBytes, catalogSha256: result.catalogSha256 } });
+                } catch { sendJson(response, 500, { error: 'A verified, non-overwriting historical dataset backup could not be created.' }); }
+                return;
+            }
+            if (pathname === '/api/v1/backtesting/restore' && request.method === 'POST') {
+                if (!backtestBackupDirectory || !restoreBacktestBackup) { sendJson(response, 503, { error: 'Safe managed restore is not configured.' }); return; }
+                try {
+                    const body = await readJsonRequest(request, 16 * 1024);
+                    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).join(',') !== 'backupId' || typeof body.backupId !== 'string' || !BACKTEST_BACKUP_ID.test(body.backupId)) {
+                        sendJson(response, 400, { error: 'Restore requires one valid managed backup ID.' }); return;
+                    }
+                    const available = await listManagedBackups(backtestBackupDirectory);
+                    if (!available.some((item) => item.id === body.backupId)) { sendJson(response, 404, { error: 'Managed backup was not found or is incomplete.' }); return; }
+                    const restored = await restoreBacktestBackup(body.backupId);
+                    sendJson(response, 201, { restore: restored });
+                } catch { sendJson(response, 400, { error: 'Backup validation or non-overwriting restore failed. Existing datasets were not overwritten.' }); }
                 return;
             }
             sendJson(response, 404, { error: 'Unknown local backtesting endpoint.' }); return;
@@ -285,11 +339,27 @@ export async function startDashboardServer(options = {}) {
     const databasePath = options.databasePath ?? resolveDatabasePath();
     const output = options.output ?? process.stdout;
     let backtestWorkspace = options.backtestWorkspace ?? null;
+    let backtestBackupDirectory = options.backtestBackupDirectory ?? null;
+    let createBacktestBackup = options.createBacktestBackup ?? null;
+    let restoreBacktestBackup = options.restoreBacktestBackup ?? null;
     if (!backtestWorkspace && process.env['PFO_BACKTESTING_ENABLED'] === 'true') {
-        const { BacktestDatasetWorkspace } = await import('../../packages/backtesting/dist/index.js');
+        const { BacktestDatasetWorkspace, resolveBacktestStoragePaths } = await import('../../packages/backtesting/dist/index.js');
+        const storagePaths = resolveBacktestStoragePaths();
         backtestWorkspace = BacktestDatasetWorkspace.open();
+        const configuredBackupDirectory = process.env['PFO_BACKTEST_BACKUP_DIRECTORY'];
+        if (configuredBackupDirectory !== undefined && !isAbsolute(configuredBackupDirectory)) { backtestWorkspace.close(); throw new Error('PFO_BACKTEST_BACKUP_DIRECTORY must be an absolute path.'); }
+        backtestBackupDirectory = backtestBackupDirectory ?? configuredBackupDirectory ?? join(dirname(storagePaths.artifactDirectory), 'backtesting-backups');
+        createBacktestBackup = createBacktestBackup ?? ((destination) => backtestWorkspace.createBackup(destination));
+        restoreBacktestBackup = restoreBacktestBackup ?? (async (backupId) => {
+            const generationId = randomUUID();
+            const catalogPath = join(dirname(storagePaths.catalogPath), '..', 'backtesting-catalog-restores', generationId, 'catalog.sqlite');
+            const artifactDirectory = join(dirname(storagePaths.artifactDirectory), 'backtesting-artifact-restores', generationId);
+            const restored = await BacktestDatasetWorkspace.restoreBackup(join(backtestBackupDirectory, backupId), { env: { ...process.env, PFO_BACKTEST_CATALOG_PATH: catalogPath, PFO_BACKTEST_ARTIFACT_DIRECTORY: artifactDirectory } });
+            try { const integrity = await restored.checkIntegrity(); if (!integrity.ok) throw new Error('Restored candidate failed its final integrity check.'); } finally { restored.close(); }
+            return { backupId, catalogPath, artifactDirectory, verified: true, powershell: '$env:PFO_BACKTEST_CATALOG_PATH = ' + JSON.stringify(catalogPath) + '; $env:PFO_BACKTEST_ARTIFACT_DIRECTORY = ' + JSON.stringify(artifactDirectory) + '; $env:PFO_BACKTESTING_ENABLED = "true"; pnpm dashboard:serve', bash: 'export PFO_BACKTEST_CATALOG_PATH=' + JSON.stringify(catalogPath) + ' PFO_BACKTEST_ARTIFACT_DIRECTORY=' + JSON.stringify(artifactDirectory) + ' PFO_BACKTESTING_ENABLED=true && pnpm dashboard:serve' };
+        });
     }
-    const server = createDashboardServer(rootDirectory, { databasePath, backtestWorkspace });
+    const server = createDashboardServer(rootDirectory, { databasePath, backtestWorkspace, backtestBackupDirectory, createBacktestBackup, restoreBacktestBackup });
 
     server.on('error', (error) => {
         output.write(`PFO dashboard server failed: ${error instanceof Error ? error.message : String(error)}\n`);
