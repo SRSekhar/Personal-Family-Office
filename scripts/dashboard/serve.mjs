@@ -359,8 +359,8 @@ export async function startDashboardServer(options = {}) {
             const quotePowerShell = (value) => "'" + value.replaceAll("'", "''") + "'";
             const quoteBash = (value) => "'" + value.replaceAll("'", "'\\''") + "'";
             return { backupId, catalogPath, artifactDirectory, verified: true,
-                powershell: '$env:PFO_BACKTEST_CATALOG_PATH = ' + quotePowerShell(catalogPath) + '; $env:PFO_BACKTEST_ARTIFACT_DIRECTORY = ' + quotePowerShell(artifactDirectory) + '; $env:PFO_BACKTESTING_ENABLED = "true"; pnpm dashboard:serve',
-                bash: 'export PFO_BACKTEST_CATALOG_PATH=' + quoteBash(catalogPath) + ' PFO_BACKTEST_ARTIFACT_DIRECTORY=' + quoteBash(artifactDirectory) + ' PFO_BACKTESTING_ENABLED=true && pnpm dashboard:serve' };
+                powershell: '$env:PFO_BACKTEST_CATALOG_PATH = ' + quotePowerShell(catalogPath) + '; $env:PFO_BACKTEST_ARTIFACT_DIRECTORY = ' + quotePowerShell(artifactDirectory) + '; $env:PFO_BACKTEST_BACKUP_DIRECTORY = ' + quotePowerShell(backtestBackupDirectory) + '; $env:PFO_BACKTESTING_ENABLED = "true"; pnpm dashboard:serve',
+                bash: 'export PFO_BACKTEST_CATALOG_PATH=' + quoteBash(catalogPath) + ' PFO_BACKTEST_ARTIFACT_DIRECTORY=' + quoteBash(artifactDirectory) + ' PFO_BACKTEST_BACKUP_DIRECTORY=' + quoteBash(backtestBackupDirectory) + ' PFO_BACKTESTING_ENABLED=true && pnpm dashboard:serve' };
         });
     }
     const server = createDashboardServer(rootDirectory, { databasePath, backtestWorkspace, backtestBackupDirectory, createBacktestBackup, restoreBacktestBackup });
