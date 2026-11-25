@@ -514,3 +514,14 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Catalog display uses persisted observation count, source byte length, import timestamp and raw/normalized SHA-256 digests.
 - Verification on final implementation head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159 passed (lint, typecheck, package build, 105 test files / 982 tests, synthetic 10,000-observation storage benchmark and both Chromium smoke tests); Secret Scan #1955 passed; dashboard packaging/deploy workflow #1242 passed.
 - No provider, live/historical network download, simulator, strategy execution, broker, order routing, backtest-run persistence or household-ledger mutation. PR #458 remains draft/open/unmerged.
+
+
+## 2026-11-25 — IPM-08.4 managed backup and restore controls
+
+- Added local dashboard endpoints and controls to create verified, non-overwriting historical dataset backups and list managed backup manifests.
+- Default backup root is `backtesting-backups` beside the active artifact directory; optional `PFO_BACKTEST_BACKUP_DIRECTORY` override must be absolute. Storage enforces repository and active-store separation before creating the bundle.
+- Added managed restore action that accepts only generated backup IDs (never browser filesystem paths), validates the backup through the existing manifest/catalog/artifact digest checks, and restores to fresh generated catalog/artifact paths.
+- Restore is deliberately a verified candidate, not an automatic activation: existing active datasets are not overwritten. UI displays PowerShell/Bash environment commands to start a new dashboard session against the candidate.
+- CI #2160 passed on `e550989da792fdd1179cb93098add8a575d7ef0e`: 105 test files / 984 tests, lint, typecheck, build, synthetic 10,000-observation storage benchmark and both Chromium smoke tests. Secret Scan #1956 passed; dashboard packaging/deploy #1243 passed.
+- Benchmark on Node v22.23.5 Linux x64 (synthetic only): 10,000 observations; import 712.61 ms (14,033 observations/s), load 333.30 ms, integrity 333.27 ms, backup 395.64 ms. Single CI runner measurement, not SLA.
+- No automatic retention/deletion, no active-store replacement, no market data provider, simulator, broker or household-ledger integration. PR #458 remains draft/open/unmerged.

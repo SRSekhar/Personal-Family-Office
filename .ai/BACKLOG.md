@@ -922,3 +922,16 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - [ ] Decide and implement reviewed data-retention/licensing policy before any automated purge; source artifacts remain immutable and are never automatically deleted.
 - [ ] Review host-specific filesystem permission hardening and private local-server threat model before exposing this service beyond loopback.
 - [ ] Future separate scope: market data provider selection, strategy simulator, bitemporal per-decision projection, execution/fill model and run persistence. No authorization is implied by dataset UI completion.
+
+
+## 2026-11-25 — IPM-08.4 completed
+
+- [x] Add managed local historical-dataset backup creation with unique non-overwriting bundle paths.
+- [x] List complete managed backup manifests in the dashboard; malformed/incomplete manifests are not presented as restore choices.
+- [x] Add restore by managed backup ID only; never accept browser-supplied filesystem paths.
+- [x] Restore to new, isolated catalog and artifact paths and run final integrity verification; never overwrite or auto-switch the active store.
+- [x] Display restart commands for PowerShell and Bash to opt into the verified restore candidate.
+- [x] Verify head `e550989da792fdd1179cb93098add8a575d7ef0e`: CI #2160 (105 files / 984 tests), Secret Scan #1956 and dashboard deploy #1243 all passed.
+- [ ] Add a reviewed retention and backup-pruning policy; no backups are automatically deleted.
+- [ ] Consider a one-click activation workflow only after explicit confirmation and a crash-safe catalog/artifact swap design.
+- [ ] Add end-to-end browser tests for backup creation and restore candidate presentation.

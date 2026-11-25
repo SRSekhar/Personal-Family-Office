@@ -778,3 +778,12 @@ Remaining future scope: in-kind contributions/withdrawals and corporate actions 
 - Catalog list renders persisted counts and both SHA-256 evidence digests.
 - Final head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159, Secret Scan #1955, dashboard package/deploy #1242 all passed; 105 test files / 982 tests.
 - Follow-up: retention/licensing and filesystem permission/threat-model review; keep provider and simulator work gated on explicit decisions.
+
+
+## IPM-08.4 — managed backup and restore controls (completed 2026-11-25)
+
+- Added local API/UI to create verified non-overwriting dataset backups and list managed bundles.
+- Added restore by generated backup ID only; restore validates catalog, manifest and artifacts, and writes to fresh isolated catalog/artifact paths.
+- Restore is a candidate only; active datasets are untouched. UI provides PowerShell/Bash commands to start against the restored candidate.
+- CI #2160 passed (105 test files / 984 tests); Secret Scan #1956 and dashboard deploy #1243 passed on `e550989da792fdd1179cb93098add8a575d7ef0e`.
+- Next: browser end-to-end coverage, retention policy, and carefully reviewed candidate activation design. No auto-deletion or auto-activation.

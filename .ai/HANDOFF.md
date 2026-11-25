@@ -48,3 +48,25 @@ Current branch `feature/ipm-08-backtesting-contracts`, PR #458 (draft/open/unmer
 - No authentication/session layer was added; server binds to loopback and API checks local host/origin/fetch-site. Do not expose on LAN/public interfaces without a separately reviewed security design.
 - Next gated decisions: retention/licensing, filesystem permissions, instrument universe, calendar evidence, corporate actions, execution/cost assumptions and point-in-time per-decision engine requirements.
 - Do not merge PR #458 or mark ready without user approval; remaining design assumptions are not approved.
+
+
+## Handoff — 2026-11-25 (IPM-08.4)
+
+Branch `feature/ipm-08-backtesting-contracts`, PR #458 remains draft/open/unmerged. Backup/restore implementation head: `e550989da792fdd1179cb93098add8a575d7ef0e`.
+
+### Delivered
+- Dashboard creates verified immutable backup bundles under a managed local backup directory and lists their manifests.
+- Restore accepts only a generated managed backup ID, validates full bundle/catalog/artifact consistency through `BacktestDatasetWorkspace.restoreBackup`, and writes a new isolated catalog/artifact generation.
+- Restore never overwrites the active catalog and does not auto-activate the candidate. UI returns exact PowerShell/Bash environment commands for restarting against the restored paths.
+- `PFO_BACKTEST_BACKUP_DIRECTORY` optionally selects an absolute backup root; default is sibling `backtesting-backups` beside the active artifact directory.
+
+### Verification
+- CI #2160 passed: lint, typecheck, build, 105 test files / 984 tests, synthetic storage benchmark, both Chromium smoke tests.
+- Secret Scan #1956 passed; dashboard packaging/deploy #1243 passed.
+- Synthetic 10k benchmark: import 712.61 ms / 14,033 obs/s; load 333.30 ms; integrity 333.27 ms; backup 395.64 ms. One CI-runner observation only.
+
+### Next / safety boundaries
+- Add end-to-end browser coverage for the new controls; current browser smoke checks are the existing FIRE and statement-reconciliation checks.
+- Define retention/licensing and backup pruning before any automated deletion.
+- A verified restore candidate is separate from active storage. Do not add automatic activation without a crash-safe generation switch and explicit user confirmation.
+- Keep provider, simulator, broker and ledger mutation out of scope. Keep PR #458 draft/unmerged absent user approval.
