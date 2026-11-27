@@ -1,5 +1,29 @@
 # Product Backlog
 
+## 2026-11-24 — IPM-08.3 explicit local dataset-management workflow
+
+- [x] Add explicit `BacktestDatasetWorkspace.open()` initialization using OS-resolved paths; no dashboard-startup auto-initialization.
+- [x] Add a byte-preserving UTF-8 CSV import workflow with explicit metadata, size guard, canonical parser and persisted immutable source evidence.
+- [x] Expose list, verified load, integrity report, standalone backup, and non-overwriting restore through one host-facing library boundary.
+- [x] Add tests for initialization/import/list/load/integrity, malformed UTF-8, NSE-only rejection, backup/restore round-trip, destination non-overwrite and path separation.
+- [x] Verify implementation head `097d3e7ef43a1ee091011429c43b6adbd2afb56e`: CI #2153 and Secret Scan #1949 passed — lint, typecheck, build, 105 test files / 979 tests, synthetic benchmark and both Chromium browser smoke tests.
+- [ ] Build authenticated private dashboard routes and safe browser upload/file-picker integration; no arbitrary filesystem paths from browser input.
+- [ ] Define retention/licensing policy before implementing any deletion or expiry behavior.
+- PR #458 remains draft/open/unmerged; no household-ledger mutation, provider or simulator integration.
+
+## 2026-11-22 — IPM-08.2 storage hardening and verification
+
+- [x] Enforce database-level append-only semantics for source-artifact, dataset-version and normalized-observation rows with SQLite UPDATE/DELETE triggers; cover all six forbidden mutation paths and retain a deliberate guard-bypass corruption test.
+- [x] Add deterministic interruption/recovery tests for import transaction interruption, orphan-artifact detection after reopen, backup staging cleanup and restore publication rollback. These are injected software fault boundaries, not physical power-loss certification.
+- [x] Enforce fail-closed resource ceilings: 64 MiB source CSV, 1,000,000 observations per dataset, 16 MiB backup manifest, 512 MiB backup catalog, 100,000 artifacts/versions, 64 MiB per source artifact and 2 GiB aggregate backup artifacts.
+- [x] Add a synthetic 10,000-observation storage benchmark and run it in CI; configurable fixture range is 1–100,000 observations.
+- [x] Verify latest implementation head `38f9b6c934ad11a764c810b7671e650b873c03b5`: CI #2134 and Secret Scan #1929 passed. CI passed lint, typecheck, package build, automated tests, synthetic benchmark and both Chromium browser smoke tests.
+- Benchmark sample from CI #2134 (Node v22.23.5, Linux x64; synthetic fixture only): 10,000 observations / 1,340,007 source bytes; import 739.51 ms (13,522 observations/s); reload 324.32 ms; integrity check 338.26 ms (ok); backup 383.59 ms / 1,340,007 bytes. These are one CI-runner measurement, not a production SLA or representative market-data performance claim.
+- [ ] Resolve retention/licensing policy. Do not auto-delete source evidence; define retention only after license/contract obligations are known.
+- [x] Define OS-aware host catalog/artifact path configuration. Keep the backtesting catalog separate from the household workspace database and backup snapshot.
+- [ ] Integrate the explicit dataset workflow into authenticated host routes and define coordinated operator backup procedures without coupling the catalog to household snapshots.
+- PR #458 remains draft/open/unmerged on `feature/ipm-08-backtesting-contracts`. No provider, real market data, simulator, broker or household-ledger mutation is included.
+
 ## Next Epic — IPM-08 Point-in-Time Backtesting and Paper Portfolio
 
 ### IPM-08.1 — Architecture and domain contracts
@@ -877,3 +901,37 @@ No in-kind flows, corporate actions, thresholds, alerts, scores, recommendations
 - Browser smoke verifies report downloads and private/demo isolation in addition to JSON/SQLite persistence.
 - CI #1889, Secret Scan #1683 and dashboard packaging #1125 passed on `06b0c14bdef50f8550a92e67167a0e00bdd68b2c`.
 - Only future scope: in-kind flows and corporate actions, pending a separate ledger-model decision.
+
+## IPM-08.2 — Host storage path configuration
+
+- [x] Add exported OS-aware resolver for separate backtesting catalog/artifact paths.
+- [x] Support paired explicit absolute environment overrides and reject partial, empty, relative, overlapping or repository-contained paths.
+- [x] Cover Windows, macOS and Linux defaults with cross-platform tests.
+- [x] Validate final resolver/test changes in PR CI: CI #2145 and Secret Scan #1940 passed on `30f302edcb9db5489657ffcbda776f8d3527d56e`.
+- [ ] Decide retention and license-review lifecycle before implementing any deletion/purge policy.
+
+
+## 2026-11-24 — IPM-08.3 completed
+
+- [x] Wire explicit local dashboard opt-in (`PFO_BACKTESTING_ENABLED=true`) to `BacktestDatasetWorkspace.open()`; leave default startup disabled.
+- [x] Build `@pfo/backtesting` and workspace dependencies before local dashboard startup.
+- [x] Add local-origin-guarded dataset list, integrity and byte-preserving CSV import endpoints with bounded request bodies.
+- [x] Add dataset-management UI: local CSV file picker, explicit metadata JSON, import feedback, dataset catalog listing and integrity check.
+- [x] Correct catalog rendering to display actual stored observation count, source byte size, import time, raw digest and normalized digest.
+- [x] Verify final head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159, Secret Scan #1955 and dashboard packaging/deploy #1242 all passed.
+- [ ] Decide and implement reviewed data-retention/licensing policy before any automated purge; source artifacts remain immutable and are never automatically deleted.
+- [ ] Review host-specific filesystem permission hardening and private local-server threat model before exposing this service beyond loopback.
+- [ ] Future separate scope: market data provider selection, strategy simulator, bitemporal per-decision projection, execution/fill model and run persistence. No authorization is implied by dataset UI completion.
+
+
+## 2026-11-25 — IPM-08.4 completed
+
+- [x] Add managed local historical-dataset backup creation with unique non-overwriting bundle paths.
+- [x] List complete managed backup manifests in the dashboard; malformed/incomplete manifests are not presented as restore choices.
+- [x] Add restore by managed backup ID only; never accept browser-supplied filesystem paths.
+- [x] Restore to new, isolated catalog and artifact paths and run final integrity verification; never overwrite or auto-switch the active store.
+- [x] Display restart commands for PowerShell and Bash to opt into the verified restore candidate.
+- [x] Verify head `e550989da792fdd1179cb93098add8a575d7ef0e`: CI #2160 (105 files / 984 tests), Secret Scan #1956 and dashboard deploy #1243 all passed.
+- [ ] Add a reviewed retention and backup-pruning policy; no backups are automatically deleted.
+- [ ] Consider a one-click activation workflow only after explicit confirmation and a crash-safe catalog/artifact swap design.
+- [ ] Add end-to-end browser tests for backup creation and restore candidate presentation.

@@ -15,9 +15,11 @@ Status: Complete — repository bootstrap and CI are implemented and validated. 
 ## Current Work
 
 - **Sprint 16 / integration complete (2026-11-15):** PRs #453–#457 have been sequentially merged into `main` in dependency order using merge commits. All PR-head CI and Secret Scan checks passed before merge; PR #455 also passed dashboard packaging.
-- **Main HEAD:** `7db56531b353baa45983e88ed0ef54517740c414`. Workspace persistence is schema v13 with 20 collections. The integrated capabilities are flow-adjusted drawdown, performance review and historical comparison, transaction/holdings statement reconciliation, provider-neutral market-data contracts, and evidence-grounded research/AI review.
-- **Latest integration verification:** CI #2018 is running against the final merge commit; Secret Scan #1812 passed. Do not declare the full post-merge regression complete until CI #2018 succeeds.
-- **Next milestone — Sprint 17 / IPM-08:** architecture and acceptance contracts for point-in-time historical backtesting. Define historical evidence, strategy, execution, costs, liquidity, corporate-action and benchmark assumptions, plus look-ahead/survivorship/publication-time bias controls. Start with an ADR and contract tests; do not build the simulation engine until those are agreed.
+- **Main integration merge:** `7db56531b353baa45983e88ed0ef54517740c414`; main closeout HEAD after documentation updates: `db739ff0d38fb0da965fd063de4560c54a85a9f6`. Workspace persistence is schema v13 with 20 collections. The integrated capabilities are flow-adjusted drawdown, performance review and historical comparison, transaction/holdings statement reconciliation, provider-neutral market-data contracts, and evidence-grounded research/AI review.
+- **Latest integration verification:** CI #2025 and Secret Scan #1819 passed on main closeout head `db739ff0d38fb0da965fd063de4560c54a85a9f6`.
+- **Sprint 17–20 / IPM-08 historical dataset foundation:** validated NSE daily CSV contracts, immutable SQLite/artifact persistence, recovery/resource limits, OS-specific path resolution and an explicit local dataset-management workflow are implemented on draft PR #458. The workflow is a library API only; no dashboard route, provider, simulator or real market-data feed is wired. The architecture ADR and acceptance scenarios are in `docs/architecture/ADR-IPM-08-BACKTESTING-ARCHITECTURE.md` and `docs/architecture/IPM-08-BACKTESTING-ACCEPTANCE.md`. The ADR is Proposed; exchange scope, calendar source, corporate-action handling, execution/fill policy, costs and lot-size rules remain unresolved. `@pfo/backtesting` now includes validated contracts, CSV import, immutable SQLite/artifact persistence, host path resolution and an explicit dataset-management library workflow. No simulation engine, provider integration or household workspace schema change has been made.
+- **Latest IPM-08.3 verification:** implementation head `097d3e7ef43a1ee091011429c43b6adbd2afb56e`; CI #2153 and Secret Scan #1949 passed. CI passed lint, typecheck, package build, 105 test files / 979 tests, synthetic storage benchmark and both Chromium browser smoke tests.
+- **Next milestone — private host integration:** design authenticated local dashboard routes and a safe upload/file-selection boundary for the dataset workflow; do not expose arbitrary filesystem paths. Retention/licensing and simulator assumptions remain gated. 
 - **Gated:** no vendor-specific market-data adapter, credentials, outbound network calls, automatic valuation import, broker integration or live order routing. Paper portfolio must remain a separate domain from real investment holdings and transactions.
 - **Privacy and operational limits:** repository is public; synthetic fixtures only. Local SQLite and JSON research exports are not encrypted. Backups/retention remain host-managed; do not commit private household data, statements, credentials or reports.
 
@@ -460,3 +462,66 @@ Operational limitations remain: SQLite files and exports are not encrypted; back
 - Added independent hand-calculated and contract tests in `apps/dashboard/investment-period-comparison.test.js`.
 - No UI, report, schema migration, provider, new market data or private financial data added. CI validation is pending.
 - Next: validate CI, then implement private-only comparison workspace and exports.
+ 
+## 2026-11-21 — IPM-08.1 historical OHLCV CSV ingestion
+
+- Implemented importBacktestDatasetCsv in packages/backtesting/src/csv-import.ts and exported it from @pfo/backtesting.
+- The importer requires the versioned #PFO-BACKTEST-DATASET,1,OHLCV manifest and exact column sequence: startAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId.
+- Instrument identity, interval, currency, adjustment basis, timezone, source/license metadata, dataset recorded-at timestamp, coverage window/status and complete expected-bar schedule are explicit caller inputs. The importer does not infer them from CSV symbols or dates.
+- Computes separate SHA-256 digests for the original source artifact and canonical normalized dataset content. Raw artifact digest preserves line-ending/BOM differences; normalized digest is stable across equivalent line-ending conventions.
+- Missing availability, volume and provider IDs remain absent. A source claiming per-observation point-in-time evidence is rejected if any bar lacks availability evidence.
+- Malformed CSV, unsupported manifest/header, invalid numeric/timestamp fields, duplicate or unsorted bars, impossible OHLC, mixed metadata and incomplete declared coverage fail closed. Input rows are never silently sorted, filled or interpolated.
+- CI #2056 passed on head 05731ffa7f758195aa96da679d05a307d3982180: lint, typecheck, package build, 102 test files / 945 tests, repository bootstrap safety, FIRE planner Chromium smoke and investment statement reconciliation Chromium smoke. Secret Scan #1851 passed on the same head.
+- PR #458 remains draft/open/unmerged. ADR remains Proposed. No engine, provider integration, dataset persistence, schema migration, UI workflow, broker connection or real-ledger mutation has been introduced.
+- Next gate: decide dataset persistence and workspace/backup boundary before adding an import UI or simulation engine. Engine-specific choices (exchange scope, calendar source, corporate actions, execution, costs, tick/lot rules and short/fractional positions) remain unresolved and must not be guessed.
+
+ 
+## 2026-11-21 — IPM-08.2 approved local historical dataset persistence
+
+- User approved the separate SQLite catalog + immutable SHA-256-addressed original CSV artifact architecture, with normalized observations stored as indexed rows in the separate SQLite catalog.
+- Implemented and exported `BacktestDatasetStore` in `packages/backtesting/src/storage.ts`.
+- Catalog is separate from the household workspace DB and requires explicit absolute paths outside the repository and outside each other's directory trees. Directory creation uses private permissions; no household ledger or workspace collection is written.
+- Catalog schema v1 uses strict SQLite tables, foreign keys, WAL and FULL synchronous durability. Dataset ID/version records are append-only through the store API; duplicate versions are rejected. Exact raw artifacts are deduplicated by SHA-256 while separate dataset versions retain distinct provenance.
+- Import verifies exact raw-byte SHA-256, valid UTF-8, re-parses the original CSV against supplied metadata, and confirms it reproduces the normalized semantic digest before catalog insertion. The import is confirmed only after a catalog/source round-trip check.
+- Load verifies the raw artifact digest and byte length, source digest metadata, row count, normalized digest and exact observation equality against a fresh parse of the immutable source CSV. Tampered catalog observations fail closed.
+- Integrity check reports missing/corrupt artifacts, catalog/foreign-key/observation mismatches, orphan artifacts and staging residue. It never auto-deletes orphan/staging files.
+- Added verified standalone backup bundles using the Node SQLite online-backup API, with catalog SHA-256, dataset manifest and copies of every referenced artifact. Restore validates manifest/catalog/artifact consistency in staging, publishes artifacts before the catalog, refuses existing destinations, and performs a final integrity check.
+- Added storage tests for round-trip persistence, provenance-preserving artifact deduplication, immutable-version rejection, source mismatch, row tampering, missing/orphan artifacts, backup verification, successful restore and incomplete-bundle rejection.
+- Latest implementation head: `8b824466be22b5155d9c2053083eccdd24d9e6bf`. CI #2121 passed: bootstrap safety, lint, typecheck, package build, unit tests, FIRE planner Chromium smoke and investment statement reconciliation Chromium smoke. Secret Scan #1916 passed.
+- PR #458 remains draft/open/unmerged. No provider, market-data downloads, simulator, strategy runner, broker integration, live orders, workspace schema migration or real investment-ledger mutation.
+- Remaining storage release gates: database-level append-only enforcement, crash-injection at filesystem/SQLite boundaries, resource/size limits, measured performance baselines, explicit retention/license policy and default application path/configuration. No performance claim is made yet.
+- Next dependency order: finish storage hardening/benchmark acceptance, then design a private import/backup UI; separately resolve calendar source, corporate actions, execution/fill assumptions, costs, tick/lot and position constraints before any simulator.
+
+
+## Sprint 19 — Host-side backtesting storage path resolution (2026-11-22)
+
+- Added and exported `resolveBacktestStoragePaths()` from `@pfo/backtesting`.
+- Defaults: Windows uses `LOCALAPPDATA` (or `~/AppData/Local`); macOS uses `~/Library/Application Support`; Linux/other Unix uses absolute `XDG_DATA_HOME` or `~/.local/share`. Catalog and artifact directories are sibling roots.
+- Explicit overrides are `PFO_BACKTEST_CATALOG_PATH` and `PFO_BACKTEST_ARTIFACT_DIRECTORY`; both are mandatory together, non-empty and absolute. Platform data-root environment variables must also be absolute when set.
+- Resolver rejects repository-contained paths and overlapping catalog/artifact directory trees, mirroring the store's independent path guard.
+- Added cross-platform resolver tests for Windows, macOS, Linux, overrides, partial/relative/empty configuration, repository containment and nested paths.
+- Resolver only returns configuration. It does not create directories, instantiate SQLite, start storage on dashboard boot, or integrate with household backups.
+- Code commits: `1a08472e1366dca478318466f0167eddb206d21a` and `82079c038317799f86a881a74c69d8254f309d88`; relative LOCALAPPDATA/XDG_DATA_HOME validation is included in the verified final resolver head.
+- Retention/licensing policy remains deliberately unresolved; no source artifact deletion or invented license terms.
+
+
+## 2026-11-24 — IPM-08.3 local dashboard dataset workflow
+
+- Added explicit `PFO_BACKTESTING_ENABLED=true` startup opt-in for the separate historical-data SQLite catalog; default dashboard startup remains disabled.
+- `pnpm dashboard:serve` builds `@pfo/backtesting` and its workspace dependencies before server startup.
+- Added local-origin-guarded dataset list, integrity and strict base64 CSV import endpoints. Import request body is bounded for the 64 MiB source limit plus JSON/base64 overhead.
+- Added a dashboard dataset-management panel with local CSV file selection, explicit metadata JSON, import status, persisted dataset listing and integrity check. Metadata template placeholders are labelled as examples and not market evidence.
+- Catalog display uses persisted observation count, source byte length, import timestamp and raw/normalized SHA-256 digests.
+- Verification on final implementation head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159 passed (lint, typecheck, package build, 105 test files / 982 tests, synthetic 10,000-observation storage benchmark and both Chromium smoke tests); Secret Scan #1955 passed; dashboard packaging/deploy workflow #1242 passed.
+- No provider, live/historical network download, simulator, strategy execution, broker, order routing, backtest-run persistence or household-ledger mutation. PR #458 remains draft/open/unmerged.
+
+
+## 2026-11-25 — IPM-08.4 managed backup and restore controls
+
+- Added local dashboard endpoints and controls to create verified, non-overwriting historical dataset backups and list managed backup manifests.
+- Default backup root is `backtesting-backups` beside the active artifact directory; optional `PFO_BACKTEST_BACKUP_DIRECTORY` override must be absolute. Storage enforces repository and active-store separation before creating the bundle.
+- Added managed restore action that accepts only generated backup IDs (never browser filesystem paths), validates the backup through the existing manifest/catalog/artifact digest checks, and restores to fresh generated catalog/artifact paths.
+- Restore is deliberately a verified candidate, not an automatic activation: existing active datasets are not overwritten. UI displays PowerShell/Bash environment commands to start a new dashboard session against the candidate.
+- CI #2160 passed on `e550989da792fdd1179cb93098add8a575d7ef0e`: 105 test files / 984 tests, lint, typecheck, build, synthetic 10,000-observation storage benchmark and both Chromium smoke tests. Secret Scan #1956 passed; dashboard packaging/deploy #1243 passed.
+- Benchmark on Node v22.23.5 Linux x64 (synthetic only): 10,000 observations; import 712.61 ms (14,033 observations/s), load 333.30 ms, integrity 333.27 ms, backup 395.64 ms. Single CI runner measurement, not SLA.
+- No automatic retention/deletion, no active-store replacement, no market data provider, simulator, broker or household-ledger integration. PR #458 remains draft/open/unmerged.

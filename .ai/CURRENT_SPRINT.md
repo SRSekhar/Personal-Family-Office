@@ -1,4 +1,47 @@
+## Sprint 20 — IPM-08.3 explicit local dataset-management workflow (complete and verified, 2026-11-24)
+
+- Added `BacktestDatasetWorkspace` as a single explicit host-facing library API for opening the dedicated local catalog, importing exact UTF-8 CSV bytes with explicit metadata, listing immutable versions, verified loading, integrity checks, standalone backup and non-overwriting restore.
+- Import snapshots the input bytes and enforces the existing 64 MiB ceiling before decode/parse; malformed UTF-8 and non-NSE data fail closed.
+- Added tests for workflow initialization/import/list/load/integrity, malformed UTF-8, BSE rejection, backup/restore round-trip, no-overwrite and path separation.
+- This does not add dashboard auto-initialization, HTTP routes, browser file-picker, arbitrary filesystem path exposure, providers, real market data or simulator execution.
+- CI #2153 and Secret Scan #1949 passed on exact implementation head `097d3e7ef43a1ee091011429c43b6adbd2afb56e`. Lint, typecheck, package build, 105 test files / 979 tests, synthetic benchmark and both Chromium browser smoke tests passed.
+
+## Sprint 19 — IPM-08.2 host storage path resolution (complete and verified, 2026-11-22)
+
+- Added `resolveBacktestStoragePaths()` with OS-aware defaults for Windows, macOS and Linux/Unix.
+- Added paired explicit environment overrides; rejects incomplete, empty, relative, repository-contained and overlapping paths.
+- Added cross-platform unit tests and package README guidance. Resolver does not initialize storage or change dashboard startup/household backup.
+- Latest resolver code includes explicit rejection of relative LOCALAPPDATA/XDG_DATA_HOME values. CI #2145 and Secret Scan #1940 passed on exact code head `30f302edcb9db5489657ffcbda776f8d3527d56e`; lint, typecheck, build, all 974 tests, synthetic benchmark and both Chromium smoke tests passed.
+- Retention/licensing policy remains open; no purge or auto-delete behavior.
+
 # Current Sprint
+
+## Sprint 18 — IPM-08.2 storage recovery, resource boundaries and benchmark (verified 2026-11-22)
+
+**Implementation delivered:**
+1. **Interruption/recovery:** deterministic fault points cover import after artifact publication and before SQLite commit, backup before publication, and restore after artifact-tree publication but before catalog publication. Tests reopen the catalog after an interrupted import and verify that no dataset rows leak into the catalog, the immutable source remains discoverable as an orphan, backup staging is cleaned, and incomplete restore publication is rolled back. These are injected software fault simulations, not physical power-loss testing.
+2. **Resource limits:** import rejects CSVs over 64 MiB and datasets over 1,000,000 observations before parsing/validation work. Backup/restore enforce 16 MiB manifests, 512 MiB catalogs, 100,000 artifacts/versions, 64 MiB per source artifact and 2 GiB aggregate artifact bytes. Limits fail closed; data is never truncated.
+3. **Benchmark harness:** synthetic 10,000-row default benchmark measures import throughput, reload, integrity verification and backup; row count is configurable up to 100,000. CI runs the benchmark on each PR. Results are environment-specific and not a production throughput guarantee.
+4. **CI correction:** fixed Node globals in ESLint configuration and normalized a type-only import in storage tests. These changes removed the CI failures encountered during the first benchmark-enabled run.
+
+**Verified implementation head:** `38f9b6c934ad11a764c810b7671e650b873c03b5`.
+- CI #2134: **passed** — lint, typecheck, package build, automated tests, benchmark and both Chromium browser smoke tests.
+- Secret Scan #1929: **passed**.
+
+**Observed synthetic benchmark sample from CI #2134** (Node v22.23.5, Linux x64): 10,000 observations; source CSV 1,340,007 bytes; import 739.51 ms (13,522 observations/s); reload 324.32 ms; integrity check 338.26 ms (ok); backup 383.59 ms / 1,340,007 bytes. This is one CI-runner sample only, not an SLA or representative market-data performance claim.
+
+**Remaining:** retention/licensing policy and host application catalog/artifact path configuration. No automatic deletion of source evidence. Keep the dataset catalog and immutable artifacts separate from the household workspace database and backup snapshot. PR #458 remains draft/open/unmerged.
+
+**Scope guardrails:** NSE daily OHLCV only. BSE and intraday deferred. No real market data, provider, simulation engine, broker, live orders or household-ledger mutation.
+
+## Sprint 17 — IPM-08.2 historical dataset storage hardening (2026-11-22)
+
+- Added SQLite-level append-only enforcement for source-artifact records, dataset-version records and normalized OHLCV observations. UPDATE and DELETE are rejected by database triggers even when a caller bypasses the TypeScript store API.
+- Added regression coverage for all six mutation paths. The deliberate catalog-tampering test now drops only its observation-update guard to verify that load/integrity checks still detect offline corruption.
+- Commit: `1dec6e58a070a02928fcbf1ec4534568423f700b`.
+- Secret Scan #1920 passed. CI #2125 is still running on this exact code head; do not claim full validation until it completes.
+- Still outstanding: crash-boundary injection/recovery tests, resource limits, measured performance, retention/licensing policy and application path/configuration. No simulator, provider, real market data or household-ledger mutation.
+
 
 ## Sprint 16 — Integration and consolidation (2026-11-15)
 
@@ -725,3 +768,22 @@ Remaining future scope: in-kind contributions/withdrawals and corporate actions 
 - Added independent tests for hand-calculated +25% and -10% endpoint returns, chronology/overlap, unavailable periods, mismatched provenance, malformed wealth-index values, calendar metadata and duplicate labels.
 - This is the pure calculation/contract layer only. No UI, exports, schema, migration or actual financial data was added. CI is required to validate the pushed code.
 - Next: inspect CI results, correct any issues, then add private-only period comparison workflow and safe HTML/CSV exports using the existing drawdown workspace patterns.
+
+
+## IPM-08.3 — local dashboard dataset workflow (completed 2026-11-24)
+
+- Explicit `PFO_BACKTESTING_ENABLED=true` opt-in initializes the separate catalog; disabled by default.
+- Local list/integrity/import API plus CSV file-picker UI and explicit metadata JSON delivered.
+- Request-size limit aligned with 64 MiB CSV cap and base64 envelope.
+- Catalog list renders persisted counts and both SHA-256 evidence digests.
+- Final head `265178639eb4d0d81a753da5ec883a743a273afe`: CI #2159, Secret Scan #1955, dashboard package/deploy #1242 all passed; 105 test files / 982 tests.
+- Follow-up: retention/licensing and filesystem permission/threat-model review; keep provider and simulator work gated on explicit decisions.
+
+
+## IPM-08.4 — managed backup and restore controls (completed 2026-11-25)
+
+- Added local API/UI to create verified non-overwriting dataset backups and list managed bundles.
+- Added restore by generated backup ID only; restore validates catalog, manifest and artifacts, and writes to fresh isolated catalog/artifact paths.
+- Restore is a candidate only; active datasets are untouched. UI provides PowerShell/Bash commands to start against the restored candidate.
+- CI #2160 passed (105 test files / 984 tests); Secret Scan #1956 and dashboard deploy #1243 passed on `e550989da792fdd1179cb93098add8a575d7ef0e`.
+- Next: browser end-to-end coverage, retention policy, and carefully reviewed candidate activation design. No auto-deletion or auto-activation.

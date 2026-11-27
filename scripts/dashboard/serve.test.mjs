@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 /* global fetch */
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { once } from 'node:events';
@@ -281,5 +282,79 @@ describe('verified online SQLite backup API', () => {
         const response = await fetch(`${origin}/api/v1/database/backup`, { method: 'POST' });
         expect(response.status).toBe(500);
         expect((await response.json()).error).toContain('verified online SQLite backup could not be created');
+    });
+});
+
+describe('explicit local backtesting dataset API', () => {
+ it('keeps backtesting disabled unless explicitly injected', async () => {
+  const origin=await startServer(await createRoot());
+  expect((await fetch(`${origin}/api/v1/backtesting/datasets`)).status).toBe(503);
+ });
+ it('lists, checks integrity and imports byte-preserving CSV through the injected workspace', async () => {
+  const calls=[];
+  const workspace={listDatasets:()=>[{id:'fixture',version:1}],checkIntegrity:async()=>({ok:true}),importCsv:async(bytes,metadata)=>{calls.push({csv:Buffer.from(bytes).toString('utf8'),metadata});return {id:metadata.id,version:metadata.version};},close:()=>{}};
+  const origin=await startServer(await createRoot(),{backtestWorkspace:workspace});
+  expect((await (await fetch(`${origin}/api/v1/backtesting/datasets`)).json()).datasets).toHaveLength(1);
+  expect((await fetch(`${origin}/api/v1/backtesting/integrity`)).status).toBe(200);
+  const metadata={id:'fixture',version:1};
+  const response=await fetch(`${origin}/api/v1/backtesting/import`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csvBase64:Buffer.from("#PFO-BACKTEST-DATASET,1,OHLCV\\nstartAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId\\n2026-01-01T00:00:00.000Z,2026-01-01T10:00:00.000Z,100,105,99,103,1000,,2026-01-02T00:00:00.000Z,").toString('base64'),metadata})});
+  expect(response.status).toBe(201);
+  expect(await response.json()).toMatchObject({dataset:{id:'fixture',version:1}});
+  expect(calls).toEqual([{csv:"#PFO-BACKTEST-DATASET,1,OHLCV\\nstartAt,endAt,open,high,low,close,volume,availableAt,recordedAt,providerInstrumentId\\n2026-01-01T00:00:00.000Z,2026-01-01T10:00:00.000Z,100,105,99,103,1000,,2026-01-02T00:00:00.000Z,",metadata}]);
+ });
+ it('rejects cross-origin and malformed base64 uploads', async () => {
+  const workspace={listDatasets:()=>[],checkIntegrity:async()=>({ok:true}),importCsv:async()=>{throw new Error('must not run');},close:()=>{}};
+  const origin=await startServer(await createRoot(),{backtestWorkspace:workspace});
+  expect((await fetch(`${origin}/api/v1/backtesting/datasets`,{headers:{Origin:'https://attacker.example'}})).status).toBe(403);
+  const response=await fetch(`${origin}/api/v1/backtesting/import`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csvBase64:'%%%bad%%%',metadata:{}})});
+  expect(response.status).toBe(400);
+ });
+});
+
+describe('managed historical dataset backup and restore API', () => {
+    it('creates managed backups and restores only to a new verified candidate', async () => {
+        const root = await createRoot();
+        const backupDirectory = join(root, '..', 'managed-backups');
+        const workspace = { listDatasets: () => [], checkIntegrity: async () => ({ ok: true }), importCsv: async () => ({}), close: () => {} };
+        const origin = await startServer(root, {
+            backtestWorkspace: workspace,
+            backtestBackupDirectory: backupDirectory,
+            createBacktestBackup: async (destination) => {
+                await mkdir(destination, { recursive: true });
+                await writeFile(join(destination, 'manifest.json'), JSON.stringify({
+                    format: 'PFO-BACKTEST-BACKUP', formatVersion: 1, createdAt: '2026-11-25T00:00:00.000Z',
+                    datasetVersions: [{ dataset_id: 'fixture', version: 1 }], artifacts: [{ digest: 'a'.repeat(64) }]
+                }));
+                return { datasetVersions: 1, artifacts: 1, artifactBytes: 128, catalogSha256: 'b'.repeat(64) };
+            },
+            restoreBacktestBackup: async (backupId) => ({ backupId, verified: true, catalogPath: '/safe/catalog.sqlite', artifactDirectory: '/safe/artifacts' })
+        });
+        const created = await fetch(`${origin}/api/v1/backtesting/backup`, { method: 'POST' });
+        expect(created.status).toBe(201);
+        const backup = (await created.json()).backup;
+        expect(backup.id).toMatch(/^backup-[0-9]{13}-/u);
+        expect(backup).toMatchObject({ datasetVersions: 1, artifacts: 1, catalogSha256: 'b'.repeat(64) });
+        const listed = await (await fetch(`${origin}/api/v1/backtesting/backups`)).json();
+        expect(listed.backups).toHaveLength(1);
+        const restored = await fetch(`${origin}/api/v1/backtesting/restore`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ backupId: backup.id })
+        });
+        expect(restored.status).toBe(201);
+        expect(await restored.json()).toMatchObject({ restore: { backupId: backup.id, verified: true } });
+        const arbitraryPath = await fetch(`${origin}/api/v1/backtesting/restore`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ backupId: '../catalog.sqlite' })
+        });
+        expect(arbitraryPath.status).toBe(400);
+    });
+
+    it('rejects cross-origin backup and restore requests', async () => {
+        const root = await createRoot();
+        const workspace = { listDatasets: () => [], checkIntegrity: async () => ({ ok: true }), importCsv: async () => ({}), close: () => {} };
+        const origin = await startServer(root, {
+            backtestWorkspace: workspace, backtestBackupDirectory: join(root, '..', 'backups'),
+            createBacktestBackup: async () => ({}), restoreBacktestBackup: async () => ({})
+        });
+        const response = await fetch(`${origin}/api/v1/backtesting/backup`, { method: 'POST', headers: { Origin: 'https://attacker.example' } });
+        expect(response.status).toBe(403);
     });
 });
