@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+/* global fetch */
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
 import { once } from 'node:events';
+import process from 'node:process';
 import { createDashboardServer } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
