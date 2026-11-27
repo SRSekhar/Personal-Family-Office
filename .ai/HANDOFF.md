@@ -70,3 +70,26 @@ Branch `feature/ipm-08-backtesting-contracts`, PR #458 remains draft/open/unmerg
 - Define retention/licensing and backup pruning before any automated deletion.
 - A verified restore candidate is separate from active storage. Do not add automatic activation without a crash-safe generation switch and explicit user confirmation.
 - Keep provider, simulator, broker and ledger mutation out of scope. Keep PR #458 draft/unmerged absent user approval.
+
+
+## Handoff — 2026-11-27 (IPM-08.5 browser acceptance)
+
+Branch `feature/ipm-08-backtesting-contracts`, PR #458 remains draft/open/unmerged. Verified implementation head: `0b0f4144bd77e833e8fd61c0b03cd4769bbf4ee3`.
+
+### Delivered
+- Added `scripts/dashboard/backtesting-backup-browser-smoke.mjs` using Playwright/Chromium and an injected synthetic workspace.
+- The browser test opens the real dashboard page, verifies the dataset and empty managed-backup list, creates a managed backup through the UI, verifies the backup card, invokes restore, checks the verified-candidate message and both restart command blocks, and confirms the active dataset list remains unchanged.
+- Verifies a cross-origin restore request is rejected without invoking the restore operation.
+- CI now runs this smoke after the FIRE planner and investment statement reconciliation browser tests.
+
+### Verification on exact head
+- CI #2168: **passed** — lint, typecheck, package build, 105 test files / 984 tests, synthetic storage benchmark, bootstrap safety, and all three Chromium browser smoke tests, including the new backup/restore flow.
+- Secret Scan #1964: **passed**.
+- Dashboard packaging #1251: **passed**.
+
+### Boundaries / next work
+- Test uses synthetic workspace metadata and temporary files; it does not load real market data.
+- Restore remains a candidate and never switches the active catalog. No automated deletion, retention pruning, provider, simulator, broker or household-ledger mutation.
+- Loopback/local-origin checks are not authentication. Do not expose the dashboard beyond loopback without a separately reviewed security design.
+- Next: approve retention/licensing/pruning policy before deletion; separately design crash-safe restore activation and obtain the remaining simulator assumptions.
+- Keep PR #458 draft/open/unmerged absent explicit owner approval.
