@@ -95,7 +95,7 @@ try {
         'the newly-created managed backup should appear in the browser list');
     const backupId = await page.locator('#backtesting-backup-list article strong').innerText();
     assert.match(backupId, /^backup-[0-9]{13}-[0-9a-f-]{36}$/u);
-    assert.match(await page.locator('#backtesting-backup-list article').innerText(), /1 dataset version\(s\).*1 source artifact\(s\)/u);
+    assert.match(await page.locator('#backtesting-backup-list article').innerText(), /1 dataset version\(s\)[\s\S]*1 source artifact\(s\)/u);
 
     const restoreButton = page.locator('#backtesting-backup-list article button');
     assert.equal(await restoreButton.innerText(), 'Validate restore to new location');
